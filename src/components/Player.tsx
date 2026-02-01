@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { ParsedChapter } from '@/lib/epub'
 import { DebugMetrics } from './DebugPanel'
+import { useStore } from '@/store/useStore'
 
 interface PlayerProps {
   bookId: string
@@ -13,7 +14,9 @@ interface PlayerProps {
   onDebugUpdate?: (metrics: DebugMetrics) => void
 }
 
-const BUFFER_SIZE = 3 // Number of sentences to prefetch
+const BUFFER_SIZE = 5 // Number of sentences to prefetch
+const MAX_CONCURRENT_FETCHES = 2 // Limit concurrent TTS requests
+const SPEED_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 
 export function Player({
   bookId,
@@ -29,6 +32,7 @@ export function Player({
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioCache = useRef<Map<string, string>>(new Map())
   const isFetchingRef = useRef<Set<string>>(new Set())
+  const { playbackSpeed, setPlaybackSpeed } = useStore()
   const debugMetricsRef = useRef<DebugMetrics>({
     lastGenTimeMs: null,
     lastCacheStatus: null,
@@ -128,6 +132,9 @@ export function Player({
       if (!chapterData) return
 
       for (let i = 1; i <= BUFFER_SIZE; i++) {
+        // Limit concurrent fetches to avoid overwhelming the backend
+        if (isFetchingRef.current.size >= MAX_CONCURRENT_FETCHES) break
+
         const nextSent = sent + i
         if (nextSent < chapterData.sentences.length) {
           fetchAudio(ch, nextSent, true).catch(() => {})
@@ -136,6 +143,19 @@ export function Player({
     },
     [chapters, fetchAudio]
   )
+
+  // Apply playback speed to audio element
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed
+    }
+  }, [playbackSpeed])
+
+  const cycleSpeed = () => {
+    const currentIndex = SPEED_OPTIONS.indexOf(playbackSpeed)
+    const nextIndex = (currentIndex + 1) % SPEED_OPTIONS.length
+    setPlaybackSpeed(SPEED_OPTIONS[nextIndex])
+  }
 
   const playCurrentSentence = useCallback(async () => {
     setIsLoading(true)
@@ -166,6 +186,7 @@ export function Player({
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio()
+      audioRef.current.playbackRate = playbackSpeed
 
       audioRef.current.onended = () => {
         const chapter = chapters[currentChapter]
@@ -191,7 +212,7 @@ export function Player({
         audioRef.current.pause()
       }
     }
-  }, [chapters, currentChapter, currentSentence, onProgressChange])
+  }, [chapters, currentChapter, currentSentence, onProgressChange, playbackSpeed])
 
   useEffect(() => {
     if (isPlaying) {
@@ -308,6 +329,14 @@ export function Player({
                 d="M9 5l7 7-7 7"
               />
             </svg>
+          </button>
+
+          <button
+            onClick={cycleSpeed}
+            className="ml-2 px-3 py-1 text-sm font-medium rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors min-w-[3rem]"
+            title="Playback speed"
+          >
+            {playbackSpeed}x
           </button>
         </div>
 
