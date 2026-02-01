@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Reader } from '@/components/Reader'
@@ -80,19 +81,7 @@ export default function BookReader() {
   )
 
   // Toggle debug panel with 'D' key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'd' || e.key === 'D') {
-        // Don't toggle if user is typing in an input
-        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
-          return
-        }
-        setShowDebug((prev) => !prev)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  useHotkeys('d', () => setShowDebug((prev) => !prev))
 
   if (loading) {
     return (

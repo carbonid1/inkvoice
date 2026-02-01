@@ -20,6 +20,9 @@ importers:
       react-dom:
         specifier: ^18.3.0
         version: 18.3.1(react@18.3.1)
+      react-hotkeys-hook:
+        specifier: ^5.2.3
+        version: 5.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       zustand:
         specifier: ^4.5.0
         version: 4.5.7(@types/react@18.3.27)(react@18.3.1)
@@ -1189,6 +1192,12 @@ packages:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
     peerDependencies:
       react: ^18.3.1
+
+  react-hotkeys-hook@5.2.3:
+    resolution: {integrity: sha512-Q27F8EuImYJOVSXAjSQrQPj9cx4GSNY+WdSdk5tSNN085H8/a00W6LZp0PrytEDwF6iT0pGTJeVEDKPRpEK2Bg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
@@ -2526,6 +2535,11 @@ snapshots:
       loose-envify: 1.4.0
       react: 18.3.1
       scheduler: 0.23.2
+
+  react-hotkeys-hook@5.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   react-is@17.0.2: {}
 

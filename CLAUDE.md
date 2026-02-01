@@ -1,0 +1,1 @@
+- Use `react-hotkeys-hook` for keyboard shortcuts.

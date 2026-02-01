@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { ParsedChapter } from '@/lib/epub'
 import { DebugMetrics } from './DebugPanel'
 import { useStore } from '@/store/useStore'
@@ -277,6 +278,9 @@ export function Player({
       setIsPlaying(true)
     }
   }
+
+  // Space to toggle play/pause
+  useHotkeys('space', togglePlay, { preventDefault: true })
 
   const skipBack = () => {
     if (currentSentence > 0) {
