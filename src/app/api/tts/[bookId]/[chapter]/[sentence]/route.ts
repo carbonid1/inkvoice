@@ -13,7 +13,7 @@ export async function GET(
 ) {
   try {
     const { bookId, chapter, sentence } = await params
-    const voice = request.nextUrl.searchParams.get('voice') || 'default'
+    const voice = request.nextUrl.searchParams.get('voice') || 'narrator'
 
     const chapterIdx = parseInt(chapter, 10)
     const sentenceIdx = parseInt(sentence, 10)
@@ -72,7 +72,7 @@ export async function GET(
     const response = await fetch(TTS_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, ...(voice !== 'default' && { voice }) }),
+      body: JSON.stringify({ text, voice }),
     })
 
     if (!response.ok) {

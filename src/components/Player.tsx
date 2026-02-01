@@ -64,13 +64,13 @@ export function Player({
   // Build URL for a sentence
   const getTTSUrl = useCallback(
     (ch: number, sent: number) =>
-      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'default')}`,
+      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'narrator')}`,
     [bookId, voice]
   )
 
   // Cache key for tracking prefetches
   const getCacheKey = useCallback(
-    (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'default'}`,
+    (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}`,
     [voice]
   )
 
@@ -161,8 +161,9 @@ export function Player({
 
     fetch(url)
       .then((response) => {
+        // Mark as prefetched regardless of success to avoid infinite retry loop
+        prefetchedRef.current.add(key)
         if (response.ok) {
-          prefetchedRef.current.add(key)
           // Update cache stats from response headers
           const usedBytes = response.headers.get('X-Cache-Used')
           const maxBytes = response.headers.get('X-Cache-Max')
@@ -175,7 +176,8 @@ export function Player({
         }
       })
       .catch(() => {
-        // Ignore prefetch errors
+        // Mark as prefetched to avoid infinite retry loop on network errors
+        prefetchedRef.current.add(key)
       })
       .finally(() => {
         inFlightRef.current.delete(key)

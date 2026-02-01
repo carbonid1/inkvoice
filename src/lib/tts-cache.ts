@@ -18,7 +18,7 @@ interface CacheMetadata {
 }
 
 function getCacheHash(text: string, voice: string): string {
-  const input = `${text.trim()}|${voice || 'default'}`
+  const input = `${text.trim()}|${voice || 'narrator'}`
   return createHash('sha256').update(input).digest('hex')
 }
 

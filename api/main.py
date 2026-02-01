@@ -12,7 +12,7 @@ import torchaudio
 app = FastAPI(title="InkVoice TTS API")
 
 VOICES_DIR = Path(__file__).parent.parent / "data" / "voices"
-DEFAULT_VOICE = "default"
+DEFAULT_VOICE = "narrator"
 
 # Lazy load the model to avoid startup delay
 _model = None
