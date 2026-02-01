@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const genTimeMs = response.headers.get('X-Generation-Time-Ms')
     const audioBuffer = Buffer.from(await response.arrayBuffer())
 
     // Cache the audio if bookId is provided
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'audio/wav',
         'X-Cache': 'MISS',
+        ...(genTimeMs && { 'X-Generation-Time-Ms': genTimeMs }),
       },
     })
   } catch (error) {

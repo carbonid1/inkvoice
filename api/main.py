@@ -1,5 +1,6 @@
 import io
 import hashlib
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -31,7 +32,9 @@ async def text_to_speech(request: TTSRequest):
 
     try:
         model = get_model()
+        start = time.time()
         wav = model.generate(request.text)
+        gen_time_ms = int((time.time() - start) * 1000)
 
         # Convert to bytes
         buffer = io.BytesIO()
@@ -42,7 +45,10 @@ async def text_to_speech(request: TTSRequest):
         return Response(
             content=buffer.read(),
             media_type="audio/wav",
-            headers={"Content-Disposition": "attachment; filename=speech.wav"}
+            headers={
+                "Content-Disposition": "attachment; filename=speech.wav",
+                "X-Generation-Time-Ms": str(gen_time_ms),
+            }
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
