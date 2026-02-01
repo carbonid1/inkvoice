@@ -31,4 +31,5 @@ dist/
 build/
 *.tsbuildinfo
 
-# Cache (audio cache is in ~/Library/Caches/InkVoice/)
+# Cache
+data/cache/

@@ -144,7 +144,7 @@ describe('Player', () => {
       const chapters = createChapters([3, 5]) // Chapter 0 has 3 sentences, Chapter 1 has 5
       const onProgressChange = vi.fn()
 
-      const { rerender } = render(
+      render(
         <Player
           bookId="test-book"
           chapters={chapters}

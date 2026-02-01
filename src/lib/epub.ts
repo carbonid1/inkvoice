@@ -325,9 +325,6 @@ async function parseHtmlContentSync(
   const content: ContentBlock[] = []
   const sentences: string[] = []
 
-  // Process block elements
-  const blockTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'img', 'div']
-
   function processElement(el: Element): void {
     const tag = el.tagName.toLowerCase()
 
@@ -454,7 +451,7 @@ async function parseHtmlContentSync(
       })
     })
     if (!mismatchFound && sentences.length > 0) {
-      console.log(`[epub] Parsed ${sentences.length} sentences, indices verified OK`)
+      // Verification passed
     }
   }
 

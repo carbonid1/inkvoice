@@ -1,12 +1,10 @@
 'use client'
 
 export interface DebugMetrics {
-  lastGenTimeMs: number | null
-  lastCacheStatus: 'HIT' | 'MISS' | null
-  queueDepth: number
-  prefetchedCount: number
-  bufferSize: number
-  bufferFilled: number
+  isGenerating: boolean
+  ahead: number
+  cacheUsedMB: number
+  cacheMaxMB: number
 }
 
 interface DebugPanelProps {
@@ -17,35 +15,34 @@ interface DebugPanelProps {
 export function DebugPanel({ metrics, visible }: DebugPanelProps) {
   if (!visible) return null
 
+  const cachePercent = metrics.cacheMaxMB > 0
+    ? Math.round((metrics.cacheUsedMB / metrics.cacheMaxMB) * 100)
+    : 0
+
   return (
-    <div className="fixed top-4 right-4 bg-black/80 text-green-400 font-mono text-xs p-3 rounded-lg shadow-lg z-50 min-w-[160px]">
+    <div className="fixed top-4 right-4 bg-black/80 text-green-400 font-mono text-xs p-3 rounded-lg shadow-lg z-50 min-w-[140px]">
       <div className="text-gray-400 mb-1 text-[10px] uppercase tracking-wider">
         Debug Panel (D)
       </div>
       <div className="space-y-1">
-        <div>
-          Gen: {metrics.lastGenTimeMs !== null ? `${metrics.lastGenTimeMs}ms` : '—'}
+        <div className="flex items-center gap-2">
+          {metrics.isGenerating ? (
+            <>
+              <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+              <span>Generating...</span>
+            </>
+          ) : (
+            <>
+              <span className="inline-block w-2 h-2 bg-green-400 rounded-full" />
+              <span>Ready</span>
+            </>
+          )}
         </div>
         <div>
-          Cache: {metrics.lastCacheStatus ?? '—'}
+          Ahead: {metrics.ahead}
         </div>
         <div>
-          Queue: {metrics.queueDepth}
-        </div>
-        <div>
-          Prefetched: {metrics.prefetchedCount}
-        </div>
-        <div className="mt-2">
-          <div className="flex justify-between mb-1">
-            <span>Buffer:</span>
-            <span>{metrics.bufferFilled}/{metrics.bufferSize}</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div
-              className="bg-green-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(metrics.bufferFilled / metrics.bufferSize) * 100}%` }}
-            />
-          </div>
+          Cache: {metrics.cacheUsedMB ?? 0}MB / {metrics.cacheMaxMB ?? 800}MB ({cachePercent}%)
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Reader } from '@/components/Reader'
 import { Player } from '@/components/Player'
@@ -12,7 +12,6 @@ import { useStore } from '@/store/useStore'
 
 export default function BookReader() {
   const params = useParams()
-  const router = useRouter()
   const bookId = params.id as string
 
   const [book, setBook] = useState<ParsedBook | null>(null)
@@ -25,12 +24,10 @@ export default function BookReader() {
   const [currentSentence, setCurrentSentence] = useState(savedProgress.sentence)
   const [showDebug, setShowDebug] = useState(false)
   const [debugMetrics, setDebugMetrics] = useState<DebugMetrics>({
-    lastGenTimeMs: null,
-    lastCacheStatus: null,
-    queueDepth: 0,
-    prefetchedCount: 0,
-    bufferSize: 50,
-    bufferFilled: 0,
+    isGenerating: false,
+    ahead: 0,
+    cacheUsedMB: 0,
+    cacheMaxMB: 800,
   })
 
   useEffect(() => {
