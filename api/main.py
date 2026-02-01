@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
+import torch
 import torchaudio
 
 app = FastAPI(title="InkVoice TTS API")
@@ -52,12 +53,13 @@ async def text_to_speech(request: TTSRequest):
             )
 
         start = time.time()
-        wav = model.generate(
-            text,
-            audio_prompt_path=str(voice_path),
-            exaggeration=request.exaggeration,
-            cfg_weight=0.5,
-        )
+        with torch.inference_mode():
+            wav = model.generate(
+                text,
+                audio_prompt_path=str(voice_path),
+                exaggeration=request.exaggeration,
+                cfg_weight=0.5,
+            )
         gen_time_ms = int((time.time() - start) * 1000)
 
         # Convert to bytes
@@ -82,3 +84,22 @@ async def text_to_speech(request: TTSRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+
+@app.on_event("startup")
+async def warmup():
+    """Pre-load model and run a test generation to warm up JIT compilation."""
+    # Find any voice file to use for warmup
+    voice_files = list(VOICES_DIR.glob("*.wav"))
+    if not voice_files:
+        print("Warning: No voice files found, skipping warmup")
+        return
+
+    print("Warming up TTS model...")
+    start = time.time()
+    model = get_model()
+
+    with torch.inference_mode():
+        model.generate("Hello.", audio_prompt_path=str(voice_files[0]))
+
+    print(f"Model ready in {time.time() - start:.1f}s")
