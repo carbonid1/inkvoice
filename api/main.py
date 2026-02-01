@@ -1,5 +1,4 @@
 import io
-import hashlib
 import time
 from pathlib import Path
 

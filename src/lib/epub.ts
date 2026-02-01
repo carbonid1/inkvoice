@@ -257,7 +257,7 @@ function decodeNextEntity(html: string, pos: number): { char: string; length: nu
   return null
 }
 
-function parseHtmlContent(
+export function parseHtmlContent(
   html: string,
   getImage: (id: string) => Promise<string | null>
 ): Promise<{ content: ContentBlock[]; sentences: string[] }> {
@@ -274,7 +274,6 @@ async function parseHtmlContentSync(
 
   const content: ContentBlock[] = []
   const sentences: string[] = []
-  let sentenceIndex = 0
 
   // Process block elements
   const blockTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'img', 'div']
@@ -300,8 +299,9 @@ async function parseHtmlContentSync(
       const mappings = splitNodeIntoSentences(el)
       if (mappings.length > 0) {
         const segments: TextSegment[] = mappings.map(m => {
+          const idx = sentences.length
           sentences.push(m.plainText)
-          return { sentenceIndex: sentenceIndex++, html: m.html }
+          return { sentenceIndex: idx, html: m.html }
         })
         content.push({ type: 'heading', level, segments })
       }
@@ -312,8 +312,9 @@ async function parseHtmlContentSync(
       const mappings = splitNodeIntoSentences(el)
       if (mappings.length > 0) {
         const segments: TextSegment[] = mappings.map(m => {
+          const idx = sentences.length
           sentences.push(m.plainText)
-          return { sentenceIndex: sentenceIndex++, html: m.html }
+          return { sentenceIndex: idx, html: m.html }
         })
         content.push({ type: 'blockquote', segments })
       }
@@ -327,8 +328,9 @@ async function parseHtmlContentSync(
         const mappings = splitNodeIntoSentences(li)
         if (mappings.length > 0) {
           const segments: TextSegment[] = mappings.map(m => {
+            const idx = sentences.length
             sentences.push(m.plainText)
-            return { sentenceIndex: sentenceIndex++, html: m.html }
+            return { sentenceIndex: idx, html: m.html }
           })
           items.push(segments)
         }
@@ -343,8 +345,9 @@ async function parseHtmlContentSync(
       const mappings = splitNodeIntoSentences(el)
       if (mappings.length > 0) {
         const segments: TextSegment[] = mappings.map(m => {
+          const idx = sentences.length
           sentences.push(m.plainText)
-          return { sentenceIndex: sentenceIndex++, html: m.html }
+          return { sentenceIndex: idx, html: m.html }
         })
         content.push({ type: 'paragraph', segments })
       }
@@ -363,8 +366,9 @@ async function parseHtmlContentSync(
       const mappings = splitNodeIntoSentences(el)
       if (mappings.length > 0) {
         const segments: TextSegment[] = mappings.map(m => {
+          const idx = sentences.length
           sentences.push(m.plainText)
-          return { sentenceIndex: sentenceIndex++, html: m.html }
+          return { sentenceIndex: idx, html: m.html }
         })
         content.push({ type: 'paragraph', segments })
       }
@@ -379,10 +383,28 @@ async function parseHtmlContentSync(
     const mappings = splitNodeIntoSentences(body)
     if (mappings.length > 0) {
       const segments: TextSegment[] = mappings.map(m => {
+        const idx = sentences.length
         sentences.push(m.plainText)
-        return { sentenceIndex: sentenceIndex++, html: m.html }
+        return { sentenceIndex: idx, html: m.html }
       })
       content.push({ type: 'paragraph', segments })
+    }
+  }
+
+  // Debug: Verify sentence indices match array positions
+  if (process.env.NODE_ENV === 'development') {
+    let mismatchFound = false
+    content.forEach(block => {
+      const segments = block.segments || (block.items?.flat() ?? [])
+      segments.forEach(seg => {
+        if (sentences[seg.sentenceIndex] === undefined) {
+          console.error(`[epub] Index mismatch: sentenceIndex ${seg.sentenceIndex} out of bounds (sentences.length: ${sentences.length})`)
+          mismatchFound = true
+        }
+      })
+    })
+    if (!mismatchFound && sentences.length > 0) {
+      console.log(`[epub] Parsed ${sentences.length} sentences, indices verified OK`)
     }
   }
 
