@@ -1,16 +1,18 @@
 import io
 import time
 from pathlib import Path
-
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
+import torchaudio
+import torchaudio.functional as F
 
 app = FastAPI(title="InkVoice TTS API")
 
 VOICES_DIR = Path(__file__).parent.parent / "data" / "voices"
+DEFAULT_VOICE = "default"
 
 # Lazy load the model to avoid startup delay
 _model = None
@@ -19,9 +21,14 @@ _model = None
 def get_model():
     global _model
     if _model is None:
-        from chatterbox.tts import ChatterboxTTS
-        _model = ChatterboxTTS.from_pretrained(device="mps")
+        from chatterbox.tts_turbo import ChatterboxTurboTTS
+        _model = ChatterboxTurboTTS.from_pretrained(device="mps")
     return _model
+
+
+def trim_silence(wav, sr, threshold_db=-40):
+    """Remove leading/trailing silence from audio using VAD."""
+    return F.vad(wav, sample_rate=sr)
 
 
 class TTSRequest(BaseModel):
@@ -38,30 +45,31 @@ async def text_to_speech(request: TTSRequest):
     try:
         model = get_model()
 
-        # Resolve voice reference audio path
-        audio_prompt_path = None
-        if request.voice:
-            voice_path = VOICES_DIR / f"{request.voice}.wav"
-            if voice_path.exists():
-                audio_prompt_path = str(voice_path)
-            else:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Voice '{request.voice}' not found. Add {request.voice}.wav to data/voices/"
-                )
+        # Turbo requires a voice file
+        voice_name = request.voice or DEFAULT_VOICE
+        voice_path = VOICES_DIR / f"{voice_name}.wav"
+
+        if not voice_path.exists():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Voice '{voice_name}' not found. Add {voice_name}.wav to data/voices/"
+            )
 
         start = time.time()
         wav = model.generate(
             request.text,
-            audio_prompt_path=audio_prompt_path,
+            audio_prompt_path=str(voice_path),
             exaggeration=request.exaggeration,
-            cfg_weight=0.5,  # Default: preserves accent from reference voice
+            cfg_weight=0.5,
         )
+
+        # Trim silence for smoother sentence transitions
+        wav = trim_silence(wav, model.sr)
+
         gen_time_ms = int((time.time() - start) * 1000)
 
         # Convert to bytes
         buffer = io.BytesIO()
-        import torchaudio
         torchaudio.save(buffer, wav, model.sr, format="wav")
         buffer.seek(0)
 

@@ -31,19 +31,69 @@ export interface ParsedBook {
   chapters: ParsedChapter[]
 }
 
-// Sentence boundary regex - matches .!? followed by space or end
-const SENTENCE_END_REGEX = /(?<=[.!?]["'\u201d\u2019]?)\s+(?=[A-Z\u201c\u2018"']?)/g
+// Common abbreviations that shouldn't end sentences
+const ABBREVIATIONS = new Set([
+  // Titles
+  'mr.', 'mrs.', 'ms.', 'dr.', 'prof.', 'rev.', 'sr.', 'jr.',
+  // Places
+  'st.', 'ave.', 'blvd.', 'rd.', 'apt.', 'dept.',
+  // Latin/common
+  'etc.', 'e.g.', 'i.e.', 'vs.', 'vol.', 'no.', 'approx.',
+  // Time
+  'a.m.', 'p.m.', 'b.c.', 'a.d.',
+  // Countries/orgs
+  'u.s.', 'u.k.', 'u.n.',
+])
+
+function isValidSentenceEnd(text: string, index: number): boolean {
+  // Get word ending at this period
+  let start = index - 1
+  while (start >= 0 && !/\s/.test(text[start])) start--
+  const word = text.slice(start + 1, index + 1).toLowerCase()
+
+  // Check if it's an abbreviation
+  if (ABBREVIATIONS.has(word)) return false
+
+  // Check if period is inside a number (e.g., "3.14") or version (e.g., "v2.0.1")
+  const before = text.slice(Math.max(0, index - 3), index)
+  const after = text.slice(index, Math.min(text.length, index + 4))
+  const context = before + after
+  if (/\d\.\d/.test(context)) return false
+
+  return true
+}
 
 function splitIntoSentences(text: string): string[] {
   const cleaned = text.replace(/\s+/g, ' ').trim()
   if (!cleaned) return []
 
-  const sentences = cleaned
-    .split(SENTENCE_END_REGEX)
-    .map(s => s.trim())
-    .filter(s => s.length > 0)
+  const sentences: string[] = []
+  let start = 0
 
-  return sentences
+  // Match all potential sentence endings: .!? optionally followed by quotes, then whitespace
+  const endPattern = /[.!?]["'\u201d\u2019]?\s+/g
+  let match
+
+  while ((match = endPattern.exec(cleaned)) !== null) {
+    const punctIndex = match.index
+    const punctChar = cleaned[punctIndex]
+
+    // ! and ? are always sentence endings
+    // . needs validation for abbreviations and numbers
+    if (punctChar === '.' && !isValidSentenceEnd(cleaned, punctIndex)) {
+      continue
+    }
+
+    const sentence = cleaned.slice(start, match.index + 1).trim()
+    if (sentence) sentences.push(sentence)
+    start = match.index + match[0].length
+  }
+
+  // Add remaining text
+  const remaining = cleaned.slice(start).trim()
+  if (remaining) sentences.push(remaining)
+
+  return sentences.length > 0 ? sentences : [cleaned]
 }
 
 function getPlainText(node: Node): string {

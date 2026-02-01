@@ -198,3 +198,93 @@ describe('parseHtmlContent sentence indexing', () => {
     expect(sentences.length).toBe(2)
   })
 })
+
+describe('sentence splitting with abbreviations and numbers', () => {
+  it('should not split on common abbreviations', async () => {
+    const html = `
+      <body>
+        <p>Dr. Smith went to St. Mary's hospital.</p>
+      </body>
+    `
+    const { sentences } = await parseHtmlContent(html, noopGetImage)
+
+    expect(sentences).toHaveLength(1)
+    expect(sentences[0]).toContain('Dr.')
+    expect(sentences[0]).toContain('St.')
+  })
+
+  it('should not split on e.g. and i.e.', async () => {
+    const html = `
+      <body>
+        <p>E.g. this is an example.</p>
+      </body>
+    `
+    const { sentences } = await parseHtmlContent(html, noopGetImage)
+
+    expect(sentences).toHaveLength(1)
+  })
+
+  it('should not split on decimal numbers', async () => {
+    const html = `
+      <body>
+        <p>The value is 3.14 approximately.</p>
+      </body>
+    `
+    const { sentences } = await parseHtmlContent(html, noopGetImage)
+
+    expect(sentences).toHaveLength(1)
+    expect(sentences[0]).toContain('3.14')
+  })
+
+  it('should not split on version numbers', async () => {
+    const html = `
+      <body>
+        <p>Install version 2.0.1 now.</p>
+      </body>
+    `
+    const { sentences } = await parseHtmlContent(html, noopGetImage)
+
+    expect(sentences).toHaveLength(1)
+    expect(sentences[0]).toContain('2.0.1')
+  })
+
+  it('should still split on normal sentence boundaries', async () => {
+    const html = `
+      <body>
+        <p>Hello world. How are you?</p>
+      </body>
+    `
+    const { sentences } = await parseHtmlContent(html, noopGetImage)
+
+    expect(sentences).toHaveLength(2)
+    expect(sentences[0]).toBe('Hello world.')
+    expect(sentences[1]).toBe('How are you?')
+  })
+
+  it('should split on ! and ?', async () => {
+    const html = `
+      <body>
+        <p>Wait! What happened?</p>
+      </body>
+    `
+    const { sentences } = await parseHtmlContent(html, noopGetImage)
+
+    expect(sentences).toHaveLength(2)
+    expect(sentences[0]).toBe('Wait!')
+    expect(sentences[1]).toBe('What happened?')
+  })
+
+  it('should handle mixed abbreviations and real sentence ends', async () => {
+    const html = `
+      <body>
+        <p>Dr. Johnson is here. She arrived early.</p>
+      </body>
+    `
+    const { sentences } = await parseHtmlContent(html, noopGetImage)
+
+    expect(sentences).toHaveLength(2)
+    expect(sentences[0]).toContain('Dr.')
+    expect(sentences[0]).toBe('Dr. Johnson is here.')
+    expect(sentences[1]).toBe('She arrived early.')
+  })
+})
