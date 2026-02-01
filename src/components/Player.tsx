@@ -17,7 +17,6 @@ interface PlayerProps {
 
 const BUFFER_SIZE = 5 // Number of sentences to prefetch
 const MAX_CONCURRENT_FETCHES = 2 // Limit concurrent TTS requests
-const SPEED_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 
 export function Player({
   bookId,
@@ -33,7 +32,7 @@ export function Player({
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioCache = useRef<Map<string, string>>(new Map())
   const isFetchingRef = useRef<Map<string, Promise<string | null>>>(new Map())
-  const { playbackSpeed, setPlaybackSpeed } = useStore()
+  const { voice } = useStore()
 
   // Refs to track current position for onended handler (avoids stale closure)
   const currentChapterRef = useRef(currentChapter)
@@ -51,6 +50,8 @@ export function Player({
     queueDepth: 0,
     prefetchedCount: 0,
   })
+  // Track user intent to allow pausing while loading
+  const wantToPlayRef = useRef(true)
 
   // Keep refs in sync with props
   useEffect(() => {
@@ -76,7 +77,7 @@ export function Player({
 
   const fetchAudio = useCallback(
     async (ch: number, sent: number, isPrefetch = false): Promise<string | null> => {
-      const key = getCacheKey(ch, sent)
+      const key = getCacheKey(ch, sent, voice)
 
       // Return cached URL if available
       if (audioCache.current.has(key)) {
@@ -110,6 +111,7 @@ export function Player({
               bookId,
               chapter: ch,
               sentence: sent,
+              voice,
             }),
           })
 
@@ -149,7 +151,7 @@ export function Player({
 
       return fetchPromise
     },
-    [bookId, chapters, updateDebugMetrics]
+    [bookId, chapters, updateDebugMetrics, voice]
   )
 
   const prefetchAhead = useCallback(
@@ -169,19 +171,6 @@ export function Player({
     },
     [chapters, fetchAudio]
   )
-
-  // Apply playback speed to audio element
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = playbackSpeed
-    }
-  }, [playbackSpeed])
-
-  const cycleSpeed = () => {
-    const currentIndex = SPEED_OPTIONS.indexOf(playbackSpeed)
-    const nextIndex = (currentIndex + 1) % SPEED_OPTIONS.length
-    setPlaybackSpeed(SPEED_OPTIONS[nextIndex])
-  }
 
   const playCurrentSentence = useCallback(async () => {
     // Capture the target position at the start of this call
@@ -205,13 +194,18 @@ export function Player({
         return
       }
 
+      // Check if user paused while loading
+      if (!wantToPlayRef.current) {
+        setIsLoading(false)
+        return
+      }
+
       if (audioRef.current) {
         audioRef.current.pause()
         // Track what we're actually playing for the onended handler
         playingChapterRef.current = targetChapter
         playingSentenceRef.current = targetSentence
         audioRef.current.src = url
-        audioRef.current.playbackRate = playbackSpeed
         await audioRef.current.play()
       }
 
@@ -227,7 +221,6 @@ export function Player({
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio()
-      audioRef.current.playbackRate = playbackSpeed
 
       audioRef.current.onended = () => {
         // Use the ACTUAL playing position, not the current UI position
@@ -262,7 +255,7 @@ export function Player({
         audioRef.current.pause()
       }
     }
-  }, [playbackSpeed])
+  }, [])
 
   useEffect(() => {
     if (isPlaying) {
@@ -272,9 +265,11 @@ export function Player({
 
   const togglePlay = () => {
     if (isPlaying) {
+      wantToPlayRef.current = false
       audioRef.current?.pause()
       setIsPlaying(false)
     } else {
+      wantToPlayRef.current = true
       setIsPlaying(true)
     }
   }
@@ -332,12 +327,11 @@ export function Player({
 
           <button
             onClick={togglePlay}
-            disabled={isLoading}
-            className="p-4 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full transition-colors"
+            className="p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors relative"
             title={isPlaying ? 'Pause' : 'Play'}
           >
-            {isLoading ? (
-              <svg className="w-6 h-6 animate-spin" viewBox="0 0 24 24">
+            {isLoading && (
+              <svg className="w-6 h-6 animate-spin absolute inset-0 m-auto" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -353,12 +347,13 @@ export function Player({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-            ) : isPlaying ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            )}
+            {isPlaying ? (
+              <svg className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
               </svg>
             ) : (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
@@ -384,13 +379,6 @@ export function Player({
             </svg>
           </button>
 
-          <button
-            onClick={cycleSpeed}
-            className="ml-2 px-3 py-1 text-sm font-medium rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors min-w-[3rem]"
-            title="Playback speed"
-          >
-            {playbackSpeed}x
-          </button>
         </div>
 
         <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">

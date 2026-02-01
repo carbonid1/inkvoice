@@ -19,12 +19,12 @@ interface AppState {
   books: Book[]
   currentBook: string | null
   progress: Record<string, Progress>
-  playbackSpeed: number
+  voice: string
   setBooks: (books: Book[]) => void
   setCurrentBook: (bookId: string | null) => void
   setProgress: (bookId: string, chapter: number, sentence: number) => void
   getProgress: (bookId: string) => Progress
-  setPlaybackSpeed: (speed: number) => void
+  setVoice: (voice: string) => void
 }
 
 export const useStore = create<AppState>()(
@@ -33,7 +33,7 @@ export const useStore = create<AppState>()(
       books: [],
       currentBook: null,
       progress: {},
-      playbackSpeed: 1.0,
+      voice: 'narrator',
 
       setBooks: (books) => set({ books }),
 
@@ -52,13 +52,13 @@ export const useStore = create<AppState>()(
         return state.progress[bookId] || { chapter: 0, sentence: 0 }
       },
 
-      setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+      setVoice: (voice) => set({ voice }),
     }),
     {
       name: 'inkvoice-storage',
       partialize: (state) => ({
         progress: state.progress,
-        playbackSpeed: state.playbackSpeed,
+        voice: state.voice,
       }),
     }
   )

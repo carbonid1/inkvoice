@@ -7,7 +7,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
 import torchaudio
-import torchaudio.functional as F
 
 app = FastAPI(title="InkVoice TTS API")
 
@@ -24,11 +23,6 @@ def get_model():
         from chatterbox.tts_turbo import ChatterboxTurboTTS
         _model = ChatterboxTurboTTS.from_pretrained(device="mps")
     return _model
-
-
-def trim_silence(wav, sr, threshold_db=-40):
-    """Remove leading/trailing silence from audio using VAD."""
-    return F.vad(wav, sample_rate=sr)
 
 
 class TTSRequest(BaseModel):
@@ -62,10 +56,6 @@ async def text_to_speech(request: TTSRequest):
             exaggeration=request.exaggeration,
             cfg_weight=0.5,
         )
-
-        # Trim silence for smoother sentence transitions
-        wav = trim_silence(wav, model.sr)
-
         gen_time_ms = int((time.time() - start) * 1000)
 
         # Convert to bytes
