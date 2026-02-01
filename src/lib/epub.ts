@@ -1,4 +1,8 @@
 import ePub, { Book } from 'epubjs'
+import EPub from 'epub2'
+import { writeFile, unlink } from 'fs/promises'
+import { tmpdir } from 'os'
+import { join } from 'path'
 
 export interface ParsedChapter {
   title: string
@@ -104,12 +108,26 @@ export async function parseEpub(arrayBuffer: ArrayBuffer, bookId: string): Promi
 }
 
 export async function getBookMetadata(arrayBuffer: ArrayBuffer): Promise<{ title: string; author: string }> {
-  const book = ePub(arrayBuffer)
-  await book.ready
-  const metadata = await book.loaded.metadata
+  // Use epub2 for server-side parsing (epubjs is browser-only)
+  const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
 
-  return {
-    title: metadata.title || 'Unknown Title',
-    author: metadata.creator || 'Unknown Author',
+  try {
+    // Write ArrayBuffer to temp file (epub2 requires file path)
+    await writeFile(tempPath, Buffer.from(arrayBuffer))
+
+    // Parse with epub2
+    const epub = await EPub.createAsync(tempPath)
+
+    return {
+      title: epub.metadata?.title || 'Unknown Title',
+      author: epub.metadata?.creator || 'Unknown Author',
+    }
+  } finally {
+    // Clean up temp file
+    try {
+      await unlink(tempPath)
+    } catch {
+      // Ignore cleanup errors
+    }
   }
 }
