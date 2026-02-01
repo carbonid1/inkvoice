@@ -111,7 +111,7 @@ function RenderBlock({
 
     case 'list':
       return (
-        <ul className="list-disc list-inside mb-4 space-y-1">
+        <ul className="list-none mb-4 space-y-1">
           {block.items?.map((itemSegments, idx) => (
             <li key={idx}>{renderSegments(itemSegments)}</li>
           ))}
@@ -192,7 +192,7 @@ export function Reader({
     }
 
     return (
-      <div className="prose prose-lg dark:prose-invert max-w-none p-6">
+      <div className="prose prose-lg dark:prose-invert max-w-none p-6 [&_a]:text-blue-600 [&_a]:dark:text-blue-400 [&_a]:underline [&_a]:decoration-blue-300 [&_a]:dark:decoration-blue-600 [&_a]:underline-offset-2 [&_a]:hover:text-blue-800 [&_a]:dark:hover:text-blue-300 [&_a]:hover:decoration-blue-500 [&_a]:transition-colors">
         <h2 className="text-xl font-semibold mb-6">{chapter.title}</h2>
         <div>
           {content.map((block, idx) => (
@@ -214,7 +214,7 @@ export function Reader({
 
   // Fallback to plain sentence rendering for backwards compatibility
   return (
-    <div className="prose prose-lg dark:prose-invert max-w-none p-6">
+    <div className="prose prose-lg dark:prose-invert max-w-none p-6 [&_a]:text-blue-600 [&_a]:dark:text-blue-400 [&_a]:underline [&_a]:decoration-blue-300 [&_a]:dark:decoration-blue-600 [&_a]:underline-offset-2 [&_a]:hover:text-blue-800 [&_a]:dark:hover:text-blue-300 [&_a]:hover:decoration-blue-500 [&_a]:transition-colors">
       <h2 className="text-xl font-semibold mb-6">{chapter.title}</h2>
       <div className="leading-relaxed">
         {chapter.sentences.map((sentence, idx) => {
