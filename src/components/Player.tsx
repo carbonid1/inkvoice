@@ -75,8 +75,7 @@ export function Player({
 
   const fetchAudio = useCallback(
     async (ch: number, sent: number, isPrefetch = false): Promise<string | null> => {
-      const voice = 'REDACTED'
-      const key = getCacheKey(ch, sent, voice)
+      const key = getCacheKey(ch, sent)
 
       // Return cached URL if available
       if (audioCache.current.has(key)) {
@@ -110,7 +109,6 @@ export function Player({
               bookId,
               chapter: ch,
               sentence: sent,
-              voice: 'REDACTED',
             }),
           })
 
