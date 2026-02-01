@@ -6,9 +6,10 @@ import { getCachePath, getBookCacheDir } from './paths'
 export async function getCachedAudio(
   bookId: string,
   chapter: number,
-  sentence: number
+  sentence: number,
+  voice?: string
 ): Promise<Buffer | null> {
-  const cachePath = getCachePath(bookId, chapter, sentence)
+  const cachePath = getCachePath(bookId, chapter, sentence, voice)
 
   if (!existsSync(cachePath)) {
     return null
@@ -21,9 +22,10 @@ export async function cacheAudio(
   bookId: string,
   chapter: number,
   sentence: number,
-  audioData: Buffer
+  audioData: Buffer,
+  voice?: string
 ): Promise<void> {
-  const cachePath = getCachePath(bookId, chapter, sentence)
+  const cachePath = getCachePath(bookId, chapter, sentence, voice)
   const cacheDir = dirname(cachePath)
 
   await mkdir(cacheDir, { recursive: true })

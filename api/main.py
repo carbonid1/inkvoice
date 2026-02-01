@@ -3,11 +3,15 @@ import hashlib
 import time
 from pathlib import Path
 
+from typing import Optional
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
 
 app = FastAPI(title="InkVoice TTS API")
+
+VOICES_DIR = Path(__file__).parent.parent / "data" / "voices"
 
 # Lazy load the model to avoid startup delay
 _model = None
@@ -23,6 +27,8 @@ def get_model():
 
 class TTSRequest(BaseModel):
     text: str
+    voice: Optional[str] = None  # filename (without extension) in data/voices/
+    exaggeration: float = 0.5  # 0.0-1.0, controls expressiveness
 
 
 @app.post("/tts")
@@ -32,8 +38,26 @@ async def text_to_speech(request: TTSRequest):
 
     try:
         model = get_model()
+
+        # Resolve voice reference audio path
+        audio_prompt_path = None
+        if request.voice:
+            voice_path = VOICES_DIR / f"{request.voice}.wav"
+            if voice_path.exists():
+                audio_prompt_path = str(voice_path)
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Voice '{request.voice}' not found. Add {request.voice}.wav to data/voices/"
+                )
+
         start = time.time()
-        wav = model.generate(request.text)
+        wav = model.generate(
+            request.text,
+            audio_prompt_path=audio_prompt_path,
+            exaggeration=request.exaggeration,
+            cfg_weight=0.5,  # Default: preserves accent from reference voice
+        )
         gen_time_ms = int((time.time() - start) * 1000)
 
         # Convert to bytes
@@ -50,6 +74,8 @@ async def text_to_speech(request: TTSRequest):
                 "X-Generation-Time-Ms": str(gen_time_ms),
             }
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

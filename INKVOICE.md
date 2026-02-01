@@ -32,8 +32,8 @@ A local audiobook reader that converts epub books to speech using modern TTS mod
 
 ### Not Yet Implemented
 - [ ] Sentence highlighting during playback (text highlights but no sync animation)
-- [ ] Voice cloning (upload reference audio for custom voice)
-- [ ] Speed control (playback rate adjustment)
+- [x] Voice cloning - add `.wav` to `data/voices/`, set voice name in Player.tsx
+- [x] Speed control (playback rate adjustment)
 - [ ] Bookmarks
 - [ ] Multiple voices for dialogue detection
 - [ ] Electron packaging for distribution
@@ -245,10 +245,12 @@ afplay test.wav
 - [ ] Keyboard shortcuts (space = play/pause, arrows = skip)
 
 ### Phase 4: Voice Customization
-- [ ] Voice cloning with reference audio
-- [ ] Voice presets (save cloned voices)
+- [ ] Migrate to Chatterbox-TTS-Server (https://github.com/devnen/Chatterbox-TTS-Server) for better long-form handling
+- [x] Voice cloning with reference audio (`data/voices/*.wav`)
+- [ ] Voice selector UI (currently hardcoded in Player.tsx)
 - [ ] Per-book voice selection
 - [ ] Dialogue detection (different voice for quotes)
+- [ ] Multi-language TTS support (Russian via Silero, etc.)
 
 ### Phase 5: Distribution
 - [ ] Electron wrapper for native app

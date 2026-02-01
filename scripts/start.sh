@@ -60,7 +60,7 @@ sleep 2
 
 # Start Next.js
 echo -e "${GREEN}Starting Next.js on :3000...${NC}"
-pnpm dev &
+pnpm dev:next &
 NEXT_PID=$!
 
 echo -e "\n${GREEN}InkVoice is running!${NC}"

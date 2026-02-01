@@ -62,7 +62,8 @@ export function Player({
   const chapter = chapters[currentChapter]
   const totalSentences = chapter?.sentences.length || 0
 
-  const getCacheKey = (ch: number, sent: number) => `${ch}_${sent}`
+  const getCacheKey = (ch: number, sent: number, voice?: string) =>
+    voice ? `${ch}_${sent}_${voice}` : `${ch}_${sent}`
 
   const updateDebugMetrics = useCallback(
     (updates: Partial<DebugMetrics>) => {
@@ -74,7 +75,8 @@ export function Player({
 
   const fetchAudio = useCallback(
     async (ch: number, sent: number, isPrefetch = false): Promise<string | null> => {
-      const key = getCacheKey(ch, sent)
+      const voice = 'REDACTED'
+      const key = getCacheKey(ch, sent, voice)
 
       // Return cached URL if available
       if (audioCache.current.has(key)) {
@@ -108,6 +110,7 @@ export function Player({
               bookId,
               chapter: ch,
               sentence: sent,
+              voice: 'REDACTED',
             }),
           })
 
@@ -209,6 +212,7 @@ export function Player({
         playingChapterRef.current = targetChapter
         playingSentenceRef.current = targetSentence
         audioRef.current.src = url
+        audioRef.current.playbackRate = playbackSpeed
         await audioRef.current.play()
       }
 

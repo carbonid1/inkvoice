@@ -6,7 +6,7 @@ const TTS_API_URL = 'http://localhost:8000/tts'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { text, bookId, chapter, sentence } = body
+    const { text, bookId, chapter, sentence, voice } = body
 
     if (!text) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 })
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Check cache first if bookId is provided
     if (bookId !== undefined && chapter !== undefined && sentence !== undefined) {
-      const cached = await getCachedAudio(bookId, chapter, sentence)
+      const cached = await getCachedAudio(bookId, chapter, sentence, voice)
       if (cached) {
         return new NextResponse(new Uint8Array(cached), {
           headers: {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch(TTS_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, ...(voice && { voice }) }),
     })
 
     if (!response.ok) {
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Cache the audio if bookId is provided
     if (bookId !== undefined && chapter !== undefined && sentence !== undefined) {
-      await cacheAudio(bookId, chapter, sentence, audioBuffer)
+      await cacheAudio(bookId, chapter, sentence, audioBuffer, voice)
     }
 
     return new NextResponse(new Uint8Array(audioBuffer), {
