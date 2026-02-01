@@ -28,7 +28,7 @@ def get_model():
 
 class TTSRequest(BaseModel):
     text: str
-    voice: Optional[str] = None  # filename (without extension) in data/voices/
+    voice: Optional[str] = None  # voice directory name in data/voices/
     exaggeration: float = 0.7  # 0.0-1.0, controls expressiveness
 
 
@@ -44,12 +44,12 @@ async def text_to_speech(request: TTSRequest):
 
         # Turbo requires a voice file
         voice_name = request.voice or DEFAULT_VOICE
-        voice_path = VOICES_DIR / f"{voice_name}.wav"
+        voice_path = VOICES_DIR / voice_name / "source.wav"
 
         if not voice_path.exists():
             raise HTTPException(
                 status_code=400,
-                detail=f"Voice '{voice_name}' not found. Add {voice_name}.wav to data/voices/"
+                detail=f"Voice '{voice_name}' not found. Add data/voices/{voice_name}/source.wav"
             )
 
         start = time.time()
@@ -90,7 +90,7 @@ async def health_check():
 async def warmup():
     """Pre-load model and run a test generation to warm up JIT compilation."""
     # Find any voice file to use for warmup
-    voice_files = list(VOICES_DIR.glob("*.wav"))
+    voice_files = list(VOICES_DIR.glob("*/source.wav"))
     if not voice_files:
         print("Warning: No voice files found, skipping warmup")
         return
