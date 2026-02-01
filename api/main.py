@@ -28,12 +28,14 @@ def get_model():
 class TTSRequest(BaseModel):
     text: str
     voice: Optional[str] = None  # filename (without extension) in data/voices/
-    exaggeration: float = 0.5  # 0.0-1.0, controls expressiveness
+    exaggeration: float = 0.7  # 0.0-1.0, controls expressiveness
 
 
 @app.post("/tts")
 async def text_to_speech(request: TTSRequest):
-    if not request.text or not request.text.strip():
+    text = request.text.strip() if request.text else ""
+
+    if not text:
         raise HTTPException(status_code=400, detail="Text cannot be empty")
 
     try:
@@ -51,7 +53,7 @@ async def text_to_speech(request: TTSRequest):
 
         start = time.time()
         wav = model.generate(
-            request.text,
+            text,
             audio_prompt_path=str(voice_path),
             exaggeration=request.exaggeration,
             cfg_weight=0.5,

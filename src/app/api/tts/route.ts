@@ -1,28 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCachedAudio, cacheAudio } from '@/lib/cache'
 
 const TTS_API_URL = 'http://localhost:8000/tts'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { text, bookId, chapter, sentence, voice } = body
+    const { text, voice } = body
 
-    if (!text) {
+    if (!text || typeof text !== 'string') {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 })
-    }
-
-    // Check cache first if bookId is provided
-    if (bookId !== undefined && chapter !== undefined && sentence !== undefined) {
-      const cached = await getCachedAudio(bookId, chapter, sentence, voice)
-      if (cached) {
-        return new NextResponse(new Uint8Array(cached), {
-          headers: {
-            'Content-Type': 'audio/wav',
-            'X-Cache': 'HIT',
-          },
-        })
-      }
     }
 
     // Call Python TTS API
@@ -41,17 +27,11 @@ export async function POST(request: NextRequest) {
     }
 
     const genTimeMs = response.headers.get('X-Generation-Time-Ms')
-    const audioBuffer = Buffer.from(await response.arrayBuffer())
-
-    // Cache the audio if bookId is provided
-    if (bookId !== undefined && chapter !== undefined && sentence !== undefined) {
-      await cacheAudio(bookId, chapter, sentence, audioBuffer, voice)
-    }
+    const audioBuffer = await response.arrayBuffer()
 
     return new NextResponse(new Uint8Array(audioBuffer), {
       headers: {
         'Content-Type': 'audio/wav',
-        'X-Cache': 'MISS',
         ...(genTimeMs && { 'X-Generation-Time-Ms': genTimeMs }),
       },
     })

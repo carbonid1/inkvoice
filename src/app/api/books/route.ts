@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { readdir, readFile } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
-import { BOOKS_DIR } from '@/lib/paths'
 import { getBookMetadata } from '@/lib/epub'
+
+const BOOKS_DIR = join(process.cwd(), 'data', 'books')
 
 export interface BookInfo {
   id: string

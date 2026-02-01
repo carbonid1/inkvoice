@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
-import { BOOKS_DIR } from '@/lib/paths'
 import { parseEpub } from '@/lib/epub'
+
+const BOOKS_DIR = join(process.cwd(), 'data', 'books')
 
 export async function GET(
   request: NextRequest,
