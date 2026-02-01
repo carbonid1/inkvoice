@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { ParsedChapter } from '@/lib/epub'
+import { DebugMetrics } from './DebugPanel'
 
 interface PlayerProps {
   bookId: string
@@ -9,6 +10,7 @@ interface PlayerProps {
   currentChapter: number
   currentSentence: number
   onProgressChange: (chapter: number, sentence: number) => void
+  onDebugUpdate?: (metrics: DebugMetrics) => void
 }
 
 const BUFFER_SIZE = 3 // Number of sentences to prefetch
@@ -19,6 +21,7 @@ export function Player({
   currentChapter,
   currentSentence,
   onProgressChange,
+  onDebugUpdate,
 }: PlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -26,18 +29,35 @@ export function Player({
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioCache = useRef<Map<string, string>>(new Map())
   const isFetchingRef = useRef<Set<string>>(new Set())
+  const debugMetricsRef = useRef<DebugMetrics>({
+    lastGenTimeMs: null,
+    lastCacheStatus: null,
+    queueDepth: 0,
+    prefetchedCount: 0,
+  })
 
   const chapter = chapters[currentChapter]
   const totalSentences = chapter?.sentences.length || 0
 
   const getCacheKey = (ch: number, sent: number) => `${ch}_${sent}`
 
+  const updateDebugMetrics = useCallback(
+    (updates: Partial<DebugMetrics>) => {
+      debugMetricsRef.current = { ...debugMetricsRef.current, ...updates }
+      onDebugUpdate?.(debugMetricsRef.current)
+    },
+    [onDebugUpdate]
+  )
+
   const fetchAudio = useCallback(
-    async (ch: number, sent: number): Promise<string | null> => {
+    async (ch: number, sent: number, isPrefetch = false): Promise<string | null> => {
       const key = getCacheKey(ch, sent)
 
       // Return cached URL if available
       if (audioCache.current.has(key)) {
+        if (!isPrefetch) {
+          updateDebugMetrics({ lastCacheStatus: 'HIT', lastGenTimeMs: null })
+        }
         return audioCache.current.get(key)!
       }
 
@@ -55,6 +75,7 @@ export function Player({
       if (!text) return null
 
       isFetchingRef.current.add(key)
+      updateDebugMetrics({ queueDepth: isFetchingRef.current.size })
 
       try {
         const response = await fetch('/api/tts', {
@@ -73,18 +94,32 @@ export function Player({
           throw new Error(errData.error || 'Failed to generate audio')
         }
 
+        const cacheStatus = response.headers.get('X-Cache') as 'HIT' | 'MISS' | null
+        const genTimeMs = response.headers.get('X-Generation-Time-Ms')
+
         const blob = await response.blob()
         const url = URL.createObjectURL(blob)
         audioCache.current.set(key, url)
+
+        if (!isPrefetch) {
+          updateDebugMetrics({
+            lastCacheStatus: cacheStatus,
+            lastGenTimeMs: genTimeMs ? parseInt(genTimeMs, 10) : null,
+          })
+        }
+
+        updateDebugMetrics({ prefetchedCount: audioCache.current.size })
+
         return url
       } catch (e) {
         console.error(`Failed to fetch audio for ${key}:`, e)
         throw e
       } finally {
         isFetchingRef.current.delete(key)
+        updateDebugMetrics({ queueDepth: isFetchingRef.current.size })
       }
     },
-    [bookId, chapters]
+    [bookId, chapters, updateDebugMetrics]
   )
 
   const prefetchAhead = useCallback(
@@ -95,7 +130,7 @@ export function Player({
       for (let i = 1; i <= BUFFER_SIZE; i++) {
         const nextSent = sent + i
         if (nextSent < chapterData.sentences.length) {
-          fetchAudio(ch, nextSent).catch(() => {})
+          fetchAudio(ch, nextSent, true).catch(() => {})
         }
       }
     },

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Reader } from '@/components/Reader'
 import { Player } from '@/components/Player'
+import { DebugPanel, DebugMetrics } from '@/components/DebugPanel'
 import { ParsedBook } from '@/lib/epub'
 import { useStore } from '@/store/useStore'
 
@@ -21,6 +22,13 @@ export default function BookReader() {
   const savedProgress = getProgress(bookId)
   const [currentChapter, setCurrentChapter] = useState(savedProgress.chapter)
   const [currentSentence, setCurrentSentence] = useState(savedProgress.sentence)
+  const [showDebug, setShowDebug] = useState(false)
+  const [debugMetrics, setDebugMetrics] = useState<DebugMetrics>({
+    lastGenTimeMs: null,
+    lastCacheStatus: null,
+    queueDepth: 0,
+    prefetchedCount: 0,
+  })
 
   useEffect(() => {
     async function fetchBook() {
@@ -70,6 +78,21 @@ export default function BookReader() {
     },
     [handleProgressChange]
   )
+
+  // Toggle debug panel with 'D' key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'd' || e.key === 'D') {
+        // Don't toggle if user is typing in an input
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+          return
+        }
+        setShowDebug((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   if (loading) {
     return (
@@ -156,7 +179,10 @@ export default function BookReader() {
         currentChapter={currentChapter}
         currentSentence={currentSentence}
         onProgressChange={handleProgressChange}
+        onDebugUpdate={setDebugMetrics}
       />
+
+      <DebugPanel metrics={debugMetrics} visible={showDebug} />
     </div>
   )
 }
