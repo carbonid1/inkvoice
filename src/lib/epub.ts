@@ -589,3 +589,79 @@ export async function getBookMetadata(arrayBuffer: ArrayBuffer): Promise<{ title
     }
   }
 }
+
+export async function getCoverImage(arrayBuffer: ArrayBuffer): Promise<{ data: Buffer; mimeType: string } | null> {
+  const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
+
+  try {
+    await writeFile(tempPath, Buffer.from(arrayBuffer))
+    const epub = await EPub.createAsync(tempPath)
+
+    const manifest = epub.manifest || {}
+
+    // Helper to get image by manifest ID
+    const getImageById = async (id: string): Promise<{ data: Buffer; mimeType: string } | null> => {
+      try {
+        const [data, mimeType] = await new Promise<[Buffer, string]>((resolve, reject) => {
+          epub.getImage(id, (err: Error | null, data: Buffer, mime: string) => {
+            if (err) reject(err)
+            else resolve([data, mime])
+          })
+        })
+        if (data && data.length > 0) {
+          return { data, mimeType }
+        }
+      } catch {
+        // Image fetch failed
+      }
+      return null
+    }
+
+    // Strategy 1: epub.metadata.cover (EPUB2 standard)
+    if (epub.metadata?.cover) {
+      const result = await getImageById(epub.metadata.cover)
+      if (result) return result
+    }
+
+    // Strategy 2: Manifest item with ID containing "cover" and image MIME type
+    for (const id of Object.keys(manifest)) {
+      const item = manifest[id]
+      if (
+        id.toLowerCase().includes('cover') &&
+        item['media-type']?.startsWith('image/')
+      ) {
+        const result = await getImageById(id)
+        if (result) return result
+      }
+    }
+
+    // Strategy 3: Manifest item with properties="cover-image" (EPUB3)
+    for (const id of Object.keys(manifest)) {
+      const item = manifest[id]
+      if (
+        item.properties?.includes('cover-image') &&
+        item['media-type']?.startsWith('image/')
+      ) {
+        const result = await getImageById(id)
+        if (result) return result
+      }
+    }
+
+    // Strategy 4: First image in manifest (fallback)
+    for (const id of Object.keys(manifest)) {
+      const item = manifest[id]
+      if (item['media-type']?.startsWith('image/')) {
+        const result = await getImageById(id)
+        if (result) return result
+      }
+    }
+
+    return null
+  } finally {
+    try {
+      await unlink(tempPath)
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
+}
