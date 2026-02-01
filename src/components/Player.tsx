@@ -31,14 +31,33 @@ export function Player({
   const [error, setError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioCache = useRef<Map<string, string>>(new Map())
-  const isFetchingRef = useRef<Set<string>>(new Set())
+  const isFetchingRef = useRef<Map<string, Promise<string | null>>>(new Map())
   const { playbackSpeed, setPlaybackSpeed } = useStore()
+
+  // Refs to track current position for onended handler (avoids stale closure)
+  const currentChapterRef = useRef(currentChapter)
+  const currentSentenceRef = useRef(currentSentence)
+  const chaptersRef = useRef(chapters)
+  const onProgressChangeRef = useRef(onProgressChange)
+
+  // Track what sentence is ACTUALLY playing in the audio element
+  // This prevents race conditions when multiple playCurrentSentence calls overlap
+  const playingChapterRef = useRef<number | null>(null)
+  const playingSentenceRef = useRef<number | null>(null)
   const debugMetricsRef = useRef<DebugMetrics>({
     lastGenTimeMs: null,
     lastCacheStatus: null,
     queueDepth: 0,
     prefetchedCount: 0,
   })
+
+  // Keep refs in sync with props
+  useEffect(() => {
+    currentChapterRef.current = currentChapter
+    currentSentenceRef.current = currentSentence
+    chaptersRef.current = chapters
+    onProgressChangeRef.current = onProgressChange
+  }, [currentChapter, currentSentence, chapters, onProgressChange])
 
   const chapter = chapters[currentChapter]
   const totalSentences = chapter?.sentences.length || 0
@@ -65,9 +84,9 @@ export function Player({
         return audioCache.current.get(key)!
       }
 
-      // Skip if already fetching
+      // Return pending promise if already fetching
       if (isFetchingRef.current.has(key)) {
-        return null
+        return isFetchingRef.current.get(key)!
       }
 
       const chapterData = chapters[ch]
@@ -78,50 +97,55 @@ export function Player({
       const text = chapterData.sentences[sent]
       if (!text) return null
 
-      isFetchingRef.current.add(key)
+      // Create the fetch promise and store it
+      const fetchPromise = (async (): Promise<string | null> => {
+        try {
+          const response = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text,
+              bookId,
+              chapter: ch,
+              sentence: sent,
+            }),
+          })
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}))
+            throw new Error(errData.error || 'Failed to generate audio')
+          }
+
+          const cacheStatus = response.headers.get('X-Cache') as 'HIT' | 'MISS' | null
+          const genTimeMs = response.headers.get('X-Generation-Time-Ms')
+
+          const blob = await response.blob()
+          const url = URL.createObjectURL(blob)
+          audioCache.current.set(key, url)
+
+          if (!isPrefetch) {
+            updateDebugMetrics({
+              lastCacheStatus: cacheStatus,
+              lastGenTimeMs: genTimeMs ? parseInt(genTimeMs, 10) : null,
+            })
+          }
+
+          updateDebugMetrics({ prefetchedCount: audioCache.current.size })
+
+          return url
+        } catch (e) {
+          console.error(`Failed to fetch audio for ${key}:`, e)
+          throw e
+        } finally {
+          isFetchingRef.current.delete(key)
+          updateDebugMetrics({ queueDepth: isFetchingRef.current.size })
+        }
+      })()
+
+      isFetchingRef.current.set(key, fetchPromise)
       updateDebugMetrics({ queueDepth: isFetchingRef.current.size })
 
-      try {
-        const response = await fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text,
-            bookId,
-            chapter: ch,
-            sentence: sent,
-          }),
-        })
-
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}))
-          throw new Error(errData.error || 'Failed to generate audio')
-        }
-
-        const cacheStatus = response.headers.get('X-Cache') as 'HIT' | 'MISS' | null
-        const genTimeMs = response.headers.get('X-Generation-Time-Ms')
-
-        const blob = await response.blob()
-        const url = URL.createObjectURL(blob)
-        audioCache.current.set(key, url)
-
-        if (!isPrefetch) {
-          updateDebugMetrics({
-            lastCacheStatus: cacheStatus,
-            lastGenTimeMs: genTimeMs ? parseInt(genTimeMs, 10) : null,
-          })
-        }
-
-        updateDebugMetrics({ prefetchedCount: audioCache.current.size })
-
-        return url
-      } catch (e) {
-        console.error(`Failed to fetch audio for ${key}:`, e)
-        throw e
-      } finally {
-        isFetchingRef.current.delete(key)
-        updateDebugMetrics({ queueDepth: isFetchingRef.current.size })
-      }
+      return fetchPromise
     },
     [bookId, chapters, updateDebugMetrics]
   )
@@ -158,23 +182,37 @@ export function Player({
   }
 
   const playCurrentSentence = useCallback(async () => {
+    // Capture the target position at the start of this call
+    const targetChapter = currentChapter
+    const targetSentence = currentSentence
+
     setIsLoading(true)
     setError(null)
 
     try {
-      const url = await fetchAudio(currentChapter, currentSentence)
+      const url = await fetchAudio(targetChapter, targetSentence)
       if (!url) {
+        setIsLoading(false)
+        return
+      }
+
+      // Check if position changed while we were fetching
+      // If so, don't play this audio - a newer call will handle the new position
+      if (currentChapterRef.current !== targetChapter || currentSentenceRef.current !== targetSentence) {
         setIsLoading(false)
         return
       }
 
       if (audioRef.current) {
         audioRef.current.pause()
+        // Track what we're actually playing for the onended handler
+        playingChapterRef.current = targetChapter
+        playingSentenceRef.current = targetSentence
         audioRef.current.src = url
         await audioRef.current.play()
       }
 
-      prefetchAhead(currentChapter, currentSentence)
+      prefetchAhead(targetChapter, targetSentence)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to play audio')
       setIsPlaying(false)
@@ -189,13 +227,22 @@ export function Player({
       audioRef.current.playbackRate = playbackSpeed
 
       audioRef.current.onended = () => {
-        const chapter = chapters[currentChapter]
+        // Use the ACTUAL playing position, not the current UI position
+        // This prevents race conditions when multiple playCurrentSentence calls overlap
+        const chapterIdx = playingChapterRef.current
+        const sentenceIdx = playingSentenceRef.current
+        const allChapters = chaptersRef.current
+        const progressChange = onProgressChangeRef.current
+
+        if (chapterIdx === null || sentenceIdx === null) return
+
+        const chapter = allChapters[chapterIdx]
         if (!chapter) return
 
-        if (currentSentence < chapter.sentences.length - 1) {
-          onProgressChange(currentChapter, currentSentence + 1)
-        } else if (currentChapter < chapters.length - 1) {
-          onProgressChange(currentChapter + 1, 0)
+        if (sentenceIdx < chapter.sentences.length - 1) {
+          progressChange(chapterIdx, sentenceIdx + 1)
+        } else if (chapterIdx < allChapters.length - 1) {
+          progressChange(chapterIdx + 1, 0)
         } else {
           setIsPlaying(false)
         }
@@ -212,7 +259,7 @@ export function Player({
         audioRef.current.pause()
       }
     }
-  }, [chapters, currentChapter, currentSentence, onProgressChange, playbackSpeed])
+  }, [playbackSpeed])
 
   useEffect(() => {
     if (isPlaying) {
