@@ -5,6 +5,8 @@ export interface DebugMetrics {
   lastCacheStatus: 'HIT' | 'MISS' | null
   queueDepth: number
   prefetchedCount: number
+  bufferSize: number
+  bufferFilled: number
 }
 
 interface DebugPanelProps {
@@ -32,6 +34,18 @@ export function DebugPanel({ metrics, visible }: DebugPanelProps) {
         </div>
         <div>
           Prefetched: {metrics.prefetchedCount}
+        </div>
+        <div className="mt-2">
+          <div className="flex justify-between mb-1">
+            <span>Buffer:</span>
+            <span>{metrics.bufferFilled}/{metrics.bufferSize}</span>
+          </div>
+          <div className="w-full bg-gray-700 rounded-full h-2">
+            <div
+              className="bg-green-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(metrics.bufferFilled / metrics.bufferSize) * 100}%` }}
+            />
+          </div>
         </div>
       </div>
     </div>

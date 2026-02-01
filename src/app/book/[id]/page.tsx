@@ -29,6 +29,8 @@ export default function BookReader() {
     lastCacheStatus: null,
     queueDepth: 0,
     prefetchedCount: 0,
+    bufferSize: 50,
+    bufferFilled: 0,
   })
 
   useEffect(() => {

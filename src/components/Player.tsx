@@ -15,8 +15,54 @@ interface PlayerProps {
   onDebugUpdate?: (metrics: DebugMetrics) => void
 }
 
-const BUFFER_SIZE = 5 // Number of sentences to prefetch
-const MAX_CONCURRENT_FETCHES = 2 // Limit concurrent TTS requests
+const BUFFER_SIZE = 50 // Number of sentences to prefetch ahead
+const MAX_CONCURRENT_FETCHES = 3 // Limit concurrent TTS requests
+const MAX_CACHE_SIZE = 100 // Max audio blobs in memory
+
+// Simple LRU cache using Map (preserves insertion order)
+class LRUCache {
+  private cache = new Map<string, string>()
+  private maxSize: number
+
+  constructor(maxSize: number) {
+    this.maxSize = maxSize
+  }
+
+  get(key: string): string | undefined {
+    const value = this.cache.get(key)
+    if (value !== undefined) {
+      // Move to end (most recently used)
+      this.cache.delete(key)
+      this.cache.set(key, value)
+    }
+    return value
+  }
+
+  has(key: string): boolean {
+    return this.cache.has(key)
+  }
+
+  set(key: string, value: string): void {
+    // If key exists, delete to update insertion order
+    if (this.cache.has(key)) {
+      this.cache.delete(key)
+    }
+    // Evict oldest entries if at capacity
+    while (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value
+      if (oldestKey !== undefined) {
+        const oldUrl = this.cache.get(oldestKey)
+        if (oldUrl) URL.revokeObjectURL(oldUrl)
+        this.cache.delete(oldestKey)
+      }
+    }
+    this.cache.set(key, value)
+  }
+
+  get size(): number {
+    return this.cache.size
+  }
+}
 
 export function Player({
   bookId,
@@ -30,7 +76,7 @@ export function Player({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const audioCache = useRef<Map<string, string>>(new Map())
+  const audioCache = useRef(new LRUCache(MAX_CACHE_SIZE))
   const isFetchingRef = useRef<Map<string, Promise<string | null>>>(new Map())
   const { voice } = useStore()
 
@@ -41,14 +87,17 @@ export function Player({
   const onProgressChangeRef = useRef(onProgressChange)
 
   // Track what sentence is ACTUALLY playing in the audio element
-  // This prevents race conditions when multiple playCurrentSentence calls overlap
   const playingChapterRef = useRef<number | null>(null)
   const playingSentenceRef = useRef<number | null>(null)
+  // Ref to store prefetchAhead function (avoids circular dependencies)
+  const prefetchAheadRef = useRef<((ch: number, sent: number) => void) | null>(null)
   const debugMetricsRef = useRef<DebugMetrics>({
     lastGenTimeMs: null,
     lastCacheStatus: null,
     queueDepth: 0,
     prefetchedCount: 0,
+    bufferSize: BUFFER_SIZE,
+    bufferFilled: 0,
   })
   // Track user intent to allow pausing while loading
   const wantToPlayRef = useRef(true)
@@ -64,8 +113,33 @@ export function Player({
   const chapter = chapters[currentChapter]
   const totalSentences = chapter?.sentences.length || 0
 
-  const getCacheKey = (ch: number, sent: number, voice?: string) =>
+  // Cache key for a sentence
+  const getCacheKey = (ch: number, sent: number) =>
     voice ? `${ch}_${sent}_${voice}` : `${ch}_${sent}`
+
+  // Count how many of the next BUFFER_SIZE sentences are cached
+  const countBufferFilled = useCallback(
+    (ch: number, sent: number): number => {
+      let count = 0
+      let currentCh = ch
+      let currentSent = sent
+
+      for (let i = 1; i <= BUFFER_SIZE; i++) {
+        currentSent++
+        const chapterData = chapters[currentCh]
+        if (!chapterData || currentSent >= chapterData.sentences.length) {
+          currentCh++
+          currentSent = 0
+          if (currentCh >= chapters.length) break
+        }
+        if (audioCache.current.has(getCacheKey(currentCh, currentSent))) {
+          count++
+        }
+      }
+      return count
+    },
+    [chapters, voice]
+  )
 
   const updateDebugMetrics = useCallback(
     (updates: Partial<DebugMetrics>) => {
@@ -75,14 +149,24 @@ export function Player({
     [onDebugUpdate]
   )
 
+  // Fetch audio for a single sentence
   const fetchAudio = useCallback(
     async (ch: number, sent: number, isPrefetch = false): Promise<string | null> => {
-      const key = getCacheKey(ch, sent, voice)
+      const chapterData = chapters[ch]
+      if (!chapterData || sent >= chapterData.sentences.length) {
+        return null
+      }
+
+      const key = getCacheKey(ch, sent)
 
       // Return cached URL if available
       if (audioCache.current.has(key)) {
         if (!isPrefetch) {
-          updateDebugMetrics({ lastCacheStatus: 'HIT', lastGenTimeMs: null })
+          updateDebugMetrics({
+            lastCacheStatus: 'HIT',
+            lastGenTimeMs: null,
+            bufferFilled: countBufferFilled(currentChapterRef.current, currentSentenceRef.current),
+          })
         }
         return audioCache.current.get(key)!
       }
@@ -90,11 +174,6 @@ export function Player({
       // Return pending promise if already fetching
       if (isFetchingRef.current.has(key)) {
         return isFetchingRef.current.get(key)!
-      }
-
-      const chapterData = chapters[ch]
-      if (!chapterData || sent >= chapterData.sentences.length) {
-        return null
       }
 
       const text = chapterData.sentences[sent]
@@ -106,13 +185,7 @@ export function Player({
           const response = await fetch('/api/tts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text,
-              bookId,
-              chapter: ch,
-              sentence: sent,
-              voice,
-            }),
+            body: JSON.stringify({ text, voice }),
           })
 
           if (!response.ok) {
@@ -120,7 +193,6 @@ export function Player({
             throw new Error(errData.error || 'Failed to generate audio')
           }
 
-          const cacheStatus = response.headers.get('X-Cache') as 'HIT' | 'MISS' | null
           const genTimeMs = response.headers.get('X-Generation-Time-Ms')
 
           const blob = await response.blob()
@@ -129,12 +201,20 @@ export function Player({
 
           if (!isPrefetch) {
             updateDebugMetrics({
-              lastCacheStatus: cacheStatus,
+              lastCacheStatus: 'MISS',
               lastGenTimeMs: genTimeMs ? parseInt(genTimeMs, 10) : null,
             })
           }
 
-          updateDebugMetrics({ prefetchedCount: audioCache.current.size })
+          updateDebugMetrics({
+            prefetchedCount: audioCache.current.size,
+            bufferFilled: countBufferFilled(currentChapterRef.current, currentSentenceRef.current),
+          })
+
+          // Continue prefetching if this was a prefetch request
+          if (isPrefetch) {
+            prefetchAheadRef.current?.(currentChapterRef.current, currentSentenceRef.current)
+          }
 
           return url
         } catch (e) {
@@ -151,26 +231,38 @@ export function Player({
 
       return fetchPromise
     },
-    [bookId, chapters, updateDebugMetrics, voice]
+    [chapters, countBufferFilled, updateDebugMetrics, voice]
   )
 
   const prefetchAhead = useCallback(
     async (ch: number, sent: number) => {
-      const chapterData = chapters[ch]
-      if (!chapterData) return
+      const allChapters = chapters
+      let currentCh = ch
+      let currentSent = sent
 
+      // Prefetch upcoming sentences, including into next chapters
       for (let i = 1; i <= BUFFER_SIZE; i++) {
-        // Limit concurrent fetches to avoid overwhelming the backend
+        // Limit concurrent fetches
         if (isFetchingRef.current.size >= MAX_CONCURRENT_FETCHES) break
 
-        const nextSent = sent + i
-        if (nextSent < chapterData.sentences.length) {
-          fetchAudio(ch, nextSent, true).catch(() => {})
+        currentSent++
+        const chapterData = allChapters[currentCh]
+
+        // Move to next chapter if needed
+        if (!chapterData || currentSent >= chapterData.sentences.length) {
+          currentCh++
+          currentSent = 0
+          if (currentCh >= allChapters.length) break
         }
+
+        fetchAudio(currentCh, currentSent, true).catch(() => {})
       }
     },
     [chapters, fetchAudio]
   )
+
+  // Keep ref in sync with prefetchAhead
+  prefetchAheadRef.current = prefetchAhead
 
   const playCurrentSentence = useCallback(async () => {
     // Capture the target position at the start of this call
@@ -188,7 +280,6 @@ export function Player({
       }
 
       // Check if position changed while we were fetching
-      // If so, don't play this audio - a newer call will handle the new position
       if (currentChapterRef.current !== targetChapter || currentSentenceRef.current !== targetSentence) {
         setIsLoading(false)
         return
@@ -202,7 +293,6 @@ export function Player({
 
       if (audioRef.current) {
         audioRef.current.pause()
-        // Track what we're actually playing for the onended handler
         playingChapterRef.current = targetChapter
         playingSentenceRef.current = targetSentence
         audioRef.current.src = url
@@ -223,8 +313,6 @@ export function Player({
       audioRef.current = new Audio()
 
       audioRef.current.onended = () => {
-        // Use the ACTUAL playing position, not the current UI position
-        // This prevents race conditions when multiple playCurrentSentence calls overlap
         const chapterIdx = playingChapterRef.current
         const sentenceIdx = playingSentenceRef.current
         const allChapters = chaptersRef.current
@@ -235,8 +323,10 @@ export function Player({
         const chapter = allChapters[chapterIdx]
         if (!chapter) return
 
-        if (sentenceIdx < chapter.sentences.length - 1) {
-          progressChange(chapterIdx, sentenceIdx + 1)
+        // Advance to next sentence
+        const nextSentence = sentenceIdx + 1
+        if (nextSentence < chapter.sentences.length) {
+          progressChange(chapterIdx, nextSentence)
         } else if (chapterIdx < allChapters.length - 1) {
           progressChange(chapterIdx + 1, 0)
         } else {
