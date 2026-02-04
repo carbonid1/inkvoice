@@ -27,7 +27,7 @@ const ABBREVIATIONS = new Set([
   'u.s.', 'u.k.', 'u.n.',
 ])
 
-function isValidSentenceEnd(text: string, index: number): boolean {
+const isValidSentenceEnd = (text: string, index: number): boolean => {
   // Get word ending at this period
   let start = index - 1
   while (start >= 0 && !/\s/.test(text[start])) start--
@@ -45,7 +45,7 @@ function isValidSentenceEnd(text: string, index: number): boolean {
   return true
 }
 
-function splitIntoSentences(text: string): string[] {
+const splitIntoSentences = (text: string): string[] => {
   const cleaned = text.replace(/\s+/g, ' ').trim()
   if (!cleaned) return []
 
@@ -78,7 +78,7 @@ function splitIntoSentences(text: string): string[] {
   return sentences.length > 0 ? sentences : [cleaned]
 }
 
-function getPlainText(node: Node): string {
+const getPlainText = (node: Node): string => {
   if (node.nodeType === 3) {
     // Text node
     return node.textContent || ''
@@ -97,7 +97,7 @@ function getPlainText(node: Node): string {
   return ''
 }
 
-function getInnerHtml(node: Node): string {
+const getInnerHtml = (node: Node): string => {
   if (node.nodeType === 3) {
     // Text node - escape HTML
     const text = node.textContent || ''
@@ -137,7 +137,7 @@ interface SentenceMapping {
   html: string
 }
 
-function splitNodeIntoSentences(node: Element): SentenceMapping[] {
+const splitNodeIntoSentences = (node: Element): SentenceMapping[] => {
   const plainText = getPlainText(node).replace(/\s+/g, ' ').trim()
   const html = getInnerHtml(node).replace(/\s+/g, ' ').trim()
 
@@ -195,7 +195,7 @@ function splitNodeIntoSentences(node: Element): SentenceMapping[] {
   return result
 }
 
-function extractHtmlForSentence(html: string, plainSentence: string): string {
+const extractHtmlForSentence = (html: string, plainSentence: string): string => {
   // Build up HTML until we've accumulated the plain text of the sentence
   let accumulated = ''
   let plainAccumulated = ''
@@ -257,7 +257,7 @@ function extractHtmlForSentence(html: string, plainSentence: string): string {
   return accumulated
 }
 
-function decodeNextEntity(html: string, pos: number): { char: string; length: number } | null {
+const decodeNextEntity = (html: string, pos: number): { char: string; length: number } | null => {
   const entities: Record<string, string> = {
     '&nbsp;': ' ',
     '&amp;': '&',
@@ -289,17 +289,17 @@ function decodeNextEntity(html: string, pos: number): { char: string; length: nu
   return null
 }
 
-export function parseHtmlContent(
+export const parseHtmlContent = (
   html: string,
   getImage: (id: string) => Promise<string | null>
-): Promise<{ content: ContentBlock[]; sentences: string[] }> {
+): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
   return parseHtmlContentSync(html, getImage)
 }
 
-async function parseHtmlContentSync(
+const parseHtmlContentSync = async (
   html: string,
   getImage: (id: string) => Promise<string | null>
-): Promise<{ content: ContentBlock[]; sentences: string[] }> {
+): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
   const dom = new JSDOM(html)
   const doc = dom.window.document
   const body = doc.body
@@ -307,7 +307,7 @@ async function parseHtmlContentSync(
   const content: ContentBlock[] = []
   const sentences: string[] = []
 
-  function processElement(el: Element): void {
+  const processElement = (el: Element): void => {
     const tag = el.tagName.toLowerCase()
 
     // Skip script, style, nav, header
@@ -454,7 +454,7 @@ async function parseHtmlContentSync(
   return { content, sentences }
 }
 
-export async function parseEpub(arrayBuffer: ArrayBuffer, bookId: string): Promise<ParsedBook> {
+export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promise<ParsedBook> => {
   // Use epub2 for server-side parsing (epubjs is browser-only)
   const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
 
@@ -547,7 +547,7 @@ export async function parseEpub(arrayBuffer: ArrayBuffer, bookId: string): Promi
   }
 }
 
-export async function getBookMetadata(arrayBuffer: ArrayBuffer): Promise<{ title: string; author: string }> {
+export const getBookMetadata = async (arrayBuffer: ArrayBuffer): Promise<{ title: string; author: string }> => {
   // Use epub2 for server-side parsing (epubjs is browser-only)
   const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
 
@@ -572,7 +572,7 @@ export async function getBookMetadata(arrayBuffer: ArrayBuffer): Promise<{ title
   }
 }
 
-export async function getCoverImage(arrayBuffer: ArrayBuffer): Promise<{ data: Buffer; mimeType: string } | null> {
+export const getCoverImage = async (arrayBuffer: ArrayBuffer): Promise<{ data: Buffer; mimeType: string } | null> => {
   const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
 
   try {

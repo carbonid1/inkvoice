@@ -18,7 +18,7 @@ interface CacheMetadata {
   entries: Record<string, CacheEntry>
 }
 
-function getCacheHash(text: string, voice: string): string {
+const getCacheHash = (text: string, voice: string): string => {
   const input = `${text.trim()}|${voice || 'narrator'}`
   return createHash('sha256').update(input).digest('hex')
 }
@@ -184,7 +184,7 @@ class TTSCacheService implements CacheService {
 // Singleton instance
 let _cacheService: CacheService | null = null
 
-export function getCacheService(): CacheService {
+export const getCacheService = (): CacheService => {
   if (!_cacheService) {
     _cacheService = new TTSCacheService()
   }

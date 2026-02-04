@@ -6,14 +6,14 @@ import { env } from '@/lib/config'
 /**
  * Derive a book ID from a filename
  */
-export function getBookIdFromFilename(filename: string): string {
+export const getBookIdFromFilename = (filename: string): string => {
   return filename.replace('.epub', '').replace(/[^a-zA-Z0-9-_]/g, '_')
 }
 
 /**
  * Find an epub file by book ID
  */
-export async function findBookFile(bookId: string): Promise<string | null> {
+export const findBookFile = async (bookId: string): Promise<string | null> => {
   if (!existsSync(env.booksDir)) {
     return null
   }
@@ -30,7 +30,7 @@ export async function findBookFile(bookId: string): Promise<string | null> {
 /**
  * Read a book file as ArrayBuffer
  */
-export async function readBookFile(filename: string): Promise<ArrayBuffer> {
+export const readBookFile = async (filename: string): Promise<ArrayBuffer> => {
   const filePath = join(env.booksDir, filename)
   const buffer = await readFile(filePath)
   return buffer.buffer.slice(
@@ -42,7 +42,7 @@ export async function readBookFile(filename: string): Promise<ArrayBuffer> {
 /**
  * List all epub files in the books directory
  */
-export async function listEpubFiles(): Promise<string[]> {
+export const listEpubFiles = async (): Promise<string[]> => {
   if (!existsSync(env.booksDir)) {
     return []
   }

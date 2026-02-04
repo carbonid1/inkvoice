@@ -94,6 +94,17 @@ curl -X POST http://localhost:8000/tts \
 
 - Use `react-hotkeys-hook` for keyboard shortcuts.
 
+## Code Style
+
+- Use `const` with arrow functions instead of `function` declarations:
+  ```typescript
+  // Preferred
+  const handleClick = () => { ... }
+
+  // Avoid
+  function handleClick() { ... }
+  ```
+
 ## Adding New Voices
 
 Voices are stored in `data/voices/` with the following structure:

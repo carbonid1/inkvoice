@@ -8,7 +8,7 @@ interface BookCardProps {
   book: Book
 }
 
-function BookIcon() {
+const BookIcon = () => {
   return (
     <svg
       className="w-12 h-12 text-gray-400 dark:text-gray-500"

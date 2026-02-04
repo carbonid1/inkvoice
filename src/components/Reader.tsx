@@ -11,7 +11,7 @@ interface ReaderProps {
   onSentenceClick?: (chapter: number, sentence: number) => void
 }
 
-function isSectionTitle(block: ContentBlockType): boolean {
+const isSectionTitle = (block: ContentBlockType): boolean => {
   if (block.type !== 'heading' && block.type !== 'paragraph') return false
   const text = block.segments?.map((s) => s.html.replace(/<[^>]+>/g, '')).join('') || ''
   const isShort = text.length > 0 && text.length < 50

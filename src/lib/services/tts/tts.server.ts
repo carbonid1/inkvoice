@@ -34,7 +34,7 @@ class TTSServerService implements TTSService {
 // Singleton instance
 let _ttsService: TTSService | null = null
 
-export function getTTSService(): TTSService {
+export const getTTSService = (): TTSService => {
   if (!_ttsService) {
     _ttsService = new TTSServerService()
   }

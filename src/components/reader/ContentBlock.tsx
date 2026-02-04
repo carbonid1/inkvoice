@@ -13,13 +13,13 @@ interface ContentBlockProps {
   isSubtitle?: boolean
 }
 
-function renderSegments(
+const renderSegments = (
   segments: TextSegment[] | undefined,
   currentSentence: number,
   onSentenceClick: ((chapter: number, sentence: number) => void) | undefined,
   currentChapter: number,
   sentenceRef: RefObject<HTMLSpanElement>
-) {
+) => {
   if (!segments) return null
   return segments.map((segment, idx) => {
     const isActive = segment.sentenceIndex === currentSentence

@@ -145,7 +145,7 @@ class BookServiceImpl implements BookService {
 // Singleton instance
 let _bookService: BookService | null = null
 
-export function getBookService(): BookService {
+export const getBookService = (): BookService => {
   if (!_bookService) {
     _bookService = new BookServiceImpl()
   }
