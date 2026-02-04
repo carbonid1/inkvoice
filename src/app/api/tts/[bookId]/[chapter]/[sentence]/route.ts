@@ -1,62 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile, readdir } from 'fs/promises'
-import { join } from 'path'
-import { parseEpub } from '@/lib/epub'
-import { ttsCache } from '@/lib/tts-cache'
-
-const BOOKS_DIR = join(process.cwd(), 'data', 'books')
-const TTS_API_URL = 'http://localhost:8000/tts'
+import { getBookService, getCacheService, getTTSService } from '@/lib/services'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ bookId: string; chapter: string; sentence: string }> }
 ) {
+  const { bookId, chapter, sentence } = await params
+  const voice = request.nextUrl.searchParams.get('voice') || 'narrator'
+  const chapterIdx = parseInt(chapter, 10)
+  const sentenceIdx = parseInt(sentence, 10)
+
+  if (isNaN(chapterIdx) || isNaN(sentenceIdx)) {
+    return NextResponse.json({ error: 'Invalid chapter or sentence index' }, { status: 400 })
+  }
+
+  const bookService = getBookService()
+  const cacheService = getCacheService()
+  const ttsService = getTTSService()
+
   try {
-    const { bookId, chapter, sentence } = await params
-    const voice = request.nextUrl.searchParams.get('voice') || 'narrator'
-
-    const chapterIdx = parseInt(chapter, 10)
-    const sentenceIdx = parseInt(sentence, 10)
-
-    if (isNaN(chapterIdx) || isNaN(sentenceIdx)) {
-      return NextResponse.json({ error: 'Invalid chapter or sentence index' }, { status: 400 })
-    }
-
-    // Find and parse the book to get the sentence text
-    const files = await readdir(BOOKS_DIR)
-    const epubFile = files.find((f) => {
-      const fileId = f.replace('.epub', '').replace(/[^a-zA-Z0-9-_]/g, '_')
-      return fileId === bookId
-    })
-
-    if (!epubFile) {
-      return NextResponse.json({ error: 'Book not found' }, { status: 404 })
-    }
-
-    const filePath = join(BOOKS_DIR, epubFile)
-    const buffer = await readFile(filePath)
-    const arrayBuffer = buffer.buffer.slice(
-      buffer.byteOffset,
-      buffer.byteOffset + buffer.byteLength
-    )
-
-    const parsedBook = await parseEpub(arrayBuffer as ArrayBuffer, bookId)
-
-    // Get the sentence text
-    const chapterData = parsedBook.chapters[chapterIdx]
-    if (!chapterData) {
-      return NextResponse.json({ error: 'Chapter not found' }, { status: 404 })
-    }
-
-    const text = chapterData.sentences[sentenceIdx]
+    // Get sentence text (uses cached ParsedBook)
+    const text = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
     if (!text) {
       return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
     }
 
-    // Check disk cache first
-    const cached = await ttsCache.get(text, voice)
+    // Check disk cache
+    const cached = await cacheService.get(text, voice)
     if (cached) {
-      const stats = await ttsCache.getStats()
+      const stats = await cacheService.getStats()
       return new NextResponse(new Uint8Array(cached), {
         headers: {
           'Content-Type': 'audio/wav',
@@ -68,31 +40,16 @@ export async function GET(
       })
     }
 
-    // Call Python TTS API
-    const response = await fetch(TTS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice }),
-    })
+    // Generate via TTS service
+    const { audio } = await ttsService.generate(text, voice)
 
-    if (!response.ok) {
-      const error = await response.text()
-      return NextResponse.json(
-        { error: `TTS API error: ${error}` },
-        { status: response.status }
-      )
-    }
-
-    const audioBuffer = await response.arrayBuffer()
-    const audioData = Buffer.from(audioBuffer)
-
-    // Store in cache and get updated stats
-    await ttsCache.set(text, voice, audioData).catch((err) => {
+    // Cache the result
+    await cacheService.set(text, voice, audio).catch((err) => {
       console.error('Failed to cache TTS audio:', err)
     })
-    const stats = await ttsCache.getStats()
+    const stats = await cacheService.getStats()
 
-    return new NextResponse(new Uint8Array(audioBuffer), {
+    return new NextResponse(new Uint8Array(audio), {
       headers: {
         'Content-Type': 'audio/wav',
         'Cache-Control': 'public, max-age=31536000, immutable',
@@ -111,9 +68,6 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(
-      { error: 'Failed to generate speech' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to generate speech' }, { status: 500 })
   }
 }

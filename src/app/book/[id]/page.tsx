@@ -5,9 +5,9 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Reader } from '@/components/Reader'
-import { Player } from '@/components/Player'
+import { PlayerContainer } from '@/components/player'
 import { DebugPanel, DebugMetrics } from '@/components/DebugPanel'
-import { ParsedBook } from '@/lib/epub'
+import type { ParsedBook } from '@/lib/types/book'
 import { useStore } from '@/store/useStore'
 
 export default function BookReader() {
@@ -161,7 +161,7 @@ export default function BookReader() {
         />
       </main>
 
-      <Player
+      <PlayerContainer
         bookId={bookId}
         chapters={book.chapters}
         currentChapter={currentChapter}

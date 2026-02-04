@@ -3,33 +3,15 @@ import { writeFile, unlink } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { JSDOM } from 'jsdom'
+import type {
+  TextSegment,
+  ContentBlock,
+  ParsedChapter,
+  ParsedBook,
+} from './types/book'
 
-export interface TextSegment {
-  sentenceIndex: number
-  html: string
-}
-
-export interface ContentBlock {
-  type: 'paragraph' | 'heading' | 'blockquote' | 'list' | 'image'
-  level?: number // For headings (1-6)
-  segments?: TextSegment[] // Sentence-aligned segments within block
-  src?: string // For images (base64 data URL)
-  alt?: string // For images
-  items?: TextSegment[][] // For list items
-}
-
-export interface ParsedChapter {
-  title: string
-  sentences: string[] // Plain text for TTS
-  content?: ContentBlock[] // Rich content for rendering (optional for backwards compat)
-}
-
-export interface ParsedBook {
-  id: string
-  title: string
-  author: string
-  chapters: ParsedChapter[]
-}
+// Re-export types for backwards compatibility
+export type { TextSegment, ContentBlock, ParsedChapter, ParsedBook } from './types/book'
 
 // Common abbreviations that shouldn't end sentences
 const ABBREVIATIONS = new Set([

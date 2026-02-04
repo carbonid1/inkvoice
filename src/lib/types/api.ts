@@ -1,0 +1,30 @@
+/**
+ * API response types
+ */
+
+export interface TTSResponse {
+  audio: ArrayBuffer
+  cached: boolean
+  generationTimeMs?: number
+}
+
+export interface CacheStats {
+  usedBytes: number
+  maxBytes: number
+}
+
+export interface VoiceInfo {
+  name: string
+  hasSource: boolean
+  hasSample: boolean
+}
+
+export interface TTSRequest {
+  text: string
+  voice?: string
+  exaggeration?: number
+}
+
+export interface ErrorResponse {
+  error: string
+}

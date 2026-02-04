@@ -1,9 +1,10 @@
 import { createHash } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
+import { env } from '@/lib/config'
+import type { CacheService } from './cache.types'
+import type { CacheStats } from '@/lib/types/api'
 
-const CACHE_DIR = path.join(process.cwd(), 'data', 'cache', 'tts')
-const MAX_CACHE_SIZE = 800 * 1024 * 1024 // 800 MB
 const METADATA_FILE = 'metadata.json'
 
 interface CacheEntry {
@@ -22,10 +23,15 @@ function getCacheHash(text: string, voice: string): string {
   return createHash('sha256').update(input).digest('hex')
 }
 
-class TTSCache {
+class TTSCacheService implements CacheService {
   private metadata: CacheMetadata = { totalSize: 0, entries: {} }
   private initialized = false
   private initPromise: Promise<void> | null = null
+  private cacheDir: string
+
+  constructor() {
+    this.cacheDir = env.cacheDir
+  }
 
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return
@@ -37,7 +43,7 @@ class TTSCache {
 
   private async initialize(): Promise<void> {
     try {
-      await fs.mkdir(CACHE_DIR, { recursive: true })
+      await fs.mkdir(this.cacheDir, { recursive: true })
       await this.loadMetadata()
       this.initialized = true
     } catch (error) {
@@ -49,7 +55,7 @@ class TTSCache {
 
   private async loadMetadata(): Promise<void> {
     try {
-      const metadataPath = path.join(CACHE_DIR, METADATA_FILE)
+      const metadataPath = path.join(this.cacheDir, METADATA_FILE)
       const data = await fs.readFile(metadataPath, 'utf-8')
       this.metadata = JSON.parse(data)
     } catch {
@@ -60,7 +66,7 @@ class TTSCache {
 
   private async saveMetadata(): Promise<void> {
     try {
-      const metadataPath = path.join(CACHE_DIR, METADATA_FILE)
+      const metadataPath = path.join(this.cacheDir, METADATA_FILE)
       await fs.writeFile(metadataPath, JSON.stringify(this.metadata, null, 2))
     } catch (error) {
       console.error('Failed to save cache metadata:', error)
@@ -75,7 +81,7 @@ class TTSCache {
 
     if (!entry) return null
 
-    const filePath = path.join(CACHE_DIR, `${hash}.wav`)
+    const filePath = path.join(this.cacheDir, `${hash}.wav`)
 
     try {
       const buffer = await fs.readFile(filePath)
@@ -99,11 +105,11 @@ class TTSCache {
     await this.ensureInitialized()
 
     const hash = getCacheHash(text, voice)
-    const filePath = path.join(CACHE_DIR, `${hash}.wav`)
+    const filePath = path.join(this.cacheDir, `${hash}.wav`)
     const size = audio.length
 
     // Check if we need to evict
-    if (this.metadata.totalSize + size > MAX_CACHE_SIZE) {
+    if (this.metadata.totalSize + size > env.maxCacheSizeBytes) {
       await this.evictLRU(size)
     }
 
@@ -123,12 +129,29 @@ class TTSCache {
     }
   }
 
-  async getStats(): Promise<{ usedBytes: number; maxBytes: number }> {
+  async getStats(): Promise<CacheStats> {
     await this.ensureInitialized()
     return {
       usedBytes: this.metadata.totalSize,
-      maxBytes: MAX_CACHE_SIZE,
+      maxBytes: env.maxCacheSizeBytes,
     }
+  }
+
+  async clear(): Promise<void> {
+    await this.ensureInitialized()
+
+    // Delete all cached files
+    for (const hash of Object.keys(this.metadata.entries)) {
+      const filePath = path.join(this.cacheDir, `${hash}.wav`)
+      try {
+        await fs.unlink(filePath)
+      } catch {
+        // Ignore errors for missing files
+      }
+    }
+
+    this.metadata = { totalSize: 0, entries: {} }
+    await this.saveMetadata()
   }
 
   private async evictLRU(bytesNeeded: number): Promise<void> {
@@ -141,7 +164,7 @@ class TTSCache {
     for (const [hash, entry] of entries) {
       if (freed >= bytesNeeded) break
 
-      const filePath = path.join(CACHE_DIR, `${hash}.wav`)
+      const filePath = path.join(this.cacheDir, `${hash}.wav`)
       try {
         await fs.unlink(filePath)
         delete this.metadata.entries[hash]
@@ -158,5 +181,12 @@ class TTSCache {
   }
 }
 
-// Export singleton instance
-export const ttsCache = new TTSCache()
+// Singleton instance
+let _cacheService: CacheService | null = null
+
+export function getCacheService(): CacheService {
+  if (!_cacheService) {
+    _cacheService = new TTSCacheService()
+  }
+  return _cacheService
+}

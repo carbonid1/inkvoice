@@ -50,10 +50,8 @@ trap cleanup SIGINT SIGTERM
 # Start Python API
 echo -e "${GREEN}Starting Python TTS API on :8000...${NC}"
 source venv/bin/activate
-cd api
-uvicorn main:app --reload --port 8000 &
+uvicorn api.app.main:app --reload --port 8000 &
 PYTHON_PID=$!
-cd ..
 
 # Wait a moment for Python to start
 sleep 2

@@ -2,3 +2,4 @@ chatterbox-tts
 fastapi
 uvicorn[standard]
 python-multipart
+pydantic-settings
