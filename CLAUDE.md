@@ -1,3 +1,97 @@
+# InkVoice
+
+Local audiobook reader that converts epub books to speech using Chatterbox TTS.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 14 + TypeScript |
+| Styling | Tailwind CSS |
+| State | Zustand + persist middleware |
+| Epub parsing | epub.js (browser-based) |
+| TTS | Chatterbox via FastAPI (Python) |
+
+## File Structure
+
+```
+inkvoice/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx              # Root layout, global styles
+│   │   ├── page.tsx                # Library view (home)
+│   │   ├── globals.css             # Tailwind imports + theme
+│   │   ├── book/[id]/
+│   │   │   └── page.tsx            # Reader view
+│   │   └── api/
+│   │       ├── books/route.ts      # GET: list all books
+│   │       ├── book/[id]/route.ts  # GET: parse single book
+│   │       └── tts/route.ts        # POST: generate/cache audio
+│   ├── components/
+│   │   ├── BookCard.tsx            # Book thumbnail in library
+│   │   ├── Reader.tsx              # Sentence display + scrolling
+│   │   └── Player.tsx              # Playback controls + buffer
+│   ├── lib/
+│   │   ├── epub.ts                 # Parse epub → chapters → sentences
+│   │   ├── cache.ts                # Disk cache read/write
+│   │   └── paths.ts                # BOOKS_DIR, CACHE_DIR constants
+│   └── store/
+│       └── useStore.ts             # Zustand: books, progress, actions
+├── api/
+│   ├── main.py                     # FastAPI + Chatterbox TTS
+│   └── requirements.txt            # Python dependencies
+├── data/
+│   ├── books/                      # Drop .epub files here
+│   └── voices/                     # Voice cloning references
+└── scripts/
+    └── start.sh                    # Launch both servers
+```
+
+## Key Files
+
+- `src/lib/epub.ts` - Epub parsing logic
+- `src/components/Player.tsx` - Audio playback and prefetching
+- `api/main.py` - TTS generation endpoint
+
+## Data Locations
+
+| Data | Location |
+|------|----------|
+| Book files | `./data/books/*.epub` |
+| Voice references | `./data/voices/{name}/source.wav` |
+| Audio cache | `~/Library/Caches/InkVoice/{bookId}/` |
+| Reading progress | Browser localStorage |
+| TTS model weights | `~/.cache/huggingface/` |
+
+## Running the App
+
+```bash
+# Run both servers:
+./scripts/start.sh
+
+# Or manually (two terminals):
+
+# Terminal 1: Python TTS API
+source venv/bin/activate
+cd api && uvicorn main:app --reload --port 8000
+
+# Terminal 2: Next.js
+pnpm dev
+```
+
+Then add `.epub` files to `data/books/` and open http://localhost:3000
+
+## Testing TTS
+
+```bash
+curl -X POST http://localhost:8000/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello, this is a test."}' \
+  --output test.wav && afplay test.wav
+```
+
+## Development Notes
+
 - Use `react-hotkeys-hook` for keyboard shortcuts.
 
 ## Adding New Voices
