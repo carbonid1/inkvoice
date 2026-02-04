@@ -105,6 +105,30 @@ curl -X POST http://localhost:8000/tts \
   function handleClick() { ... }
   ```
 
+## Testing
+
+- Tests are optional - consider pragmatically
+- Skip tests when TypeScript already validates the logic
+- Test complex logic, edge cases, and transformations
+
+## Documentation
+
+- Sacrifice grammar for concision
+
+## Plan Mode
+
+- Make plans extremely concise
+- End with unresolved questions, if any
+
+## Verification
+
+- Run `pnpm ts` after meaningful changes
+- Run `pnpm test` for related files only
+
+## Git
+
+- Never commit or push without explicit user request
+
 ## Adding New Voices
 
 Voices are stored in `data/voices/` with the following structure:
