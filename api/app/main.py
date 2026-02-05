@@ -8,7 +8,7 @@ app = FastAPI(title="InkVoice TTS API")
 
 
 @app.post("/tts")
-async def text_to_speech(request: TTSRequest) -> Response:
+def text_to_speech(request: TTSRequest) -> Response:
     """Generate speech audio from text."""
     text = request.text.strip() if request.text else ""
     if not text:

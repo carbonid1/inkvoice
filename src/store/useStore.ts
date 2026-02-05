@@ -78,6 +78,8 @@ const debouncedStorage: StateStorage = {
   },
 }
 
+const DEFAULT_PROGRESS: Progress = { chapter: 0, sentence: 0 }
+
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -108,7 +110,7 @@ export const useStore = create<AppState>()(
           progress: {
             ...state.progress,
             [bookId]: {
-              ...state.progress[bookId] || { chapter: 0, sentence: 0 },
+              ...state.progress[bookId] || DEFAULT_PROGRESS,
               totalChapters,
               sentencesPerChapter,
             },
@@ -117,7 +119,7 @@ export const useStore = create<AppState>()(
 
       getProgress: (bookId) => {
         const state = get()
-        return state.progress[bookId] || { chapter: 0, sentence: 0 }
+        return state.progress[bookId] || DEFAULT_PROGRESS
       },
 
       setVoice: (voice) => set({ voice }),

@@ -9,7 +9,9 @@ import { GearIcon } from '@/components/icons/GearIcon'
 export default function Library() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { books, setBooks, progress } = useStore()
+  const books = useStore((s) => s.books)
+  const setBooks = useStore((s) => s.setBooks)
+  const progress = useStore((s) => s.progress)
 
   useEffect(() => {
     async function fetchBooks() {

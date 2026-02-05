@@ -61,15 +61,15 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('TTS error:', error)
-
     if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('TTS API unreachable')
       return NextResponse.json(
         { error: 'TTS API is not running. Please start the Python server.' },
         { status: 503 }
       )
     }
 
+    console.error('TTS error:', error)
     return NextResponse.json({ error: 'Failed to generate speech' }, { status: 500 })
   }
 }

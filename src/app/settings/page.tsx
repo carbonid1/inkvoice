@@ -19,7 +19,8 @@ export default function Settings() {
   const [loading, setLoading] = useState(true)
   const [playingVoice, setPlayingVoice] = useState<PlayingState>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
-  const { voice, setVoice } = useStore()
+  const voice = useStore((s) => s.voice)
+  const setVoice = useStore((s) => s.setVoice)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {

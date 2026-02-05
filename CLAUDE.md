@@ -59,6 +59,18 @@ curl -X POST http://localhost:8000/tts \
 
 - Use `react-hotkeys-hook` for keyboard shortcuts.
 
+### React Referential Stability
+
+- **Zustand selectors**: `useStore((s) => s.x)` not `const { x } = useStore()` — destructuring subscribes to all state
+- **`useMemo` on hook returns**: Any hook returning `{ ...values, ...callbacks }` must wrap in `useMemo` to prevent infinite loops if consumers dep-array the result
+- **Test callback stability**: Write one per exported callback on hooks that return functions
+  ```ts
+  const { result, rerender } = renderHook(() => useMyHook())
+  const first = result.current.callback
+  rerender()
+  expect(result.current.callback).toBe(first)
+  ```
+
 ## Code Style
 
 - Use `const` with arrow functions instead of `function` declarations:

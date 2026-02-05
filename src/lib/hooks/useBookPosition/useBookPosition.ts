@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useRef, useEffect } from 'react'
+import { useCallback, useRef, useEffect, useMemo } from 'react'
 import type { ParsedChapter } from '@/lib/types/book'
+import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 
 interface UseBookPositionOptions {
   chapters: ParsedChapter[]
@@ -30,21 +31,8 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
   const totalSentences = chapter?.sentences.length || 0
 
   const getNextPosition = useCallback(
-    (ch: number, sent: number): { ch: number; sent: number } | null => {
-      const nextSent = sent + 1
-      const chapterData = chaptersRef.current[ch]
-
-      if (chapterData && nextSent < chapterData.sentences.length) {
-        return { ch, sent: nextSent }
-      }
-
-      const nextCh = ch + 1
-      if (nextCh < chaptersRef.current.length) {
-        return { ch: nextCh, sent: 0 }
-      }
-
-      return null // End of book
-    },
+    (ch: number, sent: number) =>
+      getNextPositionHelper(chaptersRef.current, ch, sent),
     []
   )
 
@@ -78,20 +66,37 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
     return false // End of book
   }, [getNextPosition])
 
-  return {
-    chapter,
-    totalSentences,
-    currentChapter,
-    currentSentence,
-    totalChapters: chapters.length,
-    skipBack,
-    skipForward,
-    advanceToNext,
-    getNextPosition,
-    // Expose refs for prefetch queue
-    chaptersRef,
-    currentChapterRef,
-    currentSentenceRef,
-    onProgressChangeRef,
-  }
+  return useMemo(
+    () => ({
+      chapter,
+      totalSentences,
+      currentChapter,
+      currentSentence,
+      totalChapters: chapters.length,
+      skipBack,
+      skipForward,
+      advanceToNext,
+      getNextPosition,
+      // Expose refs for prefetch queue
+      chaptersRef,
+      currentChapterRef,
+      currentSentenceRef,
+      onProgressChangeRef,
+    }),
+    [
+      chapter,
+      totalSentences,
+      currentChapter,
+      currentSentence,
+      chapters.length,
+      skipBack,
+      skipForward,
+      advanceToNext,
+      getNextPosition,
+      chaptersRef,
+      currentChapterRef,
+      currentSentenceRef,
+      onProgressChangeRef,
+    ]
+  )
 }

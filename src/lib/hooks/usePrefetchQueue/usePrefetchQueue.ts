@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useMemo } from 'react'
 import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics } from '@/components/DebugPanel'
+import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 
 interface UsePrefetchQueueOptions {
   bookId: string
@@ -27,6 +28,8 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
   // Track in-flight fetches
   const inFlightRef = useRef<Set<string>>(new Set())
+  // Track consecutive prefetch failures
+  const consecutiveFailuresRef = useRef(0)
   // Track what's been prefetched
   const prefetchedRef = useRef<Set<string>>(new Set())
   // Track cache stats
@@ -78,21 +81,8 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   }, [onDebugUpdate, countAhead])
 
   const getNextPosition = useCallback(
-    (ch: number, sent: number): { ch: number; sent: number } | null => {
-      const nextSent = sent + 1
-      const chapterData = chaptersRef.current[ch]
-
-      if (chapterData && nextSent < chapterData.sentences.length) {
-        return { ch, sent: nextSent }
-      }
-
-      const nextCh = ch + 1
-      if (nextCh < chaptersRef.current.length) {
-        return { ch: nextCh, sent: 0 }
-      }
-
-      return null
-    },
+    (ch: number, sent: number) =>
+      getNextPositionHelper(chaptersRef.current, ch, sent),
     [chaptersRef]
   )
 
@@ -119,6 +109,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
   const continuePrefetching = useCallback(() => {
     if (inFlightRef.current.size >= MAX_CONCURRENT_PREFETCH) return
+    if (consecutiveFailuresRef.current >= 3) return
 
     const next = findNextToPrefetch()
     if (!next) return
@@ -132,20 +123,23 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
     fetch(url)
       .then((response) => {
+        if (!response.ok) {
+          consecutiveFailuresRef.current++
+          return
+        }
+        consecutiveFailuresRef.current = 0
         prefetchedRef.current.add(key)
-        if (response.ok) {
-          const usedBytes = response.headers.get('X-Cache-Used')
-          const maxBytes = response.headers.get('X-Cache-Max')
-          if (usedBytes && maxBytes) {
-            cacheStatsRef.current = {
-              usedMB: Math.round(parseInt(usedBytes, 10) / (1024 * 1024)),
-              maxMB: Math.round(parseInt(maxBytes, 10) / (1024 * 1024)),
-            }
+        const usedBytes = response.headers.get('X-Cache-Used')
+        const maxBytes = response.headers.get('X-Cache-Max')
+        if (usedBytes && maxBytes) {
+          cacheStatsRef.current = {
+            usedMB: Math.round(parseInt(usedBytes, 10) / (1024 * 1024)),
+            maxMB: Math.round(parseInt(maxBytes, 10) / (1024 * 1024)),
           }
         }
       })
       .catch(() => {
-        prefetchedRef.current.add(key)
+        consecutiveFailuresRef.current++
       })
       .finally(() => {
         inFlightRef.current.delete(key)
@@ -153,6 +147,10 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
         continuePrefetching()
       })
   }, [findNextToPrefetch, getCacheKey, getTTSUrl, updateDebugMetrics])
+
+  const resetFailures = useCallback(() => {
+    consecutiveFailuresRef.current = 0
+  }, [])
 
   const fetchAudio = useCallback(
     async (ch: number, sent: number): Promise<string | null> => {
@@ -194,10 +192,14 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     [chaptersRef, getCacheKey, getTTSUrl, updateDebugMetrics]
   )
 
-  return {
-    fetchAudio,
-    continuePrefetching,
-    updateDebugMetrics,
-    cacheStatsRef,
-  }
+  return useMemo(
+    () => ({
+      fetchAudio,
+      continuePrefetching,
+      updateDebugMetrics,
+      resetFailures,
+      cacheStatsRef,
+    }),
+    [fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, cacheStatsRef]
+  )
 }

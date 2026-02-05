@@ -28,7 +28,7 @@ export const PlayerContainer = ({
   onProgressChange,
   onDebugUpdate,
 }: PlayerContainerProps) => {
-  const { voice } = useStore()
+  const voice = useStore((s) => s.voice)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
 
   const position = useBookPosition({
@@ -55,17 +55,20 @@ export const PlayerContainer = ({
     onDebugUpdate,
   })
 
+  const { setLoading, setError, play, shouldPlay, pause, setPlaying, isPlaying } = audioPlayer
+  const { fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures } = prefetch
+
   const playCurrentSentence = useCallback(async () => {
     const targetChapter = currentChapter
     const targetSentence = currentSentence
 
-    audioPlayer.setLoading(true)
-    audioPlayer.setError(null)
+    setLoading(true)
+    setError(null)
 
     try {
-      const url = await prefetch.fetchAudio(targetChapter, targetSentence)
+      const url = await fetchAudio(targetChapter, targetSentence)
       if (!url) {
-        audioPlayer.setLoading(false)
+        setLoading(false)
         return
       }
 
@@ -74,53 +77,55 @@ export const PlayerContainer = ({
         position.currentChapterRef.current !== targetChapter ||
         position.currentSentenceRef.current !== targetSentence
       ) {
-        audioPlayer.setLoading(false)
+        setLoading(false)
         return
       }
 
       // Check if user paused while loading
-      if (!audioPlayer.shouldPlay()) {
-        audioPlayer.setLoading(false)
+      if (!shouldPlay()) {
+        setLoading(false)
         return
       }
 
       playingPositionRef.current = { ch: targetChapter, sent: targetSentence }
-      await audioPlayer.play(url)
-      prefetch.continuePrefetching()
+      await play(url)
+      continuePrefetching()
     } catch (e) {
-      audioPlayer.setError(e instanceof Error ? e.message : 'Failed to play audio')
-      audioPlayer.setPlaying(false)
+      setError(e instanceof Error ? e.message : 'Failed to play audio')
+      setPlaying(false)
     } finally {
-      audioPlayer.setLoading(false)
+      setLoading(false)
     }
-  }, [currentChapter, currentSentence, audioPlayer, prefetch, position])
+  }, [currentChapter, currentSentence, setLoading, setError, fetchAudio, shouldPlay, play, continuePrefetching, setPlaying, position.currentChapterRef, position.currentSentenceRef])
 
   // Start prefetching on mount
   useEffect(() => {
     prefetch.updateDebugMetrics()
     prefetch.continuePrefetching()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount for initial prefetch
+  }, [])
 
   // Update metrics and continue prefetching on position change
   useEffect(() => {
-    prefetch.updateDebugMetrics()
-    prefetch.continuePrefetching()
-  }, [currentChapter, currentSentence, prefetch])
+    updateDebugMetrics()
+    resetFailures()
+    continuePrefetching()
+  }, [currentChapter, currentSentence, updateDebugMetrics, continuePrefetching, resetFailures])
 
   // Play when position changes and isPlaying
   useEffect(() => {
-    if (audioPlayer.isPlaying) {
+    if (isPlaying) {
       playCurrentSentence()
     }
-  }, [audioPlayer.isPlaying, currentChapter, currentSentence, playCurrentSentence])
+  }, [isPlaying, currentChapter, currentSentence, playCurrentSentence])
 
   const togglePlay = useCallback(() => {
-    if (audioPlayer.isPlaying) {
-      audioPlayer.pause()
+    if (isPlaying) {
+      pause()
     } else {
-      audioPlayer.setPlaying(true)
+      setPlaying(true)
     }
-  }, [audioPlayer])
+  }, [isPlaying, pause, setPlaying])
 
   // Space to toggle play/pause
   useHotkeys('space', togglePlay, { preventDefault: true })
@@ -135,7 +140,7 @@ export const PlayerContainer = ({
         )}
 
         <PlaybackControls
-          isPlaying={audioPlayer.isPlaying}
+          isPlaying={isPlaying}
           isLoading={audioPlayer.isLoading}
           onPlayPause={togglePlay}
           onSkipBack={position.skipBack}

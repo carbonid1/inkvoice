@@ -1,0 +1,30 @@
+import { describe, it, expect } from 'vitest'
+import { getNextPosition } from './getNextPosition'
+import type { ParsedChapter } from '@/lib/types/book'
+
+const makeChapters = (sentenceCounts: number[]): ParsedChapter[] =>
+  sentenceCounts.map((n, i) => ({
+    title: `Chapter ${i}`,
+    sentences: Array.from({ length: n }, (_, j) => `Sentence ${j}`),
+  }))
+
+describe('getNextPosition', () => {
+  it('returns next sentence in same chapter', () => {
+    const chapters = makeChapters([5, 3])
+    expect(getNextPosition(chapters, 0, 2)).toEqual({ ch: 0, sent: 3 })
+  })
+
+  it('crosses chapter boundary', () => {
+    const chapters = makeChapters([3, 5])
+    expect(getNextPosition(chapters, 0, 2)).toEqual({ ch: 1, sent: 0 })
+  })
+
+  it('returns null at end of book', () => {
+    const chapters = makeChapters([3, 2])
+    expect(getNextPosition(chapters, 1, 1)).toBeNull()
+  })
+
+  it('returns null for empty chapters array', () => {
+    expect(getNextPosition([], 0, 0)).toBeNull()
+  })
+})
