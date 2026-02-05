@@ -90,6 +90,7 @@ export const PlayerContainer = ({
       await play(url)
       continuePrefetching()
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return
       setError(e instanceof Error ? e.message : 'Failed to play audio')
       setPlaying(false)
     } finally {

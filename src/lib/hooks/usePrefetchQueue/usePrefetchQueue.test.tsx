@@ -1,0 +1,288 @@
+import { StrictMode, type ReactNode } from 'react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderHook, waitFor } from '@testing-library/react'
+import { usePrefetchQueue } from './usePrefetchQueue'
+import type { ParsedChapter } from '@/lib/types/book'
+
+const strictWrapper = ({ children }: { children: ReactNode }) => (
+  <StrictMode>{children}</StrictMode>
+)
+
+const makeChapters = (sentenceCounts: number[]): ParsedChapter[] =>
+  sentenceCounts.map((n, i) => ({
+    title: `Chapter ${i}`,
+    sentences: Array.from({ length: n }, (_, j) => `Sentence ${j}`),
+  }))
+
+const stableOptions = () => {
+  const chapters = makeChapters([5, 3])
+  return {
+    bookId: 'test-book',
+    voice: 'narrator',
+    chaptersRef: { current: chapters },
+    currentChapterRef: { current: 0 },
+    currentSentenceRef: { current: 0 },
+    onDebugUpdate: vi.fn(),
+  }
+}
+
+describe('usePrefetchQueue', () => {
+  describe('callback referential stability', () => {
+    const callbacks = [
+      'fetchAudio',
+      'continuePrefetching',
+      'updateDebugMetrics',
+      'resetFailures',
+    ] as const
+
+    callbacks.forEach((name) => {
+      it(`${name} is stable across re-renders`, () => {
+        const opts = stableOptions()
+        const { result, rerender } = renderHook(() => usePrefetchQueue(opts))
+        const first = result.current[name]
+        rerender()
+        expect(result.current[name]).toBe(first)
+      })
+    })
+
+    it('cacheStatsRef is stable across re-renders', () => {
+      const opts = stableOptions()
+      const { result, rerender } = renderHook(() => usePrefetchQueue(opts))
+      const first = result.current.cacheStatsRef
+      rerender()
+      expect(result.current.cacheStatsRef).toBe(first)
+    })
+  })
+
+  describe('abort-on-unmount behavior', () => {
+    let abortSpy: ReturnType<typeof vi.spyOn>
+    let fetchMock: ReturnType<typeof vi.fn<typeof fetch>>
+
+    beforeEach(() => {
+      abortSpy = vi.spyOn(AbortController.prototype, 'abort')
+      fetchMock = vi.fn<typeof fetch>()
+      global.fetch = fetchMock
+    })
+
+    afterEach(() => {
+      abortSpy.mockRestore()
+      vi.restoreAllMocks()
+    })
+
+    it('calls AbortController.abort() on unmount', () => {
+      const opts = stableOptions()
+      const { unmount } = renderHook(() => usePrefetchQueue(opts))
+
+      expect(abortSpy).not.toHaveBeenCalled()
+      unmount()
+      expect(abortSpy).toHaveBeenCalled()
+    })
+
+    it('passes abort signal to fetch calls', async () => {
+      // Use chapter with 2 sentences: current=0, will prefetch sentence 1
+      const chapters = makeChapters([2])
+      const opts = {
+        ...stableOptions(),
+        chaptersRef: { current: chapters },
+      }
+
+      fetchMock.mockResolvedValue(
+        new Response(new Blob(), {
+          status: 200,
+          headers: new Headers({
+            'X-Cache-Used': '1000000',
+            'X-Cache-Max': '800000000',
+          }),
+        })
+      )
+
+      const { result } = renderHook(() => usePrefetchQueue(opts))
+
+      result.current.continuePrefetching()
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalled()
+      })
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      )
+    })
+
+    it('does not increment consecutive failures on AbortError', async () => {
+      const abortError = new Error('Aborted')
+      abortError.name = 'AbortError'
+
+      // Use 2 sentences: current=0, will try to prefetch sentence 1
+      const chapters = makeChapters([2])
+      const opts = {
+        ...stableOptions(),
+        chaptersRef: { current: chapters },
+      }
+
+      let callCount = 0
+      fetchMock.mockImplementation(() => {
+        callCount++
+        // First call fails with AbortError, second succeeds
+        if (callCount === 1) {
+          return Promise.reject(abortError)
+        }
+        return Promise.resolve(
+          new Response(new Blob(), {
+            status: 200,
+            headers: new Headers({
+              'X-Cache-Used': '1000000',
+              'X-Cache-Max': '800000000',
+            }),
+          })
+        )
+      })
+
+      const { result } = renderHook(() => usePrefetchQueue(opts))
+
+      // First attempt
+      result.current.continuePrefetching()
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledTimes(1)
+      })
+
+      // Second attempt on same sentence should work
+      // (proving AbortError didn't increment failures)
+      result.current.continuePrefetching()
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledTimes(2)
+      })
+    })
+
+    it('does increment consecutive failures on non-abort errors', async () => {
+      const networkError = new Error('Network error')
+
+      // Use limited chapters
+      const chapters = makeChapters([5])
+      const opts = {
+        ...stableOptions(),
+        chaptersRef: { current: chapters },
+      }
+
+      fetchMock.mockRejectedValue(networkError)
+
+      const { result } = renderHook(() => usePrefetchQueue(opts))
+
+      // Trigger prefetching - it should stop after 3 failures
+      result.current.continuePrefetching()
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledTimes(3)
+      }, { timeout: 2000 })
+
+      // Wait a bit more to ensure it doesn't continue
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      // Should have stopped at 3 calls due to consecutive failure limit
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+    })
+
+    it('stops prefetching after unmount', async () => {
+      // Use limited chapters
+      const chapters = makeChapters([3])
+      const opts = {
+        ...stableOptions(),
+        chaptersRef: { current: chapters },
+      }
+
+      let callCount = 0
+      fetchMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            callCount++
+            setTimeout(
+              () =>
+                resolve(
+                  new Response(new Blob(), {
+                    status: 200,
+                    headers: new Headers({
+                      'X-Cache-Used': '1000000',
+                      'X-Cache-Max': '800000000',
+                    }),
+                  })
+                ),
+              50
+            )
+          })
+      )
+
+      const { result, unmount } = renderHook(() => usePrefetchQueue(opts))
+
+      result.current.continuePrefetching()
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+
+      const callCountBeforeUnmount = callCount
+
+      unmount()
+
+      // Wait to ensure no new fetches occur after unmount
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      // Should not have made additional calls after unmount
+      expect(callCount).toBe(callCountBeforeUnmount)
+    })
+
+    it('prefetches after StrictMode double-mount', async () => {
+      const chapters = makeChapters([3])
+      const opts = {
+        ...stableOptions(),
+        chaptersRef: { current: chapters },
+      }
+
+      fetchMock.mockResolvedValue(
+        new Response(new Blob(), {
+          status: 200,
+          headers: new Headers({
+            'X-Cache-Used': '1000000',
+            'X-Cache-Max': '800000000',
+          }),
+        })
+      )
+
+      const { result } = renderHook(() => usePrefetchQueue(opts), {
+        wrapper: strictWrapper,
+      })
+
+      result.current.continuePrefetching()
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalled()
+      })
+
+      // Verify signal is NOT aborted (StrictMode resets the controller)
+      const signal = fetchMock.mock.calls[0][1]?.signal as AbortSignal
+      expect(signal.aborted).toBe(false)
+    })
+
+    it('passes abort signal to fetchAudio', async () => {
+      fetchMock.mockResolvedValue(
+        new Response(new Blob(), {
+          status: 200,
+          headers: new Headers({
+            'X-Cache-Used': '1000000',
+            'X-Cache-Max': '800000000',
+          }),
+        })
+      )
+
+      const opts = stableOptions()
+      const { result } = renderHook(() => usePrefetchQueue(opts))
+
+      await result.current.fetchAudio(0, 1)
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      )
+    })
+  })
+})

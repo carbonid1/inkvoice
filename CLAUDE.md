@@ -61,6 +61,7 @@ curl -X POST http://localhost:8000/tts \
 
 - **Zustand selectors**: `useStore((s) => s.x)` not `const { x } = useStore()` — destructuring subscribes to all state
 - **`useMemo` on hook returns**: Any hook returning `{ ...values, ...callbacks }` must wrap in `useMemo` to prevent infinite loops if consumers dep-array the result
+- **Effect cleanup + ref reset**: Any effect cleanup that mutates refs must have matching setup that resets them (StrictMode double-mounts reuse stale ref values)
 - **Test callback stability**: Write one per exported callback on hooks that return functions
   ```ts
   const { result, rerender } = renderHook(() => useMyHook())

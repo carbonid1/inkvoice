@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useCallback, useMemo } from 'react'
+import { useRef, useCallback, useMemo, useEffect } from 'react'
 import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics } from '@/components/DebugPanel'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
@@ -37,6 +37,10 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     usedMB: 0,
     maxMB: 800,
   })
+  // Track abort controller for canceling fetches
+  const abortControllerRef = useRef<AbortController>(new AbortController())
+  // Track if component is mounted
+  const mountedRef = useRef(true)
 
   const getCacheKey = useCallback(
     (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}`,
@@ -109,6 +113,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   }, [getCacheKey, getNextPosition, currentChapterRef, currentSentenceRef])
 
   const continuePrefetching = useCallback(() => {
+    if (!mountedRef.current) return
     if (inFlightRef.current.size >= MAX_CONCURRENT_PREFETCH) return
     if (consecutiveFailuresRef.current >= 3) return
 
@@ -122,7 +127,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     inFlightRef.current.add(key)
     updateDebugMetrics()
 
-    fetch(url)
+    fetch(url, { signal: abortControllerRef.current.signal })
       .then((response) => {
         if (!response.ok) {
           consecutiveFailuresRef.current++
@@ -139,8 +144,10 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
           }
         }
       })
-      .catch(() => {
-        consecutiveFailuresRef.current++
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          consecutiveFailuresRef.current++
+        }
       })
       .finally(() => {
         inFlightRef.current.delete(key)
@@ -151,6 +158,17 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
   const resetFailures = useCallback(() => {
     consecutiveFailuresRef.current = 0
+  }, [])
+
+  // Reset on mount (handles React StrictMode double-mount), cleanup on unmount
+  useEffect(() => {
+    mountedRef.current = true
+    abortControllerRef.current = new AbortController()
+    return () => {
+      mountedRef.current = false
+      abortControllerRef.current.abort()
+      inFlightRef.current.clear()
+    }
   }, [])
 
   const fetchAudio = useCallback(
@@ -167,7 +185,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
       updateDebugMetrics()
 
       try {
-        const response = await fetch(url)
+        const response = await fetch(url, { signal: abortControllerRef.current.signal })
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}))
           throw new Error(errData.error || 'Failed to generate audio')
