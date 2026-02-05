@@ -15,7 +15,7 @@ interface UsePrefetchQueueOptions {
 
 const MAX_CONCURRENT_PREFETCH = 1
 
-export function usePrefetchQueue(options: UsePrefetchQueueOptions) {
+export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   const {
     bookId,
     voice,

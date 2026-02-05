@@ -9,7 +9,7 @@ const envSchema = z.object({
   TTS_API_URL: z.string().url().default('http://localhost:8000/tts'),
 })
 
-function loadEnv() {
+const loadEnv = () => {
   return envSchema.parse({
     BOOKS_DIR: process.env.INKVOICE_BOOKS_DIR,
     VOICES_DIR: process.env.INKVOICE_VOICES_DIR,
@@ -23,7 +23,7 @@ export type Env = z.infer<typeof envSchema>
 
 let _env: Env | null = null
 
-export function getEnv(): Env {
+export const getEnv = (): Env => {
   if (!_env) {
     _env = loadEnv()
   }

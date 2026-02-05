@@ -1,7 +1,7 @@
 import { createHash } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
-import { env } from '@/lib/config'
+import { env } from '@/lib/config/env'
 import type { CacheService } from './cache.types'
 import type { CacheStats } from '@/lib/types/api'
 

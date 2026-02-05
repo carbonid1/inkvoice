@@ -5,9 +5,9 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics } from '@/components/DebugPanel'
 import { useStore } from '@/store/useStore'
-import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer'
-import { useBookPosition } from '@/lib/hooks/useBookPosition'
-import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue'
+import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
+import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
+import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { PlaybackControls } from './PlaybackControls'
 import { ProgressIndicator } from './ProgressIndicator'
 
@@ -20,14 +20,14 @@ interface PlayerContainerProps {
   onDebugUpdate?: (metrics: DebugMetrics) => void
 }
 
-export function PlayerContainer({
+export const PlayerContainer = ({
   bookId,
   chapters,
   currentChapter,
   currentSentence,
   onProgressChange,
   onDebugUpdate,
-}: PlayerContainerProps) {
+}: PlayerContainerProps) => {
   const { voice } = useStore()
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
 

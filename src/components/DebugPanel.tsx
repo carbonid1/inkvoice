@@ -12,7 +12,7 @@ interface DebugPanelProps {
   visible: boolean
 }
 
-export function DebugPanel({ metrics, visible }: DebugPanelProps) {
+export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
   if (!visible) return null
 
   const cachePercent = metrics.cacheMaxMB > 0

@@ -26,7 +26,7 @@ const BookIcon = () => {
   )
 }
 
-export function BookCard({ book }: BookCardProps) {
+export const BookCard = ({ book }: BookCardProps) => {
   const [coverLoaded, setCoverLoaded] = useState(false)
   const [coverError, setCoverError] = useState(false)
 

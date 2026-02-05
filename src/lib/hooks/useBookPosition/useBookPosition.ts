@@ -10,7 +10,7 @@ interface UseBookPositionOptions {
   onProgressChange: (chapter: number, sentence: number) => void
 }
 
-export function useBookPosition(options: UseBookPositionOptions) {
+export const useBookPosition = (options: UseBookPositionOptions) => {
   const { chapters, currentChapter, currentSentence, onProgressChange } = options
 
   // Keep refs in sync for use in callbacks

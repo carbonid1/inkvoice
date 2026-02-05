@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { join } from 'path'
-import { env } from '@/lib/config'
+import { env } from '@/lib/config/env'
 
 /**
  * Derive a book ID from a filename

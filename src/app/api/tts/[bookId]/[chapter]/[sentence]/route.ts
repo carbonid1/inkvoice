@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getBookService, getCacheService, getTTSService } from '@/lib/services'
+import { getBookService } from '@/lib/services/book/book.service'
+import { getCacheService } from '@/lib/services/cache/cache.service'
+import { getTTSService } from '@/lib/services/tts/tts.server'
 
 export async function GET(
   request: NextRequest,

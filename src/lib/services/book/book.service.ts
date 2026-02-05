@@ -1,6 +1,6 @@
 import type { BookService } from './book.types'
 import type { ParsedBook, BookInfo, BookMetadata } from '@/lib/types/book'
-import { parseEpub, getBookMetadata, getCoverImage } from '@/lib/epub'
+import { parseEpub, getBookMetadata, getCoverImage } from '@/lib/epub/epub'
 import {
   findBookFile,
   readBookFile,

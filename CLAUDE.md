@@ -12,45 +12,10 @@ Local audiobook reader that converts epub books to speech using Chatterbox TTS.
 | Epub parsing | epub.js (browser-based) |
 | TTS | Chatterbox via FastAPI (Python) |
 
-## File Structure
-
-```
-inkvoice/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx              # Root layout, global styles
-│   │   ├── page.tsx                # Library view (home)
-│   │   ├── globals.css             # Tailwind imports + theme
-│   │   ├── book/[id]/
-│   │   │   └── page.tsx            # Reader view
-│   │   └── api/
-│   │       ├── books/route.ts      # GET: list all books
-│   │       ├── book/[id]/route.ts  # GET: parse single book
-│   │       └── tts/route.ts        # POST: generate/cache audio
-│   ├── components/
-│   │   ├── BookCard.tsx            # Book thumbnail in library
-│   │   ├── Reader.tsx              # Sentence display + scrolling
-│   │   └── Player.tsx              # Playback controls + buffer
-│   ├── lib/
-│   │   ├── epub.ts                 # Parse epub → chapters → sentences
-│   │   ├── cache.ts                # Disk cache read/write
-│   │   └── paths.ts                # BOOKS_DIR, CACHE_DIR constants
-│   └── store/
-│       └── useStore.ts             # Zustand: books, progress, actions
-├── api/
-│   ├── main.py                     # FastAPI + Chatterbox TTS
-│   └── requirements.txt            # Python dependencies
-├── data/
-│   ├── books/                      # Drop .epub files here
-│   └── voices/                     # Voice cloning references
-└── scripts/
-    └── start.sh                    # Launch both servers
-```
-
 ## Key Files
 
-- `src/lib/epub.ts` - Epub parsing logic
-- `src/components/Player.tsx` - Audio playback and prefetching
+- `src/lib/epub/epub.ts` - Epub parsing logic
+- `src/components/player/PlayerContainer.tsx` - Audio playback and prefetching
 - `api/main.py` - TTS generation endpoint
 
 ## Data Locations

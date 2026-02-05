@@ -13,7 +13,7 @@ interface UseAudioPlayerOptions {
   onError?: (error: string) => void
 }
 
-export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
+export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
   const { onEnded, onError } = options
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [state, setState] = useState<AudioPlayerState>({

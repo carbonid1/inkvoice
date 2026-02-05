@@ -40,7 +40,7 @@ const renderSegments = (
   })
 }
 
-export function ContentBlock({
+export const ContentBlock = ({
   block,
   currentSentence,
   onSentenceClick,
@@ -48,7 +48,7 @@ export function ContentBlock({
   sentenceRef,
   isInTitleGroup,
   isSubtitle,
-}: ContentBlockProps) {
+}: ContentBlockProps) => {
   const segments = (segs: TextSegment[] | undefined) =>
     renderSegments(segs, currentSentence, onSentenceClick, currentChapter, sentenceRef)
 

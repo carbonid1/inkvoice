@@ -21,12 +21,12 @@ const isSectionTitle = (block: ContentBlockType): boolean => {
   return isShort && isMostlyUpper
 }
 
-export function Reader({
+export const Reader = ({
   chapters,
   currentChapter,
   currentSentence,
   onSentenceClick,
-}: ReaderProps) {
+}: ReaderProps) => {
   const currentSentenceRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {

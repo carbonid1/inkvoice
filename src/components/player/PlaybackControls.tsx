@@ -8,13 +8,13 @@ interface PlaybackControlsProps {
   onSkipForward: () => void
 }
 
-export function PlaybackControls({
+export const PlaybackControls = ({
   isPlaying,
   isLoading,
   onPlayPause,
   onSkipBack,
   onSkipForward,
-}: PlaybackControlsProps) {
+}: PlaybackControlsProps) => {
   return (
     <div className="flex items-center justify-center gap-4">
       <button

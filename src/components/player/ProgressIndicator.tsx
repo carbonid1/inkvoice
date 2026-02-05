@@ -7,12 +7,12 @@ interface ProgressIndicatorProps {
   totalChapters: number
 }
 
-export function ProgressIndicator({
+export const ProgressIndicator = ({
   currentSentence,
   totalSentences,
   currentChapter,
   totalChapters,
-}: ProgressIndicatorProps) {
+}: ProgressIndicatorProps) => {
   return (
     <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
       Sentence {currentSentence + 1} of {totalSentences}

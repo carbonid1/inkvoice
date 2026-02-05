@@ -1,4 +1,4 @@
-import { env } from '@/lib/config'
+import { env } from '@/lib/config/env'
 import type { TTSService } from './tts.types'
 
 class TTSServerService implements TTSService {

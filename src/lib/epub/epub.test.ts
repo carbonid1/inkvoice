@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { parseHtmlContent, ContentBlock, TextSegment } from './epub'
+import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
+import type { ContentBlock, TextSegment } from '@/lib/types/book'
 
 // Helper to verify sentence index integrity
 function verifySentenceIndexIntegrity(
