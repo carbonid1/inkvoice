@@ -2,33 +2,21 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Book } from '@/store/useStore'
+import { Book, useStore } from '@/store/useStore'
+import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
+import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
+import { BookIcon } from '@/components/icons/BookIcon'
 
 interface BookCardProps {
   book: Book
 }
 
-const BookIcon = () => {
-  return (
-    <svg
-      className="w-12 h-12 text-gray-400 dark:text-gray-500"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-      />
-    </svg>
-  )
-}
-
 export const BookCard = ({ book }: BookCardProps) => {
   const [coverLoaded, setCoverLoaded] = useState(false)
   const [coverError, setCoverError] = useState(false)
+  const progress = useStore((state) => state.progress[book.id])
+  const progressPercent = computeProgressPercent(progress)
+  const isFinished = progressPercent !== null && progressPercent >= 99
 
   return (
     <Link href={`/book/${book.id}`}>
@@ -45,7 +33,6 @@ export const BookCard = ({ book }: BookCardProps) => {
                 loading="lazy"
                 className={`w-full h-full object-cover ${coverLoaded ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={(e) => {
-                  // Check if response was 204 (empty response means no cover)
                   const img = e.target as HTMLImageElement
                   if (img.naturalWidth === 0) {
                     setCoverError(true)
@@ -59,6 +46,15 @@ export const BookCard = ({ book }: BookCardProps) => {
           ) : (
             <BookIcon />
           )}
+          {/* Progress bar at bottom of cover */}
+          {progressPercent !== null && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black/20">
+              <div
+                className={`h-full ${isFinished ? 'bg-green-500' : 'bg-blue-500'}`}
+                style={{ width: `${Math.min(progressPercent, 100)}%` }}
+              />
+            </div>
+          )}
         </div>
         <h3 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
           {book.title}
@@ -66,6 +62,13 @@ export const BookCard = ({ book }: BookCardProps) => {
         <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
           {book.author}
         </p>
+        {isFinished ? (
+          <p className="text-xs text-green-500 mt-1">Finished</p>
+        ) : progress?.lastReadAt ? (
+          <p className="text-xs text-gray-400 mt-1">
+            Last read {formatTimeAgo(progress.lastReadAt)}
+          </p>
+        ) : null}
       </div>
     </Link>
   )

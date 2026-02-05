@@ -3,6 +3,9 @@
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useStore } from '@/store/useStore'
+import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
+import { PlayIcon } from '@/components/icons/PlayIcon'
+import { StopIcon } from '@/components/icons/StopIcon'
 
 interface VoiceInfo {
   name: string
@@ -108,19 +111,7 @@ export default function Settings() {
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             title="Back to library"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <ChevronLeftIcon className="w-6 h-6" />
           </Link>
           <h1 className="text-3xl font-bold">Settings</h1>
         </div>
@@ -164,13 +155,9 @@ export default function Settings() {
                     title={playingVoice?.name === voice && playingVoice?.type === 'source' ? 'Stop' : 'Listen to source audio'}
                   >
                     {playingVoice?.name === voice && playingVoice?.type === 'source' ? (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <rect x="6" y="6" width="12" height="12" rx="1" />
-                      </svg>
+                      <StopIcon />
                     ) : (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
+                      <PlayIcon className="w-4 h-4" />
                     )}
                     Source
                   </button>
@@ -191,13 +178,9 @@ export default function Settings() {
                     }
                   >
                     {playingVoice?.name === voice && playingVoice?.type === 'sample' ? (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <rect x="6" y="6" width="12" height="12" rx="1" />
-                      </svg>
+                      <StopIcon />
                     ) : (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
+                      <PlayIcon className="w-4 h-4" />
                     )}
                     Sample
                   </button>

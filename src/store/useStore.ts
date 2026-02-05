@@ -1,7 +1,8 @@
 'use client'
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware'
+import { useEffect, useState } from 'react'
 
 export interface Book {
   id: string
@@ -13,6 +14,9 @@ export interface Book {
 export interface Progress {
   chapter: number
   sentence: number
+  totalChapters?: number
+  sentencesPerChapter?: number[]
+  lastReadAt?: number
 }
 
 interface AppState {
@@ -23,8 +27,55 @@ interface AppState {
   setBooks: (books: Book[]) => void
   setCurrentBook: (bookId: string | null) => void
   setProgress: (bookId: string, chapter: number, sentence: number) => void
+  setBookMetadata: (bookId: string, totalChapters: number, sentencesPerChapter: number[]) => void
   getProgress: (bookId: string) => Progress
   setVoice: (voice: string) => void
+}
+
+type PersistedState = Pick<AppState, 'progress' | 'voice'>
+
+// Debounced localStorage wrapper - batches writes to avoid per-sentence disk IO
+// Reads go through instantly; only serialization writes are debounced (1s trailing)
+const pending = {
+  timeout: null as ReturnType<typeof setTimeout> | null,
+  key: null as string | null,
+  value: null as string | null,
+  listenerAdded: false,
+}
+
+const flushStorage = () => {
+  if (pending.key !== null && pending.value !== null) {
+    localStorage.setItem(pending.key, pending.value)
+    pending.key = null
+    pending.value = null
+  }
+  if (pending.timeout) {
+    clearTimeout(pending.timeout)
+    pending.timeout = null
+  }
+}
+
+const debouncedStorage: StateStorage = {
+  getItem: (name) => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(name)
+  },
+  setItem: (name, value) => {
+    if (typeof window === 'undefined') return
+    if (!pending.listenerAdded) {
+      window.addEventListener('beforeunload', flushStorage)
+      pending.listenerAdded = true
+    }
+    pending.key = name
+    pending.value = value
+    if (pending.timeout) clearTimeout(pending.timeout)
+    pending.timeout = setTimeout(flushStorage, 1000)
+  },
+  removeItem: (name) => {
+    if (typeof window === 'undefined') return
+    flushStorage()
+    localStorage.removeItem(name)
+  },
 }
 
 export const useStore = create<AppState>()(
@@ -43,7 +94,24 @@ export const useStore = create<AppState>()(
         set((state) => ({
           progress: {
             ...state.progress,
-            [bookId]: { chapter, sentence },
+            [bookId]: {
+              ...state.progress[bookId],
+              chapter,
+              sentence,
+              lastReadAt: Date.now(),
+            },
+          },
+        })),
+
+      setBookMetadata: (bookId, totalChapters, sentencesPerChapter) =>
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            [bookId]: {
+              ...state.progress[bookId] || { chapter: 0, sentence: 0 },
+              totalChapters,
+              sentencesPerChapter,
+            },
           },
         })),
 
@@ -56,6 +124,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'inkvoice-storage',
+      storage: createJSONStorage<PersistedState>(() => debouncedStorage),
       partialize: (state) => ({
         progress: state.progress,
         voice: state.voice,
@@ -63,3 +132,17 @@ export const useStore = create<AppState>()(
     }
   )
 )
+
+// Hook to wait for Zustand persist rehydration
+export const useHydrated = () => {
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    const unsub = useStore.persist.onFinishHydration(() => setHydrated(true))
+    // Already hydrated (e.g. fast restore)
+    if (useStore.persist.hasHydrated()) setHydrated(true)
+    return unsub
+  }, [])
+
+  return hydrated
+}
