@@ -87,12 +87,6 @@ curl -X POST http://localhost:8000/tts \
   - Use `.reduce()`, `.slice()`, spread, or closure patterns instead of mutable accumulators
   - Wrap related mutable state in a `const` object rather than separate `let` variables
 
-## Testing
-
-- Tests are optional - consider pragmatically
-- Skip tests when TypeScript already validates the logic
-- Test complex logic, edge cases, and transformations
-
 ## Documentation
 
 - Sacrifice grammar for concision

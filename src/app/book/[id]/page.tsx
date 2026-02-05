@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
@@ -11,7 +11,6 @@ import type { ParsedBook } from '@/lib/types/book'
 import { useStore, useHydrated } from '@/store/useStore'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
-import { MoreVerticalIcon } from '@/components/icons/MoreVerticalIcon'
 
 export default function BookReader() {
   const params = useParams()
@@ -20,8 +19,6 @@ export default function BookReader() {
   const [book, setBook] = useState<ParsedBook | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
 
   const { getProgress, setProgress, setCurrentBook, setBookMetadata } = useStore()
   const hydrated = useHydrated()
@@ -39,18 +36,6 @@ export default function BookReader() {
     currentChapter: 0,
     totalChapters: 0,
   })
-
-  // Close menu on outside click
-  useEffect(() => {
-    if (!menuOpen) return
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('click', handleClick)
-    return () => document.removeEventListener('click', handleClick)
-  }, [menuOpen])
 
   // Guard fetchBook on hydration to avoid reading stale {0,0}
   useEffect(() => {
@@ -108,11 +93,6 @@ export default function BookReader() {
     [handleProgressChange]
   )
 
-  const handleStartFromBeginning = useCallback(() => {
-    handleProgressChange(0, 0)
-    setMenuOpen(false)
-  }, [handleProgressChange])
-
   // Sync position into debug metrics
   useEffect(() => {
     if (!book) return
@@ -168,25 +148,6 @@ export default function BookReader() {
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
               {book.author}
             </p>
-          </div>
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen((prev) => !prev)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-              title="More options"
-            >
-              <MoreVerticalIcon />
-            </button>
-            {menuOpen && (
-              <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[180px] z-20">
-                <button
-                  onClick={handleStartFromBeginning}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Start from beginning
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
