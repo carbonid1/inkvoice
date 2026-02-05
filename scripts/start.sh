@@ -37,11 +37,19 @@ fi
 # Create data/books if it doesn't exist
 mkdir -p data/books
 
+# Kill a process and all its children
+kill_tree() {
+    local pid=$1
+    pkill -P "$pid" 2>/dev/null || true
+    kill "$pid" 2>/dev/null || true
+}
+
 # Function to cleanup background processes on exit
 cleanup() {
     echo -e "\n${YELLOW}Shutting down...${NC}"
-    kill $PYTHON_PID 2>/dev/null || true
-    kill $NEXT_PID 2>/dev/null || true
+    kill_tree $PYTHON_PID
+    kill_tree $NEXT_PID
+    wait 2>/dev/null
     exit 0
 }
 

@@ -36,15 +36,9 @@ class TTSService:
         self,
         text: str,
         voice: str | None = None,
-        exaggeration: float = 0.7,
     ) -> Tuple[bytes, int]:
         """
         Generate speech audio from text.
-
-        Args:
-            text: The text to convert to speech
-            voice: Voice directory name (defaults to settings.default_voice)
-            exaggeration: Expressiveness level 0.0-1.0
 
         Returns:
             Tuple of (audio_bytes, generation_time_ms)
@@ -57,8 +51,6 @@ class TTSService:
             wav = self.model.generate(
                 text,
                 audio_prompt_path=str(voice_path),
-                exaggeration=exaggeration,
-                cfg_weight=0.5,
             )
         gen_time_ms = int((time.time() - start) * 1000)
 

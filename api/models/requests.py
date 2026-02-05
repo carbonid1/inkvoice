@@ -7,7 +7,6 @@ class TTSRequest(BaseModel):
 
     text: str
     voice: Optional[str] = None  # voice directory name in data/voices/
-    exaggeration: float = 0.7  # 0.0-1.0, controls expressiveness
 
 
 class HealthResponse(BaseModel):

@@ -4,13 +4,12 @@ import type { TTSService } from './tts.types'
 class TTSServerService implements TTSService {
   async generate(
     text: string,
-    voice: string,
-    exaggeration = 0.7
+    voice: string
   ): Promise<{ audio: Buffer; generationTimeMs: number }> {
     const response = await fetch(env.ttsApiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice, exaggeration }),
+      body: JSON.stringify({ text, voice }),
     })
 
     if (!response.ok) {
