@@ -31,18 +31,10 @@ Local audiobook reader that converts epub books to speech using Chatterbox TTS.
 ## Running the App
 
 ```bash
-# Run both servers:
-./scripts/start.sh
-
-# Or manually (two terminals):
-
-# Terminal 1: Python TTS API
-source venv/bin/activate
-cd api && uvicorn main:app --reload --port 8000
-
-# Terminal 2: Next.js
 pnpm dev
 ```
+
+This runs `./scripts/start.sh` which launches both the Python TTS API (:8000) and Next.js (:3000). Always use `pnpm dev` — never start servers individually.
 
 Then add `.epub` files to `data/books/` and open http://localhost:3000
 
