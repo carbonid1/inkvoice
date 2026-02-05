@@ -20,7 +20,7 @@ export const BookCard = ({ book }: BookCardProps) => {
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors cursor-pointer bg-white dark:bg-gray-800">
+      <div className="h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors cursor-pointer bg-white dark:bg-gray-800">
         <div className="w-full aspect-[2/3] bg-gray-100 dark:bg-gray-700 rounded mb-3 flex items-center justify-center overflow-hidden relative">
           {!coverError ? (
             <>
@@ -62,13 +62,15 @@ export const BookCard = ({ book }: BookCardProps) => {
         <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
           {book.author}
         </p>
-        {isFinished ? (
-          <p className="text-xs text-green-500 mt-1">Finished</p>
-        ) : progress?.lastReadAt ? (
-          <p className="text-xs text-gray-400 mt-1">
-            Last read {formatTimeAgo(progress.lastReadAt)}
-          </p>
-        ) : null}
+        <div className="min-h-[1.25rem] mt-1">
+          {isFinished ? (
+            <p className="text-xs text-green-500">Finished</p>
+          ) : progress?.lastReadAt ? (
+            <p className="text-xs text-gray-400">
+              Last read {formatTimeAgo(progress.lastReadAt)}
+            </p>
+          ) : null}
+        </div>
       </div>
     </Link>
   )
