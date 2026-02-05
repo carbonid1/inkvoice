@@ -11,7 +11,7 @@ interface UsePrefetchQueueOptions {
   chaptersRef: React.MutableRefObject<ParsedChapter[]>
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
-  onDebugUpdate?: (metrics: DebugMetrics) => void
+  onDebugUpdate?: (updater: (prev: DebugMetrics) => DebugMetrics) => void
 }
 
 const MAX_CONCURRENT_PREFETCH = 1
@@ -72,12 +72,13 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   }, [getCacheKey, chaptersRef, currentChapterRef, currentSentenceRef])
 
   const updateDebugMetrics = useCallback(() => {
-    onDebugUpdate?.({
+    onDebugUpdate?.((prev) => ({
+      ...prev,
       isGenerating: inFlightRef.current.size > 0,
       ahead: countAhead(),
       cacheUsedMB: cacheStatsRef.current.usedMB,
       cacheMaxMB: cacheStatsRef.current.maxMB,
-    })
+    }))
   }, [onDebugUpdate, countAhead])
 
   const getNextPosition = useCallback(

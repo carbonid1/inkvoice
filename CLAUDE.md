@@ -69,6 +69,10 @@ curl -X POST http://localhost:8000/tts \
   expect(result.current.callback).toBe(first)
   ```
 
+## Naming and Labels
+
+- Use full words in UI text, debug output, and code identifiers — no abbreviations (e.g., "Sentence" not "Pos", "Chapter" not "Ch")
+
 ## Code Style
 
 - Use `const` with arrow functions instead of `function` declarations:

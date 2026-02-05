@@ -9,7 +9,6 @@ import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { PlaybackControls } from './PlaybackControls'
-import { ProgressIndicator } from './ProgressIndicator'
 
 interface PlayerContainerProps {
   bookId: string
@@ -17,7 +16,7 @@ interface PlayerContainerProps {
   currentChapter: number
   currentSentence: number
   onProgressChange: (chapter: number, sentence: number) => void
-  onDebugUpdate?: (metrics: DebugMetrics) => void
+  onDebugUpdate?: (updater: (prev: DebugMetrics) => DebugMetrics) => void
 }
 
 export const PlayerContainer = ({
@@ -145,13 +144,6 @@ export const PlayerContainer = ({
           onPlayPause={togglePlay}
           onSkipBack={position.skipBack}
           onSkipForward={position.skipForward}
-        />
-
-        <ProgressIndicator
-          currentSentence={position.currentSentence}
-          totalSentences={position.totalSentences}
-          currentChapter={position.currentChapter}
-          totalChapters={position.totalChapters}
         />
       </div>
     </div>

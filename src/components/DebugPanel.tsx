@@ -5,6 +5,10 @@ export interface DebugMetrics {
   ahead: number
   cacheUsedMB: number
   cacheMaxMB: number
+  currentSentence: number
+  totalSentences: number
+  currentChapter: number
+  totalChapters: number
 }
 
 interface DebugPanelProps {
@@ -43,6 +47,12 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
         </div>
         <div>
           Cache: {metrics.cacheUsedMB ?? 0}MB / {metrics.cacheMaxMB ?? 800}MB ({cachePercent}%)
+        </div>
+        <div>
+          Sentence: {metrics.currentSentence + 1}/{metrics.totalSentences}
+          {metrics.totalChapters > 1 && (
+            <span> Chapter {metrics.currentChapter + 1}/{metrics.totalChapters}</span>
+          )}
         </div>
       </div>
     </div>

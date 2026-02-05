@@ -34,6 +34,10 @@ export default function BookReader() {
     ahead: 0,
     cacheUsedMB: 0,
     cacheMaxMB: 800,
+    currentSentence: 0,
+    totalSentences: 0,
+    currentChapter: 0,
+    totalChapters: 0,
   })
 
   // Close menu on outside click
@@ -108,6 +112,18 @@ export default function BookReader() {
     handleProgressChange(0, 0)
     setMenuOpen(false)
   }, [handleProgressChange])
+
+  // Sync position into debug metrics
+  useEffect(() => {
+    if (!book) return
+    setDebugMetrics((prev) => ({
+      ...prev,
+      currentSentence,
+      totalSentences: book.chapters[currentChapter]?.sentences.length ?? 0,
+      currentChapter,
+      totalChapters: book.chapters.length,
+    }))
+  }, [currentChapter, currentSentence, book])
 
   // Toggle debug panel with 'D' key
   useHotkeys('d', () => setShowDebug((prev) => !prev))
