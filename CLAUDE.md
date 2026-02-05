@@ -69,6 +69,9 @@ curl -X POST http://localhost:8000/tts \
   // Avoid
   function handleClick() { ... }
   ```
+- Prefer `const` over `let` — use `let` only when reassignment is unavoidable
+  - Use `.reduce()`, `.slice()`, spread, or closure patterns instead of mutable accumulators
+  - Wrap related mutable state in a `const` object rather than separate `let` variables
 
 ## Testing
 
