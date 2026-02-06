@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Book, useStore } from '@/store/useStore'
-import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
-import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { BookIcon } from '@/components/icons/BookIcon'
+import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
+import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
+import { Book, useStore } from '@/store/useStore'
+import Link from 'next/link'
+import { useState } from 'react'
 
 interface BookCardProps {
   book: Book
@@ -14,7 +14,7 @@ interface BookCardProps {
 export const BookCard = ({ book }: BookCardProps) => {
   const [coverLoaded, setCoverLoaded] = useState(false)
   const [coverError, setCoverError] = useState(false)
-  const progress = useStore((state) => state.progress[book.id])
+  const progress = useStore(state => state.progress[book.id])
   const progressPercent = computeProgressPercent(progress)
   const isFinished = progressPercent !== null && progressPercent >= 99
 
@@ -32,7 +32,7 @@ export const BookCard = ({ book }: BookCardProps) => {
                 alt={`Cover of ${book.title}`}
                 loading="lazy"
                 className={`w-full h-full object-cover ${coverLoaded ? 'opacity-100' : 'opacity-0'}`}
-                onLoad={(e) => {
+                onLoad={e => {
                   const img = e.target as HTMLImageElement
                   if (img.naturalWidth === 0) {
                     setCoverError(true)
@@ -59,16 +59,12 @@ export const BookCard = ({ book }: BookCardProps) => {
         <h3 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
           {book.title}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
-          {book.author}
-        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">{book.author}</p>
         <div className="min-h-[1.25rem] mt-1">
           {isFinished ? (
             <p className="text-xs text-green-500">Finished</p>
           ) : progress?.lastReadAt ? (
-            <p className="text-xs text-gray-400">
-              Last read {formatTimeAgo(progress.lastReadAt)}
-            </p>
+            <p className="text-xs text-gray-400">Last read {formatTimeAgo(progress.lastReadAt)}</p>
           ) : null}
         </div>
       </div>

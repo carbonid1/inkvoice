@@ -1,9 +1,9 @@
+import { env } from '@/lib/config/env'
+import type { CacheStats } from '@/lib/types/api'
 import { createHash } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
-import { env } from '@/lib/config/env'
 import type { CacheService } from './cache.types'
-import type { CacheStats } from '@/lib/types/api'
 
 const METADATA_FILE = 'metadata.json'
 
@@ -157,7 +157,7 @@ class TTSCacheService implements CacheService {
   private async evictLRU(bytesNeeded: number): Promise<void> {
     // Sort entries by lastAccess (oldest first)
     const entries = Object.entries(this.metadata.entries).sort(
-      (a, b) => a[1].lastAccess - b[1].lastAccess
+      (a, b) => a[1].lastAccess - b[1].lastAccess,
     )
 
     let freed = 0

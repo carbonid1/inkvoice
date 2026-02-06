@@ -1,13 +1,13 @@
 import { type Page } from '@playwright/test'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
 
 const silencePath = path.resolve(__dirname, '../../fixtures/silence.wav')
 
 export const mockTTS = async (page: Page) => {
   const silenceBuffer = fs.readFileSync(silencePath)
 
-  await page.route('**/api/tts/**', (route) => {
+  await page.route('**/api/tts/**', route => {
     route.fulfill({
       status: 200,
       contentType: 'audio/wav',

@@ -1,12 +1,12 @@
+import type { ParsedBook, ParsedChapter } from '@/lib/types/book'
 import EPub from 'epub2'
-import { writeFile, unlink } from 'fs/promises'
+import { unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
-import type { ParsedChapter, ParsedBook } from '@/lib/types/book'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
 // Re-export types for backwards compatibility
-export type { TextSegment, ContentBlock, ParsedChapter, ParsedBook } from '@/lib/types/book'
+export type { ContentBlock, ParsedBook, ParsedChapter, TextSegment } from '@/lib/types/book'
 
 // Re-export parseHtmlContent for external use
 export { parseHtmlContent } from './helpers/parseHtml/parseHtml'
@@ -104,7 +104,9 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
   }
 }
 
-export const getBookMetadata = async (arrayBuffer: ArrayBuffer): Promise<{ title: string; author: string }> => {
+export const getBookMetadata = async (
+  arrayBuffer: ArrayBuffer,
+): Promise<{ title: string; author: string }> => {
   // Use epub2 for server-side parsing (epubjs is browser-only)
   const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
 
@@ -129,7 +131,9 @@ export const getBookMetadata = async (arrayBuffer: ArrayBuffer): Promise<{ title
   }
 }
 
-export const getCoverImage = async (arrayBuffer: ArrayBuffer): Promise<{ data: Buffer; mimeType: string } | null> => {
+export const getCoverImage = async (
+  arrayBuffer: ArrayBuffer,
+): Promise<{ data: Buffer; mimeType: string } | null> => {
   const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
 
   try {
@@ -165,10 +169,7 @@ export const getCoverImage = async (arrayBuffer: ArrayBuffer): Promise<{ data: B
     // Strategy 2: Manifest item with ID containing "cover" and image MIME type
     for (const id of Object.keys(manifest)) {
       const item = manifest[id]
-      if (
-        id.toLowerCase().includes('cover') &&
-        item['media-type']?.startsWith('image/')
-      ) {
+      if (id.toLowerCase().includes('cover') && item['media-type']?.startsWith('image/')) {
         const result = await getImageById(id)
         if (result) return result
       }
@@ -177,10 +178,7 @@ export const getCoverImage = async (arrayBuffer: ArrayBuffer): Promise<{ data: B
     // Strategy 3: Manifest item with properties="cover-image" (EPUB3)
     for (const id of Object.keys(manifest)) {
       const item = manifest[id]
-      if (
-        item.properties?.includes('cover-image') &&
-        item['media-type']?.startsWith('image/')
-      ) {
+      if (item.properties?.includes('cover-image') && item['media-type']?.startsWith('image/')) {
         const result = await getImageById(id)
         if (result) return result
       }

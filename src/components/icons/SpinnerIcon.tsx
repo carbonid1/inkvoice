@@ -1,11 +1,10 @@
 import type { SVGProps } from 'react'
 
-export const SpinnerIcon = ({ className = 'w-6 h-6 animate-spin', ...props }: SVGProps<SVGSVGElement>) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    {...props}
-  >
+export const SpinnerIcon = ({
+  className = 'w-6 h-6 animate-spin',
+  ...props
+}: SVGProps<SVGSVGElement>) => (
+  <svg className={className} viewBox="0 0 24 24" {...props}>
     <circle
       className="opacity-25"
       cx="12"

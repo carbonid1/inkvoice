@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 import { useAudioPlayer } from './useAudioPlayer'
 
 describe('useAudioPlayer', () => {
@@ -13,7 +13,7 @@ describe('useAudioPlayer', () => {
       'shouldPlay',
     ] as const
 
-    callbacks.forEach((name) => {
+    callbacks.forEach(name => {
       it(`${name} is stable across re-renders`, () => {
         const { result, rerender } = renderHook(() => useAudioPlayer())
         const first = result.current[name]
@@ -28,10 +28,18 @@ describe('useAudioPlayer', () => {
       const { result, rerender } = renderHook(() => useAudioPlayer())
       act(() => result.current.setLoading(true))
       rerender()
-      const stateAfterFirst = { isPlaying: result.current.isPlaying, isLoading: result.current.isLoading, error: result.current.error }
+      const stateAfterFirst = {
+        isPlaying: result.current.isPlaying,
+        isLoading: result.current.isLoading,
+        error: result.current.error,
+      }
       act(() => result.current.setLoading(true))
       rerender()
-      const stateAfterSecond = { isPlaying: result.current.isPlaying, isLoading: result.current.isLoading, error: result.current.error }
+      const stateAfterSecond = {
+        isPlaying: result.current.isPlaying,
+        isLoading: result.current.isLoading,
+        error: result.current.error,
+      }
       expect(stateAfterSecond).toEqual(stateAfterFirst)
     })
   })

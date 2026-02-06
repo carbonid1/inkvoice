@@ -1,12 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 import type { ContentBlock, TextSegment } from '@/lib/types/book'
+import { describe, expect, it } from 'vitest'
+import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
 // Helper to verify sentence index integrity
-function verifySentenceIndexIntegrity(
-  content: ContentBlock[],
-  sentences: string[]
-): void {
+function verifySentenceIndexIntegrity(content: ContentBlock[], sentences: string[]): void {
   content.forEach(block => {
     if (block.segments) {
       block.segments.forEach(segment => {

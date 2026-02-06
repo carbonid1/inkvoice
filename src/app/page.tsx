@@ -1,17 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { BookCard } from '@/components/BookCard'
-import { Book, useStore } from '@/store/useStore'
 import { GearIcon } from '@/components/icons/GearIcon'
+import { Book, useStore } from '@/store/useStore'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 export default function Library() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const books = useStore((s) => s.books)
-  const setBooks = useStore((s) => s.setBooks)
-  const progress = useStore((s) => s.progress)
+  const books = useStore(s => s.books)
+  const setBooks = useStore(s => s.setBooks)
+  const progress = useStore(s => s.progress)
 
   useEffect(() => {
     async function fetchBooks() {
@@ -38,9 +38,7 @@ export default function Library() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">InkVoice</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Your local audiobook reader
-            </p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Your local audiobook reader</p>
           </div>
           <Link
             href="/settings"
@@ -53,23 +51,17 @@ export default function Library() {
       </header>
 
       <main className="max-w-6xl mx-auto">
-        {loading && (
-          <div className="text-center py-12 text-gray-500">Loading books...</div>
-        )}
+        {loading && <div className="text-center py-12 text-gray-500">Loading books...</div>}
 
-        {error && (
-          <div className="text-center py-12 text-red-600 dark:text-red-400">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-center py-12 text-red-600 dark:text-red-400">{error}</div>}
 
         {!loading && !error && books.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-500 dark:text-gray-400 mb-4">
-              No books found
-            </div>
+            <div className="text-gray-500 dark:text-gray-400 mb-4">No books found</div>
             <p className="text-sm text-gray-400 dark:text-gray-500">
-              Add .epub files to <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">data/books/</code> to get started
+              Add .epub files to{' '}
+              <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">data/books/</code> to get
+              started
             </p>
           </div>
         )}
@@ -82,9 +74,9 @@ export default function Library() {
                 const bRead = progress[b.id]?.lastReadAt ?? 0
                 return bRead - aRead
               })
-              .map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
+              .map(book => (
+                <BookCard key={book.id} book={book} />
+              ))}
           </div>
         )}
       </main>

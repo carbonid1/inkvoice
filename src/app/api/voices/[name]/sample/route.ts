@@ -1,13 +1,10 @@
-import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
+import { NextResponse } from 'next/server'
 import path from 'path'
 
 const VOICES_DIR = path.join(process.cwd(), 'data', 'voices')
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ name: string }> }
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ name: string }> }) {
   const { name } = await params
 
   // Prevent path traversal

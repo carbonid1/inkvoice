@@ -1,9 +1,9 @@
 'use client'
 
-import { useRef, useCallback, useMemo, useEffect } from 'react'
-import type { ChapterInfo } from '@/lib/types/book'
 import type { DebugMetrics } from '@/components/DebugPanel'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
+import type { ChapterInfo } from '@/lib/types/book'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface UsePrefetchQueueOptions {
   bookId: string
@@ -17,14 +17,8 @@ interface UsePrefetchQueueOptions {
 const MAX_CONCURRENT_PREFETCH = 1
 
 export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
-  const {
-    bookId,
-    voice,
-    chaptersRef,
-    currentChapterRef,
-    currentSentenceRef,
-    onDebugUpdate,
-  } = options
+  const { bookId, voice, chaptersRef, currentChapterRef, currentSentenceRef, onDebugUpdate } =
+    options
 
   // Track in-flight fetches
   const inFlightRef = useRef<Set<string>>(new Set())
@@ -44,13 +38,13 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
   const getCacheKey = useCallback(
     (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}`,
-    [voice]
+    [voice],
   )
 
   const getTTSUrl = useCallback(
     (ch: number, sent: number) =>
       `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'narrator')}`,
-    [bookId, voice]
+    [bookId, voice],
   )
 
   const countAhead = useCallback(() => {
@@ -76,7 +70,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   }, [getCacheKey, chaptersRef, currentChapterRef, currentSentenceRef])
 
   const updateDebugMetrics = useCallback(() => {
-    onDebugUpdate?.((prev) => ({
+    onDebugUpdate?.(prev => ({
       ...prev,
       isGenerating: inFlightRef.current.size > 0,
       ahead: countAhead(),
@@ -86,9 +80,8 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   }, [onDebugUpdate, countAhead])
 
   const getNextPosition = useCallback(
-    (ch: number, sent: number) =>
-      getNextPositionHelper(chaptersRef.current, ch, sent),
-    [chaptersRef]
+    (ch: number, sent: number) => getNextPositionHelper(chaptersRef.current, ch, sent),
+    [chaptersRef],
   )
 
   const findNextToPrefetch = useCallback((): {
@@ -128,7 +121,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     updateDebugMetrics()
 
     fetch(url, { signal: abortControllerRef.current.signal })
-      .then((response) => {
+      .then(response => {
         if (!response.ok) {
           consecutiveFailuresRef.current++
           return
@@ -144,7 +137,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
           }
         }
       })
-      .catch((err) => {
+      .catch(err => {
         if (err.name !== 'AbortError') {
           consecutiveFailuresRef.current++
         }
@@ -208,7 +201,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
         updateDebugMetrics()
       }
     },
-    [chaptersRef, getCacheKey, getTTSUrl, updateDebugMetrics]
+    [chaptersRef, getCacheKey, getTTSUrl, updateDebugMetrics],
   )
 
   return useMemo(
@@ -219,6 +212,6 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
       resetFailures,
       cacheStatsRef,
     }),
-    [fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, cacheStatsRef]
+    [fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, cacheStatsRef],
   )
 }

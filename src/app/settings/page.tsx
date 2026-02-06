@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import Link from 'next/link'
-import { useStore } from '@/store/useStore'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
+import { useStore } from '@/store/useStore'
+import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 
 interface VoiceInfo {
   name: string
@@ -19,8 +19,8 @@ export default function Settings() {
   const [loading, setLoading] = useState(true)
   const [playingVoice, setPlayingVoice] = useState<PlayingState>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
-  const voice = useStore((s) => s.voice)
-  const setVoice = useStore((s) => s.setVoice)
+  const voice = useStore(s => s.voice)
+  const setVoice = useStore(s => s.setVoice)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function Settings() {
     }
   }
 
-  const currentVoiceInfo = voices.find((v) => v.name === voice)
+  const currentVoiceInfo = voices.find(v => v.name === voice)
 
   return (
     <div className="min-h-screen p-8">
@@ -128,23 +128,29 @@ export default function Settings() {
             <div className="text-gray-500">
               <p>No voices found.</p>
               <p className="text-sm mt-2">
-                Add voices to <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">data/voices/&lt;name&gt;/source.wav</code>
+                Add voices to{' '}
+                <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
+                  data/voices/&lt;name&gt;/source.wav
+                </code>
               </p>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <label htmlFor="voice-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="voice-select"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Select voice for TTS
                 </label>
                 <div className="flex gap-2">
                   <select
                     id="voice-select"
                     value={voice}
-                    onChange={(e) => setVoice(e.target.value)}
+                    onChange={e => setVoice(e.target.value)}
                     className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    {voices.map((v) => (
+                    {voices.map(v => (
                       <option key={v.name} value={v.name}>
                         {v.name}
                       </option>
@@ -153,7 +159,11 @@ export default function Settings() {
                   <button
                     onClick={() => playPreview(voice, 'source')}
                     className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-1.5 text-sm"
-                    title={playingVoice?.name === voice && playingVoice?.type === 'source' ? 'Stop' : 'Listen to source audio'}
+                    title={
+                      playingVoice?.name === voice && playingVoice?.type === 'source'
+                        ? 'Stop'
+                        : 'Listen to source audio'
+                    }
                   >
                     {playingVoice?.name === voice && playingVoice?.type === 'source' ? (
                       <StopIcon />
@@ -188,12 +198,11 @@ export default function Settings() {
                 </div>
               </div>
               {previewError && (
-                <p className="text-sm text-amber-600 dark:text-amber-400">
-                  {previewError}
-                </p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">{previewError}</p>
               )}
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Voice changes apply to new audio generation. Cached audio will use the original voice.
+                Voice changes apply to new audio generation. Cached audio will use the original
+                voice.
               </p>
             </div>
           )}

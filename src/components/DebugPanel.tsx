@@ -19,15 +19,12 @@ interface DebugPanelProps {
 export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
   if (!visible) return null
 
-  const cachePercent = metrics.cacheMaxMB > 0
-    ? Math.round((metrics.cacheUsedMB / metrics.cacheMaxMB) * 100)
-    : 0
+  const cachePercent =
+    metrics.cacheMaxMB > 0 ? Math.round((metrics.cacheUsedMB / metrics.cacheMaxMB) * 100) : 0
 
   return (
     <div className="fixed top-4 right-4 bg-black/80 text-green-400 font-mono text-xs p-3 rounded-lg shadow-lg z-50 min-w-[140px]">
-      <div className="text-gray-400 mb-1 text-[10px] uppercase tracking-wider">
-        Debug Panel (D)
-      </div>
+      <div className="text-gray-400 mb-1 text-[10px] uppercase tracking-wider">Debug Panel (D)</div>
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           {metrics.isGenerating ? (
@@ -42,16 +39,17 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
             </>
           )}
         </div>
-        <div>
-          Ahead: {metrics.ahead}
-        </div>
+        <div>Ahead: {metrics.ahead}</div>
         <div>
           Cache: {metrics.cacheUsedMB ?? 0}MB / {metrics.cacheMaxMB ?? 800}MB ({cachePercent}%)
         </div>
         <div>
           Sentence: {metrics.currentSentence + 1}/{metrics.totalSentences}
           {metrics.totalChapters > 1 && (
-            <span> Chapter {metrics.currentChapter + 1}/{metrics.totalChapters}</span>
+            <span>
+              {' '}
+              Chapter {metrics.currentChapter + 1}/{metrics.totalChapters}
+            </span>
           )}
         </div>
       </div>

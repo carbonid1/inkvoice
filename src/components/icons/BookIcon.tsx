@@ -1,13 +1,10 @@
 import type { SVGProps } from 'react'
 
-export const BookIcon = ({ className = 'w-12 h-12 text-gray-400 dark:text-gray-500', ...props }: SVGProps<SVGSVGElement>) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    {...props}
-  >
+export const BookIcon = ({
+  className = 'w-12 h-12 text-gray-400 dark:text-gray-500',
+  ...props
+}: SVGProps<SVGSVGElement>) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
     <path
       strokeLinecap="round"
       strokeLinejoin="round"

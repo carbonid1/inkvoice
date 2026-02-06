@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { renderHook } from '@testing-library/react'
-import { useBookPosition } from './useBookPosition'
 import type { ChapterInfo } from '@/lib/types/book'
+import { renderHook } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { useBookPosition } from './useBookPosition'
 
 const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
   sentenceCounts.map((n, i) => ({
@@ -52,10 +52,7 @@ describe('useBookPosition', () => {
 
     it('skipBack changes when currentSentence changes', () => {
       const props = defaultProps()
-      const { result, rerender } = renderHook(
-        (p) => useBookPosition(p),
-        { initialProps: props }
-      )
+      const { result, rerender } = renderHook(p => useBookPosition(p), { initialProps: props })
       const first = result.current.skipBack
       rerender({ ...props, currentSentence: 1 })
       expect(result.current.skipBack).not.toBe(first)

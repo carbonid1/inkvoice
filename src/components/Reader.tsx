@@ -1,7 +1,7 @@
 'use client'
 
+import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
 import { type ReactNode, useEffect, useRef } from 'react'
-import type { ParsedChapter, ContentBlock as ContentBlockType } from '@/lib/types/book'
 import { ContentBlock } from './reader/ContentBlock'
 
 interface ReaderProps {
@@ -13,7 +13,7 @@ interface ReaderProps {
 
 const isSectionTitle = (block: ContentBlockType): boolean => {
   if (block.type !== 'heading' && block.type !== 'paragraph') return false
-  const text = block.segments?.map((s) => s.html.replace(/<[^>]+>/g, '')).join('') || ''
+  const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''
   const isShort = text.length > 0 && text.length < 50
   const upperCount = (text.match(/[A-Z]/g) || []).length
   const letterCount = (text.match(/[a-zA-Z]/g) || []).length
@@ -56,8 +56,10 @@ export const Reader = ({
     const titleGroupMember = new Set<number>()
 
     for (let i = 0; i < content.length; i++) {
-      if (isSectionTitle(content[i])) {
-        if (i + 1 < content.length && isSectionTitle(content[i + 1])) {
+      const block = content[i]
+      const nextBlock = content[i + 1]
+      if (block && isSectionTitle(block)) {
+        if (nextBlock && isSectionTitle(nextBlock)) {
           titleGroupStart.add(i)
           titleGroupMember.add(i)
           titleGroupMember.add(i + 1)
@@ -71,11 +73,12 @@ export const Reader = ({
     // after skipping any title group blocks and leading headings
     const epigraphGroupMember = new Set<number>()
     const firstEpigraphCandidate = content.findIndex(
-      (block, i) => !titleGroupMember.has(i) && block.type !== 'heading'
+      (block, i) => !titleGroupMember.has(i) && block.type !== 'heading',
     )
     if (firstEpigraphCandidate !== -1) {
       for (let i = firstEpigraphCandidate; i < content.length; i++) {
-        if (content[i].type === 'blockquote' || content[i].type === 'attribution') {
+        const epBlock = content[i]
+        if (epBlock && (epBlock.type === 'blockquote' || epBlock.type === 'attribution')) {
           epigraphGroupMember.add(i)
         } else {
           break
@@ -106,11 +109,14 @@ export const Reader = ({
         // Check if next block is NOT in epigraph group (end of group)
         if (!epigraphGroupMember.has(idx + 1)) {
           elements.push(
-            <div key={`epigraph-${epigraphGroupStartIndex}`} className="mt-4 pb-6 mb-6 border-gray-200 dark:border-gray-700">
-              {content.slice(epigraphGroupStartIndex, idx + 1).map((b, i) =>
-                renderBlock(b, epigraphGroupStartIndex + i)
-              )}
-            </div>
+            <div
+              key={`epigraph-${epigraphGroupStartIndex}`}
+              className="mt-4 pb-6 mb-6 border-gray-200 dark:border-gray-700"
+            >
+              {content
+                .slice(epigraphGroupStartIndex, idx + 1)
+                .map((b, i) => renderBlock(b, epigraphGroupStartIndex + i))}
+            </div>,
           )
           epigraphGroupStartIndex = -1
         }

@@ -4,13 +4,13 @@ Local audiobook reader that converts epub books to speech using Chatterbox TTS.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 14 + TypeScript |
-| Styling | Tailwind CSS |
-| State | Zustand + persist middleware |
-| Epub parsing | epub.js (browser-based) |
-| TTS | Chatterbox via FastAPI (Python) |
+| Layer        | Technology                      |
+| ------------ | ------------------------------- |
+| Frontend     | Next.js 14 + TypeScript         |
+| Styling      | Tailwind CSS                    |
+| State        | Zustand + persist middleware    |
+| Epub parsing | epub.js (browser-based)         |
+| TTS          | Chatterbox via FastAPI (Python) |
 
 ## Key Files
 
@@ -20,13 +20,13 @@ Local audiobook reader that converts epub books to speech using Chatterbox TTS.
 
 ## Data Locations
 
-| Data | Location |
-|------|----------|
-| Book files | `./data/books/*.epub` |
-| Voice references | `./data/voices/{name}/source.wav` |
-| Audio cache | `~/Library/Caches/InkVoice/{bookId}/` |
-| Reading progress | Browser localStorage |
-| TTS model weights | `~/.cache/huggingface/` |
+| Data              | Location                              |
+| ----------------- | ------------------------------------- |
+| Book files        | `./data/books/*.epub`                 |
+| Voice references  | `./data/voices/{name}/source.wav`     |
+| Audio cache       | `~/Library/Caches/InkVoice/{bookId}/` |
+| Reading progress  | Browser localStorage                  |
+| TTS model weights | `~/.cache/huggingface/`               |
 
 ## Running the App
 
@@ -77,6 +77,7 @@ curl -X POST http://localhost:8000/tts \
 ## Code Style
 
 - Use `const` with arrow functions instead of `function` declarations:
+
   ```typescript
   // Preferred
   const handleClick = () => { ... }
@@ -84,6 +85,7 @@ curl -X POST http://localhost:8000/tts \
   // Avoid
   function handleClick() { ... }
   ```
+
 - Prefer `const` over `let` — use `let` only when reassignment is unavoidable
   - Use `.reduce()`, `.slice()`, spread, or closure patterns instead of mutable accumulators
   - Wrap related mutable state in a `const` object rather than separate `let` variables
@@ -105,4 +107,3 @@ curl -X POST http://localhost:8000/tts \
 ## Git
 
 - Never commit or push without explicit user request
-

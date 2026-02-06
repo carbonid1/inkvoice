@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { mockTTS } from './helpers/mockTTS'
 
 test.describe('TTS prefetching', () => {
@@ -8,7 +8,7 @@ test.describe('TTS prefetching', () => {
     await mockTTS(page)
 
     // Track TTS requests before they're intercepted
-    page.on('request', (req) => {
+    page.on('request', req => {
       if (req.url().includes('/api/tts/')) {
         ttsRequests.push(req.url())
       }
@@ -62,7 +62,7 @@ test.describe('TTS prefetching', () => {
 
     // Track requests after navigating away
     const requestsAfterLeave: string[] = []
-    page.on('request', (req) => {
+    page.on('request', req => {
       if (req.url().includes('/api/tts/')) {
         requestsAfterLeave.push(req.url())
       }

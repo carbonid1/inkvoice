@@ -1,18 +1,13 @@
-import type { BookService } from './book.types'
+import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
 import type {
-  ParsedBook,
-  ParsedChapter,
   BookInfo,
   BookMetadata,
   BookOverview,
+  ParsedBook,
+  ParsedChapter,
 } from '@/lib/types/book'
-import { parseEpub, getBookMetadata, getCoverImage } from '@/lib/epub/epub'
-import {
-  findBookFile,
-  readBookFile,
-  listEpubFiles,
-  getBookIdFromFilename,
-} from './book.helpers'
+import { findBookFile, getBookIdFromFilename, listEpubFiles, readBookFile } from './book.helpers'
+import type { BookService } from './book.types'
 
 /**
  * In-memory book cache to avoid re-parsing EPUBs
@@ -49,7 +44,7 @@ class BookServiceImpl implements BookService {
     const files = await listEpubFiles()
 
     const books = await Promise.all(
-      files.map(async (filename) => {
+      files.map(async filename => {
         const id = getBookIdFromFilename(filename)
         try {
           const arrayBuffer = await readBookFile(filename)
@@ -69,7 +64,7 @@ class BookServiceImpl implements BookService {
             filename,
           }
         }
-      })
+      }),
     )
 
     return books
@@ -104,27 +99,20 @@ class BookServiceImpl implements BookService {
       id: book.id,
       title: book.title,
       author: book.author,
-      chapters: book.chapters.map((ch) => ({
+      chapters: book.chapters.map(ch => ({
         title: ch.title,
         sentenceCount: ch.sentences.length,
       })),
     }
   }
 
-  async getChapter(
-    bookId: string,
-    chapterIndex: number
-  ): Promise<ParsedChapter | null> {
+  async getChapter(bookId: string, chapterIndex: number): Promise<ParsedChapter | null> {
     const book = await this.getBook(bookId)
     if (!book) return null
     return book.chapters[chapterIndex] ?? null
   }
 
-  async getSentence(
-    bookId: string,
-    chapter: number,
-    sentence: number
-  ): Promise<string | null> {
+  async getSentence(bookId: string, chapter: number, sentence: number): Promise<string | null> {
     const book = await this.getBook(bookId)
     if (!book) {
       return null
@@ -154,9 +142,7 @@ class BookServiceImpl implements BookService {
     return getBookMetadata(arrayBuffer)
   }
 
-  async getCover(
-    bookId: string
-  ): Promise<{ data: Buffer; mimeType: string } | null> {
+  async getCover(bookId: string): Promise<{ data: Buffer; mimeType: string } | null> {
     const filename = await findBookFile(bookId)
     if (!filename) {
       return null

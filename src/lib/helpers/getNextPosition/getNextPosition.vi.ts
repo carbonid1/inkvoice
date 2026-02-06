@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { getNextPosition } from './getNextPosition'
 import type { ChapterInfo } from '@/lib/types/book'
+import { describe, expect, it } from 'vitest'
+import { getNextPosition } from './getNextPosition'
 
 const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
   sentenceCounts.map((n, i) => ({

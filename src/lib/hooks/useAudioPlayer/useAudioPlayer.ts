@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useCallback, useState, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface AudioPlayerState {
   isPlaying: boolean
@@ -43,9 +43,7 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
 
     audioRef.current.onerror = () => {
       const msg = 'Audio playback error'
-      setState((s) =>
-        s.error === msg && !s.isPlaying ? s : { ...s, error: msg, isPlaying: false }
-      )
+      setState(s => (s.error === msg && !s.isPlaying ? s : { ...s, error: msg, isPlaying: false }))
       onErrorRef.current?.(msg)
     }
 
@@ -61,27 +59,23 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
     if (!audioRef.current) return
 
     wantToPlayRef.current = true
-    setState((s) =>
-      s.isLoading && !s.error ? s : { ...s, isLoading: true, error: null }
-    )
+    setState(s => (s.isLoading && !s.error ? s : { ...s, isLoading: true, error: null }))
 
     try {
       audioRef.current.pause()
       audioRef.current.src = audioUrl
       await audioRef.current.play()
-      setState((s) =>
-        s.isPlaying && !s.isLoading ? s : { ...s, isPlaying: true, isLoading: false }
-      )
+      setState(s => (s.isPlaying && !s.isLoading ? s : { ...s, isPlaying: true, isLoading: false }))
     } catch (e) {
       const error = e instanceof Error ? e.message : 'Failed to play audio'
-      setState((s) => ({ ...s, error, isPlaying: false, isLoading: false }))
+      setState(s => ({ ...s, error, isPlaying: false, isLoading: false }))
     }
   }, [])
 
   const pause = useCallback(() => {
     wantToPlayRef.current = false
     audioRef.current?.pause()
-    setState((s) => (s.isPlaying ? { ...s, isPlaying: false } : s))
+    setState(s => (s.isPlaying ? { ...s, isPlaying: false } : s))
   }, [])
 
   const setPlaying = useCallback((playing: boolean) => {
@@ -91,15 +85,15 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
       wantToPlayRef.current = false
       audioRef.current?.pause()
     }
-    setState((s) => (s.isPlaying === playing ? s : { ...s, isPlaying: playing }))
+    setState(s => (s.isPlaying === playing ? s : { ...s, isPlaying: playing }))
   }, [])
 
   const setLoading = useCallback((isLoading: boolean) => {
-    setState((s) => (s.isLoading === isLoading ? s : { ...s, isLoading }))
+    setState(s => (s.isLoading === isLoading ? s : { ...s, isLoading }))
   }, [])
 
   const setError = useCallback((error: string | null) => {
-    setState((s) => (s.error === error ? s : { ...s, error }))
+    setState(s => (s.error === error ? s : { ...s, error }))
   }, [])
 
   const shouldPlay = useCallback(() => wantToPlayRef.current, [])
@@ -114,6 +108,6 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
       setError,
       shouldPlay,
     }),
-    [state, play, pause, setPlaying, setLoading, setError, shouldPlay]
+    [state, play, pause, setPlaying, setLoading, setError, shouldPlay],
   )
 }

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { getTTSService } from '@/lib/services/tts/tts.server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ bookId: string; chapter: string; sentence: string }> }
+  { params }: { params: Promise<{ bookId: string; chapter: string; sentence: string }> },
 ) {
   const { bookId, chapter, sentence } = await params
   const voice = request.nextUrl.searchParams.get('voice') || 'narrator'
@@ -46,7 +46,7 @@ export async function GET(
     const { audio } = await ttsService.generate(text, voice)
 
     // Cache the result
-    await cacheService.set(text, voice, audio).catch((err) => {
+    await cacheService.set(text, voice, audio).catch(err => {
       console.error('Failed to cache TTS audio:', err)
     })
     const stats = await cacheService.getStats()
@@ -65,7 +65,7 @@ export async function GET(
       console.warn('TTS API unreachable')
       return NextResponse.json(
         { error: 'TTS API is not running. Please start the Python server.' },
-        { status: 503 }
+        { status: 503 },
       )
     }
 

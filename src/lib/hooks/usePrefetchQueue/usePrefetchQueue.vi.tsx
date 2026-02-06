@@ -1,12 +1,10 @@
-import { StrictMode, type ReactNode } from 'react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { usePrefetchQueue } from './usePrefetchQueue'
 import type { ChapterInfo } from '@/lib/types/book'
+import { renderHook, waitFor } from '@testing-library/react'
+import { StrictMode, type ReactNode } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { usePrefetchQueue } from './usePrefetchQueue'
 
-const strictWrapper = ({ children }: { children: ReactNode }) => (
-  <StrictMode>{children}</StrictMode>
-)
+const strictWrapper = ({ children }: { children: ReactNode }) => <StrictMode>{children}</StrictMode>
 
 const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
   sentenceCounts.map((n, i) => ({
@@ -35,7 +33,7 @@ describe('usePrefetchQueue', () => {
       'resetFailures',
     ] as const
 
-    callbacks.forEach((name) => {
+    callbacks.forEach(name => {
       it(`${name} is stable across re-renders`, () => {
         const opts = stableOptions()
         const { result, rerender } = renderHook(() => usePrefetchQueue(opts))
@@ -93,7 +91,7 @@ describe('usePrefetchQueue', () => {
             'X-Cache-Used': '1000000',
             'X-Cache-Max': '800000000',
           }),
-        })
+        }),
       )
 
       const { result } = renderHook(() => usePrefetchQueue(opts))
@@ -106,7 +104,7 @@ describe('usePrefetchQueue', () => {
 
       expect(fetchMock).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ signal: expect.any(AbortSignal) })
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       )
     })
 
@@ -135,7 +133,7 @@ describe('usePrefetchQueue', () => {
               'X-Cache-Used': '1000000',
               'X-Cache-Max': '800000000',
             }),
-          })
+          }),
         )
       })
 
@@ -174,12 +172,15 @@ describe('usePrefetchQueue', () => {
       // Trigger prefetching - it should stop after 3 failures
       result.current.continuePrefetching()
 
-      await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalledTimes(3)
-      }, { timeout: 2000 })
+      await waitFor(
+        () => {
+          expect(fetchMock).toHaveBeenCalledTimes(3)
+        },
+        { timeout: 2000 },
+      )
 
       // Wait a bit more to ensure it doesn't continue
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       // Should have stopped at 3 calls due to consecutive failure limit
       expect(fetchMock).toHaveBeenCalledTimes(3)
@@ -196,7 +197,7 @@ describe('usePrefetchQueue', () => {
       let callCount = 0
       fetchMock.mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             callCount++
             setTimeout(
               () =>
@@ -207,11 +208,11 @@ describe('usePrefetchQueue', () => {
                       'X-Cache-Used': '1000000',
                       'X-Cache-Max': '800000000',
                     }),
-                  })
+                  }),
                 ),
-              50
+              50,
             )
-          })
+          }),
       )
 
       const { result, unmount } = renderHook(() => usePrefetchQueue(opts))
@@ -225,7 +226,7 @@ describe('usePrefetchQueue', () => {
       unmount()
 
       // Wait to ensure no new fetches occur after unmount
-      await new Promise((resolve) => setTimeout(resolve, 200))
+      await new Promise(resolve => setTimeout(resolve, 200))
 
       // Should not have made additional calls after unmount
       expect(callCount).toBe(callCountBeforeUnmount)
@@ -245,7 +246,7 @@ describe('usePrefetchQueue', () => {
             'X-Cache-Used': '1000000',
             'X-Cache-Max': '800000000',
           }),
-        })
+        }),
       )
 
       const { result } = renderHook(() => usePrefetchQueue(opts), {
@@ -259,7 +260,7 @@ describe('usePrefetchQueue', () => {
       })
 
       // Verify signal is NOT aborted (StrictMode resets the controller)
-      const signal = fetchMock.mock.calls[0][1]?.signal as AbortSignal
+      const signal = fetchMock.mock.calls[0]?.[1]?.signal as AbortSignal
       expect(signal.aborted).toBe(false)
     })
 
@@ -271,7 +272,7 @@ describe('usePrefetchQueue', () => {
             'X-Cache-Used': '1000000',
             'X-Cache-Max': '800000000',
           }),
-        })
+        }),
       )
 
       const opts = stableOptions()
@@ -281,7 +282,7 @@ describe('usePrefetchQueue', () => {
 
       expect(fetchMock).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ signal: expect.any(AbortSignal) })
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       )
     })
   })

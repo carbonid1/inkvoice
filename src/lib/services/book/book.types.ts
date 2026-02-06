@@ -1,9 +1,9 @@
 import type {
-  ParsedBook,
-  ParsedChapter,
   BookInfo,
   BookMetadata,
   BookOverview,
+  ParsedBook,
+  ParsedChapter,
 } from '@/lib/types/book'
 
 export interface BookService {

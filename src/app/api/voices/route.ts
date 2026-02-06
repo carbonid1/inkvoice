@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import { readdir, stat } from 'fs/promises'
+import { NextResponse } from 'next/server'
 import path from 'path'
 
 const VOICES_DIR = path.join(process.cwd(), 'data', 'voices')

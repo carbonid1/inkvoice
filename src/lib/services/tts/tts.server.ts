@@ -4,7 +4,7 @@ import type { TTSService } from './tts.types'
 class TTSServerService implements TTSService {
   async generate(
     text: string,
-    voice: string
+    voice: string,
   ): Promise<{ audio: Buffer; generationTimeMs: number }> {
     const response = await fetch(env.ttsApiUrl, {
       method: 'POST',
@@ -17,10 +17,7 @@ class TTSServerService implements TTSService {
       throw new Error(`TTS API error: ${error}`)
     }
 
-    const generationTimeMs = parseInt(
-      response.headers.get('X-Generation-Time-Ms') || '0',
-      10
-    )
+    const generationTimeMs = parseInt(response.headers.get('X-Generation-Time-Ms') || '0', 10)
 
     const audioBuffer = await response.arrayBuffer()
     return {

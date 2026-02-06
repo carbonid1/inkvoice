@@ -1,8 +1,8 @@
 'use client'
 
-import { create } from 'zustand'
-import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware'
 import { useEffect, useState } from 'react'
+import { create } from 'zustand'
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 
 export interface Book {
   id: string
@@ -56,7 +56,7 @@ const flushStorage = () => {
 }
 
 const debouncedStorage: StateStorage = {
-  getItem: (name) => {
+  getItem: name => {
     if (typeof window === 'undefined') return null
     return localStorage.getItem(name)
   },
@@ -71,7 +71,7 @@ const debouncedStorage: StateStorage = {
     if (pending.timeout) clearTimeout(pending.timeout)
     pending.timeout = setTimeout(flushStorage, 1000)
   },
-  removeItem: (name) => {
+  removeItem: name => {
     if (typeof window === 'undefined') return
     flushStorage()
     localStorage.removeItem(name)
@@ -88,12 +88,12 @@ export const useStore = create<AppState>()(
       progress: {},
       voice: 'narrator',
 
-      setBooks: (books) => set({ books }),
+      setBooks: books => set({ books }),
 
-      setCurrentBook: (bookId) => set({ currentBook: bookId }),
+      setCurrentBook: bookId => set({ currentBook: bookId }),
 
       setProgress: (bookId, chapter, sentence) =>
-        set((state) => ({
+        set(state => ({
           progress: {
             ...state.progress,
             [bookId]: {
@@ -106,43 +106,41 @@ export const useStore = create<AppState>()(
         })),
 
       setBookMetadata: (bookId, totalChapters, sentencesPerChapter) =>
-        set((state) => ({
+        set(state => ({
           progress: {
             ...state.progress,
             [bookId]: {
-              ...state.progress[bookId] || DEFAULT_PROGRESS,
+              ...(state.progress[bookId] || DEFAULT_PROGRESS),
               totalChapters,
               sentencesPerChapter,
             },
           },
         })),
 
-      getProgress: (bookId) => {
+      getProgress: bookId => {
         const state = get()
         return state.progress[bookId] || DEFAULT_PROGRESS
       },
 
-      setVoice: (voice) => set({ voice }),
+      setVoice: voice => set({ voice }),
     }),
     {
       name: 'inkvoice-storage',
       storage: createJSONStorage<PersistedState>(() => debouncedStorage),
-      partialize: (state) => ({
+      partialize: state => ({
         progress: state.progress,
         voice: state.voice,
       }),
-    }
-  )
+    },
+  ),
 )
 
 // Hook to wait for Zustand persist rehydration
 export const useHydrated = () => {
-  const [hydrated, setHydrated] = useState(false)
+  const [hydrated, setHydrated] = useState(() => useStore.persist.hasHydrated())
 
   useEffect(() => {
     const unsub = useStore.persist.onFinishHydration(() => setHydrated(true))
-    // Already hydrated (e.g. fast restore)
-    if (useStore.persist.hasHydrated()) setHydrated(true)
     return unsub
   }, [])
 

@@ -3,7 +3,7 @@ import { ABBREVIATIONS } from '../../epub.consts'
 export const isValidSentenceEnd = (text: string, index: number): boolean => {
   // Get word ending at this period
   let start = index - 1
-  while (start >= 0 && !/\s/.test(text[start])) start--
+  while (start >= 0 && !/\s/.test(text[start] ?? '')) start--
   const word = text.slice(start + 1, index + 1).toLowerCase()
 
   // Check if it's an abbreviation
@@ -31,7 +31,7 @@ export const splitIntoSentences = (text: string): string[] => {
 
   while ((match = endPattern.exec(cleaned)) !== null) {
     const punctIndex = match.index
-    const punctChar = cleaned[punctIndex]
+    const punctChar = cleaned[punctIndex] as string
 
     // ! and ? are always sentence endings
     // . needs validation for abbreviations and numbers

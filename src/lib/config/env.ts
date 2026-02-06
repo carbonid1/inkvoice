@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import { join } from 'path'
+import { z } from 'zod'
 
 const envSchema = z.object({
   BOOKS_DIR: z.string().default(join(process.cwd(), 'data', 'books')),

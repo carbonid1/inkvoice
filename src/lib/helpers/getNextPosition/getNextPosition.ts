@@ -3,7 +3,7 @@ import type { ChapterInfo } from '@/lib/types/book'
 export const getNextPosition = (
   chapters: ChapterInfo[],
   ch: number,
-  sent: number
+  sent: number,
 ): { ch: number; sent: number } | null => {
   const nextSent = sent + 1
   const chapterData = chapters[ch]

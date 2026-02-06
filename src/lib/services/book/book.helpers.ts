@@ -1,7 +1,7 @@
-import { readdir, readFile } from 'fs/promises'
-import { existsSync } from 'fs'
-import { join } from 'path'
 import { env } from '@/lib/config/env'
+import { existsSync } from 'fs'
+import { readdir, readFile } from 'fs/promises'
+import { join } from 'path'
 
 /**
  * Derive a book ID from a filename
@@ -19,7 +19,7 @@ export const findBookFile = async (bookId: string): Promise<string | null> => {
   }
 
   const files = await readdir(env.booksDir)
-  const epubFile = files.find((f) => {
+  const epubFile = files.find(f => {
     const fileId = getBookIdFromFilename(f)
     return fileId === bookId
   })
@@ -35,7 +35,7 @@ export const readBookFile = async (filename: string): Promise<ArrayBuffer> => {
   const buffer = await readFile(filePath)
   return buffer.buffer.slice(
     buffer.byteOffset,
-    buffer.byteOffset + buffer.byteLength
+    buffer.byteOffset + buffer.byteLength,
   ) as ArrayBuffer
 }
 
@@ -47,5 +47,5 @@ export const listEpubFiles = async (): Promise<string[]> => {
     return []
   }
   const files = await readdir(env.booksDir)
-  return files.filter((f) => f.endsWith('.epub'))
+  return files.filter(f => f.endsWith('.epub'))
 }

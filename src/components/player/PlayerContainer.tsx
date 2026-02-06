@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useCallback, useRef } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
-import type { ChapterInfo } from '@/lib/types/book'
 import type { DebugMetrics } from '@/components/DebugPanel'
-import { useStore } from '@/store/useStore'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
+import type { ChapterInfo } from '@/lib/types/book'
+import { useStore } from '@/store/useStore'
+import { useCallback, useEffect, useRef } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -27,7 +27,7 @@ export const PlayerContainer = ({
   onProgressChange,
   onDebugUpdate,
 }: PlayerContainerProps) => {
-  const voice = useStore((s) => s.voice)
+  const voice = useStore(s => s.voice)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
 
   const position = useBookPosition({
@@ -96,13 +96,25 @@ export const PlayerContainer = ({
     } finally {
       setLoading(false)
     }
-  }, [currentChapter, currentSentence, setLoading, setError, fetchAudio, shouldPlay, play, continuePrefetching, setPlaying, position.currentChapterRef, position.currentSentenceRef])
+  }, [
+    currentChapter,
+    currentSentence,
+    setLoading,
+    setError,
+    fetchAudio,
+    shouldPlay,
+    play,
+    continuePrefetching,
+    setPlaying,
+    position.currentChapterRef,
+    position.currentSentenceRef,
+  ])
 
   // Start prefetching on mount
   useEffect(() => {
     prefetch.updateDebugMetrics()
     prefetch.continuePrefetching()
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount for initial prefetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount for initial prefetch
   }, [])
 
   // Update metrics and continue prefetching on position change

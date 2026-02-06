@@ -1,7 +1,7 @@
 'use client'
 
-import type { RefObject } from 'react'
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
+import type { RefObject } from 'react'
 
 interface ContentBlockProps {
   block: ContentBlockType
@@ -18,7 +18,7 @@ const renderSegments = (
   currentSentence: number,
   onSentenceClick: ((chapter: number, sentence: number) => void) | undefined,
   currentChapter: number,
-  sentenceRef: RefObject<HTMLSpanElement>
+  sentenceRef: RefObject<HTMLSpanElement>,
 ) => {
   if (!segments) return null
   return segments.map((segment, idx) => {
@@ -97,7 +97,8 @@ export const ContentBlock = ({
     case 'attribution':
       return (
         <p className="pl-5 my-1 text-sm text-gray-500 dark:text-gray-500 text-right">
-          {'\u2014 '}{segments(block.segments)}
+          {'\u2014 '}
+          {segments(block.segments)}
         </p>
       )
 

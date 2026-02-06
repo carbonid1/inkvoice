@@ -1,5 +1,5 @@
+import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { JSDOM } from 'jsdom'
-import type { TextSegment, ContentBlock } from '@/lib/types/book'
 import { splitIntoSentences } from '../splitSentences/splitSentences'
 
 export const getPlainText = (node: Node): string => {
@@ -15,9 +15,7 @@ export const getPlainText = (node: Node): string => {
     if (tag === 'script' || tag === 'style') return ''
     if (tag === 'br') return ' '
     // Recurse
-    return Array.from(node.childNodes)
-      .map(getPlainText)
-      .join('')
+    return Array.from(node.childNodes).map(getPlainText).join('')
   }
   return ''
 }
@@ -26,10 +24,7 @@ export const getInnerHtml = (node: Node): string => {
   if (node.nodeType === 3) {
     // Text node - escape HTML
     const text = node.textContent || ''
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   }
   if (node.nodeType === 1) {
     const el = node as Element
@@ -43,9 +38,7 @@ export const getInnerHtml = (node: Node): string => {
 
     // For inline formatting tags, preserve them
     const inlineTags = ['em', 'i', 'strong', 'b', 'u', 'span', 'a', 'sup', 'sub', 'small']
-    const childHtml = Array.from(node.childNodes)
-      .map(getInnerHtml)
-      .join('')
+    const childHtml = Array.from(node.childNodes).map(getInnerHtml).join('')
 
     if (inlineTags.includes(tag)) {
       // Keep the tag with minimal attributes
@@ -92,7 +85,7 @@ const decodeNextEntity = (html: string, pos: number): { char: string; length: nu
 
   // Numeric entity
   const numMatch = html.slice(pos).match(/^&#(\d+);/)
-  if (numMatch) {
+  if (numMatch?.[1]) {
     return { char: String.fromCharCode(parseInt(numMatch[1], 10)), length: numMatch[0].length }
   }
 
@@ -180,6 +173,7 @@ const splitNodeIntoSentences = (node: Element): SentenceMapping[] => {
 
   for (let i = 0; i < sentences.length; i++) {
     const sentence = sentences[i]
+    if (!sentence) continue
     const isLast = i === sentences.length - 1
 
     if (isLast) {
@@ -206,9 +200,13 @@ const splitNodeIntoSentences = (node: Element): SentenceMapping[] => {
       const nextSentence = sentences[i + 1]
       if (nextSentence) {
         const nextWord = nextSentence.split(/\s/)[0]
-        const nextWordPos = htmlRemaining.indexOf(nextWord, htmlConsumed - nextWord.length)
-        if (nextWordPos !== -1) {
-          htmlRemaining = htmlRemaining.slice(nextWordPos)
+        if (nextWord) {
+          const nextWordPos = htmlRemaining.indexOf(nextWord, htmlConsumed - nextWord.length)
+          if (nextWordPos !== -1) {
+            htmlRemaining = htmlRemaining.slice(nextWordPos)
+          } else {
+            htmlRemaining = htmlRemaining.slice(htmlConsumed).trim()
+          }
         } else {
           htmlRemaining = htmlRemaining.slice(htmlConsumed).trim()
         }
@@ -235,14 +233,14 @@ const isAttributionElement = (el: Element): boolean => {
 
 export const parseHtmlContent = (
   html: string,
-  getImage: (id: string) => Promise<string | null>
+  getImage: (id: string) => Promise<string | null>,
 ): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
   return parseHtmlContentSync(html, getImage)
 }
 
 const parseHtmlContentSync = async (
   html: string,
-  getImage: (id: string) => Promise<string | null>
+  getImage: (id: string) => Promise<string | null>,
 ): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
   const dom = new JSDOM(html)
   const doc = dom.window.document
@@ -268,7 +266,7 @@ const parseHtmlContentSync = async (
     }
 
     if (tag.match(/^h[1-6]$/)) {
-      const level = parseInt(tag[1], 10)
+      const level = parseInt(tag[1] ?? '1', 10)
       const mappings = splitNodeIntoSentences(el)
       if (mappings.length > 0) {
         const segments: TextSegment[] = mappings.map(m => {
@@ -315,12 +313,11 @@ const parseHtmlContentSync = async (
     }
 
     if (tag === 'p') {
-      const blockType: ContentBlock['type'] =
-        isEpigraphElement(el)
-          ? 'blockquote'
-          : isAttributionElement(el)
-            ? 'attribution'
-            : 'paragraph'
+      const blockType: ContentBlock['type'] = isEpigraphElement(el)
+        ? 'blockquote'
+        : isAttributionElement(el)
+          ? 'attribution'
+          : 'paragraph'
       const mappings = splitNodeIntoSentences(el)
       if (mappings.length > 0) {
         const segments: TextSegment[] = mappings.map(m => {
@@ -377,7 +374,9 @@ const parseHtmlContentSync = async (
       const segments = block.segments || (block.items?.flat() ?? [])
       segments.forEach(seg => {
         if (sentences[seg.sentenceIndex] === undefined) {
-          console.error(`[epub] Index mismatch: sentenceIndex ${seg.sentenceIndex} out of bounds (sentences.length: ${sentences.length})`)
+          console.error(
+            `[epub] Index mismatch: sentenceIndex ${seg.sentenceIndex} out of bounds (sentences.length: ${sentences.length})`,
+          )
           mismatchFound = true
         }
       })

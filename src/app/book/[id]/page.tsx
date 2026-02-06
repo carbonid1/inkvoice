@@ -1,16 +1,16 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
+import { DebugMetrics, DebugPanel } from '@/components/DebugPanel'
 import { Reader } from '@/components/Reader'
-import { PlayerContainer } from '@/components/player/PlayerContainer'
-import { DebugPanel, DebugMetrics } from '@/components/DebugPanel'
-import type { BookOverview, ParsedChapter } from '@/lib/types/book'
-import { useStore, useHydrated } from '@/store/useStore'
-import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
+import { PlayerContainer } from '@/components/player/PlayerContainer'
+import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
+import type { BookOverview, ParsedChapter } from '@/lib/types/book'
+import { useHydrated, useStore } from '@/store/useStore'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 
 export default function BookReader() {
   const params = useParams()
@@ -54,7 +54,7 @@ export default function BookReader() {
         setCurrentBook(bookId)
 
         // Write book metadata for library progress bars
-        const sentencesPerChapter = data.chapters.map((ch) => ch.sentenceCount)
+        const sentencesPerChapter = data.chapters.map(ch => ch.sentenceCount)
         setBookMetadata(bookId, data.chapters.length, sentencesPerChapter)
 
         // Restore progress
@@ -101,20 +101,20 @@ export default function BookReader() {
       setCurrentSentence(sentence)
       setProgress(bookId, chapter, sentence)
     },
-    [bookId, setProgress]
+    [bookId, setProgress],
   )
 
   const handleSentenceClick = useCallback(
     (chapter: number, sentence: number) => {
       handleProgressChange(chapter, sentence)
     },
-    [handleProgressChange]
+    [handleProgressChange],
   )
 
   // Sync position into debug metrics
   useEffect(() => {
     if (!overview) return
-    setDebugMetrics((prev) => ({
+    setDebugMetrics(prev => ({
       ...prev,
       currentSentence,
       totalSentences: overview.chapters[currentChapter]?.sentenceCount ?? 0,
@@ -124,7 +124,7 @@ export default function BookReader() {
   }, [currentChapter, currentSentence, overview])
 
   // Toggle debug panel with 'D' key
-  useHotkeys('d', () => setShowDebug((prev) => !prev))
+  useHotkeys('d', () => setShowDebug(prev => !prev))
 
   const progressPercent = computeProgressPercent(getProgress(bookId)) ?? 0
 
@@ -140,10 +140,7 @@ export default function BookReader() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <div className="text-red-600 dark:text-red-400">{error || 'Book not found'}</div>
-        <Link
-          href="/"
-          className="text-blue-500 hover:text-blue-600 underline"
-        >
+        <Link href="/" className="text-blue-500 hover:text-blue-600 underline">
           Return to library
         </Link>
       </div>
@@ -163,9 +160,7 @@ export default function BookReader() {
           </Link>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold truncate">{overview.title}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {overview.author}
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{overview.author}</p>
           </div>
         </div>
 
@@ -173,7 +168,7 @@ export default function BookReader() {
           <div className="max-w-3xl mx-auto px-4 pb-2">
             <select
               value={currentChapter}
-              onChange={(e) => handleProgressChange(Number(e.target.value), 0)}
+              onChange={e => handleProgressChange(Number(e.target.value), 0)}
               className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 w-full max-w-xs"
             >
               {overview.chapters.map((chapter, idx) => (
