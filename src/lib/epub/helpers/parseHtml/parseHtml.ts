@@ -13,6 +13,7 @@ export const getPlainText = (node: Node): string => {
     const tag = el.tagName.toLowerCase()
     // Skip script, style
     if (tag === 'script' || tag === 'style') return ''
+    if (tag === 'br') return ' '
     // Recurse
     return Array.from(node.childNodes)
       .map(getPlainText)
@@ -34,6 +35,11 @@ export const getInnerHtml = (node: Node): string => {
     const el = node as Element
     const tag = el.tagName.toLowerCase()
     if (tag === 'script' || tag === 'style') return ''
+
+    const voidElements = ['br', 'hr']
+    if (voidElements.includes(tag)) {
+      return `<${tag}/>`
+    }
 
     // For inline formatting tags, preserve them
     const inlineTags = ['em', 'i', 'strong', 'b', 'u', 'span', 'a', 'sup', 'sub', 'small']
@@ -213,6 +219,20 @@ const splitNodeIntoSentences = (node: Element): SentenceMapping[] => {
   return result
 }
 
+const EPIGRAPH_CLASS_PATTERN = /^total(ind|first|second|secondfirst|three)$/
+
+const isEpigraphElement = (el: Element): boolean => {
+  const classes = el.getAttribute('class')?.split(/\s+/) ?? []
+  return classes.some(c => EPIGRAPH_CLASS_PATTERN.test(c))
+}
+
+const isAttributionElement = (el: Element): boolean => {
+  const classes = el.getAttribute('class')?.split(/\s+/) ?? []
+  if (!classes.includes('r')) return false
+  const text = el.textContent?.replace(/\u00a0/g, '').trim() ?? ''
+  return text.length > 0
+}
+
 export const parseHtmlContent = (
   html: string,
   getImage: (id: string) => Promise<string | null>
@@ -295,6 +315,12 @@ const parseHtmlContentSync = async (
     }
 
     if (tag === 'p') {
+      const blockType: ContentBlock['type'] =
+        isEpigraphElement(el)
+          ? 'blockquote'
+          : isAttributionElement(el)
+            ? 'attribution'
+            : 'paragraph'
       const mappings = splitNodeIntoSentences(el)
       if (mappings.length > 0) {
         const segments: TextSegment[] = mappings.map(m => {
@@ -302,7 +328,7 @@ const parseHtmlContentSync = async (
           sentences.push(m.plainText)
           return { sentenceIndex: idx, html: m.html }
         })
-        content.push({ type: 'paragraph', segments })
+        content.push({ type: blockType, segments })
       }
       return
     }

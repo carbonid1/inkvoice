@@ -8,7 +8,7 @@ export interface TextSegment {
 }
 
 export interface ContentBlock {
-  type: 'paragraph' | 'heading' | 'blockquote' | 'list' | 'image'
+  type: 'paragraph' | 'heading' | 'blockquote' | 'attribution' | 'list' | 'image'
   level?: number // For headings (1-6)
   segments?: TextSegment[] // Sentence-aligned segments within block
   src?: string // For images (base64 data URL)

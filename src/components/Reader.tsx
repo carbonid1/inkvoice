@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import type { ParsedChapter, ContentBlock as ContentBlockType } from '@/lib/types/book'
 import { ContentBlock } from './reader/ContentBlock'
 
@@ -67,23 +67,62 @@ export const Reader = ({
       }
     }
 
+    // Detect leading epigraph group: consecutive blockquote/attribution blocks
+    // after skipping any title group blocks and leading headings
+    const epigraphGroupMember = new Set<number>()
+    const firstEpigraphCandidate = content.findIndex(
+      (block, i) => !titleGroupMember.has(i) && block.type !== 'heading'
+    )
+    if (firstEpigraphCandidate !== -1) {
+      for (let i = firstEpigraphCandidate; i < content.length; i++) {
+        if (content[i].type === 'blockquote' || content[i].type === 'attribution') {
+          epigraphGroupMember.add(i)
+        } else {
+          break
+        }
+      }
+    }
+
+    const renderBlock = (block: ContentBlockType, idx: number) => (
+      <ContentBlock
+        key={idx}
+        block={block}
+        currentSentence={currentSentence}
+        onSentenceClick={onSentenceClick}
+        currentChapter={currentChapter}
+        sentenceRef={currentSentenceRef}
+        isInTitleGroup={titleGroupMember.has(idx)}
+        isSubtitle={titleGroupMember.has(idx) && !titleGroupStart.has(idx)}
+      />
+    )
+
+    // Build rendered elements, wrapping epigraph groups
+    const elements: ReactNode[] = []
+    let epigraphGroupStartIndex = -1
+
+    content.forEach((block, idx) => {
+      if (epigraphGroupMember.has(idx)) {
+        if (epigraphGroupStartIndex === -1) epigraphGroupStartIndex = idx
+        // Check if next block is NOT in epigraph group (end of group)
+        if (!epigraphGroupMember.has(idx + 1)) {
+          elements.push(
+            <div key={`epigraph-${epigraphGroupStartIndex}`} className="mt-4 pb-6 mb-6 border-gray-200 dark:border-gray-700">
+              {content.slice(epigraphGroupStartIndex, idx + 1).map((b, i) =>
+                renderBlock(b, epigraphGroupStartIndex + i)
+              )}
+            </div>
+          )
+          epigraphGroupStartIndex = -1
+        }
+      } else {
+        elements.push(renderBlock(block, idx))
+      }
+    })
+
     return (
       <div className={proseClasses}>
         <h2 className="text-xl font-semibold mb-6">{chapter.title}</h2>
-        <div>
-          {content.map((block, idx) => (
-            <ContentBlock
-              key={idx}
-              block={block}
-              currentSentence={currentSentence}
-              onSentenceClick={onSentenceClick}
-              currentChapter={currentChapter}
-              sentenceRef={currentSentenceRef}
-              isInTitleGroup={titleGroupMember.has(idx)}
-              isSubtitle={titleGroupMember.has(idx) && !titleGroupStart.has(idx)}
-            />
-          ))}
-        </div>
+        <div>{elements}</div>
       </div>
     )
   }

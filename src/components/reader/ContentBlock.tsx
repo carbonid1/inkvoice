@@ -89,9 +89,16 @@ export const ContentBlock = ({
 
     case 'blockquote':
       return (
-        <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 my-4 italic text-gray-700 dark:text-gray-300">
+        <blockquote className="border-l-2 border-gray-300 dark:border-gray-600 pl-5 my-1 italic text-gray-600 dark:text-gray-400 text-[0.95rem] leading-relaxed">
           {segments(block.segments)}
         </blockquote>
+      )
+
+    case 'attribution':
+      return (
+        <p className="pl-5 my-1 text-sm text-gray-500 dark:text-gray-500 text-right">
+          {'\u2014 '}{segments(block.segments)}
+        </p>
       )
 
     case 'list':
