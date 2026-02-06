@@ -1,4 +1,4 @@
-import type { Progress } from '@/store/useStore'
+import type { Progress } from '@/store/useProgressStore'
 
 export const computeProgressPercent = (progress: Progress | undefined): number | null => {
   if (!progress?.sentencesPerChapter || progress.sentencesPerChapter.length === 0) return null

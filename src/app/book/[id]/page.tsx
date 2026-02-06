@@ -6,7 +6,9 @@ import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import type { BookOverview, ParsedChapter } from '@/lib/types/book'
-import { useHydrated, useStore } from '@/store/useStore'
+import { useHydrated } from '@/store/useHydrated'
+import { useLibraryStore } from '@/store/useLibraryStore'
+import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
@@ -21,7 +23,10 @@ export default function BookReader() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { getProgress, setProgress, setCurrentBook, setBookMetadata } = useStore()
+  const getProgress = useProgressStore(s => s.getProgress)
+  const setProgress = useProgressStore(s => s.setProgress)
+  const setBookMetadata = useProgressStore(s => s.setBookMetadata)
+  const setCurrentBook = useLibraryStore(s => s.setCurrentBook)
   const hydrated = useHydrated()
   const savedProgress = getProgress(bookId)
   const [currentChapter, setCurrentChapter] = useState(savedProgress.chapter)

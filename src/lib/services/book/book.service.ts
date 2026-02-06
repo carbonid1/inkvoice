@@ -1,6 +1,6 @@
 import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
 import type {
-  BookInfo,
+  Book,
   BookMetadata,
   BookOverview,
   ParsedBook,
@@ -40,7 +40,7 @@ class BookCache {
 class BookServiceImpl implements BookService {
   private cache = new BookCache()
 
-  async listBooks(): Promise<BookInfo[]> {
+  async listBooks(): Promise<Book[]> {
     const files = await listEpubFiles()
 
     const books = await Promise.all(

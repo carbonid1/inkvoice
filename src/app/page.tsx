@@ -2,16 +2,18 @@
 
 import { BookCard } from '@/components/BookCard'
 import { GearIcon } from '@/components/icons/GearIcon'
-import { Book, useStore } from '@/store/useStore'
+import { useLibraryStore } from '@/store/useLibraryStore'
+import { useProgressStore } from '@/store/useProgressStore'
+import type { Book } from '@/lib/types/book'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 export default function Library() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const books = useStore(s => s.books)
-  const setBooks = useStore(s => s.setBooks)
-  const progress = useStore(s => s.progress)
+  const books = useLibraryStore(s => s.books)
+  const setBooks = useLibraryStore(s => s.setBooks)
+  const progress = useProgressStore(s => s.progress)
 
   useEffect(() => {
     async function fetchBooks() {

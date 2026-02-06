@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': 'off',
       'import/newline-after-import': 'warn',
+      '@next/next/no-img-element': 'off',
     },
   },
   eslintConfigPrettier,

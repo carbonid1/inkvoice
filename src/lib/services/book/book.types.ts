@@ -1,5 +1,5 @@
 import type {
-  BookInfo,
+  Book,
   BookMetadata,
   BookOverview,
   ParsedBook,
@@ -8,7 +8,7 @@ import type {
 
 export interface BookService {
   /** List all available books */
-  listBooks(): Promise<BookInfo[]>
+  listBooks(): Promise<Book[]>
 
   /** Get a parsed book (uses cache to avoid re-parsing) */
   getBook(bookId: string): Promise<ParsedBook | null>

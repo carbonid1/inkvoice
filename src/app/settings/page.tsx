@@ -3,7 +3,7 @@
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
-import { useStore } from '@/store/useStore'
+import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
@@ -19,8 +19,8 @@ export default function Settings() {
   const [loading, setLoading] = useState(true)
   const [playingVoice, setPlayingVoice] = useState<PlayingState>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
-  const voice = useStore(s => s.voice)
-  const setVoice = useStore(s => s.setVoice)
+  const voice = useVoiceStore(s => s.voice)
+  const setVoice = useVoiceStore(s => s.setVoice)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {

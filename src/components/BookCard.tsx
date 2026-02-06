@@ -3,7 +3,8 @@
 import { BookIcon } from '@/components/icons/BookIcon'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
-import { Book, useStore } from '@/store/useStore'
+import { useProgressStore } from '@/store/useProgressStore'
+import type { Book } from '@/lib/types/book'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -14,7 +15,7 @@ interface BookCardProps {
 export const BookCard = ({ book }: BookCardProps) => {
   const [coverLoaded, setCoverLoaded] = useState(false)
   const [coverError, setCoverError] = useState(false)
-  const progress = useStore(state => state.progress[book.id])
+  const progress = useProgressStore(state => state.progress[book.id])
   const progressPercent = computeProgressPercent(progress)
   const isFinished = progressPercent !== null && progressPercent >= 99
 

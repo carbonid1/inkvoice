@@ -39,7 +39,7 @@ export interface BookMetadata {
   author: string
 }
 
-export interface BookInfo {
+export interface Book {
   id: string
   title: string
   author: string
