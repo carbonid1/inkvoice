@@ -86,6 +86,20 @@ curl -X POST http://localhost:8000/tts \
   function handleClick() { ... }
   ```
 
+- Prefer named type aliases over inline type annotations — extract object types, union types, and function signatures into named `type` declarations
+
+  ```typescript
+  // Preferred
+  type Props = {
+    title: string
+    onClick: () => void
+  }
+  const Button = ({ title, onClick }: Props) => { ... }
+
+  // Avoid
+  const Button = ({ title, onClick }: { title: string; onClick: () => void }) => { ... }
+  ```
+
 - Prefer `const` over `let` — use `let` only when reassignment is unavoidable
   - Use `.reduce()`, `.slice()`, spread, or closure patterns instead of mutable accumulators
   - Wrap related mutable state in a `const` object rather than separate `let` variables

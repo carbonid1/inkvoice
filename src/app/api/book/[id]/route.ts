@@ -1,7 +1,13 @@
 import { getBookService } from '@/lib/services/book/book.service'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+type RouteParams = {
+  params: Promise<{
+    id: string
+  }>
+}
+
+export const GET = async (_: NextRequest, { params }: RouteParams) => {
   const { id } = await params
   const bookService = getBookService()
 

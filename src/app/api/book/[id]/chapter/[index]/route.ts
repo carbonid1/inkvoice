@@ -1,10 +1,14 @@
 import { getBookService } from '@/lib/services/book/book.service'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; index: string }> },
-) => {
+type RouteParams = {
+  params: Promise<{
+    id: string
+    index: string
+  }>
+}
+
+export const GET = async (_: NextRequest, { params }: RouteParams) => {
   const { id, index } = await params
   const chapterIndex = parseInt(index, 10)
 
