@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { Reader } from '@/components/Reader'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
 import { DebugPanel, DebugMetrics } from '@/components/DebugPanel'
-import type { ParsedBook } from '@/lib/types/book'
+import type { BookOverview, ParsedChapter } from '@/lib/types/book'
 import { useStore, useHydrated } from '@/store/useStore'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
@@ -16,7 +16,8 @@ export default function BookReader() {
   const params = useParams()
   const bookId = params.id as string
 
-  const [book, setBook] = useState<ParsedBook | null>(null)
+  const [overview, setOverview] = useState<BookOverview | null>(null)
+  const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,33 +38,31 @@ export default function BookReader() {
     totalChapters: 0,
   })
 
-  // Guard fetchBook on hydration to avoid reading stale {0,0}
+  // Fetch book overview on mount (after hydration)
   useEffect(() => {
     if (!hydrated) return
 
-    const fetchBook = async () => {
+    const fetchOverview = async () => {
       try {
         const response = await fetch(`/api/book/${bookId}`)
         if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Book not found')
-          }
+          if (response.status === 404) throw new Error('Book not found')
           throw new Error('Failed to load book')
         }
-        const data: ParsedBook = await response.json()
-        setBook(data)
+        const data: BookOverview = await response.json()
+        setOverview(data)
         setCurrentBook(bookId)
 
         // Write book metadata for library progress bars
-        const sentencesPerChapter = data.chapters.map((ch) => ch.sentences.length)
+        const sentencesPerChapter = data.chapters.map((ch) => ch.sentenceCount)
         setBookMetadata(bookId, data.chapters.length, sentencesPerChapter)
 
         // Restore progress
         const progress = getProgress(bookId)
         if (progress.chapter < data.chapters.length) {
           setCurrentChapter(progress.chapter)
-          const chapter = data.chapters[progress.chapter]
-          if (chapter && progress.sentence < chapter.sentences.length) {
+          const chapterInfo = data.chapters[progress.chapter]
+          if (chapterInfo && progress.sentence < chapterInfo.sentenceCount) {
             setCurrentSentence(progress.sentence)
           }
         }
@@ -74,8 +73,27 @@ export default function BookReader() {
       }
     }
 
-    fetchBook()
+    fetchOverview()
   }, [bookId, hydrated, getProgress, setCurrentBook, setBookMetadata])
+
+  // Fetch chapter content when currentChapter changes
+  useEffect(() => {
+    if (!overview) return
+
+    const fetchChapter = async () => {
+      try {
+        const response = await fetch(`/api/book/${bookId}/chapter/${currentChapter}`)
+        if (!response.ok) throw new Error('Failed to load chapter')
+        const data: ParsedChapter = await response.json()
+        setChapterData(data)
+      } catch (e) {
+        console.error('Failed to fetch chapter:', e)
+        setError(e instanceof Error ? e.message : 'Failed to load chapter')
+      }
+    }
+
+    fetchChapter()
+  }, [bookId, overview, currentChapter])
 
   const handleProgressChange = useCallback(
     (chapter: number, sentence: number) => {
@@ -95,15 +113,15 @@ export default function BookReader() {
 
   // Sync position into debug metrics
   useEffect(() => {
-    if (!book) return
+    if (!overview) return
     setDebugMetrics((prev) => ({
       ...prev,
       currentSentence,
-      totalSentences: book.chapters[currentChapter]?.sentences.length ?? 0,
+      totalSentences: overview.chapters[currentChapter]?.sentenceCount ?? 0,
       currentChapter,
-      totalChapters: book.chapters.length,
+      totalChapters: overview.chapters.length,
     }))
-  }, [currentChapter, currentSentence, book])
+  }, [currentChapter, currentSentence, overview])
 
   // Toggle debug panel with 'D' key
   useHotkeys('d', () => setShowDebug((prev) => !prev))
@@ -118,7 +136,7 @@ export default function BookReader() {
     )
   }
 
-  if (error || !book) {
+  if (error || !overview) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <div className="text-red-600 dark:text-red-400">{error || 'Book not found'}</div>
@@ -144,21 +162,21 @@ export default function BookReader() {
             <ChevronLeftIcon />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="font-semibold truncate">{book.title}</h1>
+            <h1 className="font-semibold truncate">{overview.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {book.author}
+              {overview.author}
             </p>
           </div>
         </div>
 
-        {book.chapters.length > 1 && (
+        {overview.chapters.length > 1 && (
           <div className="max-w-3xl mx-auto px-4 pb-2">
             <select
               value={currentChapter}
               onChange={(e) => handleProgressChange(Number(e.target.value), 0)}
               className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 w-full max-w-xs"
             >
-              {book.chapters.map((chapter, idx) => (
+              {overview.chapters.map((chapter, idx) => (
                 <option key={idx} value={idx}>
                   {chapter.title}
                 </option>
@@ -177,17 +195,23 @@ export default function BookReader() {
       </header>
 
       <main className="max-w-3xl mx-auto">
-        <Reader
-          chapters={book.chapters}
-          currentChapter={currentChapter}
-          currentSentence={currentSentence}
-          onSentenceClick={handleSentenceClick}
-        />
+        {chapterData ? (
+          <Reader
+            chapter={chapterData}
+            currentChapter={currentChapter}
+            currentSentence={currentSentence}
+            onSentenceClick={handleSentenceClick}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            Loading chapter...
+          </div>
+        )}
       </main>
 
       <PlayerContainer
         bookId={bookId}
-        chapters={book.chapters}
+        chapters={overview.chapters}
         currentChapter={currentChapter}
         currentSentence={currentSentence}
         onProgressChange={handleProgressChange}

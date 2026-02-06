@@ -1,14 +1,14 @@
 'use client'
 
 import { useRef, useCallback, useMemo, useEffect } from 'react'
-import type { ParsedChapter } from '@/lib/types/book'
+import type { ChapterInfo } from '@/lib/types/book'
 import type { DebugMetrics } from '@/components/DebugPanel'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 
 interface UsePrefetchQueueOptions {
   bookId: string
   voice: string
-  chaptersRef: React.MutableRefObject<ParsedChapter[]>
+  chaptersRef: React.MutableRefObject<ChapterInfo[]>
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
   onDebugUpdate?: (updater: (prev: DebugMetrics) => DebugMetrics) => void
@@ -61,7 +61,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     while (true) {
       sent++
       const chapterData = chaptersRef.current[ch]
-      if (!chapterData || sent >= chapterData.sentences.length) {
+      if (!chapterData || sent >= chapterData.sentenceCount) {
         ch++
         sent = 0
         if (ch >= chaptersRef.current.length) break
@@ -174,7 +174,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   const fetchAudio = useCallback(
     async (ch: number, sent: number): Promise<string | null> => {
       const chapterData = chaptersRef.current[ch]
-      if (!chapterData || sent >= chapterData.sentences.length) {
+      if (!chapterData || sent >= chapterData.sentenceCount) {
         return null
       }
 

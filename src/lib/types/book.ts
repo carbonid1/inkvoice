@@ -45,3 +45,15 @@ export interface BookInfo {
   author: string
   filename: string
 }
+
+export interface ChapterInfo {
+  title: string
+  sentenceCount: number
+}
+
+export interface BookOverview {
+  id: string
+  title: string
+  author: string
+  chapters: ChapterInfo[]
+}

@@ -2,16 +2,16 @@ import { StrictMode, type ReactNode } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { usePrefetchQueue } from './usePrefetchQueue'
-import type { ParsedChapter } from '@/lib/types/book'
+import type { ChapterInfo } from '@/lib/types/book'
 
 const strictWrapper = ({ children }: { children: ReactNode }) => (
   <StrictMode>{children}</StrictMode>
 )
 
-const makeChapters = (sentenceCounts: number[]): ParsedChapter[] =>
+const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
   sentenceCounts.map((n, i) => ({
     title: `Chapter ${i}`,
-    sentences: Array.from({ length: n }, (_, j) => `Sentence ${j}`),
+    sentenceCount: n,
   }))
 
 const stableOptions = () => {

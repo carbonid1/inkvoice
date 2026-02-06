@@ -5,7 +5,7 @@ import type { ParsedChapter, ContentBlock as ContentBlockType } from '@/lib/type
 import { ContentBlock } from './reader/ContentBlock'
 
 interface ReaderProps {
-  chapters: ParsedChapter[]
+  chapter: ParsedChapter
   currentChapter: number
   currentSentence: number
   onSentenceClick?: (chapter: number, sentence: number) => void
@@ -22,7 +22,7 @@ const isSectionTitle = (block: ContentBlockType): boolean => {
 }
 
 export const Reader = ({
-  chapters,
+  chapter,
   currentChapter,
   currentSentence,
   onSentenceClick,
@@ -38,7 +38,6 @@ export const Reader = ({
     }
   }, [currentChapter, currentSentence])
 
-  const chapter = chapters[currentChapter]
   if (!chapter) {
     return (
       <div className="flex items-center justify-center h-full text-gray-500">

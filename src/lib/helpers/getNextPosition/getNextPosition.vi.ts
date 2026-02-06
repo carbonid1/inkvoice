@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { getNextPosition } from './getNextPosition'
-import type { ParsedChapter } from '@/lib/types/book'
+import type { ChapterInfo } from '@/lib/types/book'
 
-const makeChapters = (sentenceCounts: number[]): ParsedChapter[] =>
+const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
   sentenceCounts.map((n, i) => ({
     title: `Chapter ${i}`,
-    sentences: Array.from({ length: n }, (_, j) => `Sentence ${j}`),
+    sentenceCount: n,
   }))
 
 describe('getNextPosition', () => {

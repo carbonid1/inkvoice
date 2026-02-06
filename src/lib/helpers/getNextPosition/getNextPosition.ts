@@ -1,14 +1,14 @@
-import type { ParsedChapter } from '@/lib/types/book'
+import type { ChapterInfo } from '@/lib/types/book'
 
 export const getNextPosition = (
-  chapters: ParsedChapter[],
+  chapters: ChapterInfo[],
   ch: number,
   sent: number
 ): { ch: number; sent: number } | null => {
   const nextSent = sent + 1
   const chapterData = chapters[ch]
 
-  if (chapterData && nextSent < chapterData.sentences.length) {
+  if (chapterData && nextSent < chapterData.sentenceCount) {
     return { ch, sent: nextSent }
   }
 

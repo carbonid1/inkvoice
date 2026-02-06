@@ -1,4 +1,10 @@
-import type { ParsedBook, BookInfo, BookMetadata } from '@/lib/types/book'
+import type {
+  ParsedBook,
+  ParsedChapter,
+  BookInfo,
+  BookMetadata,
+  BookOverview,
+} from '@/lib/types/book'
 
 export interface BookService {
   /** List all available books */
@@ -6,6 +12,12 @@ export interface BookService {
 
   /** Get a parsed book (uses cache to avoid re-parsing) */
   getBook(bookId: string): Promise<ParsedBook | null>
+
+  /** Get book overview with chapter info (no sentence data) */
+  getBookOverview(bookId: string): Promise<BookOverview | null>
+
+  /** Get a single parsed chapter */
+  getChapter(bookId: string, chapterIndex: number): Promise<ParsedChapter | null>
 
   /** Get a specific sentence from a book */
   getSentence(bookId: string, chapter: number, sentence: number): Promise<string | null>

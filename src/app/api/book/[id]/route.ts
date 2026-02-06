@@ -9,11 +9,11 @@ export async function GET(
   const bookService = getBookService()
 
   try {
-    const book = await bookService.getBook(id)
-    if (!book) {
+    const overview = await bookService.getBookOverview(id)
+    if (!overview) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 })
     }
-    return NextResponse.json(book)
+    return NextResponse.json(overview)
   } catch (error) {
     console.error('Error parsing book:', error)
     return NextResponse.json({ error: 'Failed to parse book' }, { status: 500 })

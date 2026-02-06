@@ -1,5 +1,11 @@
 import type { BookService } from './book.types'
-import type { ParsedBook, BookInfo, BookMetadata } from '@/lib/types/book'
+import type {
+  ParsedBook,
+  ParsedChapter,
+  BookInfo,
+  BookMetadata,
+  BookOverview,
+} from '@/lib/types/book'
 import { parseEpub, getBookMetadata, getCoverImage } from '@/lib/epub/epub'
 import {
   findBookFile,
@@ -89,6 +95,29 @@ class BookServiceImpl implements BookService {
     this.cache.set(bookId, book)
 
     return book
+  }
+
+  async getBookOverview(bookId: string): Promise<BookOverview | null> {
+    const book = await this.getBook(bookId)
+    if (!book) return null
+    return {
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      chapters: book.chapters.map((ch) => ({
+        title: ch.title,
+        sentenceCount: ch.sentences.length,
+      })),
+    }
+  }
+
+  async getChapter(
+    bookId: string,
+    chapterIndex: number
+  ): Promise<ParsedChapter | null> {
+    const book = await this.getBook(bookId)
+    if (!book) return null
+    return book.chapters[chapterIndex] ?? null
   }
 
   async getSentence(
