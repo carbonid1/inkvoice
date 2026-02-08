@@ -57,6 +57,12 @@ curl -X POST http://localhost:8000/tts \
 
 - Use `react-hotkeys-hook` for keyboard shortcuts.
 
+### Custom Hooks
+
+- Extract non-trivial logic (timers, subscriptions, derived state) into dedicated hooks in `lib/hooks/{hookName}/`
+- Add lightweight smoke tests — cover the happy path and key edge cases, don't exhaustively test every branch
+- Inline hooks are fine for simple one-liner wrappers
+
 ### React Referential Stability
 
 - **Zustand selectors**: `useStore((s) => s.x)` not `const { x } = useStore()` — destructuring subscribes to all state

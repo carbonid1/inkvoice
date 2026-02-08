@@ -5,6 +5,7 @@ import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import type { ChapterInfo } from '@/lib/types/book'
+import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { useCallback, useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -110,6 +111,8 @@ export const PlayerContainer = ({
     position.currentSentenceRef,
   ])
 
+  const debouncedLoading = useDebouncedLoading(audioPlayer.isLoading)
+
   // Start prefetching on mount
   useEffect(() => {
     prefetch.updateDebugMetrics()
@@ -153,7 +156,7 @@ export const PlayerContainer = ({
 
         <PlaybackControls
           isPlaying={isPlaying}
-          isLoading={audioPlayer.isLoading}
+          isLoading={debouncedLoading}
           onPlayPause={togglePlay}
           onSkipBack={position.skipBack}
           onSkipForward={position.skipForward}
