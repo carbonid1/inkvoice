@@ -1,7 +1,14 @@
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { getTTSService } from '@/lib/services/tts/tts.server'
+import type { TTSModel } from '@/lib/services/tts/tts.types'
 import { NextRequest, NextResponse } from 'next/server'
+
+const VALID_MODELS: ReadonlySet<string> = new Set([
+  'chatterbox-turbo',
+  'chatterbox',
+  'kokoro',
+])
 
 export async function GET(
   request: NextRequest,
@@ -9,6 +16,10 @@ export async function GET(
 ) {
   const { bookId, chapter, sentence } = await params
   const voice = request.nextUrl.searchParams.get('voice') || 'narrator'
+  const modelParam = request.nextUrl.searchParams.get('model') || 'chatterbox-turbo'
+  const model: TTSModel = VALID_MODELS.has(modelParam)
+    ? (modelParam as TTSModel)
+    : 'chatterbox-turbo'
   const chapterIdx = parseInt(chapter, 10)
   const sentenceIdx = parseInt(sentence, 10)
 
@@ -28,7 +39,7 @@ export async function GET(
     }
 
     // Check disk cache
-    const cached = await cacheService.get(text, voice)
+    const cached = await cacheService.get(text, voice, model)
     if (cached) {
       const stats = await cacheService.getStats()
       return new NextResponse(new Uint8Array(cached), {
@@ -43,10 +54,10 @@ export async function GET(
     }
 
     // Generate via TTS service
-    const { audio } = await ttsService.generate(text, voice)
+    const { audio } = await ttsService.generate(text, voice, model)
 
     // Cache the result
-    await cacheService.set(text, voice, audio).catch(err => {
+    await cacheService.set(text, voice, model, audio).catch(err => {
       console.error('Failed to cache TTS audio:', err)
     })
     const stats = await cacheService.getStats()

@@ -17,6 +17,7 @@ const stableOptions = () => {
   return {
     bookId: 'test-book',
     voice: 'narrator',
+    model: 'chatterbox-turbo',
     chaptersRef: { current: chapters },
     currentChapterRef: { current: 0 },
     currentSentenceRef: { current: 0 },

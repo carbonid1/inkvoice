@@ -18,8 +18,8 @@ interface CacheMetadata {
   entries: Record<string, CacheEntry>
 }
 
-const getCacheHash = (text: string, voice: string): string => {
-  const input = `${text.trim()}|${voice || 'narrator'}`
+const getCacheHash = (text: string, voice: string, model: string): string => {
+  const input = `${text.trim()}|${voice || 'narrator'}|${model || 'chatterbox-turbo'}`
   return createHash('sha256').update(input).digest('hex')
 }
 
@@ -73,10 +73,10 @@ class TTSCacheService implements CacheService {
     }
   }
 
-  async get(text: string, voice: string): Promise<Buffer | null> {
+  async get(text: string, voice: string, model: string): Promise<Buffer | null> {
     await this.ensureInitialized()
 
-    const hash = getCacheHash(text, voice)
+    const hash = getCacheHash(text, voice, model)
     const entry = this.metadata.entries[hash]
 
     if (!entry) return null
@@ -101,10 +101,10 @@ class TTSCacheService implements CacheService {
     }
   }
 
-  async set(text: string, voice: string, audio: Buffer): Promise<void> {
+  async set(text: string, voice: string, model: string, audio: Buffer): Promise<void> {
     await this.ensureInitialized()
 
-    const hash = getCacheHash(text, voice)
+    const hash = getCacheHash(text, voice, model)
     const filePath = path.join(this.cacheDir, `${hash}.wav`)
     const size = audio.length
 

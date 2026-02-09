@@ -29,6 +29,7 @@ export const PlayerContainer = ({
   onDebugUpdate,
 }: PlayerContainerProps) => {
   const voice = useVoiceStore(s => s.voice)
+  const model = useVoiceStore(s => s.model)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
 
   const position = useBookPosition({
@@ -49,6 +50,7 @@ export const PlayerContainer = ({
   const prefetch = usePrefetchQueue({
     bookId,
     voice,
+    model,
     chaptersRef: position.chaptersRef,
     currentChapterRef: position.currentChapterRef,
     currentSentenceRef: position.currentSentenceRef,

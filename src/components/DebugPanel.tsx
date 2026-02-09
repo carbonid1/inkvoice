@@ -1,5 +1,7 @@
 'use client'
 
+import { useVoiceStore } from '@/store/useVoiceStore'
+
 export interface DebugMetrics {
   isGenerating: boolean
   ahead: number
@@ -17,6 +19,8 @@ interface DebugPanelProps {
 }
 
 export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
+  const model = useVoiceStore(s => s.model)
+
   if (!visible) return null
 
   const cachePercent =
@@ -39,6 +43,7 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
             </>
           )}
         </div>
+        <div>Model: {model}</div>
         <div>Ahead: {metrics.ahead}</div>
         <div>
           Cache: {metrics.cacheUsedMB ?? 0}MB / {metrics.cacheMaxMB ?? 800}MB ({cachePercent}%)

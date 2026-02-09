@@ -1,7 +1,7 @@
 import io
 import time
 from pathlib import Path
-from typing import Tuple
+from typing import Literal, Tuple
 
 import torch
 import torchaudio
@@ -10,18 +10,30 @@ from api.app.config import settings
 
 
 class TTSService:
-    """Service for text-to-speech generation using Chatterbox TTS."""
+    """Service for text-to-speech generation using Chatterbox TTS models."""
 
     def __init__(self):
-        self._model = None
+        self._turbo_model = None
+        self._standard_model = None
 
-    @property
-    def model(self):
-        """Lazy load the TTS model."""
-        if self._model is None:
+    def _get_turbo_model(self):
+        """Lazy load the Chatterbox Turbo model."""
+        if self._turbo_model is None:
             from chatterbox.tts_turbo import ChatterboxTurboTTS
-            self._model = ChatterboxTurboTTS.from_pretrained(device=settings.device)
-        return self._model
+            self._turbo_model = ChatterboxTurboTTS.from_pretrained(device=settings.device)
+        return self._turbo_model
+
+    def _get_standard_model(self):
+        """Lazy load the Chatterbox Standard model."""
+        if self._standard_model is None:
+            from chatterbox.tts import ChatterboxTTS
+            self._standard_model = ChatterboxTTS.from_pretrained(device=settings.device)
+        return self._standard_model
+
+    def _get_model(self, model: Literal["turbo", "standard"]):
+        if model == "standard":
+            return self._get_standard_model()
+        return self._get_turbo_model()
 
     def get_voice_path(self, voice_name: str) -> Path:
         """Get the path to a voice file, raising an error if not found."""
@@ -36,6 +48,7 @@ class TTSService:
         self,
         text: str,
         voice: str | None = None,
+        model: Literal["turbo", "standard"] = "turbo",
     ) -> Tuple[bytes, int]:
         """
         Generate speech audio from text.
@@ -46,9 +59,11 @@ class TTSService:
         voice_name = voice or settings.default_voice
         voice_path = self.get_voice_path(voice_name)
 
+        tts_model = self._get_model(model)
+
         start = time.time()
         with torch.inference_mode():
-            wav = self.model.generate(
+            wav = tts_model.generate(
                 text,
                 audio_prompt_path=str(voice_path),
             )
@@ -56,25 +71,25 @@ class TTSService:
 
         # Convert to bytes
         buffer = io.BytesIO()
-        torchaudio.save(buffer, wav, self.model.sr, format="wav")
+        torchaudio.save(buffer, wav, tts_model.sr, format="wav")
         buffer.seek(0)
 
         return buffer.read(), gen_time_ms
 
     def warmup(self) -> None:
-        """Pre-load model and run a test generation to warm up JIT compilation."""
+        """Pre-load turbo model and run a test generation to warm up JIT compilation."""
         voice_files = list(settings.voices_dir.glob("*/source.wav"))
         if not voice_files:
             print("Warning: No voice files found, skipping warmup")
             return
 
-        print("Warming up TTS model...")
+        print("Warming up TTS turbo model...")
         start = time.time()
 
         with torch.inference_mode():
-            self.model.generate("Hello.", audio_prompt_path=str(voice_files[0]))
+            self._get_turbo_model().generate("Hello.", audio_prompt_path=str(voice_files[0]))
 
-        print(f"Model ready in {time.time() - start:.1f}s")
+        print(f"Turbo model ready in {time.time() - start:.1f}s")
 
 
 # Singleton instance

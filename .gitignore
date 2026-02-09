@@ -34,6 +34,12 @@ build/
 # Cache
 data/cache/
 
+# Kokoro voice samples (generated, not checked in)
+data/voices/af_*/
+data/voices/am_*/
+data/voices/bf_*/
+data/voices/bm_*/
+
 # Playwright
 test-results/
 playwright-report/

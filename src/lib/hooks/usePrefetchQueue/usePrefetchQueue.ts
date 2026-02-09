@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 interface UsePrefetchQueueOptions {
   bookId: string
   voice: string
+  model: string
   chaptersRef: React.MutableRefObject<ChapterInfo[]>
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
@@ -17,7 +18,7 @@ interface UsePrefetchQueueOptions {
 const MAX_CONCURRENT_PREFETCH = 1
 
 export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
-  const { bookId, voice, chaptersRef, currentChapterRef, currentSentenceRef, onDebugUpdate } =
+  const { bookId, voice, model, chaptersRef, currentChapterRef, currentSentenceRef, onDebugUpdate } =
     options
 
   // Track in-flight fetches
@@ -37,14 +38,14 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   const mountedRef = useRef(true)
 
   const getCacheKey = useCallback(
-    (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}`,
-    [voice],
+    (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}_${model ?? 'chatterbox-turbo'}`,
+    [voice, model],
   )
 
   const getTTSUrl = useCallback(
     (ch: number, sent: number) =>
-      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'narrator')}`,
-    [bookId, voice],
+      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'narrator')}&model=${encodeURIComponent(model ?? 'chatterbox-turbo')}`,
+    [bookId, voice, model],
   )
 
   const countAhead = useCallback(() => {
