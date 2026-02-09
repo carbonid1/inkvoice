@@ -19,7 +19,6 @@ def text_to_speech(request: TTSRequest) -> Response:
         audio_bytes, gen_time_ms = service.generate(
             text=text,
             voice=request.voice,
-            model=request.model,
         )
 
         return Response(

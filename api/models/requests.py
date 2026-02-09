@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -7,7 +7,6 @@ class TTSRequest(BaseModel):
 
     text: str
     voice: Optional[str] = None  # voice directory name in data/voices/
-    model: Literal["turbo", "standard"] = "turbo"
 
 
 class HealthResponse(BaseModel):
