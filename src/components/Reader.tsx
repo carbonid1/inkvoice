@@ -3,6 +3,7 @@
 import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
 import { type ReactNode, useEffect, useRef } from 'react'
 import { ContentBlock } from './reader/ContentBlock'
+import { findDuplicateTitleIndex } from './reader/helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
 
 interface ReaderProps {
   chapter: ParsedChapter
@@ -52,6 +53,8 @@ export const Reader = ({
 
   if (hasContent) {
     const content = chapter.content!
+    const duplicateTitleIndex = findDuplicateTitleIndex(content, chapter.title)
+
     const titleGroupStart = new Set<number>()
     const titleGroupMember = new Set<number>()
 
@@ -104,6 +107,7 @@ export const Reader = ({
     let epigraphGroupStartIndex = -1
 
     content.forEach((block, idx) => {
+      if (idx === duplicateTitleIndex) return
       if (epigraphGroupMember.has(idx)) {
         if (epigraphGroupStartIndex === -1) epigraphGroupStartIndex = idx
         // Check if next block is NOT in epigraph group (end of group)
