@@ -38,7 +38,7 @@ export async function GET(
       return new NextResponse(new Uint8Array(cached), {
         headers: {
           'Content-Type': 'audio/wav',
-          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Cache-Control': 'no-store',
           'X-Cache': 'HIT',
           'X-Cache-Used': stats.usedBytes.toString(),
           'X-Cache-Max': stats.maxBytes.toString(),
@@ -58,7 +58,7 @@ export async function GET(
     return new NextResponse(new Uint8Array(audio), {
       headers: {
         'Content-Type': 'audio/wav',
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Cache-Control': 'no-store',
         'X-Cache': 'MISS',
         'X-Cache-Used': stats.usedBytes.toString(),
         'X-Cache-Max': stats.maxBytes.toString(),

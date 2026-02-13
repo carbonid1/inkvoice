@@ -1,4 +1,6 @@
 import { ABBREVIATIONS } from '../../epub.consts'
+import { findEllipsisRanges } from './helpers/findEllipsisRanges/findEllipsisRanges'
+import { isEllipsisDot } from './helpers/isEllipsisDot/isEllipsisDot'
 
 export const isValidSentenceEnd = (text: string, index: number): boolean => {
   // Get word ending at this period
@@ -18,30 +20,42 @@ export const isValidSentenceEnd = (text: string, index: number): boolean => {
   return true
 }
 
+// After an ellipsis, uppercase or opening quote signals a new sentence
+const SENTENCE_START_AFTER_ELLIPSIS = /^[A-Z\u201c\u2018"']/
+
 export const splitIntoSentences = (text: string): string[] => {
   const cleaned = text.replace(/\s+/g, ' ').trim()
   if (!cleaned) return []
 
+  const ellipsisRanges = findEllipsisRanges(cleaned)
+
   const sentences: string[] = []
   let start = 0
 
-  // Match all potential sentence endings: .!? optionally followed by quotes, then whitespace
-  const endPattern = /[.!?]["'\u201d\u2019]?\s+/g
+  // Match sentence endings: .!?… optionally followed by quotes, then whitespace
+  const endPattern = /[.!?\u2026]["'\u201d\u2019]?\s+/g
   let match
 
   while ((match = endPattern.exec(cleaned)) !== null) {
-    const punctIndex = match.index
-    const punctChar = cleaned[punctIndex] as string
+    const idx = match.index
+    const char = cleaned[idx] as string
 
-    // ! and ? are always sentence endings
-    // . needs validation for abbreviations and numbers
-    if (punctChar === '.' && !isValidSentenceEnd(cleaned, punctIndex)) {
-      continue
+    if (char === '.') {
+      if (isEllipsisDot(idx, ellipsisRanges, cleaned.slice(idx + match[0].length))) {
+        continue
+      }
+      if (!isValidSentenceEnd(cleaned, idx)) {
+        continue
+      }
+    } else if (char === '\u2026') {
+      const afterText = cleaned.slice(idx + match[0].length)
+      if (!SENTENCE_START_AFTER_ELLIPSIS.test(afterText)) continue
     }
 
-    const sentence = cleaned.slice(start, match.index + 1).trim()
+    // ! and ? are always sentence endings (no special handling needed)
+    const sentence = cleaned.slice(start, idx + 1).trim()
     if (sentence) sentences.push(sentence)
-    start = match.index + match[0].length
+    start = idx + match[0].length
   }
 
   // Add remaining text
