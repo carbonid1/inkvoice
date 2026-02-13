@@ -1,5 +1,6 @@
 import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { JSDOM } from 'jsdom'
+import { mergeDialogueChunks } from '../mergeDialogueChunks/mergeDialogueChunks'
 import { splitIntoSentences } from '../splitSentences/splitSentences'
 
 export const getPlainText = (node: Node): string => {
@@ -160,8 +161,8 @@ const splitNodeIntoSentences = (node: Element): SentenceMapping[] => {
 
   if (!plainText) return []
 
-  // Split plain text into sentences
-  const sentences = splitIntoSentences(plainText)
+  // Split plain text into sentences, then merge dialogue attribution chunks
+  const sentences = mergeDialogueChunks(splitIntoSentences(plainText))
   if (sentences.length <= 1) {
     return [{ plainText, html }]
   }
