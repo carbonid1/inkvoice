@@ -24,9 +24,7 @@ Local audiobook reader that converts epub books to speech using Chatterbox TTS.
 | ----------------- | ------------------------------------- |
 | Book files        | `./data/books/*.epub`                 |
 | Voice references  | `./data/voices/{name}/source.wav`     |
-| Audio cache       | `~/Library/Caches/InkVoice/{bookId}/` |
 | Reading progress  | Browser localStorage                  |
-| TTS model weights | `~/.cache/huggingface/`               |
 
 ## Running the App
 

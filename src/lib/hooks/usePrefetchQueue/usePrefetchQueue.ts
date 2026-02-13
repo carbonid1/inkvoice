@@ -128,7 +128,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     inFlightRef.current.add(key)
     updateDebugMetrics()
 
-    fetch(url, { signal: abortControllerRef.current.signal })
+    fetch(url, { signal: abortControllerRef.current.signal, cache: 'no-store' })
       .then(response => {
         if (!response.ok) {
           consecutiveFailuresRef.current++
@@ -186,7 +186,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
       updateDebugMetrics()
 
       try {
-        const response = await fetch(url, { signal: abortControllerRef.current.signal })
+        const response = await fetch(url, { signal: abortControllerRef.current.signal, cache: 'no-store' })
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}))
           throw new Error(errData.error || 'Failed to generate audio')
