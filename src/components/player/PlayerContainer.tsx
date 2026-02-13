@@ -6,6 +6,7 @@ import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import type { ChapterInfo } from '@/lib/types/book'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
+import { usePronunciationStore } from '@/store/usePronunciationStore'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { useCallback, useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -29,6 +30,7 @@ export const PlayerContainer = ({
   onDebugUpdate,
 }: PlayerContainerProps) => {
   const voice = useVoiceStore(s => s.voice)
+  const pronunciationVersion = usePronunciationStore(s => s.version)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
 
   const position = useBookPosition({
@@ -49,6 +51,7 @@ export const PlayerContainer = ({
   const prefetch = usePrefetchQueue({
     bookId,
     voice,
+    pronunciationVersion,
     chaptersRef: position.chaptersRef,
     currentChapterRef: position.currentChapterRef,
     currentSentenceRef: position.currentSentenceRef,

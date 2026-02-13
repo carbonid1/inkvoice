@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 interface UsePrefetchQueueOptions {
   bookId: string
   voice: string
+  pronunciationVersion: number
   chaptersRef: React.MutableRefObject<ChapterInfo[]>
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
@@ -17,8 +18,15 @@ interface UsePrefetchQueueOptions {
 const MAX_CONCURRENT_PREFETCH = 1
 
 export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
-  const { bookId, voice, chaptersRef, currentChapterRef, currentSentenceRef, onDebugUpdate } =
-    options
+  const {
+    bookId,
+    voice,
+    pronunciationVersion,
+    chaptersRef,
+    currentChapterRef,
+    currentSentenceRef,
+    onDebugUpdate,
+  } = options
 
   // Track in-flight fetches
   const inFlightRef = useRef<Set<string>>(new Set())
@@ -37,14 +45,14 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   const mountedRef = useRef(true)
 
   const getCacheKey = useCallback(
-    (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}`,
-    [voice],
+    (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}_pv${pronunciationVersion}`,
+    [voice, pronunciationVersion],
   )
 
   const getTTSUrl = useCallback(
     (ch: number, sent: number) =>
-      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'narrator')}`,
-    [bookId, voice],
+      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'narrator')}&pv=${pronunciationVersion}`,
+    [bookId, voice, pronunciationVersion],
   )
 
   const countAhead = useCallback(() => {

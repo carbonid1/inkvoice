@@ -1,5 +1,6 @@
 'use client'
 
+import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
@@ -207,6 +208,8 @@ export default function Settings() {
             </div>
           )}
         </div>
+
+        <PronunciationEditor />
       </main>
     </div>
   )

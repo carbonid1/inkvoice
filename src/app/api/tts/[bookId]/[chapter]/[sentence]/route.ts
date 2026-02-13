@@ -1,5 +1,6 @@
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
+import { pronunciationService } from '@/lib/services/pronunciation/pronunciation.service'
 import { getTTSService } from '@/lib/services/tts/tts.server'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -22,10 +23,13 @@ export async function GET(
 
   try {
     // Get sentence text (uses cached ParsedBook)
-    const text = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
-    if (!text) {
+    const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
+    if (!rawText) {
       return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
     }
+
+    // Apply pronunciation overrides before cache lookup
+    const text = await pronunciationService.apply(rawText)
 
     // Check disk cache
     const cached = await cacheService.get(text, voice)
