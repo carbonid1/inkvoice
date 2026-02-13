@@ -2,8 +2,9 @@
 
 import type { DebugMetrics } from '@/components/DebugPanel'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
+import { useFetchLifecycle } from '@/lib/hooks/useFetchLifecycle/useFetchLifecycle'
 import type { ChapterInfo } from '@/lib/types/book'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 
 interface UsePrefetchQueueOptions {
   bookId: string
@@ -28,21 +29,13 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     onDebugUpdate,
   } = options
 
-  // Track in-flight fetches
-  const inFlightRef = useRef<Set<string>>(new Set())
-  // Track consecutive prefetch failures
+  const { mountedRef, abortControllerRef, inFlightRef } = useFetchLifecycle()
   const consecutiveFailuresRef = useRef(0)
-  // Track what's been prefetched
   const prefetchedRef = useRef<Set<string>>(new Set())
-  // Track cache stats
   const cacheStatsRef = useRef<{ usedMB: number; maxMB: number }>({
     usedMB: 0,
     maxMB: 800,
   })
-  // Track abort controller for canceling fetches
-  const abortControllerRef = useRef<AbortController>(new AbortController())
-  // Track if component is mounted
-  const mountedRef = useRef(true)
 
   const getCacheKey = useCallback(
     (ch: number, sent: number) => `${ch}_${sent}_${voice ?? 'narrator'}_pv${pronunciationVersion}`,
@@ -161,17 +154,6 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     consecutiveFailuresRef.current = 0
   }, [])
 
-  // Reset on mount (handles React StrictMode double-mount), cleanup on unmount
-  useEffect(() => {
-    mountedRef.current = true
-    abortControllerRef.current = new AbortController()
-    return () => {
-      mountedRef.current = false
-      abortControllerRef.current.abort()
-      inFlightRef.current.clear()
-    }
-  }, [])
-
   const fetchAudio = useCallback(
     async (ch: number, sent: number): Promise<string | null> => {
       const chapterData = chaptersRef.current[ch]
@@ -186,7 +168,10 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
       updateDebugMetrics()
 
       try {
-        const response = await fetch(url, { signal: abortControllerRef.current.signal, cache: 'no-store' })
+        const response = await fetch(url, {
+          signal: abortControllerRef.current.signal,
+          cache: 'no-store',
+        })
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}))
           throw new Error(errData.error || 'Failed to generate audio')
