@@ -141,6 +141,19 @@ describe('attribution detection', () => {
   })
 })
 
+describe('centered class handling', () => {
+  // Epub class="c" (text-align:center) intentionally rendered as regular paragraphs.
+  // Our reader is left-aligned — centering individual blocks looks inconsistent.
+  // Speechify centers everything which makes it work there.
+  it('should treat <p class="c"> as a regular paragraph', async () => {
+    const html = '<body><p class="c">Centered in epub, left-aligned here.</p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('paragraph')
+  })
+})
+
 describe('native blockquote', () => {
   it('should detect <blockquote> as blockquote type', async () => {
     const html =
