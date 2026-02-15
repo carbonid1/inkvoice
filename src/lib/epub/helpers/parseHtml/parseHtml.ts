@@ -256,11 +256,10 @@ const parseHtmlContentSync = async (
     // Skip script, style, nav, header
     if (['script', 'style', 'nav', 'header', 'footer'].includes(tag)) return
 
-    if (tag === 'img') {
-      const src = el.getAttribute('src')
+    if (tag === 'img' || tag === 'image') {
+      const src = el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('xlink:href')
       const alt = el.getAttribute('alt') || ''
       if (src) {
-        // Images will be processed later with actual data
         content.push({ type: 'image', src, alt })
       }
       return
@@ -314,6 +313,11 @@ const parseHtmlContentSync = async (
     }
 
     if (tag === 'p') {
+      const img = el.querySelector('img, image')
+      if (img && !getPlainText(el).trim()) {
+        processElement(img as Element)
+        return
+      }
       const blockType: ContentBlock['type'] = isEpigraphElement(el)
         ? 'blockquote'
         : isAttributionElement(el)
@@ -331,7 +335,7 @@ const parseHtmlContentSync = async (
       return
     }
 
-    if (tag === 'div' || tag === 'section' || tag === 'article') {
+    if (tag === 'div' || tag === 'section' || tag === 'article' || tag === 'figure' || tag === 'svg') {
       // Recurse into container elements
       Array.from(el.children).forEach(child => processElement(child as Element))
       return

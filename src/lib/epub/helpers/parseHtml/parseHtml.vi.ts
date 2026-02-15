@@ -354,4 +354,38 @@ describe('image parsing', () => {
 
     expect(content).toHaveLength(0)
   })
+
+  it('should detect images inside <figure>', async () => {
+    const html = '<body><figure><img src="map.png" alt="Map"/></figure></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('image')
+    expect(content[0]?.src).toBe('map.png')
+  })
+
+  it('should detect SVG <image> with href', async () => {
+    const html = '<body><svg><image href="map.png"/></svg></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('image')
+    expect(content[0]?.src).toBe('map.png')
+  })
+
+  it('should detect image-only <p> as image', async () => {
+    const html = '<body><p><img src="map.png" alt="Map"/></p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('image')
+  })
+
+  it('should keep <p> with text and inline image as paragraph', async () => {
+    const html = '<body><p>Text with <img src="icon.png"/> inline.</p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('paragraph')
+  })
 })

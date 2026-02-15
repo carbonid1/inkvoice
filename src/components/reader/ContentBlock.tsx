@@ -2,6 +2,7 @@
 
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
 import type { RefObject } from 'react'
+import { isFilenameAlt } from './helpers/isFilenameAlt/isFilenameAlt'
 
 interface ContentBlockProps {
   block: ContentBlockType
@@ -111,24 +112,24 @@ export const ContentBlock = ({
         </ul>
       )
 
-    case 'image':
-      if (block.src) {
-        return (
-          <figure className="my-6">
-            <img
-              src={block.src}
-              alt={block.alt || ''}
-              className="max-w-full h-auto mx-auto rounded"
-            />
-            {block.alt && (
-              <figcaption className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {block.alt}
-              </figcaption>
-            )}
-          </figure>
-        )
-      }
-      return null
+    case 'image': {
+      if (!block.src) return null
+      const caption = block.alt && !isFilenameAlt(block.alt) ? block.alt : undefined
+      return (
+        <figure className="my-6">
+          <img
+            src={block.src}
+            alt={block.alt || ''}
+            className="max-w-full h-auto mx-auto rounded"
+          />
+          {caption && (
+            <figcaption className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+              {caption}
+            </figcaption>
+          )}
+        </figure>
+      )
+    }
 
     default:
       return null

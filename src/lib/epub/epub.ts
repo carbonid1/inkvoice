@@ -29,9 +29,13 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
       try {
         // epub2 stores images with their manifest id
         // The src might be a relative path, we need to find the manifest entry
+        const normalizePath = (p: string) =>
+          decodeURIComponent(p).split('/').pop()?.toLowerCase() ?? ''
+
         const manifestId = Object.keys(epub.manifest || {}).find(id => {
           const item = epub.manifest[id]
-          return item.href?.endsWith(src) || item.href === src || src.endsWith(item.href)
+          const href = item.href ?? ''
+          return href.endsWith(src) || src.endsWith(href) || normalizePath(href) === normalizePath(src)
         })
 
         if (!manifestId) return null
@@ -73,7 +77,8 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         // Parse HTML to get rich content and sentences
         const { content, sentences } = await parseHtmlContent(html, getImage)
 
-        if (sentences.length === 0) continue
+        const hasContent = sentences.length > 0 || content.some(b => b.type === 'image')
+        if (!hasContent) continue
 
         // Try to extract title from HTML heading or use item title/id
         let title = item.title || `Chapter ${chapters.length + 1}`
