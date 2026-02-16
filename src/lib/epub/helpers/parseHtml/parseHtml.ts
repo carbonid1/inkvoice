@@ -38,15 +38,18 @@ export const getInnerHtml = (node: Node): string => {
     }
 
     // For inline formatting tags, preserve them
-    const inlineTags = ['em', 'i', 'strong', 'b', 'u', 'span', 'a', 'sup', 'sub', 'small']
+    const inlineTags = ['em', 'i', 'strong', 'b', 'u', 'span', 'sup', 'sub', 'small']
     const childHtml = Array.from(node.childNodes).map(getInnerHtml).join('')
 
-    if (inlineTags.includes(tag)) {
-      // Keep the tag with minimal attributes
-      if (tag === 'a') {
-        const href = el.getAttribute('href')
-        return href ? `<a href="${href}">${childHtml}</a>` : childHtml
+    if (tag === 'a') {
+      const href = el.getAttribute('href')
+      if (href?.startsWith('http')) {
+        return `<a href="${href}">${childHtml}</a>`
       }
+      return childHtml
+    }
+
+    if (inlineTags.includes(tag)) {
       return `<${tag}>${childHtml}</${tag}>`
     }
 

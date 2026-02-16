@@ -229,11 +229,20 @@ describe('inline formatting preservation', () => {
     expect(content[0]?.segments?.[0]?.html).toContain('<strong>')
   })
 
-  it('should preserve <a> tags with href in html', async () => {
-    const html = '<body><p>See the <a href="notes.xhtml">field manual</a> for details.</p></body>'
+  it('should strip internal <a> tags but keep link text', async () => {
+    const html =
+      '<body><p>See the <a href="../Text/chapter04.html#mbp_toc_5">field manual</a> for details.</p></body>'
     const { content } = await parseHtmlContent(html, noopGetImage)
 
-    expect(content[0]?.segments?.[0]?.html).toContain('<a href="notes.xhtml">')
+    expect(content[0]?.segments?.[0]?.html).toContain('field manual')
+    expect(content[0]?.segments?.[0]?.html).not.toContain('<a')
+  })
+
+  it('should preserve external <a> tags with http href', async () => {
+    const html = '<body><p>Visit <a href="http://www.example.com">the site</a> for more.</p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content[0]?.segments?.[0]?.html).toContain('<a href="http://www.example.com">')
   })
 
   it('should preserve <sup> tags in html', async () => {
