@@ -337,6 +337,87 @@ describe('br handling', () => {
   })
 })
 
+describe('link-list paragraph splitting', () => {
+  it('should split <p> with multiple <a> children into separate paragraphs', async () => {
+    const html =
+      '<body><p><a href="a">One</a> <a href="b">Two</a> <a href="c">Three</a></p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(3)
+    expect(content.every(block => block.type === 'paragraph')).toBe(true)
+  })
+
+  it('should not split <p> with inline link in prose', async () => {
+    const html = '<body><p>Text with <a href="a">link</a> inline.</p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('paragraph')
+  })
+
+  it('should not split <p> with a single link', async () => {
+    const html = '<body><p><a href="a">Solo link</a></p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('paragraph')
+  })
+
+  it('should split <li> with multiple <a> children into separate list items', async () => {
+    const html =
+      '<body><ul><li><a href="a">Book One</a> <a href="b">Chapter One</a> <a href="c">Chapter Two</a></li></ul></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('list')
+    expect(content[0]?.items).toHaveLength(3)
+  })
+
+  it('should preserve nested list structure with depth levels', async () => {
+    const html = `<body><ul>
+      <li><a href="a">Prologue</a></li>
+      <li>
+        <a href="b">Book One</a>
+        <ul>
+          <li><a href="c">Chapter One</a></li>
+          <li><a href="d">Chapter Two</a></li>
+        </ul>
+      </li>
+      <li><a href="e">Epilogue</a></li>
+    </ul></body>`
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    const lists = content.filter(b => b.type === 'list')
+    expect(lists).toHaveLength(3)
+    expect(lists[0]?.level).toBe(0)
+    expect(lists[0]?.items).toHaveLength(2) // Prologue + Book One (siblings)
+    expect(lists[1]?.level).toBe(1)
+    expect(lists[1]?.items).toHaveLength(2) // Chapter One, Chapter Two
+    expect(lists[2]?.level).toBe(0)
+    expect(lists[2]?.items).toHaveLength(1) // Epilogue
+  })
+
+  it('should not split <li> with a single link', async () => {
+    const html = '<body><ul><li><a href="a">Prologue</a></li><li><a href="b">Epilogue</a></li></ul></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('list')
+    expect(content[0]?.items).toHaveLength(2)
+  })
+
+  it('should maintain sequential sentence indices across split paragraphs', async () => {
+    const html =
+      '<body><p><a href="a">First</a> <a href="b">Second</a> <a href="c">Third</a></p></body>'
+    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const allSegments = getAllSegments(content)
+    const indices = allSegments.map(s => s.sentenceIndex).sort((a, b) => a - b)
+
+    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
+    expect(allSegments.length).toBe(sentences.length)
+  })
+})
+
 describe('image parsing', () => {
   it('should detect images with src and alt', async () => {
     const html = '<body><img src="map.png" alt="A detailed map"/></body>'

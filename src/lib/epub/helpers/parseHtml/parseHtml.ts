@@ -218,6 +218,20 @@ const splitNodeIntoSentences = (node: Element): SentenceMapping[] => {
   return result
 }
 
+const isLinkListParagraph = (el: Element): boolean => {
+  const children = Array.from(el.childNodes)
+  let linkCount = 0
+  for (const child of children) {
+    if (child.nodeType === 3) {
+      if (child.textContent?.trim()) return false
+    } else if (child.nodeType === 1) {
+      if ((child as Element).tagName.toLowerCase() === 'a') linkCount++
+      else return false
+    }
+  }
+  return linkCount > 1
+}
+
 const EPIGRAPH_CLASS_PATTERN = /^total(ind|first|second|secondfirst|three)$/
 
 const isEpigraphElement = (el: Element): boolean => {
@@ -250,65 +264,78 @@ const parseHtmlContentSync = async (
   const content: ContentBlock[] = []
   const sentences: string[] = []
 
+  // Convert an element's text into sentence-aligned segments, registering each
+  // sentence in the shared sentences array. Returns null if the element is empty.
+  const toSegments = (node: Element): TextSegment[] | null => {
+    const mappings = splitNodeIntoSentences(node)
+    if (mappings.length === 0) return null
+    return mappings.map(m => {
+      const idx = sentences.length
+      sentences.push(m.plainText)
+      return { sentenceIndex: idx, html: m.html }
+    })
+  }
+
+  const processList = (listEl: Element, depth: number): void => {
+    const items: TextSegment[][] = []
+    listEl.querySelectorAll(':scope > li').forEach(li => {
+      const nestedList = li.querySelector(':scope > ul, :scope > ol')
+      if (nestedList) {
+        // Add the li's direct content (e.g. "BOOK ONE: RARAKU") as an item
+        Array.from(li.childNodes).forEach(child => {
+          if (child.nodeType === 1 && /^(ul|ol)$/i.test((child as Element).tagName)) return
+          if (child.nodeType === 1 && getPlainText(child).trim()) {
+            const segments = toSegments(child as Element)
+            if (segments) items.push(segments)
+          }
+        })
+        // Emit current items before recursing into nested list
+        if (items.length > 0) {
+          content.push({ type: 'list', level: depth, items: items.splice(0) })
+        }
+        processList(nestedList, depth + 1)
+      } else if (isLinkListParagraph(li)) {
+        li.querySelectorAll(':scope > a').forEach(link => {
+          const segments = toSegments(link as Element)
+          if (segments) items.push(segments)
+        })
+      } else {
+        const segments = toSegments(li)
+        if (segments) items.push(segments)
+      }
+    })
+    if (items.length > 0) {
+      content.push({ type: 'list', level: depth, items })
+    }
+  }
+
   const processElement = (el: Element): void => {
     const tag = el.tagName.toLowerCase()
 
-    // Skip script, style, nav, header
     if (['script', 'style', 'nav', 'header', 'footer'].includes(tag)) return
 
     if (tag === 'img' || tag === 'image') {
       const src = el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('xlink:href')
       const alt = el.getAttribute('alt') || ''
-      if (src) {
-        content.push({ type: 'image', src, alt })
-      }
+      if (src) content.push({ type: 'image', src, alt })
       return
     }
 
     if (tag.match(/^h[1-6]$/)) {
       const level = parseInt(tag[1] ?? '1', 10)
-      const mappings = splitNodeIntoSentences(el)
-      if (mappings.length > 0) {
-        const segments: TextSegment[] = mappings.map(m => {
-          const idx = sentences.length
-          sentences.push(m.plainText)
-          return { sentenceIndex: idx, html: m.html }
-        })
-        content.push({ type: 'heading', level, segments })
-      }
+      const segments = toSegments(el)
+      if (segments) content.push({ type: 'heading', level, segments })
       return
     }
 
     if (tag === 'blockquote') {
-      const mappings = splitNodeIntoSentences(el)
-      if (mappings.length > 0) {
-        const segments: TextSegment[] = mappings.map(m => {
-          const idx = sentences.length
-          sentences.push(m.plainText)
-          return { sentenceIndex: idx, html: m.html }
-        })
-        content.push({ type: 'blockquote', segments })
-      }
+      const segments = toSegments(el)
+      if (segments) content.push({ type: 'blockquote', segments })
       return
     }
 
     if (tag === 'ul' || tag === 'ol') {
-      const items: TextSegment[][] = []
-      const listItems = el.querySelectorAll(':scope > li')
-      listItems.forEach(li => {
-        const mappings = splitNodeIntoSentences(li)
-        if (mappings.length > 0) {
-          const segments: TextSegment[] = mappings.map(m => {
-            const idx = sentences.length
-            sentences.push(m.plainText)
-            return { sentenceIndex: idx, html: m.html }
-          })
-          items.push(segments)
-        }
-      })
-      if (items.length > 0) {
-        content.push({ type: 'list', items })
-      }
+      processList(el, 0)
       return
     }
 
@@ -318,58 +345,39 @@ const parseHtmlContentSync = async (
         processElement(img as Element)
         return
       }
+      if (isLinkListParagraph(el)) {
+        el.querySelectorAll(':scope > a').forEach(link => {
+          const segments = toSegments(link as Element)
+          if (segments) content.push({ type: 'paragraph', segments })
+        })
+        return
+      }
       const blockType: ContentBlock['type'] = isEpigraphElement(el)
         ? 'blockquote'
         : isAttributionElement(el)
           ? 'attribution'
           : 'paragraph'
-      const mappings = splitNodeIntoSentences(el)
-      if (mappings.length > 0) {
-        const segments: TextSegment[] = mappings.map(m => {
-          const idx = sentences.length
-          sentences.push(m.plainText)
-          return { sentenceIndex: idx, html: m.html }
-        })
-        content.push({ type: blockType, segments })
-      }
+      const segments = toSegments(el)
+      if (segments) content.push({ type: blockType, segments })
       return
     }
 
     if (tag === 'div' || tag === 'section' || tag === 'article' || tag === 'figure' || tag === 'svg') {
-      // Recurse into container elements
       Array.from(el.children).forEach(child => processElement(child as Element))
       return
     }
 
-    // For any other element with text content, treat as paragraph
-    const text = getPlainText(el).trim()
-    if (text) {
-      const mappings = splitNodeIntoSentences(el)
-      if (mappings.length > 0) {
-        const segments: TextSegment[] = mappings.map(m => {
-          const idx = sentences.length
-          sentences.push(m.plainText)
-          return { sentenceIndex: idx, html: m.html }
-        })
-        content.push({ type: 'paragraph', segments })
-      }
+    if (getPlainText(el).trim()) {
+      const segments = toSegments(el)
+      if (segments) content.push({ type: 'paragraph', segments })
     }
   }
 
-  // Process top-level elements
   Array.from(body.children).forEach(child => processElement(child as Element))
 
-  // If no block elements found, try processing body directly
   if (content.length === 0 && body.textContent?.trim()) {
-    const mappings = splitNodeIntoSentences(body)
-    if (mappings.length > 0) {
-      const segments: TextSegment[] = mappings.map(m => {
-        const idx = sentences.length
-        sentences.push(m.plainText)
-        return { sentenceIndex: idx, html: m.html }
-      })
-      content.push({ type: 'paragraph', segments })
-    }
+    const segments = toSegments(body)
+    if (segments) content.push({ type: 'paragraph', segments })
   }
 
   // Debug: Verify sentence indices match array positions

@@ -103,14 +103,16 @@ export const ContentBlock = ({
         </p>
       )
 
-    case 'list':
+    case 'list': {
+      const depthPadding = ['', 'pl-6', 'pl-12', 'pl-16'][block.level ?? 0] ?? 'pl-16'
       return (
-        <ul className="list-none mb-4 space-y-1">
+        <ul className={`list-none mb-1 space-y-1 ${depthPadding}`}>
           {block.items?.map((itemSegments, idx) => (
             <li key={idx}>{segments(itemSegments)}</li>
           ))}
         </ul>
       )
+    }
 
     case 'image': {
       if (!block.src) return null
