@@ -14,6 +14,7 @@ interface UsePrefetchQueueOptions {
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
   onDebugUpdate?: (updater: (prev: DebugMetrics) => DebugMetrics) => void
+  prefetchEnabled: boolean
 }
 
 const MAX_CONCURRENT_PREFETCH = 1
@@ -27,9 +28,12 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     currentChapterRef,
     currentSentenceRef,
     onDebugUpdate,
+    prefetchEnabled,
   } = options
 
   const { mountedRef, abortControllerRef, inFlightRef } = useFetchLifecycle()
+  const prefetchEnabledRef = useRef(prefetchEnabled)
+  prefetchEnabledRef.current = prefetchEnabled
   const consecutiveFailuresRef = useRef(0)
   const prefetchedRef = useRef<Set<string>>(new Set())
   const cacheStatsRef = useRef<{ usedMB: number; maxMB: number }>({
@@ -110,6 +114,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     if (!mountedRef.current) return
     if (inFlightRef.current.size >= MAX_CONCURRENT_PREFETCH) return
     if (consecutiveFailuresRef.current >= 3) return
+    if (!prefetchEnabledRef.current && countAhead() >= 5) return
 
     const next = findNextToPrefetch()
     if (!next) return

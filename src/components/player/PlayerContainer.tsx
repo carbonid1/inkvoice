@@ -6,6 +6,7 @@ import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import type { ChapterInfo } from '@/lib/types/book'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
+import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { usePronunciationStore } from '@/store/usePronunciationStore'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { useCallback, useEffect, useRef } from 'react'
@@ -30,6 +31,7 @@ export const PlayerContainer = ({
   onDebugUpdate,
 }: PlayerContainerProps) => {
   const voice = useVoiceStore(s => s.voice)
+  const prefetchEnabled = usePrefetchStore(s => s.enabled)
   const pronunciationVersion = usePronunciationStore(s => s.version)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
 
@@ -56,6 +58,7 @@ export const PlayerContainer = ({
     currentChapterRef: position.currentChapterRef,
     currentSentenceRef: position.currentSentenceRef,
     onDebugUpdate,
+    prefetchEnabled,
   })
 
   const { setLoading, setError, play, shouldPlay, pause, setPlaying, isPlaying } = audioPlayer

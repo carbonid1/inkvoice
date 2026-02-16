@@ -22,6 +22,7 @@ const stableOptions = () => {
     currentChapterRef: { current: 0 },
     currentSentenceRef: { current: 0 },
     onDebugUpdate: vi.fn(),
+    prefetchEnabled: true,
   }
 }
 

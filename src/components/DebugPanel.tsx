@@ -1,5 +1,7 @@
 'use client'
 
+import { usePrefetchStore } from '@/store/usePrefetchStore'
+
 export interface DebugMetrics {
   isGenerating: boolean
   ahead: number
@@ -17,6 +19,8 @@ interface DebugPanelProps {
 }
 
 export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
+  const prefetchEnabled = usePrefetchStore(s => s.enabled)
+  const togglePrefetch = usePrefetchStore(s => s.toggle)
   if (!visible) return null
 
   const cachePercent =
@@ -52,6 +56,12 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
             </span>
           )}
         </div>
+        <button
+          onClick={togglePrefetch}
+          className="w-full text-left hover:text-green-300 transition-colors cursor-pointer"
+        >
+          Prefetch: {prefetchEnabled ? 'ON' : 'OFF'}
+        </button>
       </div>
     </div>
   )

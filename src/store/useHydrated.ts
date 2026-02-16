@@ -2,22 +2,25 @@
 
 import { useEffect, useState } from 'react'
 
+import { usePrefetchStore } from './usePrefetchStore'
 import { useProgressStore } from './useProgressStore'
 import { useVoiceStore } from './useVoiceStore'
 
-const bothHydrated = () =>
+const allHydrated = () =>
   useProgressStore.persist.hasHydrated() &&
-  useVoiceStore.persist.hasHydrated()
+  useVoiceStore.persist.hasHydrated() &&
+  usePrefetchStore.persist.hasHydrated()
 
 export const useHydrated = () => {
-  const [hydrated, setHydrated] = useState(bothHydrated)
+  const [hydrated, setHydrated] = useState(allHydrated)
 
   useEffect(() => {
     const check = () => {
-      if (bothHydrated()) setHydrated(true)
+      if (allHydrated()) setHydrated(true)
     }
     const unsub1 = useProgressStore.persist.onFinishHydration(check)
     const unsub2 = useVoiceStore.persist.onFinishHydration(check)
+    const unsub3 = usePrefetchStore.persist.onFinishHydration(check)
 
     // Clean up legacy unified storage key after migration
     if (typeof window !== 'undefined' && localStorage.getItem('inkvoice-storage')) {
@@ -27,6 +30,7 @@ export const useHydrated = () => {
     return () => {
       unsub1()
       unsub2()
+      unsub3()
     }
   }, [])
 
