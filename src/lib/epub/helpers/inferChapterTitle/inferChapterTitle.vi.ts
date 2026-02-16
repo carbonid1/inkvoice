@@ -63,4 +63,43 @@ describe('inferChapterTitle', () => {
   it('file ID beats Chapter N fallback', () => {
     expect(inferChapterTitle({ ...base, itemId: 'dedication.xhtml' }, 3)).toBe('Dedication')
   })
+
+  describe('ALL CAPS normalization', () => {
+    it('converts all-caps heading to title case', () => {
+      expect(inferChapterTitle({ ...base, htmlHeading: 'CHAPTER ONE' }, 1)).toBe('Chapter One')
+    })
+
+    it('converts single all-caps word', () => {
+      expect(inferChapterTitle({ ...base, htmlHeading: 'ACKNOWLEDGEMENTS' }, 1)).toBe(
+        'Acknowledgements',
+      )
+    })
+
+    it('leaves mixed-case heading unchanged', () => {
+      expect(inferChapterTitle({ ...base, htmlHeading: 'Book Two' }, 1)).toBe('Book Two')
+    })
+
+    it('leaves already-title-case unchanged', () => {
+      expect(inferChapterTitle({ ...base, itemTitle: 'Prologue' }, 1)).toBe('Prologue')
+    })
+
+    it('preserves hyphens in all-caps titles', () => {
+      expect(inferChapterTitle({ ...base, tocLabel: 'CHAPTER TWENTY-ONE' }, 1)).toBe(
+        'Chapter Twenty-One',
+      )
+    })
+
+    it('leaves mixed-case sentence unchanged', () => {
+      expect(
+        inferChapterTitle(
+          { ...base, htmlHeading: "Acclaim for Steven Author's large epub" },
+          1,
+        ),
+      ).toBe("Acclaim for Steven Author's large epub")
+    })
+
+    it('normalizes all-caps TOC label', () => {
+      expect(inferChapterTitle({ ...base, tocLabel: 'EPILOGUE' }, 1)).toBe('Epilogue')
+    })
+  })
 })

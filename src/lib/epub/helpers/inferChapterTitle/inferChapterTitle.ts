@@ -26,10 +26,18 @@ type InferTitleArgs = {
   itemId: string
 }
 
+const isAllCaps = (s: string): boolean =>
+  s.replace(/[^a-zA-Z]/g, '').length > 0 && s === s.toUpperCase()
+
+const toTitleCase = (s: string): string =>
+  s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+
+const normalize = (s: string): string => (isAllCaps(s) ? toTitleCase(s) : s)
+
 export const inferChapterTitle = (args: InferTitleArgs, fallbackIndex: number): string => {
-  if (args.htmlHeading) return args.htmlHeading
-  if (args.tocLabel) return args.tocLabel
-  if (args.itemTitle) return args.itemTitle
+  if (args.htmlHeading) return normalize(args.htmlHeading)
+  if (args.tocLabel) return normalize(args.tocLabel)
+  if (args.itemTitle) return normalize(args.itemTitle)
   if (args.isImageOnly) return 'Illustrations'
   return titleFromFileId(args.itemId) ?? `Chapter ${fallbackIndex}`
 }
