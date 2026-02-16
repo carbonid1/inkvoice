@@ -3,6 +3,7 @@ import EPub from 'epub2'
 import { unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
+import { inferChapterTitle } from './helpers/inferChapterTitle/inferChapterTitle'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
 // Re-export types for backwards compatibility
@@ -21,6 +22,14 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
 
     // Parse with epub2
     const epub = await EPub.createAsync(tempPath)
+
+    // Build TOC label lookup: spine item ID → TOC entry title
+    const tocLabels = new Map<string, string>()
+    for (const entry of epub.toc || []) {
+      if (entry.id && entry.title) {
+        tocLabels.set(entry.id, entry.title)
+      }
+    }
 
     const chapters: ParsedChapter[] = []
 
@@ -80,12 +89,19 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         const hasContent = sentences.length > 0 || content.some(b => b.type === 'image')
         if (!hasContent) continue
 
-        // Try to extract title from HTML heading or use item title/id
-        let title = item.title || `Chapter ${chapters.length + 1}`
-        const headingMatch = html.match(/<h[1-3][^>]*>([^<]+)<\/h[1-3]>/i)
-        if (headingMatch?.[1]) {
-          title = headingMatch[1].trim()
-        }
+        const htmlHeading = html.match(/<h[1-3][^>]*>([^<]+)<\/h[1-3]>/i)?.[1]?.trim()
+        const isImageOnly = sentences.length === 0 && content.some(b => b.type === 'image')
+
+        const title = inferChapterTitle(
+          {
+            itemId: item.id,
+            tocLabel: tocLabels.get(item.id),
+            itemTitle: item.title || undefined,
+            htmlHeading,
+            isImageOnly,
+          },
+          chapters.length + 1,
+        )
 
         chapters.push({ title, sentences, content })
       } catch (e) {
