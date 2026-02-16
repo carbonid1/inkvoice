@@ -48,6 +48,11 @@ describe('findDuplicateTitleIndex', () => {
     expect(findDuplicateTitleIndex(content, '  Chapter One  ')).toBe(0)
   })
 
+  it('matches case-insensitively', () => {
+    const content = [heading('CHAPTER ONE')]
+    expect(findDuplicateTitleIndex(content, 'Chapter One')).toBe(0)
+  })
+
   it('does not search beyond 5 blocks', () => {
     const content = [
       paragraph('a'),

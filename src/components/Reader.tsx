@@ -12,14 +12,28 @@ interface ReaderProps {
   onSentenceClick?: (chapter: number, sentence: number) => void
 }
 
-const isSectionTitle = (block: ContentBlockType): boolean => {
-  if (block.type !== 'heading' && block.type !== 'paragraph') return false
+const isAllCaps = (s: string): boolean =>
+  s.replace(/[^a-zA-Z]/g, '').length > 0 && s === s.toUpperCase()
+
+const toTitleCase = (s: string): string =>
+  s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+
+const normalizeCaps = (block: ContentBlockType): ContentBlockType => {
   const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''
-  const isShort = text.length > 0 && text.length < 50
-  const upperCount = (text.match(/[A-Z]/g) || []).length
-  const letterCount = (text.match(/[a-zA-Z]/g) || []).length
-  const isMostlyUpper = letterCount > 3 && upperCount / letterCount > 0.8
-  return isShort && isMostlyUpper
+  if (!isAllCaps(text)) return block
+  return {
+    ...block,
+    segments: block.segments?.map(s => ({
+      ...s,
+      html: toTitleCase(s.html),
+    })),
+  }
+}
+
+const isSectionTitle = (block: ContentBlockType): boolean => {
+  if (block.type !== 'heading') return false
+  const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''
+  return text.length > 0 && text.length < 50
 }
 
 export const Reader = ({
@@ -58,17 +72,37 @@ export const Reader = ({
     const titleGroupStart = new Set<number>()
     const titleGroupMember = new Set<number>()
 
+    // Find next section title after index i, skipping images
+    const findNextSectionTitle = (start: number): number => {
+      for (let j = start + 1; j < content.length; j++) {
+        const b = content[j]
+        if (!b) break
+        if (b.type === 'image') continue
+        return isSectionTitle(b) ? j : -1
+      }
+      return -1
+    }
+
     for (let i = 0; i < content.length; i++) {
       const block = content[i]
-      const nextBlock = content[i + 1]
       if (block && isSectionTitle(block)) {
-        if (nextBlock && isSectionTitle(nextBlock)) {
+        const nextTitle = findNextSectionTitle(i)
+        if (nextTitle !== -1) {
           titleGroupStart.add(i)
           titleGroupMember.add(i)
-          titleGroupMember.add(i + 1)
+          titleGroupMember.add(nextTitle)
         } else if (titleGroupMember.has(i - 1) && !titleGroupStart.has(i)) {
           titleGroupMember.add(i)
         }
+      }
+    }
+
+    // After removing a duplicate title heading, detect a subtitle that follows it
+    // (possibly separated by an image block)
+    if (duplicateTitleIndex !== -1) {
+      const subtitleIdx = findNextSectionTitle(duplicateTitleIndex)
+      if (subtitleIdx !== -1 && !titleGroupMember.has(subtitleIdx)) {
+        titleGroupMember.add(subtitleIdx)
       }
     }
 
@@ -89,18 +123,21 @@ export const Reader = ({
       }
     }
 
-    const renderBlock = (block: ContentBlockType, idx: number) => (
-      <ContentBlock
-        key={idx}
-        block={block}
-        currentSentence={currentSentence}
-        onSentenceClick={onSentenceClick}
-        currentChapter={currentChapter}
-        sentenceRef={currentSentenceRef}
-        isInTitleGroup={titleGroupMember.has(idx)}
-        isSubtitle={titleGroupMember.has(idx) && !titleGroupStart.has(idx)}
-      />
-    )
+    const renderBlock = (block: ContentBlockType, idx: number) => {
+      const isSubtitle = titleGroupMember.has(idx) && !titleGroupStart.has(idx)
+      return (
+        <ContentBlock
+          key={idx}
+          block={isSubtitle ? normalizeCaps(block) : block}
+          currentSentence={currentSentence}
+          onSentenceClick={onSentenceClick}
+          currentChapter={currentChapter}
+          sentenceRef={currentSentenceRef}
+          isInTitleGroup={titleGroupMember.has(idx)}
+          isSubtitle={isSubtitle}
+        />
+      )
+    }
 
     // Build rendered elements, wrapping epigraph groups
     const elements: ReactNode[] = []

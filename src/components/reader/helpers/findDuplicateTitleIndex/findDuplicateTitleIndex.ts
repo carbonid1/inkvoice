@@ -14,12 +14,12 @@ export const findDuplicateTitleIndex = (
   content: ContentBlock[],
   title: string,
 ): number => {
-  const normalizedTitle = title.trim()
+  const normalizedTitle = title.trim().toLowerCase()
   const limit = Math.min(content.length, MAX_SEARCH_DEPTH)
 
   for (let i = 0; i < limit; i++) {
     const block = content[i]
-    if (block?.type === 'heading' && getBlockPlainText(block) === normalizedTitle) {
+    if (block?.type === 'heading' && getBlockPlainText(block).toLowerCase() === normalizedTitle) {
       return i
     }
   }
