@@ -65,6 +65,13 @@ describe('findDuplicateTitleIndex', () => {
     expect(findDuplicateTitleIndex(content, 'Chapter One')).toBe(-1)
   })
 
+  it('matches heading with trailing colon against title without', () => {
+    const content = [heading("Acclaim for Steven Author's The Series Book of the Fallen:")]
+    expect(
+      findDuplicateTitleIndex(content, "Acclaim for Steven Author's The Series Book of the Fallen"),
+    ).toBe(0)
+  })
+
   it('handles blocks without segments', () => {
     const content: ContentBlock[] = [
       { type: 'image', src: 'img.png', alt: 'cover' },

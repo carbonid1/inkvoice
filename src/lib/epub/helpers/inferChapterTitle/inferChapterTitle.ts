@@ -32,7 +32,8 @@ const isAllCaps = (s: string): boolean =>
 const toTitleCase = (s: string): string =>
   s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
 
-const normalize = (s: string): string => (isAllCaps(s) ? toTitleCase(s) : s)
+const normalize = (s: string): string =>
+  (isAllCaps(s) ? toTitleCase(s) : s).replace(/:$/, '')
 
 export const inferChapterTitle = (args: InferTitleArgs, fallbackIndex: number): string => {
   if (args.htmlHeading) return normalize(args.htmlHeading)

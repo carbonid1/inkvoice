@@ -19,7 +19,7 @@ export const findDuplicateTitleIndex = (
 
   for (let i = 0; i < limit; i++) {
     const block = content[i]
-    if (block?.type === 'heading' && getBlockPlainText(block).toLowerCase() === normalizedTitle) {
+    if (block?.type === 'heading' && getBlockPlainText(block).toLowerCase().replace(/:$/, '') === normalizedTitle) {
       return i
     }
   }

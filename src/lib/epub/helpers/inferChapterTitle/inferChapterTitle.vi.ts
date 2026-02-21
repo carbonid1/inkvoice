@@ -102,4 +102,25 @@ describe('inferChapterTitle', () => {
       expect(inferChapterTitle({ ...base, tocLabel: 'EPILOGUE' }, 1)).toBe('Epilogue')
     })
   })
+
+  describe('trailing colon stripping', () => {
+    it('strips trailing colon from heading', () => {
+      expect(
+        inferChapterTitle(
+          { ...base, htmlHeading: 'Acclaim for The Series Book of the Fallen:' },
+          1,
+        ),
+      ).toBe('Acclaim for The Series Book of the Fallen')
+    })
+
+    it('strips trailing colon from TOC label', () => {
+      expect(inferChapterTitle({ ...base, tocLabel: 'Appendix:' }, 1)).toBe('Appendix')
+    })
+
+    it('preserves colons mid-string', () => {
+      expect(
+        inferChapterTitle({ ...base, htmlHeading: 'Book One: The Whirlwind' }, 1),
+      ).toBe('Book One: The Whirlwind')
+    })
+  })
 })

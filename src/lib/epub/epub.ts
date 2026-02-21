@@ -89,7 +89,11 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         const hasContent = sentences.length > 0 || content.some(b => b.type === 'image')
         if (!hasContent) continue
 
-        const htmlHeading = html.match(/<h[1-3][^>]*>([^<]+)<\/h[1-3]>/i)?.[1]?.trim()
+        const htmlHeading = html
+          .match(/<h[1-3][^>]*>([\s\S]+?)<\/h[1-3]>/i)?.[1]
+          ?.replace(/<[^>]+>/g, '')
+          ?.replace(/\s+/g, ' ')
+          ?.trim()
         const isImageOnly = sentences.length === 0 && content.some(b => b.type === 'image')
 
         const title = inferChapterTitle(
