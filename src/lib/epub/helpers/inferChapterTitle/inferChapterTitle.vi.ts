@@ -54,10 +54,10 @@ describe('inferChapterTitle', () => {
     ).toBe('Maps')
   })
 
-  it('image-only beats file ID', () => {
+  it('file ID beats image-only fallback', () => {
     expect(
       inferChapterTitle({ ...base, itemId: 'cover', isImageOnly: true }, 1),
-    ).toBe('Illustrations')
+    ).toBe('Cover')
   })
 
   it('file ID beats Chapter N fallback', () => {

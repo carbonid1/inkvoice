@@ -39,6 +39,8 @@ export const inferChapterTitle = (args: InferTitleArgs, fallbackIndex: number): 
   if (args.htmlHeading) return normalize(args.htmlHeading)
   if (args.tocLabel) return normalize(args.tocLabel)
   if (args.itemTitle) return normalize(args.itemTitle)
+  const fileIdLabel = titleFromFileId(args.itemId)
+  if (fileIdLabel) return fileIdLabel
   if (args.isImageOnly) return 'Illustrations'
-  return titleFromFileId(args.itemId) ?? `Chapter ${fallbackIndex}`
+  return `Chapter ${fallbackIndex}`
 }
