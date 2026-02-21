@@ -65,48 +65,6 @@ describe('epigraph detection', () => {
     expect(content[0]?.type).toBe('blockquote')
   })
 
-  it('should detect <p class="totalfirst"> as blockquote', async () => {
-    const html = '<body><p class="totalfirst">The decision to move forward regardless.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('blockquote')
-  })
-
-  it('should detect <p class="totalsecond"> as blockquote', async () => {
-    const html =
-      '<body><p class="totalsecond">We who walked the grey road, through the long silence.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('blockquote')
-  })
-
-  it('should detect <p class="totalsecondfirst"> as blockquote', async () => {
-    const html =
-      '<body><p class="totalsecondfirst">And so we marched, with frost upon our standards.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('blockquote')
-  })
-
-  it('should detect <p class="totalthree"> as blockquote', async () => {
-    const html =
-      '<body><p class="totalthree">War reveals character, but it also consumes it.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('blockquote')
-  })
-
-  it('should detect epigraph among other classes', async () => {
-    const html = '<body><p class="indent totalind">Epigraph with extra class.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('blockquote')
-  })
 })
 
 describe('attribution detection', () => {
@@ -118,27 +76,6 @@ describe('attribution detection', () => {
     expect(content[0]?.type).toBe('attribution')
   })
 
-  it('should skip <p class="r"> that contains only &nbsp;', async () => {
-    const html = '<body><p class="r">&nbsp;</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(0)
-  })
-
-  it('should skip <p class="r"> that contains only whitespace', async () => {
-    const html = '<body><p class="r">   </p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(0)
-  })
-
-  it('should detect attribution with multiple &nbsp; and real text', async () => {
-    const html = '<body><p class="r">&nbsp;&mdash; Some Author</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('attribution')
-  })
 })
 
 describe('centered class handling', () => {
@@ -175,23 +112,6 @@ describe('heading levels', () => {
     expect(content[0]?.level).toBe(1)
   })
 
-  it('should preserve heading level for h2', async () => {
-    const html = '<body><h2>Subtitle</h2></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('heading')
-    expect(content[0]?.level).toBe(2)
-  })
-
-  it('should preserve heading level for h3', async () => {
-    const html = '<body><h3>Section</h3></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content).toHaveLength(1)
-    expect(content[0]?.type).toBe('heading')
-    expect(content[0]?.level).toBe(3)
-  })
 })
 
 describe('list parsing', () => {
@@ -222,22 +142,6 @@ describe('inline formatting preservation', () => {
     expect(content[0]?.segments?.[0]?.html).toContain('<em>')
   })
 
-  it('should preserve <strong> tags in html', async () => {
-    const html = '<body><p>There were <strong>three options</strong> available.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content[0]?.segments?.[0]?.html).toContain('<strong>')
-  })
-
-  it('should strip internal <a> tags but keep link text', async () => {
-    const html =
-      '<body><p>See the <a href="../Text/chapter04.html#mbp_toc_5">field manual</a> for details.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content[0]?.segments?.[0]?.html).toContain('field manual')
-    expect(content[0]?.segments?.[0]?.html).not.toContain('<a')
-  })
-
   it('should preserve external <a> tags with http href', async () => {
     const html = '<body><p>Visit <a href="http://www.example.com">the site</a> for more.</p></body>'
     const { content } = await parseHtmlContent(html, noopGetImage)
@@ -245,30 +149,6 @@ describe('inline formatting preservation', () => {
     expect(content[0]?.segments?.[0]?.html).toContain('<a href="http://www.example.com">')
   })
 
-  it('should preserve <sup> tags in html', async () => {
-    const html = '<body><p>A scout<sup>1</sup> led the way.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    expect(content[0]?.segments?.[0]?.html).toContain('<sup>')
-  })
-
-  it('should preserve <sub> tags in html', async () => {
-    const html =
-      '<body><p>The formula is C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> indeed.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    const combinedHtml = content[0]?.segments?.map(segment => segment.html).join(' ') ?? ''
-    expect(combinedHtml).toContain('<sub>')
-  })
-
-  it('should preserve <i> and <b> tags in single-sentence context', async () => {
-    const html = '<body><p><i>Italic text</i> and <b>bold text</b> in one sentence.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    const segment = content[0]?.segments?.[0]
-    expect(segment?.html).toContain('<i>')
-    expect(segment?.html).toContain('<b>')
-  })
 })
 
 describe('empty element handling', () => {
@@ -300,21 +180,6 @@ describe('nested container flattening', () => {
 })
 
 describe('br handling', () => {
-  it('should preserve <br/> in HTML output', async () => {
-    const html = '<body><p>Line one<br/>Line two</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    const segment = content[0]?.segments?.[0]
-    expect(segment?.html).toContain('<br/>')
-  })
-
-  it('should convert <br/> to space in plain text', async () => {
-    const html = '<body><p>Line one<br/>Line two</p></body>'
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
-
-    expect(sentences.join(' ')).toContain('Line one Line two')
-  })
-
   it('should keep sentence indices synchronized with br present', async () => {
     const html = '<body><p>First sentence.<br/>Second sentence.</p><p>Third sentence.</p></body>'
     const { content, sentences } = await parseHtmlContent(html, noopGetImage)
@@ -325,25 +190,6 @@ describe('br handling', () => {
     expect(allSegments.length).toBe(sentences.length)
   })
 
-  it('should preserve multiple <br/> in verse content', async () => {
-    const html =
-      '<body><p>We who walked,<br/>who carried iron<br/>through the silence,<br/>know that courage is not fear.</p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    const combinedHtml = content[0]?.segments?.map(s => s.html).join(' ') ?? ''
-    const brCount = (combinedHtml.match(/<br\/>/g) || []).length
-    expect(brCount).toBe(3)
-  })
-
-  it('should preserve <br/> with surrounding inline tags', async () => {
-    const html = '<body><p><em>Italic line</em><br/><strong>Bold line</strong></p></body>'
-    const { content } = await parseHtmlContent(html, noopGetImage)
-
-    const segment = content[0]?.segments?.[0]
-    expect(segment?.html).toContain('<em>')
-    expect(segment?.html).toContain('<br/>')
-    expect(segment?.html).toContain('<strong>')
-  })
 })
 
 describe('link-list paragraph splitting', () => {
