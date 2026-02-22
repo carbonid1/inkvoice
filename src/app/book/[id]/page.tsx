@@ -3,8 +3,10 @@
 import { DebugMetrics, DebugPanel } from '@/components/DebugPanel'
 import { Reader } from '@/components/Reader/Reader'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
+import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
+import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { BookOverview, ParsedChapter } from '@/lib/types/book'
 import { useHydrated } from '@/store/useHydrated'
 import { useLibraryStore } from '@/store/useLibraryStore'
@@ -31,6 +33,7 @@ export default function BookReader() {
   const savedProgress = getProgress(bookId)
   const [currentChapter, setCurrentChapter] = useState(savedProgress.chapter)
   const [currentSentence, setCurrentSentence] = useState(savedProgress.sentence)
+  const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   const [debugMetrics, setDebugMetrics] = useState<DebugMetrics>({
     isGenerating: false,
@@ -86,6 +89,7 @@ export default function BookReader() {
     if (!overview) return
 
     const fetchChapter = async () => {
+      setChapterLoading(true)
       try {
         const response = await fetch(`/api/book/${bookId}/chapter/${currentChapter}`)
         if (!response.ok) throw new Error('Failed to load chapter')
@@ -94,6 +98,8 @@ export default function BookReader() {
       } catch (e) {
         console.error('Failed to fetch chapter:', e)
         setError(e instanceof Error ? e.message : 'Failed to load chapter')
+      } finally {
+        setChapterLoading(false)
       }
     }
 
@@ -131,6 +137,7 @@ export default function BookReader() {
   // Toggle debug panel with 'D' key
   useHotkeys('d', () => setShowDebug(prev => !prev))
 
+  const showChapterLoading = useDebouncedLoading(chapterLoading)
   const progressPercent = computeProgressPercent(getProgress(bookId)) ?? 0
 
   if (loading) {
@@ -171,17 +178,20 @@ export default function BookReader() {
 
         {overview.chapters.length > 1 && (
           <div className="max-w-3xl mx-auto px-4 pb-2">
-            <select
-              value={currentChapter}
-              onChange={e => handleProgressChange(Number(e.target.value), 0)}
-              className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 w-full max-w-xs"
-            >
-              {overview.chapters.map((chapter, idx) => (
-                <option key={idx} value={idx}>
-                  {chapter.title}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                value={currentChapter}
+                onChange={e => handleProgressChange(Number(e.target.value), 0)}
+                className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 w-full max-w-xs"
+              >
+                {overview.chapters.map((chapter, idx) => (
+                  <option key={idx} value={idx}>
+                    {chapter.title}
+                  </option>
+                ))}
+              </select>
+              {showChapterLoading && <SpinnerIcon className="w-4 h-4 animate-spin text-gray-400" />}
+            </div>
           </div>
         )}
 
