@@ -6,33 +6,24 @@ import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
-import type { BookOverview, ParsedChapter } from '@/lib/types/book'
-import { useHydrated } from '@/store/useHydrated'
-import { useLibraryStore } from '@/store/useLibraryStore'
+import type { ParsedChapter } from '@/lib/types/book'
 import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
+import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 
 export default function BookReader() {
   const params = useParams()
   const bookId = params.id as string
 
-  const [overview, setOverview] = useState<BookOverview | null>(null)
-  const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(bookId)
 
-  const getProgress = useProgressStore(s => s.getProgress)
-  const setProgress = useProgressStore(s => s.setProgress)
-  const setBookMetadata = useProgressStore(s => s.setBookMetadata)
-  const setCurrentBook = useLibraryStore(s => s.setCurrentBook)
-  const hydrated = useHydrated()
-  const savedProgress = getProgress(bookId)
-  const [currentChapter, setCurrentChapter] = useState(savedProgress.chapter)
-  const [currentSentence, setCurrentSentence] = useState(savedProgress.sentence)
+  const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
+  const [currentChapter, setCurrentChapter] = useState(initialChapter)
+  const [currentSentence, setCurrentSentence] = useState(initialSentence)
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   const [debugMetrics, setDebugMetrics] = useState<DebugMetrics>({
@@ -46,44 +37,14 @@ export default function BookReader() {
     totalChapters: 0,
   })
 
-  // Fetch book overview on mount (after hydration)
+  const setProgress = useProgressStore(s => s.setProgress)
+  const getProgress = useProgressStore(s => s.getProgress)
+
+  // Sync position when hook resolves initial values from overview
   useEffect(() => {
-    if (!hydrated) return
-
-    const fetchOverview = async () => {
-      try {
-        const response = await fetch(`/api/book/${bookId}`)
-        if (!response.ok) {
-          if (response.status === 404) throw new Error('Book not found')
-          throw new Error('Failed to load book')
-        }
-        const data: BookOverview = await response.json()
-        setOverview(data)
-        setCurrentBook(bookId)
-
-        // Write book metadata for library progress bars
-        const sentencesPerChapter = data.chapters.map(ch => ch.sentenceCount)
-        const wordsPerChapter = data.chapters.map(ch => ch.wordCount)
-        setBookMetadata(bookId, data.chapters.length, sentencesPerChapter, wordsPerChapter)
-
-        // Restore progress
-        const progress = getProgress(bookId)
-        if (progress.chapter < data.chapters.length) {
-          setCurrentChapter(progress.chapter)
-          const chapterInfo = data.chapters[progress.chapter]
-          if (chapterInfo && progress.sentence < chapterInfo.sentenceCount) {
-            setCurrentSentence(progress.sentence)
-          }
-        }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Unknown error')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchOverview()
-  }, [bookId, hydrated, getProgress, setCurrentBook, setBookMetadata])
+    setCurrentChapter(initialChapter)
+    setCurrentSentence(initialSentence)
+  }, [initialChapter, initialSentence])
 
   // Fetch chapter content when currentChapter changes
   useEffect(() => {
@@ -98,7 +59,6 @@ export default function BookReader() {
         setChapterData(data)
       } catch (e) {
         console.error('Failed to fetch chapter:', e)
-        setError(e instanceof Error ? e.message : 'Failed to load chapter')
       } finally {
         setChapterLoading(false)
       }
