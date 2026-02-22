@@ -2,8 +2,8 @@
 
 import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
 import { type ReactNode, useEffect, useRef } from 'react'
-import { ContentBlock } from './reader/ContentBlock'
-import { findDuplicateTitleIndex } from './reader/helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
+import { ContentBlock } from './components/ContentBlock'
+import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
 
 interface ReaderProps {
   chapter: ParsedChapter

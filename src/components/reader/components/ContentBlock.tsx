@@ -2,7 +2,7 @@
 
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
 import type { RefObject } from 'react'
-import { isFilenameAlt } from './helpers/isFilenameAlt/isFilenameAlt'
+import { isFilenameAlt } from '../helpers/isFilenameAlt/isFilenameAlt'
 
 interface ContentBlockProps {
   block: ContentBlockType

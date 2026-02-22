@@ -1,7 +1,7 @@
 'use client'
 
 import { DebugMetrics, DebugPanel } from '@/components/DebugPanel'
-import { Reader } from '@/components/Reader'
+import { Reader } from '@/components/Reader/Reader'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
