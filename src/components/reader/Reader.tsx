@@ -4,6 +4,7 @@ import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/type
 import { type ReactNode, useEffect, useRef } from 'react'
 import { ContentBlock } from './components/ContentBlock'
 import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
+import { findTitleGroupMembers } from './helpers/findTitleGroupMembers/findTitleGroupMembers'
 
 interface ReaderProps {
   chapter: ParsedChapter
@@ -15,8 +16,7 @@ interface ReaderProps {
 const isAllCaps = (s: string): boolean =>
   s.replace(/[^a-zA-Z]/g, '').length > 0 && s === s.toUpperCase()
 
-const toTitleCase = (s: string): string =>
-  s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+const toTitleCase = (s: string): string => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
 
 const normalizeCaps = (block: ContentBlockType): ContentBlockType => {
   const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''
@@ -28,12 +28,6 @@ const normalizeCaps = (block: ContentBlockType): ContentBlockType => {
       html: toTitleCase(s.html),
     })),
   }
-}
-
-const isSectionTitle = (block: ContentBlockType): boolean => {
-  if (block.type !== 'heading') return false
-  const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''
-  return text.length > 0 && text.length < 50
 }
 
 export const Reader = ({
@@ -69,42 +63,10 @@ export const Reader = ({
     const content = chapter.content!
     const duplicateTitleIndex = findDuplicateTitleIndex(content, chapter.title)
 
-    const titleGroupStart = new Set<number>()
-    const titleGroupMember = new Set<number>()
-
-    // Find next section title after index i, skipping images
-    const findNextSectionTitle = (start: number): number => {
-      for (let j = start + 1; j < content.length; j++) {
-        const b = content[j]
-        if (!b) break
-        if (b.type === 'image') continue
-        return isSectionTitle(b) ? j : -1
-      }
-      return -1
-    }
-
-    for (let i = 0; i < content.length; i++) {
-      const block = content[i]
-      if (block && isSectionTitle(block)) {
-        const nextTitle = findNextSectionTitle(i)
-        if (nextTitle !== -1) {
-          titleGroupStart.add(i)
-          titleGroupMember.add(i)
-          titleGroupMember.add(nextTitle)
-        } else if (titleGroupMember.has(i - 1) && !titleGroupStart.has(i)) {
-          titleGroupMember.add(i)
-        }
-      }
-    }
-
-    // After removing a duplicate title heading, detect a subtitle that follows it
-    // (possibly separated by an image block)
-    if (duplicateTitleIndex !== -1) {
-      const subtitleIdx = findNextSectionTitle(duplicateTitleIndex)
-      if (subtitleIdx !== -1 && !titleGroupMember.has(subtitleIdx)) {
-        titleGroupMember.add(subtitleIdx)
-      }
-    }
+    const { titleGroupStart, titleGroupMember } = findTitleGroupMembers(
+      content,
+      duplicateTitleIndex,
+    )
 
     // Detect leading epigraph group: consecutive blockquote/attribution blocks
     // after skipping any title group blocks and leading headings
