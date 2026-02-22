@@ -49,6 +49,7 @@ export interface Book {
 export interface ChapterInfo {
   title: string
   sentenceCount: number
+  wordCount: number
 }
 
 export interface BookOverview {

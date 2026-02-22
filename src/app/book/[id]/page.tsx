@@ -5,7 +5,6 @@ import { Reader } from '@/components/Reader/Reader'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
-import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { BookOverview, ParsedChapter } from '@/lib/types/book'
 import { useHydrated } from '@/store/useHydrated'
@@ -15,6 +14,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 
 export default function BookReader() {
   const params = useParams()
@@ -63,7 +63,8 @@ export default function BookReader() {
 
         // Write book metadata for library progress bars
         const sentencesPerChapter = data.chapters.map(ch => ch.sentenceCount)
-        setBookMetadata(bookId, data.chapters.length, sentencesPerChapter)
+        const wordsPerChapter = data.chapters.map(ch => ch.wordCount)
+        setBookMetadata(bookId, data.chapters.length, sentencesPerChapter, wordsPerChapter)
 
         // Restore progress
         const progress = getProgress(bookId)
@@ -138,7 +139,7 @@ export default function BookReader() {
   useHotkeys('d', () => setShowDebug(prev => !prev))
 
   const showChapterLoading = useDebouncedLoading(chapterLoading)
-  const progressPercent = computeProgressPercent(getProgress(bookId)) ?? 0
+  const currentProgress = getProgress(bookId)
 
   if (loading) {
     return (
@@ -195,13 +196,11 @@ export default function BookReader() {
           </div>
         )}
 
-        {/* Book-level progress bar */}
-        <div className="h-0.5 bg-gray-100 dark:bg-gray-800">
-          <div
-            className="h-full bg-blue-500 transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
+        <ProgressIndicator
+          chapter={currentChapter}
+          sentence={currentSentence}
+          progress={currentProgress}
+        />
       </header>
 
       <main className="max-w-3xl mx-auto">

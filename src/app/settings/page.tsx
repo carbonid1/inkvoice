@@ -6,6 +6,7 @@ import { StopIcon } from '@/components/icons/StopIcon'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { ProgressDisplayCard } from './components/ProgressDisplayCard/ProgressDisplayCard'
 import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 
 type VoiceEntry = {
@@ -210,6 +211,7 @@ export default function Settings() {
         </div>
 
         <PronunciationEditor />
+        <ProgressDisplayCard />
       </main>
     </div>
   )

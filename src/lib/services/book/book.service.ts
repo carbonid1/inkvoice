@@ -2,6 +2,7 @@ import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
 import type { Book, BookMetadata, BookOverview, ParsedBook, ParsedChapter } from '@/lib/types/book'
 import { findBookFile, getBookIdFromFilename, listEpubFiles, readBookFile } from './book.helpers'
 import type { BookService } from './book.types'
+import { countWords } from './helpers/countWords/countWords'
 
 /**
  * In-memory book cache to avoid re-parsing EPUBs
@@ -96,6 +97,7 @@ class BookServiceImpl implements BookService {
       chapters: book.chapters.map(ch => ({
         title: ch.title,
         sentenceCount: ch.sentences.length,
+        wordCount: ch.sentences.reduce((sum, s) => sum + countWords(s), 0),
       })),
     }
   }

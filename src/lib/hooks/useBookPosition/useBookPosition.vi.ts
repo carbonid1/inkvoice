@@ -7,6 +7,7 @@ const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
   sentenceCounts.map((n, i) => ({
     title: `Chapter ${i}`,
     sentenceCount: n,
+    wordCount: n * 10,
   }))
 
 const defaultProps = () => ({
