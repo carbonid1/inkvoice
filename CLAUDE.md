@@ -20,11 +20,11 @@ Local audiobook reader that converts epub books to speech using Chatterbox TTS.
 
 ## Data Locations
 
-| Data              | Location                              |
-| ----------------- | ------------------------------------- |
-| Book files        | `./data/books/*.epub`                 |
-| Voice references  | `./data/voices/{name}/source.wav`     |
-| Reading progress  | Browser localStorage                  |
+| Data             | Location                          |
+| ---------------- | --------------------------------- |
+| Book files       | `./data/books/*.epub`             |
+| Voice references | `./data/voices/{name}/source.wav` |
+| Reading progress | Browser localStorage              |
 
 ## Running the App
 

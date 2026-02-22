@@ -37,27 +37,23 @@ describe('inferChapterTitle', () => {
   })
 
   it('heading beats TOC label', () => {
-    expect(
-      inferChapterTitle({ ...base, htmlHeading: 'Heading', tocLabel: 'TOC Label' }, 1),
-    ).toBe('Heading')
+    expect(inferChapterTitle({ ...base, htmlHeading: 'Heading', tocLabel: 'TOC Label' }, 1)).toBe(
+      'Heading',
+    )
   })
 
   it('TOC label beats spine title', () => {
-    expect(
-      inferChapterTitle({ ...base, tocLabel: 'TOC Label', itemTitle: 'Spine Title' }, 1),
-    ).toBe('TOC Label')
+    expect(inferChapterTitle({ ...base, tocLabel: 'TOC Label', itemTitle: 'Spine Title' }, 1)).toBe(
+      'TOC Label',
+    )
   })
 
   it('spine title beats image-only', () => {
-    expect(
-      inferChapterTitle({ ...base, itemTitle: 'Maps', isImageOnly: true }, 1),
-    ).toBe('Maps')
+    expect(inferChapterTitle({ ...base, itemTitle: 'Maps', isImageOnly: true }, 1)).toBe('Maps')
   })
 
   it('file ID beats image-only fallback', () => {
-    expect(
-      inferChapterTitle({ ...base, itemId: 'cover', isImageOnly: true }, 1),
-    ).toBe('Cover')
+    expect(inferChapterTitle({ ...base, itemId: 'cover', isImageOnly: true }, 1)).toBe('Cover')
   })
 
   it('file ID beats Chapter N fallback', () => {
@@ -118,9 +114,9 @@ describe('inferChapterTitle', () => {
     })
 
     it('preserves colons mid-string', () => {
-      expect(
-        inferChapterTitle({ ...base, htmlHeading: 'Book One: The Whirlwind' }, 1),
-      ).toBe('Book One: The Whirlwind')
+      expect(inferChapterTitle({ ...base, htmlHeading: 'Book One: The Whirlwind' }, 1)).toBe(
+        'Book One: The Whirlwind',
+      )
     })
   })
 })

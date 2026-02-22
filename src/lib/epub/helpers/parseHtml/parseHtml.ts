@@ -5,8 +5,8 @@ import { isAttributionElement } from './helpers/isAttributionElement/isAttributi
 import { isEpigraphElement } from './helpers/isEpigraphElement/isEpigraphElement'
 import { splitNodeIntoSentences } from './helpers/splitNodeIntoSentences/splitNodeIntoSentences'
 
-export { getPlainText } from './helpers/getPlainText/getPlainText'
 export { getInnerHtml } from './helpers/getInnerHtml/getInnerHtml'
+export { getPlainText } from './helpers/getPlainText/getPlainText'
 
 const isLinkListParagraph = (el: Element): boolean => {
   const children = Array.from(el.childNodes)
@@ -138,7 +138,13 @@ const parseHtmlContentSync = async (
       return
     }
 
-    if (tag === 'div' || tag === 'section' || tag === 'article' || tag === 'figure' || tag === 'svg') {
+    if (
+      tag === 'div' ||
+      tag === 'section' ||
+      tag === 'article' ||
+      tag === 'figure' ||
+      tag === 'svg'
+    ) {
       Array.from(el.children).forEach(child => processElement(child as Element))
       return
     }

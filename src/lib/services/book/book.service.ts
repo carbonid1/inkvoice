@@ -1,11 +1,5 @@
 import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
-import type {
-  Book,
-  BookMetadata,
-  BookOverview,
-  ParsedBook,
-  ParsedChapter,
-} from '@/lib/types/book'
+import type { Book, BookMetadata, BookOverview, ParsedBook, ParsedChapter } from '@/lib/types/book'
 import { findBookFile, getBookIdFromFilename, listEpubFiles, readBookFile } from './book.helpers'
 import type { BookService } from './book.types'
 

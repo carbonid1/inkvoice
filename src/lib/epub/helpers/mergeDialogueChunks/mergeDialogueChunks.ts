@@ -49,7 +49,10 @@ export const endsWithAttribution = (sentence: string): boolean => {
   const tail = sentence.slice(lastQuoteIdx + 1).trim()
   if (!tail || tail.length > MAX_ATTRIBUTION_TAIL_LENGTH) return false
 
-  const words = tail.toLowerCase().replace(/[.,!?;:]/g, '').split(/\s+/)
+  const words = tail
+    .toLowerCase()
+    .replace(/[.,!?;:]/g, '')
+    .split(/\s+/)
   return words.some(w => SPEECH_VERBS.has(w))
 }
 

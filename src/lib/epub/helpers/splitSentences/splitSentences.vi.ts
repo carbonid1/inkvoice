@@ -30,9 +30,7 @@ describe('splitIntoSentences', () => {
     })
 
     it('keeps multiple spaced ellipsis continuations together', () => {
-      const result = splitIntoSentences(
-        'He waited . . . and waited . . . but nothing came.',
-      )
+      const result = splitIntoSentences('He waited . . . and waited . . . but nothing came.')
       expect(result).toEqual(['He waited . . . and waited . . . but nothing came.'])
     })
 

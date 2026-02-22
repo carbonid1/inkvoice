@@ -30,18 +30,21 @@ export const PronunciationEditor = () => {
     fetchEntries()
   }, [])
 
-  const saveEntries = useCallback(async (updated: PronunciationMap) => {
-    try {
-      await fetch('/api/pronunciations', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entries: updated }),
-      })
-      bumpVersion()
-    } catch (e) {
-      console.error('Failed to save pronunciations:', e)
-    }
-  }, [bumpVersion])
+  const saveEntries = useCallback(
+    async (updated: PronunciationMap) => {
+      try {
+        await fetch('/api/pronunciations', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entries: updated }),
+        })
+        bumpVersion()
+      } catch (e) {
+        console.error('Failed to save pronunciations:', e)
+      }
+    },
+    [bumpVersion],
+  )
 
   const handleAdd = useCallback(() => {
     const word = newWord.trim()
@@ -93,15 +96,10 @@ export const PronunciationEditor = () => {
           ) : (
             <div className="space-y-2">
               {sortedWords.map(word => (
-                <div
-                  key={word}
-                  className="flex items-center gap-3 text-sm"
-                >
+                <div key={word} className="flex items-center gap-3 text-sm">
                   <span className="font-medium min-w-[120px]">{word}</span>
                   <span className="text-gray-500 dark:text-gray-400">→</span>
-                  <span className="flex-1 text-gray-700 dark:text-gray-300">
-                    {entries[word]}
-                  </span>
+                  <span className="flex-1 text-gray-700 dark:text-gray-300">{entries[word]}</span>
                   <button
                     onClick={() => handleDelete(word)}
                     className="p-1 text-gray-400 hover:text-red-500 transition-colors"
@@ -148,8 +146,8 @@ export const PronunciationEditor = () => {
           </div>
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Pronunciation overrides replace words before TTS generation. Changes automatically
-            apply on next playback.
+            Pronunciation overrides replace words before TTS generation. Changes automatically apply
+            on next playback.
           </p>
         </div>
       )}

@@ -3,9 +3,7 @@ import { StrictMode, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useDebouncedLoading } from './useDebouncedLoading'
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <StrictMode>{children}</StrictMode>
-)
+const wrapper = ({ children }: { children: ReactNode }) => <StrictMode>{children}</StrictMode>
 
 describe('useDebouncedLoading', () => {
   it('returns false initially even when loading is true', () => {
@@ -30,10 +28,10 @@ describe('useDebouncedLoading', () => {
 
   it('stays false if loading clears before delay', () => {
     vi.useFakeTimers()
-    const { result, rerender } = renderHook(
-      ({ loading }) => useDebouncedLoading(loading),
-      { wrapper, initialProps: { loading: true } },
-    )
+    const { result, rerender } = renderHook(({ loading }) => useDebouncedLoading(loading), {
+      wrapper,
+      initialProps: { loading: true },
+    })
 
     act(() => vi.advanceTimersByTime(100))
     rerender({ loading: false })
@@ -47,10 +45,10 @@ describe('useDebouncedLoading', () => {
 
   it('clears immediately when loading becomes false', () => {
     vi.useFakeTimers()
-    const { result, rerender } = renderHook(
-      ({ loading }) => useDebouncedLoading(loading),
-      { wrapper, initialProps: { loading: true } },
-    )
+    const { result, rerender } = renderHook(({ loading }) => useDebouncedLoading(loading), {
+      wrapper,
+      initialProps: { loading: true },
+    })
 
     act(() => vi.advanceTimersByTime(200))
     expect(result.current).toBe(true)

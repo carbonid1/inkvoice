@@ -64,7 +64,6 @@ describe('epigraph detection', () => {
     expect(content).toHaveLength(1)
     expect(content[0]?.type).toBe('blockquote')
   })
-
 })
 
 describe('attribution detection', () => {
@@ -75,7 +74,6 @@ describe('attribution detection', () => {
     expect(content).toHaveLength(1)
     expect(content[0]?.type).toBe('attribution')
   })
-
 })
 
 describe('centered class handling', () => {
@@ -111,7 +109,6 @@ describe('heading levels', () => {
     expect(content[0]?.type).toBe('heading')
     expect(content[0]?.level).toBe(1)
   })
-
 })
 
 describe('list parsing', () => {
@@ -148,7 +145,6 @@ describe('inline formatting preservation', () => {
 
     expect(content[0]?.segments?.[0]?.html).toContain('<a href="http://www.example.com">')
   })
-
 })
 
 describe('empty element handling', () => {
@@ -189,13 +185,11 @@ describe('br handling', () => {
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
     expect(allSegments.length).toBe(sentences.length)
   })
-
 })
 
 describe('link-list paragraph splitting', () => {
   it('should split <p> with multiple <a> children into separate paragraphs', async () => {
-    const html =
-      '<body><p><a href="a">One</a> <a href="b">Two</a> <a href="c">Three</a></p></body>'
+    const html = '<body><p><a href="a">One</a> <a href="b">Two</a> <a href="c">Three</a></p></body>'
     const { content } = await parseHtmlContent(html, noopGetImage)
 
     expect(content).toHaveLength(3)
@@ -253,7 +247,8 @@ describe('link-list paragraph splitting', () => {
   })
 
   it('should not split <li> with a single link', async () => {
-    const html = '<body><ul><li><a href="a">Prologue</a></li><li><a href="b">Epilogue</a></li></ul></body>'
+    const html =
+      '<body><ul><li><a href="a">Prologue</a></li><li><a href="b">Epilogue</a></li></ul></body>'
     const { content } = await parseHtmlContent(html, noopGetImage)
 
     expect(content).toHaveLength(1)

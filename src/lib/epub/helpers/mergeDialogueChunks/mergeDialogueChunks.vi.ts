@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  endsWithAttribution,
-  mergeDialogueChunks,
-  startsWithQuote,
-} from './mergeDialogueChunks'
+import { endsWithAttribution, mergeDialogueChunks, startsWithQuote } from './mergeDialogueChunks'
 
 describe('endsWithAttribution', () => {
   it('detects attribution after comma-quote', () => {
@@ -24,9 +20,7 @@ describe('endsWithAttribution', () => {
 
   it('detects attribution with descriptive clause', () => {
     expect(
-      endsWithAttribution(
-        '"I won\'t do it," she said, her voice barely above a whisper.',
-      ),
+      endsWithAttribution('"I won\'t do it," she said, her voice barely above a whisper.'),
     ).toBe(true)
   })
 
@@ -75,9 +69,9 @@ describe('startsWithQuote', () => {
 
 describe('mergeDialogueChunks', () => {
   it('merges attribution between two quoted segments', () => {
-    expect(
-      mergeDialogueChunks(['"I\'m leaving," he said.', '"Don\'t follow me."']),
-    ).toEqual(['"I\'m leaving," he said. "Don\'t follow me."'])
+    expect(mergeDialogueChunks(['"I\'m leaving," he said.', '"Don\'t follow me."'])).toEqual([
+      '"I\'m leaving," he said. "Don\'t follow me."',
+    ])
   })
 
   it('merges with curly quotes', () => {
@@ -86,9 +80,7 @@ describe('mergeDialogueChunks', () => {
         '\u201cI\u2019m leaving,\u201d he said.',
         '\u201cDon\u2019t follow me.\u201d',
       ]),
-    ).toEqual([
-      '\u201cI\u2019m leaving,\u201d he said. \u201cDon\u2019t follow me.\u201d',
-    ])
+    ).toEqual(['\u201cI\u2019m leaving,\u201d he said. \u201cDon\u2019t follow me.\u201d'])
   })
 
   it('does not merge when no speech verb in tail', () => {
@@ -103,20 +95,16 @@ describe('mergeDialogueChunks', () => {
 
   it('merges chains of attributed dialogue', () => {
     expect(
-      mergeDialogueChunks([
-        '"First," he said.',
-        '"Second," he continued.',
-        '"Third."',
-      ]),
+      mergeDialogueChunks(['"First," he said.', '"Second," he continued.', '"Third."']),
     ).toEqual(['"First," he said. "Second," he continued. "Third."'])
   })
 
   it('handles various speech verbs', () => {
     const verbs = ['whispered', 'shouted', 'asked', 'replied', 'murmured']
     for (const verb of verbs) {
-      expect(
-        mergeDialogueChunks([`"Hello," she ${verb}.`, '"Goodbye."']),
-      ).toEqual([`"Hello," she ${verb}. "Goodbye."`])
+      expect(mergeDialogueChunks([`"Hello," she ${verb}.`, '"Goodbye."'])).toEqual([
+        `"Hello," she ${verb}. "Goodbye."`,
+      ])
     }
   })
 
@@ -139,17 +127,11 @@ describe('mergeDialogueChunks', () => {
   it('does not merge when result would exceed max length', () => {
     const longDialogue = '"' + 'A'.repeat(400) + '," he said.'
     const nextDialogue = '"' + 'B'.repeat(100) + '."'
-    expect(mergeDialogueChunks([longDialogue, nextDialogue])).toEqual([
-      longDialogue,
-      nextDialogue,
-    ])
+    expect(mergeDialogueChunks([longDialogue, nextDialogue])).toEqual([longDialogue, nextDialogue])
   })
 
   it('does not merge action beats', () => {
-    const input = [
-      '"I can\'t believe it." She turned away.',
-      '"Neither can I."',
-    ]
+    const input = ['"I can\'t believe it." She turned away.', '"Neither can I."']
     expect(mergeDialogueChunks(input)).toEqual(input)
   })
 
@@ -158,8 +140,6 @@ describe('mergeDialogueChunks', () => {
   })
 
   it('returns single sentence unchanged', () => {
-    expect(mergeDialogueChunks(['"Hello," he said.'])).toEqual([
-      '"Hello," he said.',
-    ])
+    expect(mergeDialogueChunks(['"Hello," he said.'])).toEqual(['"Hello," he said.'])
   })
 })

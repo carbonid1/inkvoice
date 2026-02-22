@@ -44,7 +44,9 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         const manifestId = Object.keys(epub.manifest || {}).find(id => {
           const item = epub.manifest[id]
           const href = item.href ?? ''
-          return href.endsWith(src) || src.endsWith(href) || normalizePath(href) === normalizePath(src)
+          return (
+            href.endsWith(src) || src.endsWith(href) || normalizePath(href) === normalizePath(src)
+          )
         })
 
         if (!manifestId) return null

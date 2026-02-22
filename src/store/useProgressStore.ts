@@ -16,11 +16,7 @@ export type Progress = {
 type ProgressState = {
   progress: Record<string, Progress>
   setProgress: (bookId: string, chapter: number, sentence: number) => void
-  setBookMetadata: (
-    bookId: string,
-    totalChapters: number,
-    sentencesPerChapter: number[],
-  ) => void
+  setBookMetadata: (bookId: string, totalChapters: number, sentencesPerChapter: number[]) => void
   getProgress: (bookId: string) => Progress
 }
 
@@ -34,7 +30,7 @@ export const useProgressStore = create<ProgressState>()(
       progress: {},
 
       setProgress: (bookId, chapter, sentence) =>
-        set((state) => ({
+        set(state => ({
           progress: {
             ...state.progress,
             [bookId]: {
@@ -47,7 +43,7 @@ export const useProgressStore = create<ProgressState>()(
         })),
 
       setBookMetadata: (bookId, totalChapters, sentencesPerChapter) =>
-        set((state) => ({
+        set(state => ({
           progress: {
             ...state.progress,
             [bookId]: {
@@ -58,16 +54,14 @@ export const useProgressStore = create<ProgressState>()(
           },
         })),
 
-      getProgress: (bookId) => {
+      getProgress: bookId => {
         return get().progress[bookId] || DEFAULT_PROGRESS
       },
     }),
     {
       name: 'inkvoice-progress',
       version: 1,
-      storage: createJSONStorage<PersistedProgressState>(
-        () => createDebouncedStorage(),
-      ),
+      storage: createJSONStorage<PersistedProgressState>(() => createDebouncedStorage()),
       migrate: (_persisted, version) => {
         if (version === 0) {
           const old = localStorage.getItem('inkvoice-storage')
@@ -80,7 +74,7 @@ export const useProgressStore = create<ProgressState>()(
         }
         return { progress: {} }
       },
-      partialize: (state) => ({ progress: state.progress }),
+      partialize: state => ({ progress: state.progress }),
     },
   ),
 )

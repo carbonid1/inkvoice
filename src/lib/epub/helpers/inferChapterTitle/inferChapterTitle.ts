@@ -29,11 +29,9 @@ type InferTitleArgs = {
 const isAllCaps = (s: string): boolean =>
   s.replace(/[^a-zA-Z]/g, '').length > 0 && s === s.toUpperCase()
 
-const toTitleCase = (s: string): string =>
-  s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+const toTitleCase = (s: string): string => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
 
-const normalize = (s: string): string =>
-  (isAllCaps(s) ? toTitleCase(s) : s).replace(/:$/, '')
+const normalize = (s: string): string => (isAllCaps(s) ? toTitleCase(s) : s).replace(/:$/, '')
 
 export const inferChapterTitle = (args: InferTitleArgs, fallbackIndex: number): string => {
   if (args.htmlHeading) return normalize(args.htmlHeading)

@@ -9,9 +9,9 @@ describe('applyPronunciations', () => {
   })
 
   it('handles possessives', () => {
-    expect(
-      applyPronunciations("Baudin's sword was sharp", { Baudin: 'Baw-din' }),
-    ).toBe("Baw-din's sword was sharp")
+    expect(applyPronunciations("Baudin's sword was sharp", { Baudin: 'Baw-din' })).toBe(
+      "Baw-din's sword was sharp",
+    )
   })
 
   it('is case-insensitive', () => {
@@ -30,9 +30,7 @@ describe('applyPronunciations', () => {
   })
 
   it('does not replace partial word matches', () => {
-    expect(applyPronunciations('Baudinger walked', { Baudin: 'Baw-din' })).toBe(
-      'Baudinger walked',
-    )
+    expect(applyPronunciations('Baudinger walked', { Baudin: 'Baw-din' })).toBe('Baudinger walked')
   })
 
   it('returns text unchanged with empty map', () => {
@@ -40,27 +38,23 @@ describe('applyPronunciations', () => {
   })
 
   it('handles multiple occurrences', () => {
-    expect(
-      applyPronunciations('Baudin saw Baudin', { Baudin: 'Baw-din' }),
-    ).toBe('Baw-din saw Baw-din')
+    expect(applyPronunciations('Baudin saw Baudin', { Baudin: 'Baw-din' })).toBe(
+      'Baw-din saw Baw-din',
+    )
   })
 
   it('does not break on regex special characters in keys', () => {
-    expect(
-      applyPronunciations('Price is $100 today', { '$100': 'one hundred' }),
-    ).toBe('Price is $100 today')
+    expect(applyPronunciations('Price is $100 today', { $100: 'one hundred' })).toBe(
+      'Price is $100 today',
+    )
   })
 
   it('handles word at start of text', () => {
-    expect(applyPronunciations('Baudin spoke', { Baudin: 'Baw-din' })).toBe(
-      'Baw-din spoke',
-    )
+    expect(applyPronunciations('Baudin spoke', { Baudin: 'Baw-din' })).toBe('Baw-din spoke')
   })
 
   it('handles word at end of text', () => {
-    expect(applyPronunciations('I see Baudin', { Baudin: 'Baw-din' })).toBe(
-      'I see Baw-din',
-    )
+    expect(applyPronunciations('I see Baudin', { Baudin: 'Baw-din' })).toBe('I see Baw-din')
   })
 
   it('handles punctuation after word', () => {

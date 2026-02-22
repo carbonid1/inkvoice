@@ -14,17 +14,15 @@ type PersistedPronunciationState = Pick<PronunciationState, 'version'>
 
 export const usePronunciationStore = create<PronunciationState>()(
   persist(
-    (set) => ({
+    set => ({
       version: 0,
-      bumpVersion: () => set((s) => ({ version: s.version + 1 })),
+      bumpVersion: () => set(s => ({ version: s.version + 1 })),
     }),
     {
       name: 'inkvoice-pronunciation',
       version: 1,
-      storage: createJSONStorage<PersistedPronunciationState>(
-        () => createDebouncedStorage(),
-      ),
-      partialize: (state) => ({ version: state.version }),
+      storage: createJSONStorage<PersistedPronunciationState>(() => createDebouncedStorage()),
+      partialize: state => ({ version: state.version }),
     },
   ),
 )

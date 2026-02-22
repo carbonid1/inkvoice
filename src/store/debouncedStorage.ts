@@ -29,7 +29,7 @@ export const createDebouncedStorage = (): StateStorage => {
   }
 
   return {
-    getItem: (name) => {
+    getItem: name => {
       if (typeof window === 'undefined') return null
       return localStorage.getItem(name)
     },
@@ -44,7 +44,7 @@ export const createDebouncedStorage = (): StateStorage => {
       if (pending.timeout) clearTimeout(pending.timeout)
       pending.timeout = setTimeout(flushStorage, 1000)
     },
-    removeItem: (name) => {
+    removeItem: name => {
       if (typeof window === 'undefined') return
       flushStorage()
       localStorage.removeItem(name)

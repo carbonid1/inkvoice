@@ -3,8 +3,8 @@
 import { BookIcon } from '@/components/icons/BookIcon'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
-import { useProgressStore } from '@/store/useProgressStore'
 import type { Book } from '@/lib/types/book'
+import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useState } from 'react'
 

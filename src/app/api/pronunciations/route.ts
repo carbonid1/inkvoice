@@ -14,18 +14,12 @@ export const PUT = async (request: NextRequest) => {
     const entries = body.entries as Record<string, string> | undefined
 
     if (!entries || typeof entries !== 'object') {
-      return NextResponse.json(
-        { error: 'Body must contain an "entries" object' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'Body must contain an "entries" object' }, { status: 400 })
     }
 
     await pronunciationService.writeMap(entries)
     return NextResponse.json(entries)
   } catch {
-    return NextResponse.json(
-      { error: 'Invalid JSON body' },
-      { status: 400 },
-    )
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 }

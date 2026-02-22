@@ -14,20 +14,18 @@ type PersistedVoiceState = Pick<VoiceState, 'voice'>
 
 export const useVoiceStore = create<VoiceState>()(
   persist(
-    (set) => ({
+    set => ({
       voice: 'narrator',
-      setVoice: (voice) => set({ voice }),
+      setVoice: voice => set({ voice }),
     }),
     {
       name: 'inkvoice-voice',
       version: 3,
-      storage: createJSONStorage<PersistedVoiceState>(
-        () => createDebouncedStorage(),
-      ),
+      storage: createJSONStorage<PersistedVoiceState>(() => createDebouncedStorage()),
       migrate: () => {
         return { voice: 'narrator' }
       },
-      partialize: (state) => ({ voice: state.voice }),
+      partialize: state => ({ voice: state.voice }),
     },
   ),
 )

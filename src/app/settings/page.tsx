@@ -1,12 +1,12 @@
 'use client'
 
-import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 
 type VoiceEntry = {
   name: string
@@ -202,8 +202,8 @@ export default function Settings() {
                 <p className="text-sm text-amber-600 dark:text-amber-400">{previewError}</p>
               )}
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Voice changes apply to new audio generation. Cached audio will use the
-                original settings.
+                Voice changes apply to new audio generation. Cached audio will use the original
+                settings.
               </p>
             </div>
           )}

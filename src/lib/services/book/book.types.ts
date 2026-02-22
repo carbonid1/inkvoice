@@ -1,10 +1,4 @@
-import type {
-  Book,
-  BookMetadata,
-  BookOverview,
-  ParsedBook,
-  ParsedChapter,
-} from '@/lib/types/book'
+import type { Book, BookMetadata, BookOverview, ParsedBook, ParsedChapter } from '@/lib/types/book'
 
 export interface BookService {
   /** List all available books */
