@@ -99,6 +99,11 @@ describe('splitIntoSentences', () => {
       const result = splitIntoSentences("'I shall get you food and drink, then.' Mappo left.")
       expect(result).toEqual(["'I shall get you food and drink, then.'", 'Mappo left.'])
     })
+
+    it('keeps dialogue with proper noun subject + speech verb as one sentence', () => {
+      const result = splitIntoSentences("'And you?' Fiddler asked.")
+      expect(result).toEqual(["'And you?' Fiddler asked."])
+    })
   })
 
   describe('existing behavior preserved', () => {

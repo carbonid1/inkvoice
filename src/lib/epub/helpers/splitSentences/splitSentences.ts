@@ -1,4 +1,5 @@
 import { ABBREVIATIONS } from '../../epub.consts'
+import { SPEECH_VERBS } from '../mergeDialogueChunks/mergeDialogueChunks.consts'
 import { findEllipsisRanges } from './helpers/findEllipsisRanges/findEllipsisRanges'
 import { isEllipsisDot } from './helpers/isEllipsisDot/isEllipsisDot'
 
@@ -55,11 +56,18 @@ export const splitIntoSentences = (text: string): string[] => {
     // Check if match includes a trailing closing quote (e.g. ?' or !" or .')
     const hasTrailingQuote = match[0].length >= 2 && /["'\u201d\u2019]/.test(match[0][1]!)
 
-    // Punctuation + closing quote + lowercase continuation = dialogue attribution,
-    // not a sentence boundary (e.g. 'Why are you here?' he whispered.)
+    // Punctuation + closing quote + dialogue attribution = not a sentence boundary
+    // Handles both lowercase (?' he asked.) and proper noun (?' Fiddler asked.)
     if (hasTrailingQuote) {
-      const afterMatch = cleaned[idx + match[0].length]
-      if (afterMatch && /[a-z]/.test(afterMatch)) continue
+      const afterText = cleaned.slice(idx + match[0].length)
+      if (afterText && /^[a-z]/.test(afterText)) continue
+      const words = afterText
+        .slice(0, 80)
+        .toLowerCase()
+        .replace(/[.,!?;:]/g, '')
+        .split(/\s+/)
+        .slice(0, 4)
+      if (words.some(w => SPEECH_VERBS.has(w))) continue
     }
 
     // Include trailing closing quote in the sentence text when present
