@@ -52,8 +52,19 @@ export const splitIntoSentences = (text: string): string[] => {
       if (!SENTENCE_START_AFTER_ELLIPSIS.test(afterText)) continue
     }
 
-    // ! and ? are always sentence endings (no special handling needed)
-    const sentence = cleaned.slice(start, idx + 1).trim()
+    // Check if match includes a trailing closing quote (e.g. ?' or !" or .')
+    const hasTrailingQuote = match[0].length >= 2 && /["'\u201d\u2019]/.test(match[0][1]!)
+
+    // Punctuation + closing quote + lowercase continuation = dialogue attribution,
+    // not a sentence boundary (e.g. 'Why are you here?' he whispered.)
+    if (hasTrailingQuote) {
+      const afterMatch = cleaned[idx + match[0].length]
+      if (afterMatch && /[a-z]/.test(afterMatch)) continue
+    }
+
+    // Include trailing closing quote in the sentence text when present
+    const sentenceEnd = hasTrailingQuote ? idx + 2 : idx + 1
+    const sentence = cleaned.slice(start, sentenceEnd).trim()
     if (sentence) sentences.push(sentence)
     start = idx + match[0].length
   }

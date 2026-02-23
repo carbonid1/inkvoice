@@ -69,6 +69,38 @@ describe('splitIntoSentences', () => {
     })
   })
 
+  describe('dialogue attribution after closing quote', () => {
+    it('keeps dialogue with attribution as one sentence', () => {
+      const result = splitIntoSentences("'Why are you here?' he whispered. 'Do you know why?")
+      expect(result).toEqual(["'Why are you here?' he whispered.", "'Do you know why?"])
+    })
+
+    it('splits at closing quote when followed by uppercase (new sentence)', () => {
+      const result = splitIntoSentences("'Are you sure?' The door opened.")
+      expect(result).toEqual(["'Are you sure?'", 'The door opened.'])
+    })
+
+    it('preserves closing quote with exclamation', () => {
+      const result = splitIntoSentences("'Watch out!' She turned and ran.")
+      expect(result).toEqual(["'Watch out!'", 'She turned and ran.'])
+    })
+
+    it('keeps exclamation attribution as one sentence', () => {
+      const result = splitIntoSentences("'Watch out!' she screamed. 'Run!'")
+      expect(result).toEqual(["'Watch out!' she screamed.", "'Run!'"])
+    })
+
+    it('handles period + closing quote + attribution', () => {
+      const result = splitIntoSentences("'I shall get you food and drink, then.' he muttered.")
+      expect(result).toEqual(["'I shall get you food and drink, then.' he muttered."])
+    })
+
+    it('splits period + closing quote when uppercase follows', () => {
+      const result = splitIntoSentences("'I shall get you food and drink, then.' Mappo left.")
+      expect(result).toEqual(["'I shall get you food and drink, then.'", 'Mappo left.'])
+    })
+  })
+
   describe('existing behavior preserved', () => {
     it('splits regular sentences', () => {
       const result = splitIntoSentences('Hello world. How are you? Fine!')
