@@ -51,4 +51,22 @@ describe('splitNodeIntoSentences', () => {
     expect(result.length).toBeGreaterThanOrEqual(2)
     expect(result[0]?.html).toContain('<em>')
   })
+
+  it('preserves italic tag when it wraps the last sentence', () => {
+    const el = makeElement(
+      '<p>Mappo left the small room, the combination raising an echo that brought Kalam to mind. <i>Did you outrun the storm, old friend?</i></p>',
+    )
+    const result = splitNodeIntoSentences(el)
+
+    expect(result).toHaveLength(2)
+    expect(result[1]?.html).toBe('<i>Did you outrun the storm, old friend?</i>')
+  })
+
+  it('preserves nested tags across sentence boundary', () => {
+    const el = makeElement('<p>He paused. <strong><em>This was important.</em></strong></p>')
+    const result = splitNodeIntoSentences(el)
+
+    expect(result).toHaveLength(2)
+    expect(result[1]?.html).toBe('<strong><em>This was important.</em></strong>')
+  })
 })

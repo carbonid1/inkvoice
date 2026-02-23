@@ -50,22 +50,12 @@ export const splitNodeIntoSentences = (node: Element): SentenceMapping[] => {
 
       // Advance remaining strings
       plainRemaining = plainRemaining.slice(sentencePos + sentence.length).trim()
-      const htmlConsumed = htmlSlice.length
-      // Find next sentence start in remaining HTML by matching the next word
-      const nextSentence = sentences[i + 1]
-      if (nextSentence) {
-        const nextWord = nextSentence.split(/\s/)[0]
-        if (nextWord) {
-          const nextWordPos = htmlRemaining.indexOf(nextWord, htmlConsumed - nextWord.length)
-          if (nextWordPos !== -1) {
-            htmlRemaining = htmlRemaining.slice(nextWordPos)
-          } else {
-            htmlRemaining = htmlRemaining.slice(htmlConsumed).trim()
-          }
-        } else {
-          htmlRemaining = htmlRemaining.slice(htmlConsumed).trim()
-        }
+      // Skip only whitespace after the consumed HTML, preserving any opening tags
+      let nextStart = htmlSlice.length
+      while (nextStart < htmlRemaining.length && /\s/.test(htmlRemaining[nextStart]!)) {
+        nextStart++
       }
+      htmlRemaining = htmlRemaining.slice(nextStart)
     }
   }
 
