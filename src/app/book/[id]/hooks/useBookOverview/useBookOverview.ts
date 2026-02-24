@@ -1,6 +1,6 @@
 'use client'
 
-import type { BookOverview } from '@/lib/types/book'
+import type { BookOverview, ChunkingMode } from '@/lib/types/book'
 import { useHydrated } from '@/store/useHydrated'
 import { useLibraryStore } from '@/store/useLibraryStore'
 import { useProgressStore } from '@/store/useProgressStore'
@@ -14,7 +14,10 @@ type UseBookOverviewResult = {
   initialSentence: number
 }
 
-export const useBookOverview = (bookId: string): UseBookOverviewResult => {
+export const useBookOverview = (
+  bookId: string,
+  chunkingMode: ChunkingMode,
+): UseBookOverviewResult => {
   const hydrated = useHydrated()
   const getProgress = useProgressStore(s => s.getProgress)
   const setBookMetadata = useProgressStore(s => s.setBookMetadata)
@@ -32,7 +35,7 @@ export const useBookOverview = (bookId: string): UseBookOverviewResult => {
 
     const fetchOverview = async () => {
       try {
-        const response = await fetch(`/api/book/${bookId}`)
+        const response = await fetch(`/api/book/${bookId}?mode=${chunkingMode}`)
         if (!response.ok) {
           if (response.status === 404) throw new Error('Book not found')
           throw new Error('Failed to load book')
@@ -66,7 +69,7 @@ export const useBookOverview = (bookId: string): UseBookOverviewResult => {
     }
 
     fetchOverview()
-  }, [bookId, hydrated, getProgress, setCurrentBook, setBookMetadata])
+  }, [bookId, chunkingMode, hydrated, getProgress, setCurrentBook, setBookMetadata])
 
   return useMemo(
     () => ({ overview, loading, error, initialChapter, initialSentence }),

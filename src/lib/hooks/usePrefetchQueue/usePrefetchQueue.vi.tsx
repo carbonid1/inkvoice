@@ -19,6 +19,7 @@ const stableOptions = () => {
     bookId: 'test-book',
     voice: 'narrator',
     pronunciationVersion: 0,
+    chunkingMode: 'sentence' as const,
     chaptersRef: { current: chapters },
     currentChapterRef: { current: 0 },
     currentSentenceRef: { current: 0 },

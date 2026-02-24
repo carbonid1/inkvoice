@@ -1,3 +1,4 @@
+import type { ChunkingMode } from '@/lib/types/book'
 import { ABBREVIATIONS } from '../../epub.consts'
 import { SPEECH_VERBS } from '../mergeDialogueChunks/mergeDialogueChunks.consts'
 import { findEllipsisRanges } from './helpers/findEllipsisRanges/findEllipsisRanges'
@@ -24,9 +25,13 @@ export const isValidSentenceEnd = (text: string, index: number): boolean => {
 // After an ellipsis, uppercase or opening quote signals a new sentence
 const SENTENCE_START_AFTER_ELLIPSIS = /^[A-Z\u201c\u2018"']/
 
-export const splitIntoSentences = (text: string): string[] => {
+export const splitTextChunks = (text: string, mode: ChunkingMode = 'sentence'): string[] => {
   const cleaned = text.replace(/\s+/g, ' ').trim()
   if (!cleaned) return []
+
+  // Paragraph mode: entire text as one chunk (paragraph boundaries
+  // are already handled at the HTML element level in parseHtml)
+  if (mode === 'paragraph') return [cleaned]
 
   const ellipsisRanges = findEllipsisRanges(cleaned)
 

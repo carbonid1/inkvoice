@@ -6,6 +6,7 @@ import { StopIcon } from '@/components/icons/StopIcon'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { ChunkingModeCard } from './components/ChunkingModeCard/ChunkingModeCard'
 import { ProgressDisplayCard } from './components/ProgressDisplayCard/ProgressDisplayCard'
 import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 
@@ -212,6 +213,7 @@ export default function Settings() {
 
         <PronunciationEditor />
         <ProgressDisplayCard />
+        <ChunkingModeCard />
       </main>
     </div>
   )

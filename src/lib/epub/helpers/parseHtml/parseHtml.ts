@@ -1,9 +1,9 @@
-import type { ContentBlock, TextSegment } from '@/lib/types/book'
+import type { ChunkingMode, ContentBlock, TextSegment } from '@/lib/types/book'
 import { JSDOM } from 'jsdom'
 import { getPlainText } from './helpers/getPlainText/getPlainText'
 import { isAttributionElement } from './helpers/isAttributionElement/isAttributionElement'
 import { isEpigraphElement } from './helpers/isEpigraphElement/isEpigraphElement'
-import { splitNodeIntoSentences } from './helpers/splitNodeIntoSentences/splitNodeIntoSentences'
+import { splitNodeIntoChunks } from './helpers/splitNodeIntoChunks/splitNodeIntoChunks'
 
 export { getInnerHtml } from './helpers/getInnerHtml/getInnerHtml'
 export { getPlainText } from './helpers/getPlainText/getPlainText'
@@ -25,13 +25,15 @@ const isLinkListParagraph = (el: Element): boolean => {
 export const parseHtmlContent = (
   html: string,
   getImage: (id: string) => Promise<string | null>,
+  chunkingMode: ChunkingMode = 'sentence',
 ): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
-  return parseHtmlContentSync(html, getImage)
+  return parseHtmlContentSync(html, getImage, chunkingMode)
 }
 
 const parseHtmlContentSync = async (
   html: string,
   getImage: (id: string) => Promise<string | null>,
+  chunkingMode: ChunkingMode = 'sentence',
 ): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
   const dom = new JSDOM(html)
   const doc = dom.window.document
@@ -40,10 +42,10 @@ const parseHtmlContentSync = async (
   const content: ContentBlock[] = []
   const sentences: string[] = []
 
-  // Convert an element's text into sentence-aligned segments, registering each
-  // sentence in the shared sentences array. Returns null if the element is empty.
+  // Convert an element's text into chunk-aligned segments, registering each
+  // chunk in the shared sentences array. Returns null if the element is empty.
   const toSegments = (node: Element): TextSegment[] | null => {
-    const mappings = splitNodeIntoSentences(node)
+    const mappings = splitNodeIntoChunks(node, chunkingMode)
     if (mappings.length === 0) return null
     return mappings.map(m => {
       const idx = sentences.length

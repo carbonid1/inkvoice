@@ -56,7 +56,7 @@ describe('useBookOverview', () => {
 
   it('returns loading initially', () => {
     vi.mocked(fetch).mockReturnValue(new Promise(() => {}))
-    const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
+    const { result } = renderHook(() => useBookOverview('book-1', 'sentence'), { wrapper })
 
     expect(result.current.loading).toBe(true)
     expect(result.current.overview).toBeNull()
@@ -70,7 +70,7 @@ describe('useBookOverview', () => {
       json: () => Promise.resolve(overview),
     } as Response)
 
-    const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
+    const { result } = renderHook(() => useBookOverview('book-1', 'sentence'), { wrapper })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
@@ -88,7 +88,7 @@ describe('useBookOverview', () => {
       json: () => Promise.resolve(overview),
     } as Response)
 
-    const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
+    const { result } = renderHook(() => useBookOverview('book-1', 'sentence'), { wrapper })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
@@ -104,7 +104,7 @@ describe('useBookOverview', () => {
       json: () => Promise.resolve(overview),
     } as Response)
 
-    const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
+    const { result } = renderHook(() => useBookOverview('book-1', 'sentence'), { wrapper })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
@@ -121,7 +121,7 @@ describe('useBookOverview', () => {
       json: () => Promise.resolve(overview),
     } as Response)
 
-    const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
+    const { result } = renderHook(() => useBookOverview('book-1', 'sentence'), { wrapper })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
@@ -136,7 +136,7 @@ describe('useBookOverview', () => {
       status: 404,
     } as Response)
 
-    const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
+    const { result } = renderHook(() => useBookOverview('book-1', 'sentence'), { wrapper })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 
@@ -150,7 +150,7 @@ describe('useBookOverview', () => {
       status: 500,
     } as Response)
 
-    const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
+    const { result } = renderHook(() => useBookOverview('book-1', 'sentence'), { wrapper })
 
     await waitFor(() => expect(result.current.loading).toBe(false))
 

@@ -7,10 +7,11 @@ import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { ParsedChapter } from '@/lib/types/book'
+import { useDisplayStore } from '@/store/useDisplayStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
@@ -19,7 +20,11 @@ export default function BookReader() {
   const params = useParams()
   const bookId = params.id as string
 
-  const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(bookId)
+  const chunkingMode = useDisplayStore(s => s.chunkingMode)
+  const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(
+    bookId,
+    chunkingMode,
+  )
 
   const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
   const [currentChapter, setCurrentChapter] = useState(initialChapter)
@@ -46,6 +51,16 @@ export default function BookReader() {
     setCurrentSentence(initialSentence)
   }, [initialChapter, initialSentence])
 
+  // Reset sentence position when chunking mode changes
+  const prevModeRef = useRef(chunkingMode)
+  useEffect(() => {
+    if (prevModeRef.current !== chunkingMode) {
+      prevModeRef.current = chunkingMode
+      setCurrentSentence(0)
+      setProgress(bookId, currentChapter, 0)
+    }
+  }, [chunkingMode, bookId, currentChapter, setProgress])
+
   // Fetch chapter content when currentChapter changes
   useEffect(() => {
     if (!overview) return
@@ -53,7 +68,9 @@ export default function BookReader() {
     const fetchChapter = async () => {
       setChapterLoading(true)
       try {
-        const response = await fetch(`/api/book/${bookId}/chapter/${currentChapter}`)
+        const response = await fetch(
+          `/api/book/${bookId}/chapter/${currentChapter}?mode=${chunkingMode}`,
+        )
         if (!response.ok) throw new Error('Failed to load chapter')
         const data: ParsedChapter = await response.json()
         setChapterData(data)
@@ -65,7 +82,7 @@ export default function BookReader() {
     }
 
     fetchChapter()
-  }, [bookId, overview, currentChapter])
+  }, [bookId, overview, currentChapter, chunkingMode])
 
   const handleProgressChange = useCallback(
     (chapter: number, sentence: number) => {

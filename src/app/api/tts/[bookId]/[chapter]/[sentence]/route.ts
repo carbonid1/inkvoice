@@ -1,3 +1,4 @@
+import { parseChunkingMode } from '@/app/api/helpers/parseChunkingMode/parseChunkingMode'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { pronunciationService } from '@/lib/services/pronunciation/pronunciation.service'
@@ -10,6 +11,7 @@ export async function GET(
 ) {
   const { bookId, chapter, sentence } = await params
   const voice = request.nextUrl.searchParams.get('voice') || 'narrator'
+  const mode = parseChunkingMode(request.nextUrl.searchParams)
   const chapterIdx = parseInt(chapter, 10)
   const sentenceIdx = parseInt(sentence, 10)
 
@@ -23,7 +25,7 @@ export async function GET(
 
   try {
     // Get sentence text (uses cached ParsedBook)
-    const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
+    const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx, mode)
     if (!rawText) {
       return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
     }

@@ -1,5 +1,12 @@
 import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
-import type { Book, BookMetadata, BookOverview, ParsedBook, ParsedChapter } from '@/lib/types/book'
+import type {
+  Book,
+  BookMetadata,
+  BookOverview,
+  ChunkingMode,
+  ParsedBook,
+  ParsedChapter,
+} from '@/lib/types/book'
 import { findBookFile, getBookIdFromFilename, listEpubFiles, readBookFile } from './book.helpers'
 import type { BookService } from './book.types'
 import { countWords } from './helpers/countWords/countWords'
@@ -12,19 +19,25 @@ class BookCache {
   private cache = new Map<string, ParsedBook>()
   private maxSize = 5 // Keep at most 5 books in memory
 
-  get(bookId: string): ParsedBook | undefined {
-    return this.cache.get(bookId)
+  get(bookId: string, mode: ChunkingMode = 'sentence'): ParsedBook | undefined {
+    return this.cache.get(`${bookId}:${mode}`)
   }
 
-  set(bookId: string, book: ParsedBook): void {
+  /** Find any cached parse for a book, regardless of chunking mode */
+  getAny(bookId: string): ParsedBook | undefined {
+    return this.cache.get(`${bookId}:sentence`) ?? this.cache.get(`${bookId}:paragraph`)
+  }
+
+  set(bookId: string, mode: ChunkingMode = 'sentence', book: ParsedBook): void {
+    const key = `${bookId}:${mode}`
     // Evict oldest if at capacity
-    if (this.cache.size >= this.maxSize && !this.cache.has(bookId)) {
+    if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
       const firstKey = this.cache.keys().next().value
       if (firstKey) {
         this.cache.delete(firstKey)
       }
     }
-    this.cache.set(bookId, book)
+    this.cache.set(key, book)
   }
 
   clear(): void {
@@ -65,9 +78,9 @@ class BookServiceImpl implements BookService {
     return books
   }
 
-  async getBook(bookId: string): Promise<ParsedBook | null> {
+  async getBook(bookId: string, mode: ChunkingMode = 'sentence'): Promise<ParsedBook | null> {
     // Check cache first
-    const cached = this.cache.get(bookId)
+    const cached = this.cache.get(bookId, mode)
     if (cached) {
       return cached
     }
@@ -79,16 +92,19 @@ class BookServiceImpl implements BookService {
     }
 
     const arrayBuffer = await readBookFile(filename)
-    const book = await parseEpub(arrayBuffer, bookId)
+    const book = await parseEpub(arrayBuffer, bookId, mode)
 
     // Cache for future requests
-    this.cache.set(bookId, book)
+    this.cache.set(bookId, mode, book)
 
     return book
   }
 
-  async getBookOverview(bookId: string): Promise<BookOverview | null> {
-    const book = await this.getBook(bookId)
+  async getBookOverview(
+    bookId: string,
+    mode: ChunkingMode = 'sentence',
+  ): Promise<BookOverview | null> {
+    const book = await this.getBook(bookId, mode)
     if (!book) return null
     return {
       id: book.id,
@@ -102,14 +118,23 @@ class BookServiceImpl implements BookService {
     }
   }
 
-  async getChapter(bookId: string, chapterIndex: number): Promise<ParsedChapter | null> {
-    const book = await this.getBook(bookId)
+  async getChapter(
+    bookId: string,
+    chapterIndex: number,
+    mode: ChunkingMode = 'sentence',
+  ): Promise<ParsedChapter | null> {
+    const book = await this.getBook(bookId, mode)
     if (!book) return null
     return book.chapters[chapterIndex] ?? null
   }
 
-  async getSentence(bookId: string, chapter: number, sentence: number): Promise<string | null> {
-    const book = await this.getBook(bookId)
+  async getSentence(
+    bookId: string,
+    chapter: number,
+    sentence: number,
+    mode: ChunkingMode = 'sentence',
+  ): Promise<string | null> {
+    const book = await this.getBook(bookId, mode)
     if (!book) {
       return null
     }
@@ -124,7 +149,7 @@ class BookServiceImpl implements BookService {
 
   async getMetadata(bookId: string): Promise<BookMetadata | null> {
     // Check if already cached (can get metadata from cached book)
-    const cached = this.cache.get(bookId)
+    const cached = this.cache.getAny(bookId)
     if (cached) {
       return { title: cached.title, author: cached.author }
     }
