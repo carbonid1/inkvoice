@@ -45,6 +45,7 @@ export const PlayerContainer = ({
   const audioPlayer = useAudioPlayer({
     onEnded: () => {
       if (!position.advanceToNext()) {
+        playingPositionRef.current = null
         audioPlayer.setPlaying(false)
       }
     },
@@ -61,7 +62,8 @@ export const PlayerContainer = ({
     prefetchEnabled,
   })
 
-  const { setLoading, setError, play, shouldPlay, pause, setPlaying, isPlaying } = audioPlayer
+  const { setLoading, setError, play, resume, shouldPlay, pause, setPlaying, isPlaying } =
+    audioPlayer
   const { fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures } = prefetch
 
   const playCurrentSentence = useCallback(async () => {
@@ -135,10 +137,17 @@ export const PlayerContainer = ({
 
   // Play when position changes and isPlaying
   useEffect(() => {
-    if (isPlaying) {
+    if (!isPlaying) return
+
+    const pos = playingPositionRef.current
+    const isSameSentence = pos !== null && pos.ch === currentChapter && pos.sent === currentSentence
+
+    if (isSameSentence) {
+      resume()
+    } else {
       playCurrentSentence()
     }
-  }, [isPlaying, currentChapter, currentSentence, playCurrentSentence])
+  }, [isPlaying, currentChapter, currentSentence, playCurrentSentence, resume])
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {

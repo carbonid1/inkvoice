@@ -1,11 +1,43 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { type MockInstance, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAudioPlayer } from './useAudioPlayer'
+
+type MockAudio = {
+  play: MockInstance
+  pause: MockInstance
+  src: string
+  currentTime: number
+  onended: (() => void) | null
+  onerror: (() => void) | null
+}
+
+const createMockAudio = (): MockAudio => ({
+  play: vi.fn().mockResolvedValue(undefined),
+  pause: vi.fn(),
+  src: '',
+  currentTime: 0,
+  onended: null,
+  onerror: null,
+})
+
+let mockAudio: MockAudio
+
+beforeEach(() => {
+  mockAudio = createMockAudio()
+  // Must use function() — arrow functions can't be called with `new`
+  vi.stubGlobal(
+    'Audio',
+    vi.fn(function () {
+      return mockAudio
+    }),
+  )
+})
 
 describe('useAudioPlayer', () => {
   describe('callback referential stability', () => {
     const callbacks = [
       'play',
+      'resume',
       'pause',
       'setPlaying',
       'setLoading',
@@ -41,6 +73,103 @@ describe('useAudioPlayer', () => {
         error: result.current.error,
       }
       expect(stateAfterSecond).toEqual(stateAfterFirst)
+    })
+  })
+
+  describe('play', () => {
+    it('sets src on the audio element', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      expect(mockAudio.src).toBe('blob:http://localhost/abc')
+    })
+
+    it('sets isPlaying to true after playing', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      expect(result.current.isPlaying).toBe(true)
+    })
+  })
+
+  describe('resume', () => {
+    it('does not change src on the audio element', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      act(() => result.current.pause())
+
+      const srcBeforeResume = mockAudio.src
+
+      await act(() => result.current.resume())
+
+      expect(mockAudio.src).toBe(srcBeforeResume)
+    })
+
+    it('calls play() on the underlying element without pause() first', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      act(() => result.current.pause())
+
+      mockAudio.play.mockClear()
+      mockAudio.pause.mockClear()
+
+      await act(() => result.current.resume())
+
+      expect(mockAudio.play).toHaveBeenCalledOnce()
+      expect(mockAudio.pause).not.toHaveBeenCalled()
+    })
+
+    it('sets isPlaying to true', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      act(() => result.current.pause())
+      expect(result.current.isPlaying).toBe(false)
+
+      await act(() => result.current.resume())
+      expect(result.current.isPlaying).toBe(true)
+    })
+
+    it('sets error message when underlying play() rejects with Error', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      act(() => result.current.pause())
+
+      mockAudio.play.mockRejectedValueOnce(new Error('NotAllowedError'))
+
+      await act(() => result.current.resume())
+      expect(result.current.error).toBe('NotAllowedError')
+      expect(result.current.isPlaying).toBe(false)
+    })
+
+    it('sets fallback error when underlying play() rejects with non-Error', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      act(() => result.current.pause())
+
+      mockAudio.play.mockRejectedValueOnce('some string rejection')
+
+      await act(() => result.current.resume())
+      expect(result.current.error).toBe('Failed to resume audio')
+      expect(result.current.isPlaying).toBe(false)
+    })
+  })
+
+  describe('play → pause → resume flow', () => {
+    it('preserves currentTime through the full cycle', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      mockAudio.currentTime = 12.5
+
+      act(() => result.current.pause())
+      expect(mockAudio.currentTime).toBe(12.5)
+
+      await act(() => result.current.resume())
+      expect(mockAudio.currentTime).toBe(12.5)
+      expect(mockAudio.src).toBe('blob:http://localhost/abc')
     })
   })
 })

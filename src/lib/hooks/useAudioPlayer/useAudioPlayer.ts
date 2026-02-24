@@ -72,6 +72,20 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
     }
   }, [])
 
+  const resume = useCallback(async () => {
+    if (!audioRef.current) return
+
+    wantToPlayRef.current = true
+
+    try {
+      await audioRef.current.play()
+      setState(s => (s.isPlaying ? s : { ...s, isPlaying: true, error: null }))
+    } catch (e) {
+      const error = e instanceof Error ? e.message : 'Failed to resume audio'
+      setState(s => ({ ...s, error, isPlaying: false }))
+    }
+  }, [])
+
   const pause = useCallback(() => {
     wantToPlayRef.current = false
     audioRef.current?.pause()
@@ -102,12 +116,13 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
     () => ({
       ...state,
       play,
+      resume,
       pause,
       setPlaying,
       setLoading,
       setError,
       shouldPlay,
     }),
-    [state, play, pause, setPlaying, setLoading, setError, shouldPlay],
+    [state, play, resume, pause, setPlaying, setLoading, setError, shouldPlay],
   )
 }
