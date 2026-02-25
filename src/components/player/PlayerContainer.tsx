@@ -65,19 +65,29 @@ export const PlayerContainer = ({
     prefetchEnabled,
   })
 
-  const { setLoading, setError, play, resume, shouldPlay, pause, setPlaying, isPlaying } =
+  const { setLoading, setError, play, resume, shouldPlay, pause, stop, setPlaying, isPlaying } =
     audioPlayer
   const { fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures } = prefetch
 
+  // Counter to detect when a newer playCurrentSentence call has superseded this one
+  const playIdRef = useRef(0)
+
   const playCurrentSentence = useCallback(async () => {
+    const myId = ++playIdRef.current
     const targetChapter = currentChapter
     const targetSentence = currentSentence
 
+    // Stop old audio immediately so its onEnded won't fire during fetch
+    stop()
     setLoading(true)
     setError(null)
 
     try {
       const url = await fetchAudio(targetChapter, targetSentence)
+
+      // Bail if a newer call has started
+      if (playIdRef.current !== myId) return
+
       if (!url) {
         setLoading(false)
         return
@@ -100,13 +110,21 @@ export const PlayerContainer = ({
 
       playingPositionRef.current = { ch: targetChapter, sent: targetSentence }
       await play(url)
+
+      // Bail if superseded during play
+      if (playIdRef.current !== myId) return
+
       continuePrefetching()
     } catch (e) {
+      if (playIdRef.current !== myId) return
       if (e instanceof Error && e.name === 'AbortError') return
       setError(e instanceof Error ? e.message : 'Failed to play audio')
       setPlaying(false)
     } finally {
-      setLoading(false)
+      // Only the latest call controls loading state
+      if (playIdRef.current === myId) {
+        setLoading(false)
+      }
     }
   }, [
     currentChapter,
@@ -116,6 +134,7 @@ export const PlayerContainer = ({
     fetchAudio,
     shouldPlay,
     play,
+    stop,
     continuePrefetching,
     setPlaying,
     position.currentChapterRef,

@@ -92,6 +92,14 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
     setState(s => (s.isPlaying ? { ...s, isPlaying: false } : s))
   }, [])
 
+  // Stop playback and clear source so onended won't fire
+  const stop = useCallback(() => {
+    if (!audioRef.current) return
+    audioRef.current.pause()
+    audioRef.current.removeAttribute('src')
+    audioRef.current.load()
+  }, [])
+
   const setPlaying = useCallback((playing: boolean) => {
     if (playing) {
       wantToPlayRef.current = true
@@ -118,11 +126,12 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
       play,
       resume,
       pause,
+      stop,
       setPlaying,
       setLoading,
       setError,
       shouldPlay,
     }),
-    [state, play, resume, pause, setPlaying, setLoading, setError, shouldPlay],
+    [state, play, resume, pause, stop, setPlaying, setLoading, setError, shouldPlay],
   )
 }

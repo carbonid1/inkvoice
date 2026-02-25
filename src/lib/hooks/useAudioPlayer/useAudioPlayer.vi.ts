@@ -5,6 +5,8 @@ import { useAudioPlayer } from './useAudioPlayer'
 type MockAudio = {
   play: MockInstance
   pause: MockInstance
+  load: MockInstance
+  removeAttribute: MockInstance
   src: string
   currentTime: number
   onended: (() => void) | null
@@ -14,6 +16,8 @@ type MockAudio = {
 const createMockAudio = (): MockAudio => ({
   play: vi.fn().mockResolvedValue(undefined),
   pause: vi.fn(),
+  load: vi.fn(),
+  removeAttribute: vi.fn(),
   src: '',
   currentTime: 0,
   onended: null,
@@ -39,6 +43,7 @@ describe('useAudioPlayer', () => {
       'play',
       'resume',
       'pause',
+      'stop',
       'setPlaying',
       'setLoading',
       'setError',
@@ -154,6 +159,22 @@ describe('useAudioPlayer', () => {
       await act(() => result.current.resume())
       expect(result.current.error).toBe('Failed to resume audio')
       expect(result.current.isPlaying).toBe(false)
+    })
+  })
+
+  describe('stop', () => {
+    it('pauses and clears source so onended cannot fire', async () => {
+      const onEnded = vi.fn()
+      const { result } = renderHook(() => useAudioPlayer({ onEnded }))
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      mockAudio.pause.mockClear()
+
+      act(() => result.current.stop())
+
+      expect(mockAudio.pause).toHaveBeenCalledOnce()
+      expect(mockAudio.removeAttribute).toHaveBeenCalledWith('src')
+      expect(mockAudio.load).toHaveBeenCalledOnce()
     })
   })
 
