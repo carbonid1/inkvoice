@@ -5,7 +5,7 @@ export interface CacheService {
   get(text: string, voice: string): Promise<Buffer | null>
 
   /** Store audio in cache */
-  set(text: string, voice: string, audio: Buffer): Promise<void>
+  set(text: string, voice: string, audio: Buffer, bookId?: string): Promise<void>
 
   /** Get cache statistics */
   getStats(): Promise<CacheStats>

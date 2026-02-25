@@ -11,6 +11,8 @@ interface CacheEntry {
   lastAccess: number
   size: number
   createdAt: number
+  bookId?: string
+  voice?: string
 }
 
 interface CacheMetadata {
@@ -101,7 +103,7 @@ class TTSCacheService implements CacheService {
     }
   }
 
-  async set(text: string, voice: string, audio: Buffer): Promise<void> {
+  async set(text: string, voice: string, audio: Buffer, bookId?: string): Promise<void> {
     await this.ensureInitialized()
 
     const hash = getCacheHash(text, voice)
@@ -110,7 +112,7 @@ class TTSCacheService implements CacheService {
 
     // Check if we need to evict
     if (this.metadata.totalSize + size > env.maxCacheSizeBytes) {
-      await this.evictLRU(size)
+      await this.evictLRU(size, bookId, voice)
     }
 
     try {
@@ -120,6 +122,8 @@ class TTSCacheService implements CacheService {
         lastAccess: Date.now(),
         size,
         createdAt: Date.now(),
+        bookId,
+        voice,
       }
       this.metadata.totalSize += size
 
@@ -154,14 +158,26 @@ class TTSCacheService implements CacheService {
     await this.saveMetadata()
   }
 
-  private async evictLRU(bytesNeeded: number): Promise<void> {
-    // Sort entries by lastAccess (oldest first)
-    const entries = Object.entries(this.metadata.entries).sort(
-      (a, b) => a[1].lastAccess - b[1].lastAccess,
-    )
+  private async evictLRU(
+    bytesNeeded: number,
+    activeBookId?: string,
+    activeVoice?: string,
+  ): Promise<void> {
+    const allEntries = Object.entries(this.metadata.entries)
+
+    // Evict other books/voices first, then fall back to active book (all LRU-ordered)
+    const isActive = (e: CacheEntry) =>
+      activeBookId !== undefined && e.bookId === activeBookId && e.voice === activeVoice
+    const other = allEntries
+      .filter(([, e]) => !isActive(e))
+      .sort((a, b) => a[1].lastAccess - b[1].lastAccess)
+    const active = allEntries
+      .filter(([, e]) => isActive(e))
+      .sort((a, b) => a[1].lastAccess - b[1].lastAccess)
+    const evictionOrder = [...other, ...active]
 
     let freed = 0
-    for (const [hash, entry] of entries) {
+    for (const [hash, entry] of evictionOrder) {
       if (freed >= bytesNeeded) break
 
       const filePath = path.join(this.cacheDir, `${hash}.wav`)

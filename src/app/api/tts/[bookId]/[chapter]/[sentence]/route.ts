@@ -52,7 +52,7 @@ export async function GET(
     const { audio } = await ttsService.generate(text, voice)
 
     // Cache the result
-    await cacheService.set(text, voice, audio).catch(err => {
+    await cacheService.set(text, voice, audio, bookId).catch(err => {
       console.error('Failed to cache TTS audio:', err)
     })
     const stats = await cacheService.getStats()
@@ -73,6 +73,11 @@ export async function GET(
         { error: 'TTS API is not running. Please start the Python server.' },
         { status: 503 },
       )
+    }
+
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      console.warn('TTS generation timed out')
+      return NextResponse.json({ error: 'TTS generation timed out' }, { status: 504 })
     }
 
     console.error('TTS error:', error)
