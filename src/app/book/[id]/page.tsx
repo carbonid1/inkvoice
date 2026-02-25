@@ -1,6 +1,6 @@
 'use client'
 
-import { DebugMetrics, DebugPanel } from '@/components/DebugPanel'
+import { DebugPanel, type DebugMetrics, type PlaybackMetrics } from '@/components/DebugPanel'
 import { Reader } from '@/components/Reader/Reader'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
@@ -31,15 +31,11 @@ export default function BookReader() {
   const [currentSentence, setCurrentSentence] = useState(initialSentence)
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
-  const [debugMetrics, setDebugMetrics] = useState<DebugMetrics>({
+  const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
     isGenerating: false,
     ahead: 0,
     cacheUsedMB: 0,
     cacheMaxMB: 800,
-    currentSentence: 0,
-    totalSentences: 0,
-    currentChapter: 0,
-    totalChapters: 0,
   })
 
   const setProgress = useProgressStore(s => s.setProgress)
@@ -100,18 +96,6 @@ export default function BookReader() {
     [handleProgressChange],
   )
 
-  // Sync position into debug metrics
-  useEffect(() => {
-    if (!overview) return
-    setDebugMetrics(prev => ({
-      ...prev,
-      currentSentence,
-      totalSentences: overview.chapters[currentChapter]?.sentenceCount ?? 0,
-      currentChapter,
-      totalChapters: overview.chapters.length,
-    }))
-  }, [currentChapter, currentSentence, overview])
-
   // Toggle debug panel with 'D' key
   useHotkeys('d', () => setShowDebug(prev => !prev))
 
@@ -135,6 +119,14 @@ export default function BookReader() {
         </Link>
       </div>
     )
+  }
+
+  const debugMetrics: DebugMetrics = {
+    ...playbackMetrics,
+    currentSentence,
+    totalSentences: overview.chapters[currentChapter]?.sentenceCount ?? 0,
+    currentChapter,
+    totalChapters: overview.chapters.length,
   }
 
   return (
@@ -201,7 +193,7 @@ export default function BookReader() {
         currentChapter={currentChapter}
         currentSentence={currentSentence}
         onProgressChange={handleProgressChange}
-        onDebugUpdate={setDebugMetrics}
+        onDebugUpdate={setPlaybackMetrics}
       />
 
       <DebugPanel metrics={debugMetrics} visible={showDebug} />

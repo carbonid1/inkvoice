@@ -1,6 +1,6 @@
 'use client'
 
-import type { DebugMetrics } from '@/components/DebugPanel'
+import type { PlaybackMetrics } from '@/components/DebugPanel'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
@@ -20,7 +20,7 @@ interface PlayerContainerProps {
   currentChapter: number
   currentSentence: number
   onProgressChange: (chapter: number, sentence: number) => void
-  onDebugUpdate?: (updater: (prev: DebugMetrics) => DebugMetrics) => void
+  onDebugUpdate?: (updater: (prev: PlaybackMetrics) => PlaybackMetrics) => void
 }
 
 export const PlayerContainer = ({
@@ -118,7 +118,13 @@ export const PlayerContainer = ({
     } catch (e) {
       if (playIdRef.current !== myId) return
       if (e instanceof Error && e.name === 'AbortError') return
-      setError(e instanceof Error ? e.message : 'Failed to play audio')
+      const message =
+        e instanceof DOMException && e.name === 'TimeoutError'
+          ? 'TTS generation timed out — try skipping to the next paragraph'
+          : e instanceof Error
+            ? e.message
+            : 'Failed to play audio'
+      setError(message)
       setPlaying(false)
     } finally {
       // Only the latest call controls loading state

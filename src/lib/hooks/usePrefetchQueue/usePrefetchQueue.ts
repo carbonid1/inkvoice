@@ -1,6 +1,6 @@
 'use client'
 
-import type { DebugMetrics } from '@/components/DebugPanel'
+import type { PlaybackMetrics } from '@/components/DebugPanel'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 import { useFetchLifecycle } from '@/lib/hooks/useFetchLifecycle/useFetchLifecycle'
 import type { ChapterInfo, ChunkingMode } from '@/lib/types/book'
@@ -14,11 +14,13 @@ interface UsePrefetchQueueOptions {
   chaptersRef: React.MutableRefObject<ChapterInfo[]>
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
-  onDebugUpdate?: (updater: (prev: DebugMetrics) => DebugMetrics) => void
+  onDebugUpdate?: (updater: (prev: PlaybackMetrics) => PlaybackMetrics) => void
   prefetchEnabled: boolean
 }
 
 const MAX_CONCURRENT_PREFETCH = 1
+const MAX_PREFETCH_AHEAD = 30
+const FETCH_TIMEOUT_MS = 90_000
 
 export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   const {
@@ -117,7 +119,10 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     if (!mountedRef.current) return
     if (inFlightRef.current.size >= MAX_CONCURRENT_PREFETCH) return
     if (consecutiveFailuresRef.current >= 3) return
-    if (!prefetchEnabledRef.current && countAhead() >= 5) return
+
+    const ahead = countAhead()
+    if (!prefetchEnabledRef.current && ahead >= 5) return
+    if (ahead >= MAX_PREFETCH_AHEAD) return
 
     const next = findNextToPrefetch()
     if (!next) return
@@ -129,8 +134,17 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     inFlightRef.current.add(key)
     updateDebugMetrics()
 
-    fetch(url, { signal: abortControllerRef.current.signal, cache: 'no-store' })
-      .then(response => {
+    fetch(url, {
+      signal: AbortSignal.any([
+        abortControllerRef.current.signal,
+        AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      ]),
+      cache: 'no-store',
+    })
+      .then(async response => {
+        // Consume body to free the HTTP connection
+        await response.arrayBuffer()
+
         if (!response.ok) {
           consecutiveFailuresRef.current++
           return
@@ -177,7 +191,10 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
       try {
         const response = await fetch(url, {
-          signal: abortControllerRef.current.signal,
+          signal: AbortSignal.any([
+            abortControllerRef.current.signal,
+            AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          ]),
           cache: 'no-store',
         })
         if (!response.ok) {

@@ -3,16 +3,21 @@
 import { useDisplayStore } from '@/store/useDisplayStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 
-export interface DebugMetrics {
+export type PlaybackMetrics = {
   isGenerating: boolean
   ahead: number
   cacheUsedMB: number
   cacheMaxMB: number
+}
+
+export type PositionMetrics = {
   currentSentence: number
   totalSentences: number
   currentChapter: number
   totalChapters: number
 }
+
+export type DebugMetrics = PlaybackMetrics & PositionMetrics
 
 interface DebugPanelProps {
   metrics: DebugMetrics
