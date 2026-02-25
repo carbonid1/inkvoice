@@ -9,8 +9,8 @@ type MockAudio = {
   removeAttribute: MockInstance
   src: string
   currentTime: number
-  onended: (() => void) | null
-  onerror: (() => void) | null
+  onended: ((ev: Event) => void) | null
+  onerror: ((ev: Event) => void) | null
 }
 
 const createMockAudio = (): MockAudio => ({
@@ -163,7 +163,7 @@ describe('useAudioPlayer', () => {
   })
 
   describe('stop', () => {
-    it('pauses and clears source so onended cannot fire', async () => {
+    it('pauses and suppresses stale onended events', async () => {
       const onEnded = vi.fn()
       const { result } = renderHook(() => useAudioPlayer({ onEnded }))
 
@@ -173,8 +173,15 @@ describe('useAudioPlayer', () => {
       act(() => result.current.stop())
 
       expect(mockAudio.pause).toHaveBeenCalledOnce()
-      expect(mockAudio.removeAttribute).toHaveBeenCalledWith('src')
-      expect(mockAudio.load).toHaveBeenCalledOnce()
+
+      // Stale onended should be suppressed
+      act(() => mockAudio.onended?.({} as Event))
+      expect(onEnded).not.toHaveBeenCalled()
+
+      // After play(), onended should fire normally again
+      await act(() => result.current.play('blob:http://localhost/def'))
+      act(() => mockAudio.onended?.({} as Event))
+      expect(onEnded).toHaveBeenCalledOnce()
     })
   })
 
