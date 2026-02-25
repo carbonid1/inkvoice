@@ -33,9 +33,13 @@ export const useBookOverview = (
   useEffect(() => {
     if (!hydrated) return
 
+    const controller = new AbortController()
+
     const fetchOverview = async () => {
       try {
-        const response = await fetch(`/api/book/${bookId}?mode=${chunkingMode}`)
+        const response = await fetch(`/api/book/${bookId}?mode=${chunkingMode}`, {
+          signal: controller.signal,
+        })
         if (!response.ok) {
           if (response.status === 404) throw new Error('Book not found')
           throw new Error('Failed to load book')
@@ -62,13 +66,17 @@ export const useBookOverview = (
           setInitialSentence(0)
         }
       } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return
         setError(e instanceof Error ? e.message : 'Unknown error')
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchOverview()
+    return () => controller.abort()
   }, [bookId, chunkingMode, hydrated, getProgress, setCurrentBook, setBookMetadata])
 
   return useMemo(
