@@ -1,6 +1,8 @@
 import { env } from '@/lib/config/env'
 import type { TTSService } from './tts.types'
 
+const TTS_TIMEOUT_MS = 90_000
+
 class ChatterboxTTSService implements TTSService {
   async generate(
     text: string,
@@ -10,6 +12,7 @@ class ChatterboxTTSService implements TTSService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, voice }),
+      signal: AbortSignal.timeout(TTS_TIMEOUT_MS),
     })
 
     if (!response.ok) {
