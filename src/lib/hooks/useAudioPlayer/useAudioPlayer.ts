@@ -75,6 +75,11 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
       await audioRef.current.play()
       setState(s => (s.isPlaying && !s.isLoading ? s : { ...s, isPlaying: true, isLoading: false }))
     } catch (e) {
+      // play() interrupted by pause() or stop() — not a real error
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        setState(s => (s.isLoading ? { ...s, isLoading: false } : s))
+        return
+      }
       const error = e instanceof Error ? e.message : 'Failed to play audio'
       setState(s => ({ ...s, error, isPlaying: false, isLoading: false }))
     }
@@ -89,6 +94,7 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
       await audioRef.current.play()
       setState(s => (s.isPlaying ? s : { ...s, isPlaying: true, error: null }))
     } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return
       const error = e instanceof Error ? e.message : 'Failed to resume audio'
       setState(s => ({ ...s, error, isPlaying: false }))
     }

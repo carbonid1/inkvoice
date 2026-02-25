@@ -185,6 +185,41 @@ describe('useAudioPlayer', () => {
     })
   })
 
+  describe('play interrupted by pause', () => {
+    it('does not set error when play() is aborted by pause()', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      // Simulate play() being interrupted by pause() — browser throws AbortError
+      const abortError = new DOMException(
+        'The play() request was interrupted by a call to pause().',
+        'AbortError',
+      )
+      mockAudio.play.mockRejectedValueOnce(abortError)
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+
+      expect(result.current.error).toBeNull()
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    it('does not set error when resume() is aborted by pause()', async () => {
+      const { result } = renderHook(() => useAudioPlayer())
+
+      await act(() => result.current.play('blob:http://localhost/abc'))
+      act(() => result.current.pause())
+
+      const abortError = new DOMException(
+        'The play() request was interrupted by a call to pause().',
+        'AbortError',
+      )
+      mockAudio.play.mockRejectedValueOnce(abortError)
+
+      await act(() => result.current.resume())
+
+      expect(result.current.error).toBeNull()
+    })
+  })
+
   describe('play → pause → resume flow', () => {
     it('preserves currentTime through the full cycle', async () => {
       const { result } = renderHook(() => useAudioPlayer())
