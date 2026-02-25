@@ -5,6 +5,7 @@ import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { PauseIcon } from '@/components/icons/PauseIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
+import { useHotkeys } from 'react-hotkeys-hook'
 
 interface PlaybackControlsProps {
   isPlaying: boolean
@@ -21,6 +22,10 @@ export const PlaybackControls = ({
   onSkipBack,
   onSkipForward,
 }: PlaybackControlsProps) => {
+  useHotkeys('space', onPlayPause, { preventDefault: true })
+  useHotkeys('left', onSkipBack)
+  useHotkeys('right', onSkipForward)
+
   return (
     <div className="flex items-center justify-center gap-4">
       <button
