@@ -33,11 +33,18 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
   // Track user intent to allow pausing while loading
   const wantToPlayRef = useRef(true)
 
+  // When stop() is called, suppress stale onended events from the previous audio
+  const suppressEndedRef = useRef(false)
+
   // Initialize audio element once
   useEffect(() => {
     audioRef.current = new Audio()
 
     audioRef.current.onended = () => {
+      if (suppressEndedRef.current) {
+        suppressEndedRef.current = false
+        return
+      }
       onEndedRef.current?.()
     }
 
@@ -58,6 +65,7 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
   const play = useCallback(async (audioUrl: string) => {
     if (!audioRef.current) return
 
+    suppressEndedRef.current = false
     wantToPlayRef.current = true
     setState(s => (s.isLoading && !s.error ? s : { ...s, isLoading: true, error: null }))
 
@@ -92,12 +100,11 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
     setState(s => (s.isPlaying ? { ...s, isPlaying: false } : s))
   }, [])
 
-  // Stop playback and clear source so onended won't fire
+  // Stop playback and suppress any pending onended from the old audio
   const stop = useCallback(() => {
     if (!audioRef.current) return
+    suppressEndedRef.current = true
     audioRef.current.pause()
-    audioRef.current.removeAttribute('src')
-    audioRef.current.load()
   }, [])
 
   const setPlaying = useCallback((playing: boolean) => {
