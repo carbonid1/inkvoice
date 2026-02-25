@@ -268,6 +268,44 @@ describe('usePrefetchQueue', () => {
       expect(signal.aborted).toBe(false)
     })
 
+    it('continues prefetching past 30 regardless of cache misses', async () => {
+      // Regression: previously a single MISS would stop prefetching if ahead >= 30
+      const chapters = makeChapters([45])
+      const opts = {
+        ...stableOptions(),
+        chaptersRef: { current: chapters },
+        currentChapterRef: { current: 0 },
+        currentSentenceRef: { current: 0 },
+      }
+
+      const mockHeaders = new Headers({
+        'X-Cache': 'MISS',
+        'X-Cache-Used': '500000000',
+        'X-Cache-Max': '800000000',
+      })
+
+      fetchMock.mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          headers: mockHeaders,
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        } as unknown as Response),
+      )
+
+      const { result } = renderHook(() => usePrefetchQueue(opts))
+
+      result.current.continuePrefetching()
+
+      await waitFor(
+        () => {
+          // All 44 sentences ahead (1 through 44) should be prefetched
+          // even though they're all MISSes — old code would stop at 30
+          expect(fetchMock).toHaveBeenCalledTimes(44)
+        },
+        { timeout: 10000 },
+      )
+    })
+
     it('passes abort signal to fetchAudio', async () => {
       fetchMock.mockResolvedValue(
         new Response(new Blob(), {

@@ -19,7 +19,7 @@ interface UsePrefetchQueueOptions {
 }
 
 const MAX_CONCURRENT_PREFETCH = 1
-const MAX_PREFETCH_AHEAD = 30
+const MAX_PREFETCH_AHEAD = 120
 const FETCH_TIMEOUT_MS = 90_000
 
 export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
