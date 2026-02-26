@@ -114,8 +114,9 @@ curl -X POST http://localhost:8000/tts \
 
 ## Plan Mode
 
-- Make plans extremely concise
-- End with unresolved questions, if any
+- Make the plan extremely concise. Sacrifice grammar for the sake of concision.
+- List skills to load during implementation (e.g., `tdd`). Plans lose skill context — explicitly naming them ensures they get activated.
+- At the end of each plan, give me a list of unresolved questions to answer, if any.
 
 ## Verification
 
