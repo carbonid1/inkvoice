@@ -1,6 +1,7 @@
 'use client'
 
 import type { PlaybackMetrics } from '@/components/DebugPanel'
+import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
@@ -20,6 +21,8 @@ interface PlayerContainerProps {
   currentSentence: number
   onProgressChange: (chapter: number, sentence: number) => void
   onDebugUpdate?: (updater: (prev: PlaybackMetrics) => PlaybackMetrics) => void
+  isCurrentBookmarked?: boolean
+  onBookmarkToggle?: () => void
 }
 
 export const PlayerContainer = ({
@@ -29,6 +32,8 @@ export const PlayerContainer = ({
   currentSentence,
   onProgressChange,
   onDebugUpdate,
+  isCurrentBookmarked,
+  onBookmarkToggle,
 }: PlayerContainerProps) => {
   const voice = useVoiceStore(s => s.voice)
   const chunkingMode = useDisplayStore(s => s.chunkingMode)
@@ -186,7 +191,7 @@ export const PlayerContainer = ({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto relative">
         {audioPlayer.error && (
           <div className="text-sm text-red-600 dark:text-red-400 mb-2 text-center">
             {audioPlayer.error}
@@ -200,6 +205,23 @@ export const PlayerContainer = ({
           onSkipBack={position.skipBack}
           onSkipForward={position.skipForward}
         />
+
+        {onBookmarkToggle && (
+          <button
+            onClick={onBookmarkToggle}
+            className="absolute right-0 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title={isCurrentBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+          >
+            <BookmarkIcon
+              className={`w-5 h-5 ${
+                isCurrentBookmarked
+                  ? 'text-amber-500 dark:text-amber-400'
+                  : 'text-gray-400 dark:text-gray-500'
+              }`}
+              filled={isCurrentBookmarked}
+            />
+          </button>
+        )}
       </div>
     </div>
   )

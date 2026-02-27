@@ -1,17 +1,22 @@
 'use client'
 
+import { BookmarkDrawer } from '@/components/BookmarkDrawer/BookmarkDrawer'
 import { DebugPanel, type DebugMetrics, type PlaybackMetrics } from '@/components/DebugPanel'
 import { Reader } from '@/components/Reader/Reader'
+import { RecoveryBanner } from '@/components/RecoveryBanner/RecoveryBanner'
+import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
+import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { ParsedChapter } from '@/lib/types/book'
+import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { useDisplayStore } from '@/store/useDisplayStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
@@ -31,6 +36,7 @@ export default function BookReader() {
   const [currentSentence, setCurrentSentence] = useState(initialSentence)
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
     isGenerating: false,
     ahead: 0,
@@ -96,8 +102,28 @@ export default function BookReader() {
     [handleProgressChange],
   )
 
-  // Toggle debug panel with 'D' key
+  // Bookmarks
+  const fetchBookmarks = useBookmarkStore(s => s.fetchBookmarks)
+  const bookmarksForBook = useBookmarkStore(s => s.bookmarks[bookId] ?? [])
+  const { isBookmarked: isCurrentBookmarked, toggle: toggleBookmark } = useBookmarkToggle({
+    bookId,
+    chapter: currentChapter,
+    sentence: currentSentence,
+    preview: chapterData?.sentences[currentSentence]?.trim() || undefined,
+  })
+  const bookmarkedSentences = useMemo(
+    () => new Set(bookmarksForBook.filter(b => b.chapter === currentChapter).map(b => b.sentence)),
+    [bookmarksForBook, currentChapter],
+  )
+
+  useEffect(() => {
+    fetchBookmarks(bookId)
+  }, [bookId, fetchBookmarks])
+
+  // Keyboard shortcuts
   useHotkeys('d', () => setShowDebug(prev => !prev))
+  useHotkeys('b', toggleBookmark)
+  useHotkeys('shift+b', () => setDrawerOpen(prev => !prev))
 
   const showChapterLoading = useDebouncedLoading(chapterLoading)
   const currentProgress = getProgress(bookId)
@@ -120,6 +146,17 @@ export default function BookReader() {
       </div>
     )
   }
+
+  const chapterNames = overview.chapters.map(ch => ch.title)
+
+  const recoveryBookmark =
+    bookmarksForBook.length > 0
+      ? bookmarksForBook.reduce((latest, b) => (b.createdAt > latest.createdAt ? b : latest))
+      : undefined
+
+  const showRecoveryBanner =
+    recoveryBookmark !== undefined &&
+    (recoveryBookmark.chapter !== currentChapter || recoveryBookmark.sentence !== currentSentence)
 
   const debugMetrics: DebugMetrics = {
     ...playbackMetrics,
@@ -144,6 +181,13 @@ export default function BookReader() {
             <h1 className="font-semibold truncate">{overview.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{overview.author}</p>
           </div>
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            title="Bookmarks"
+          >
+            <BookmarkIcon className="w-5 h-5" />
+          </button>
         </div>
 
         {overview.chapters.length > 1 && (
@@ -173,12 +217,25 @@ export default function BookReader() {
       </header>
 
       <main className="max-w-3xl mx-auto">
+        {showRecoveryBanner && recoveryBookmark && (
+          <RecoveryBanner
+            chapterName={
+              chapterNames[recoveryBookmark.chapter] ?? `Chapter ${recoveryBookmark.chapter + 1}`
+            }
+            sentence={recoveryBookmark.sentence}
+            chunkingMode={chunkingMode}
+            onNavigate={() =>
+              handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.sentence)
+            }
+          />
+        )}
         {chapterData ? (
           <Reader
             chapter={chapterData}
             currentChapter={currentChapter}
             currentSentence={currentSentence}
             onSentenceClick={handleSentenceClick}
+            bookmarkedSentences={bookmarkedSentences}
           />
         ) : (
           <div className="flex items-center justify-center h-64 text-gray-500">
@@ -194,9 +251,20 @@ export default function BookReader() {
         currentSentence={currentSentence}
         onProgressChange={handleProgressChange}
         onDebugUpdate={setPlaybackMetrics}
+        isCurrentBookmarked={isCurrentBookmarked}
+        onBookmarkToggle={toggleBookmark}
       />
 
       <DebugPanel metrics={debugMetrics} visible={showDebug} />
+
+      <BookmarkDrawer
+        bookId={bookId}
+        isOpen={drawerOpen}
+        chunkingMode={chunkingMode}
+        onClose={() => setDrawerOpen(false)}
+        onNavigate={handleProgressChange}
+        chapterNames={chapterNames}
+      />
     </div>
   )
 }

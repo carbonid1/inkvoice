@@ -11,6 +11,7 @@ interface ReaderProps {
   currentChapter: number
   currentSentence: number
   onSentenceClick?: (chapter: number, sentence: number) => void
+  bookmarkedSentences?: Set<number>
 }
 
 const isAllCaps = (s: string): boolean =>
@@ -35,6 +36,7 @@ export const Reader = ({
   currentChapter,
   currentSentence,
   onSentenceClick,
+  bookmarkedSentences,
 }: ReaderProps) => {
   const currentSentenceRef = useRef<HTMLSpanElement>(null)
 
@@ -97,6 +99,7 @@ export const Reader = ({
           sentenceRef={currentSentenceRef}
           isInTitleGroup={titleGroupMember.has(idx)}
           isSubtitle={isSubtitle}
+          bookmarkedSentences={bookmarkedSentences}
         />
       )
     }
