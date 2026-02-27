@@ -2,6 +2,7 @@
 
 import type { PlaybackMetrics } from '@/components/DebugPanel'
 import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
+import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
@@ -207,20 +208,27 @@ export const PlayerContainer = ({
         />
 
         {onBookmarkToggle && (
-          <button
-            onClick={onBookmarkToggle}
-            className="absolute right-0 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title={isCurrentBookmarked ? 'Remove bookmark' : 'Add bookmark'}
-          >
-            <BookmarkIcon
-              className={`w-5 h-5 ${
-                isCurrentBookmarked
-                  ? 'text-amber-500 dark:text-amber-400'
-                  : 'text-gray-400 dark:text-gray-500'
-              }`}
-              filled={isCurrentBookmarked}
-            />
-          </button>
+          <div className="absolute right-0 top-1/2 -translate-y-1/2">
+            <Tooltip
+              label={isCurrentBookmarked ? 'Remove Bookmark' : 'Add Bookmark'}
+              shortcut="B"
+              position="top"
+            >
+              <button
+                onClick={onBookmarkToggle}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <BookmarkIcon
+                  className={`w-5 h-5 ${
+                    isCurrentBookmarked
+                      ? 'text-amber-500 dark:text-amber-400'
+                      : 'text-gray-400 dark:text-gray-500'
+                  }`}
+                  filled={isCurrentBookmarked}
+                />
+              </button>
+            </Tooltip>
+          </div>
         )}
       </div>
     </div>

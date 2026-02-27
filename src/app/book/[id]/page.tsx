@@ -2,12 +2,13 @@
 
 import { BookmarkDrawer } from '@/components/BookmarkDrawer/BookmarkDrawer'
 import { DebugPanel, type DebugMetrics, type PlaybackMetrics } from '@/components/DebugPanel'
-import { Reader } from '@/components/Reader/Reader'
-import { RecoveryBanner } from '@/components/RecoveryBanner/RecoveryBanner'
 import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { PlayerContainer } from '@/components/player/PlayerContainer'
+import { Reader } from '@/components/Reader/Reader'
+import { RecoveryBanner } from '@/components/RecoveryBanner/RecoveryBanner'
+import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { ParsedChapter } from '@/lib/types/book'
@@ -170,24 +171,26 @@ export default function BookReader() {
     <div className="min-h-screen pb-24">
       <header className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-4">
-          <Link
-            href="/"
-            className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-            title="Back to library"
-          >
-            <ChevronLeftIcon />
-          </Link>
+          <Tooltip label="Back to Library" position="bottom">
+            <Link
+              href="/"
+              className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <ChevronLeftIcon />
+            </Link>
+          </Tooltip>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold truncate">{overview.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{overview.author}</p>
           </div>
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-            title="Bookmarks"
-          >
-            <BookmarkIcon className="w-5 h-5" />
-          </button>
+          <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <BookmarkIcon className="w-5 h-5" />
+            </button>
+          </Tooltip>
         </div>
 
         {overview.chapters.length > 1 && (

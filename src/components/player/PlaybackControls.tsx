@@ -5,9 +5,10 @@ import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
 import { PauseIcon } from '@/components/icons/PauseIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
+import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useHotkeys } from 'react-hotkeys-hook'
 
-interface PlaybackControlsProps {
+type PlaybackControlsProps = {
   isPlaying: boolean
   isLoading: boolean
   onPlayPause: () => void
@@ -28,34 +29,37 @@ export const PlaybackControls = ({
 
   return (
     <div className="flex items-center justify-center gap-4">
-      <button
-        onClick={onSkipBack}
-        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        title="Previous sentence"
-      >
-        <ChevronLeftIcon className="w-6 h-6" />
-      </button>
+      <Tooltip label="Previous Sentence" shortcut="←" position="top">
+        <button
+          onClick={onSkipBack}
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          <ChevronLeftIcon className="w-6 h-6" />
+        </button>
+      </Tooltip>
 
-      <button
-        onClick={onPlayPause}
-        className="p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors relative"
-        title={isPlaying ? 'Pause' : 'Play'}
-      >
-        {isLoading && <SpinnerIcon className="w-6 h-6 animate-spin absolute inset-0 m-auto" />}
-        {isPlaying ? (
-          <PauseIcon className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
-        ) : (
-          <PlayIcon className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
-        )}
-      </button>
+      <Tooltip label={isPlaying ? 'Pause' : 'Play'} shortcut="Space" position="top">
+        <button
+          onClick={onPlayPause}
+          className="p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors relative"
+        >
+          {isLoading && <SpinnerIcon className="w-6 h-6 animate-spin absolute inset-0 m-auto" />}
+          {isPlaying ? (
+            <PauseIcon className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
+          ) : (
+            <PlayIcon className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
+          )}
+        </button>
+      </Tooltip>
 
-      <button
-        onClick={onSkipForward}
-        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        title="Next sentence"
-      >
-        <ChevronRightIcon />
-      </button>
+      <Tooltip label="Next Sentence" shortcut="→" position="top">
+        <button
+          onClick={onSkipForward}
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          <ChevronRightIcon />
+        </button>
+      </Tooltip>
     </div>
   )
 }
