@@ -3,6 +3,7 @@
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
 import type { RefObject } from 'react'
 import { isFilenameAlt } from '../helpers/isFilenameAlt/isFilenameAlt'
+import { renderSegments } from '../helpers/renderSegments/renderSegments'
 
 interface ContentBlockProps {
   block: ContentBlockType
@@ -13,35 +14,6 @@ interface ContentBlockProps {
   isInTitleGroup?: boolean
   isSubtitle?: boolean
   bookmarkedSentences?: Set<number>
-}
-
-const renderSegments = (
-  segments: TextSegment[] | undefined,
-  currentSentence: number,
-  onSentenceClick: ((chapter: number, sentence: number) => void) | undefined,
-  currentChapter: number,
-  sentenceRef: RefObject<HTMLSpanElement>,
-  bookmarkedSentences?: Set<number>,
-) => {
-  if (!segments) return null
-  return segments.map((segment, idx) => {
-    const isActive = segment.sentenceIndex === currentSentence
-    const isBookmarked = bookmarkedSentences?.has(segment.sentenceIndex) ?? false
-    return (
-      <span key={idx}>
-        <span
-          ref={isActive ? sentenceRef : undefined}
-          onClick={() => onSentenceClick?.(currentChapter, segment.sentenceIndex)}
-          className={`cursor-pointer transition-colors ${
-            isActive
-              ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded px-0.5 -mx-0.5'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-          } ${isBookmarked ? 'border-l-2 border-amber-400 dark:border-amber-500 pl-1 -ml-1' : ''}`}
-          dangerouslySetInnerHTML={{ __html: segment.html }}
-        />{' '}
-      </span>
-    )
-  })
 }
 
 export const ContentBlock = ({
@@ -55,14 +27,14 @@ export const ContentBlock = ({
   bookmarkedSentences,
 }: ContentBlockProps) => {
   const segments = (segs: TextSegment[] | undefined) =>
-    renderSegments(
-      segs,
+    renderSegments({
+      segments: segs,
       currentSentence,
       onSentenceClick,
       currentChapter,
       sentenceRef,
       bookmarkedSentences,
-    )
+    })
 
   switch (block.type) {
     case 'heading': {

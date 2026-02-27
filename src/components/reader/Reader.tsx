@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useRef } from 'react'
 import { ContentBlock } from './components/ContentBlock'
 import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
 import { findTitleGroupMembers } from './helpers/findTitleGroupMembers/findTitleGroupMembers'
+import { SegmentList } from './helpers/renderSegments/renderSegments'
 
 interface ReaderProps {
   chapter: ParsedChapter
@@ -131,9 +132,25 @@ export const Reader = ({
       }
     })
 
+    const duplicateBlock =
+      duplicateTitleIndex !== -1 ? normalizeCaps(content[duplicateTitleIndex]!) : undefined
+
     return (
       <div className={proseClasses}>
-        <h2 className="text-xl font-semibold mb-6">{chapter.title}</h2>
+        <h2 className="text-xl font-semibold mb-6">
+          {duplicateBlock?.segments ? (
+            <SegmentList
+              segments={duplicateBlock.segments}
+              currentSentence={currentSentence}
+              onSentenceClick={onSentenceClick}
+              currentChapter={currentChapter}
+              sentenceRef={currentSentenceRef}
+              bookmarkedSentences={bookmarkedSentences}
+            />
+          ) : (
+            chapter.title
+          )}
+        </h2>
         <div>{elements}</div>
       </div>
     )
