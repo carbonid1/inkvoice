@@ -20,6 +20,7 @@ import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
+import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 
 export default function BookReader() {
@@ -193,13 +194,13 @@ export default function BookReader() {
           </Tooltip>
         </div>
 
-        {overview.chapters.length > 1 && (
-          <div className="max-w-3xl mx-auto px-4 pb-2">
-            <div className="flex items-center gap-2">
+        <div className="max-w-3xl mx-auto px-4 pb-2">
+          <div className="flex items-center gap-2">
+            {overview.chapters.length > 1 && (
               <select
                 value={currentChapter}
                 onChange={e => handleProgressChange(Number(e.target.value), 0)}
-                className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 w-full max-w-xs"
+                className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 flex-1 min-w-0"
               >
                 {overview.chapters.map((chapter, idx) => (
                   <option key={idx} value={idx}>
@@ -207,10 +208,11 @@ export default function BookReader() {
                   </option>
                 ))}
               </select>
-              {showChapterLoading && <SpinnerIcon className="w-4 h-4 animate-spin text-gray-400" />}
-            </div>
+            )}
+            {showChapterLoading && <SpinnerIcon className="w-4 h-4 animate-spin text-gray-400" />}
+            <VoiceSelector bookId={bookId} />
           </div>
-        )}
+        </div>
 
         <ProgressIndicator
           chapter={currentChapter}

@@ -1,13 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mockBookmarks } from './helpers/mockBookmarks'
 import { mockTTS } from './helpers/mockTTS'
-
-const navigateToBook = async (page: import('@playwright/test').Page) => {
-  await page.goto('/')
-  await page.waitForSelector('a[href^="/book/"]')
-  await page.locator('a[href^="/book/"]').first().click()
-  await page.waitForSelector('header h1')
-}
+import { navigateToBook } from './helpers/navigateToBook'
 
 test.describe('bookmarks', () => {
   test('drawer shows bookmarks and supports navigation', async ({ page }) => {

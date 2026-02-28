@@ -3,6 +3,7 @@
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
+import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
@@ -10,16 +11,10 @@ import { ChunkingModeCard } from './components/ChunkingModeCard/ChunkingModeCard
 import { ProgressDisplayCard } from './components/ProgressDisplayCard/ProgressDisplayCard'
 import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 
-type VoiceEntry = {
-  name: string
-  hasSample: boolean
-}
-
 type PlayingState = { name: string; type: 'source' | 'sample' } | null
 
 export default function Settings() {
-  const [voices, setVoices] = useState<VoiceEntry[]>([])
-  const [loading, setLoading] = useState(true)
+  const { voices, loading } = useVoices()
   const [playingVoice, setPlayingVoice] = useState<PlayingState>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const voice = useVoiceStore(s => s.voice)
@@ -33,25 +28,6 @@ export default function Settings() {
         audioRef.current = null
       }
     }
-  }, [])
-
-  useEffect(() => {
-    const fetchVoices = async () => {
-      setLoading(true)
-      try {
-        const response = await fetch('/api/voices')
-        if (response.ok) {
-          const data = await response.json()
-          setVoices(data)
-        }
-      } catch (e) {
-        console.error('Failed to fetch voices:', e)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchVoices()
   }, [])
 
   const playPreview = async (voiceName: string, type: 'source' | 'sample') => {

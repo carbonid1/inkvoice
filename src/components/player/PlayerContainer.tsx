@@ -5,13 +5,13 @@ import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
+import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import type { ChapterInfo } from '@/lib/types/book'
 import { useDisplayStore } from '@/store/useDisplayStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { usePronunciationStore } from '@/store/usePronunciationStore'
-import { useVoiceStore } from '@/store/useVoiceStore'
 import { useCallback, useEffect, useRef } from 'react'
 import { PlaybackControls } from './PlaybackControls'
 
@@ -36,7 +36,7 @@ export const PlayerContainer = ({
   isCurrentBookmarked,
   onBookmarkToggle,
 }: PlayerContainerProps) => {
-  const voice = useVoiceStore(s => s.voice)
+  const { effectiveVoice: voice } = useBookVoice(bookId)
   const chunkingMode = useDisplayStore(s => s.chunkingMode)
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
   const pronunciationVersion = usePronunciationStore(s => s.version)
