@@ -1,4 +1,5 @@
 import { env } from '@/lib/config/env'
+import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { CacheStats } from '@/lib/types/api'
 import { createHash } from 'crypto'
 import fs from 'fs/promises'
@@ -21,7 +22,7 @@ interface CacheMetadata {
 }
 
 const getCacheHash = (text: string, voice: string): string => {
-  const input = `${text.trim()}|${voice || 'narrator'}`
+  const input = `${text.trim()}|${voice || DEFAULT_VOICE}`
   return createHash('sha256').update(input).digest('hex')
 }
 

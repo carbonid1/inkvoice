@@ -1,5 +1,6 @@
 'use client'
 
+import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
@@ -19,7 +20,7 @@ type PersistedVoiceState = Pick<VoiceState, 'voice' | 'bookVoices'>
 export const useVoiceStore = create<VoiceState>()(
   persist(
     set => ({
-      voice: 'narrator',
+      voice: DEFAULT_VOICE,
       bookVoices: {},
       setVoice: voice => set({ voice }),
       setBookVoice: (bookId, voice) =>
@@ -35,7 +36,7 @@ export const useVoiceStore = create<VoiceState>()(
             Object.entries(state.bookVoices).filter(([, v]) => v !== voiceName),
           )
           return {
-            voice: state.voice === voiceName ? 'narrator' : state.voice,
+            voice: state.voice === voiceName ? DEFAULT_VOICE : state.voice,
             bookVoices: updated,
           }
         }),
@@ -45,7 +46,7 @@ export const useVoiceStore = create<VoiceState>()(
       version: 4,
       storage: createJSONStorage<PersistedVoiceState>(() => createDebouncedStorage()),
       migrate: () => {
-        return { voice: 'narrator', bookVoices: {} }
+        return { voice: DEFAULT_VOICE, bookVoices: {} }
       },
       partialize: state => ({ voice: state.voice, bookVoices: state.bookVoices }),
     },

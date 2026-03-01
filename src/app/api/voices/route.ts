@@ -69,7 +69,8 @@ export const POST = async (request: Request) => {
 const SAMPLE_TEXT =
   'Night gathers, and now my watch begins. It shall not end until my death. ' +
   'I shall take no wife, hold no lands, father no children. I shall wear no crowns and win no glory. ' +
-  'I shall live and die at my post.'
+  'I shall live and die at my post. I am the sword in the darkness. I am the watcher on the walls. ' +
+  'I am the shield that guards the realms of men.'
 
 const generateSampleInBackground = async (voiceName: string) => {
   const response = await fetch(env.ttsApiUrl, {

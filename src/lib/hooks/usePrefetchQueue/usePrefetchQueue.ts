@@ -3,6 +3,7 @@
 import type { PlaybackMetrics } from '@/components/DebugPanel'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 import { useFetchLifecycle } from '@/lib/hooks/useFetchLifecycle/useFetchLifecycle'
+import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { ChapterInfo, ChunkingMode } from '@/lib/types/book'
 import { useCallback, useMemo, useRef } from 'react'
 
@@ -47,13 +48,13 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
   const getCacheKey = useCallback(
     (ch: number, sent: number) =>
-      `${ch}_${sent}_${voice ?? 'narrator'}_pv${pronunciationVersion}_${chunkingMode}`,
+      `${ch}_${sent}_${voice ?? DEFAULT_VOICE}_pv${pronunciationVersion}_${chunkingMode}`,
     [voice, pronunciationVersion, chunkingMode],
   )
 
   const getTTSUrl = useCallback(
     (ch: number, sent: number) =>
-      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? 'narrator')}&pv=${pronunciationVersion}&mode=${chunkingMode}`,
+      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}&pv=${pronunciationVersion}&mode=${chunkingMode}`,
     [bookId, voice, pronunciationVersion, chunkingMode],
   )
 

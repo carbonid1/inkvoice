@@ -1,11 +1,12 @@
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { getTTSService } from '@/lib/services/tts/tts.server'
+import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
   const text = body.text?.trim()
-  const voice = body.voice || 'narrator'
+  const voice = body.voice || DEFAULT_VOICE
 
   if (!text) {
     return NextResponse.json({ error: 'Text is required' }, { status: 400 })

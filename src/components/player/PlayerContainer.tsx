@@ -8,11 +8,12 @@ import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
+import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import type { ChapterInfo } from '@/lib/types/book'
 import { useDisplayStore } from '@/store/useDisplayStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { usePronunciationStore } from '@/store/usePronunciationStore'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -36,7 +37,9 @@ export const PlayerContainer = ({
   isCurrentBookmarked,
   onBookmarkToggle,
 }: PlayerContainerProps) => {
-  const { effectiveVoice: voice } = useBookVoice(bookId)
+  const { voices } = useVoices()
+  const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
+  const { effectiveVoice: voice } = useBookVoice(bookId, voiceNames)
   const chunkingMode = useDisplayStore(s => s.chunkingMode)
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
   const pronunciationVersion = usePronunciationStore(s => s.version)

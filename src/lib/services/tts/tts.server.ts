@@ -1,5 +1,6 @@
 import { env } from '@/lib/config/env'
 import type { TTSService } from './tts.types'
+import { TTSError } from './tts.types'
 
 const TTS_TIMEOUT_MS = 90_000
 
@@ -16,8 +17,11 @@ class ChatterboxTTSService implements TTSService {
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`TTS API error: ${error}`)
+      const errorText = await response.text()
+      if (response.status === 400 && errorText.toLowerCase().includes('not found')) {
+        throw new TTSError('VOICE_NOT_FOUND', errorText, 400)
+      }
+      throw new TTSError('TTS_FAILED', errorText, response.status)
     }
 
     const generationTimeMs = parseInt(response.headers.get('X-Generation-Time-Ms') || '0', 10)

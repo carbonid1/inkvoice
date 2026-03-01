@@ -5,6 +5,7 @@ import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
 import { VoiceOptionGroups } from '@/components/VoiceOptionGroups/VoiceOptionGroups'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
+import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
@@ -31,6 +32,14 @@ export default function Settings() {
       }
     }
   }, [])
+
+  // Auto-correct stale global voice when voice list loads
+  useEffect(() => {
+    if (loading || voices.length === 0) return
+    const voiceNames = voices.map(v => v.name)
+    const fallback = getVoiceFallback(voice, voiceNames)
+    if (fallback !== voice) setVoice(fallback)
+  }, [loading, voices, voice, setVoice])
 
   const playPreview = async (voiceName: string, type: 'source' | 'sample') => {
     setPreviewError(null)

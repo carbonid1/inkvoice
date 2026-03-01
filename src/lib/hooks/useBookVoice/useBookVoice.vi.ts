@@ -56,6 +56,42 @@ describe('useBookVoice', () => {
     expect(result.current.isOverridden).toBe(false)
   })
 
+  describe('voice validation with availableVoiceNames', () => {
+    it('returns stored voice when it exists in available list', () => {
+      useVoiceStore.setState({ voice: 'narrator', bookVoices: { 'book-1': 'casual' } })
+      const { result } = renderHook(() =>
+        useBookVoice('book-1', ['narrator', 'casual', 'announcer']),
+      )
+
+      expect(result.current.effectiveVoice).toBe('casual')
+      expect(result.current.isStale).toBe(false)
+    })
+
+    it('falls back to narrator when stored voice is missing from available list', () => {
+      useVoiceStore.setState({ voice: 'narrator', bookVoices: { 'book-1': 'deleted-voice' } })
+      const { result } = renderHook(() => useBookVoice('book-1', ['narrator', 'casual']))
+
+      expect(result.current.effectiveVoice).toBe('narrator')
+      expect(result.current.isStale).toBe(true)
+    })
+
+    it('falls back to first available when narrator is also missing', () => {
+      useVoiceStore.setState({ voice: 'deleted-global', bookVoices: {} })
+      const { result } = renderHook(() => useBookVoice('book-1', ['announcer', 'casual']))
+
+      expect(result.current.effectiveVoice).toBe('announcer')
+      expect(result.current.isStale).toBe(true)
+    })
+
+    it('skips validation when availableVoiceNames is not provided', () => {
+      useVoiceStore.setState({ voice: 'narrator', bookVoices: { 'book-1': 'deleted-voice' } })
+      const { result } = renderHook(() => useBookVoice('book-1'))
+
+      expect(result.current.effectiveVoice).toBe('deleted-voice')
+      expect(result.current.isStale).toBe(false)
+    })
+  })
+
   describe('callback referential stability', () => {
     it('setVoice is stable across rerenders', () => {
       const { result, rerender } = renderHook(() => useBookVoice('book-1'))
