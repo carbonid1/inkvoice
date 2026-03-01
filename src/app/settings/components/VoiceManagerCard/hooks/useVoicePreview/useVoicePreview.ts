@@ -47,7 +47,8 @@ export const useVoicePreview = () => {
       cleanup()
 
       try {
-        const response = await fetch(`/api/voices/${voiceName}/${type}?v=3`)
+        // Bump ?v= when samples are regenerated — API returns immutable cache headers
+        const response = await fetch(`/api/voices/${voiceName}/${type}?v=4`)
         if (!response.ok) {
           setError(`No ${type} available for "${voiceName}"`)
           setPlaying(null)

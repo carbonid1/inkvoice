@@ -59,10 +59,10 @@ test.describe('per-book voice selection', () => {
     }
 
     if (overrideOption) {
-      const overrideName = (await overrideOption.textContent()) ?? ''
+      const overrideName = (await overrideOption.locator('span').first().textContent()) ?? ''
       await overrideOption.click()
       // Button should now show the overridden voice name, not "Default"
-      await expect(bookVoiceButton).toContainText(overrideName.split('\n')[0] ?? '')
+      await expect(bookVoiceButton).toContainText(overrideName)
     }
 
     // 5. Go back to settings — global voice should be unchanged

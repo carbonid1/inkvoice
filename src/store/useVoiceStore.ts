@@ -43,7 +43,7 @@ export const useVoiceStore = create<VoiceState>()(
     }),
     {
       name: 'inkvoice-voice',
-      version: 4,
+      version: 5,
       storage: createJSONStorage<PersistedVoiceState>(() => createDebouncedStorage()),
       migrate: () => {
         return { voice: DEFAULT_VOICE, bookVoices: {} }
