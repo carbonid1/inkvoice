@@ -3,7 +3,6 @@
 import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useVoiceStore } from '@/store/useVoiceStore'
-import { DefaultVoiceSection } from './components/DefaultVoiceSection'
 import { VoiceList } from './components/VoiceList'
 import { VoiceUploadSection } from './components/VoiceUploadSection'
 import { useVoicePreview } from './hooks/useVoicePreview/useVoicePreview'
@@ -30,7 +29,10 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-      <h2 className="text-lg font-semibold mb-4">Voices</h2>
+      <h2 className="text-lg font-semibold mb-2">Voices</h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        Voice changes apply to new audio generation. Cached audio will use the original settings.
+      </p>
 
       {loading ? (
         <div className="text-gray-500">Loading voices...</div>
@@ -45,27 +47,20 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
-          <DefaultVoiceSection
-            voices={voices}
-            voice={voice}
-            onVoiceChange={setVoice}
-            playing={playing}
-            onPlay={play}
-            error={previewError}
-          />
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-
+        <div className="space-y-4">
           <VoiceList
             voices={voices}
+            selectedVoice={voice}
+            onSelect={setVoice}
             playing={playing}
             onPlay={play}
             onDelete={handleDelete}
             deleting={deleting}
           />
 
-          <hr className="border-gray-200 dark:border-gray-700" />
+          {previewError && (
+            <p className="text-sm text-amber-600 dark:text-amber-400">{previewError}</p>
+          )}
 
           <VoiceUploadSection onVoicesChanged={onVoicesChanged} />
         </div>

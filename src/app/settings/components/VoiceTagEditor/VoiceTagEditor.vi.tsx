@@ -31,7 +31,7 @@ describe('VoiceTagEditor', () => {
     const onTagsChanged = vi.fn()
     renderWith(<VoiceTagEditor tags={['male']} onTagsChanged={onTagsChanged} saving={false} />)
 
-    const input = screen.getByPlaceholderText('Add custom tag...')
+    const input = screen.getByPlaceholderText('Add tag...')
     fireEvent.change(input, { target: { value: 'deep' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
@@ -41,7 +41,7 @@ describe('VoiceTagEditor', () => {
   it('clears the input after adding a custom tag', () => {
     renderWith(<VoiceTagEditor tags={[]} onTagsChanged={vi.fn()} saving={false} />)
 
-    const input = screen.getByPlaceholderText('Add custom tag...')
+    const input = screen.getByPlaceholderText('Add tag...')
     fireEvent.change(input, { target: { value: 'deep' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
@@ -52,7 +52,7 @@ describe('VoiceTagEditor', () => {
     const onTagsChanged = vi.fn()
     renderWith(<VoiceTagEditor tags={[]} onTagsChanged={onTagsChanged} saving={false} />)
 
-    const input = screen.getByPlaceholderText('Add custom tag...')
+    const input = screen.getByPlaceholderText('Add tag...')
     fireEvent.change(input, { target: { value: '   ' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 

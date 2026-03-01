@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { PlayingState } from './useVoicePreview.types'
+import type { AudioType, PlayingState } from './useVoicePreview.types'
 
-export type { PlayingState }
+export type { AudioType, PlayingState }
 
 export const useVoicePreview = () => {
   const [playing, setPlaying] = useState<PlayingState>(null)
@@ -33,7 +33,7 @@ export const useVoicePreview = () => {
   useEffect(() => cleanup, [cleanup])
 
   const play = useCallback(
-    async (voiceName: string, type: 'source' | 'sample') => {
+    async (voiceName: string, type: AudioType) => {
       setError(null)
 
       // Toggle off if same voice+type is already playing

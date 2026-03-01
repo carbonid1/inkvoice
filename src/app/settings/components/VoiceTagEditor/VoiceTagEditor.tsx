@@ -10,23 +10,23 @@ type VoiceTagEditorProps = {
 }
 
 export const VoiceTagEditor = ({ tags, onTagsChanged, saving }: VoiceTagEditorProps) => {
-  const [customInput, setCustomInput] = useState('')
+  const [tagInput, setTagInput] = useState('')
 
   const handleRemove = (tag: string) => {
     onTagsChanged(tags.filter(t => t !== tag))
   }
 
-  const handleCustomKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'Enter') return
     e.preventDefault()
 
-    const trimmed = customInput.trim().toLowerCase()
+    const trimmed = tagInput.trim().toLowerCase()
     if (!trimmed) return
 
     if (!tags.includes(trimmed)) {
       onTagsChanged([...tags, trimmed])
     }
-    setCustomInput('')
+    setTagInput('')
   }
 
   return (
@@ -41,10 +41,10 @@ export const VoiceTagEditor = ({ tags, onTagsChanged, saving }: VoiceTagEditorPr
 
       <input
         type="text"
-        value={customInput}
-        onChange={e => setCustomInput(e.target.value)}
-        onKeyDown={handleCustomKeyDown}
-        placeholder="Add custom tag..."
+        value={tagInput}
+        onChange={e => setTagInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Add tag..."
         disabled={saving}
         className="w-full p-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
       />

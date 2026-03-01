@@ -14,8 +14,8 @@ const voices: VoiceEntry[] = [
     tags: ['warm', 'friendly'],
   },
   {
-    name: 'dan',
-    displayName: 'REDACTED',
+    name: 'alex',
+    displayName: 'Alex',
     type: 'custom',
     hasSample: false,
     tags: ['male', 'british'],
@@ -41,7 +41,7 @@ describe('VoiceSelect', () => {
 
     expect(screen.getByRole('option', { name: /narrator/i })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: /casual/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /dan boud/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /alex/i })).toBeInTheDocument()
   })
 
   it('calls onChange and closes menu when a voice is selected', () => {
@@ -49,9 +49,9 @@ describe('VoiceSelect', () => {
     renderWith(<VoiceSelect voices={voices} value="narrator" onChange={onChange} />)
 
     fireEvent.click(screen.getByRole('button', { name: /narrator/i }))
-    fireEvent.click(screen.getByRole('option', { name: /dan boud/i }))
+    fireEvent.click(screen.getByRole('option', { name: /alex/i }))
 
-    expect(onChange).toHaveBeenCalledWith('dan')
+    expect(onChange).toHaveBeenCalledWith('alex')
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   })
 
@@ -63,8 +63,8 @@ describe('VoiceSelect', () => {
     const casualOption = screen.getByRole('option', { name: /casual/i })
     expect(casualOption).toHaveTextContent('warm, friendly')
 
-    const danOption = screen.getByRole('option', { name: /dan boud/i })
-    expect(danOption).toHaveTextContent('male, british')
+    const alexOption = screen.getByRole('option', { name: /alex/i })
+    expect(alexOption).toHaveTextContent('male, british')
 
     // Narrator has no tags — should not render tag text
     const narratorOption = screen.getByRole('option', { name: /^narrator$/i })
@@ -98,14 +98,14 @@ describe('VoiceSelect', () => {
     const button = screen.getByRole('button', { name: /narrator/i })
     fireEvent.click(button)
 
-    // Arrow down highlights first item, then second
+    // Arrow down highlights first item (Alex), then second (Narrator)
     fireEvent.keyDown(button, { key: 'ArrowDown' })
     fireEvent.keyDown(button, { key: 'ArrowDown' })
 
     // Enter selects the highlighted item
     fireEvent.keyDown(button, { key: 'Enter' })
 
-    expect(onChange).toHaveBeenCalledWith('casual')
+    expect(onChange).toHaveBeenCalledWith('narrator')
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   })
 
@@ -114,8 +114,8 @@ describe('VoiceSelect', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /narrator/i }))
 
-    expect(screen.getByText('App Voices')).toBeInTheDocument()
-    expect(screen.getByText('Custom Voices')).toBeInTheDocument()
+    expect(screen.getByText('Included Voices')).toBeInTheDocument()
+    expect(screen.getByText('Your Voices')).toBeInTheDocument()
   })
 
   it('shows placeholder when value does not match any voice', () => {

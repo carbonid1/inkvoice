@@ -32,19 +32,19 @@ export const VoiceSelect = ({
     const appVoices = voices.filter(v => v.type === 'app')
     const customVoices = voices.filter(v => v.type === 'custom')
     return [
-      ...(appVoices.length > 0
-        ? [
-            {
-              label: 'App Voices',
-              options: appVoices.map(v => ({ value: v.name, label: v.displayName })),
-            },
-          ]
-        : []),
       ...(customVoices.length > 0
         ? [
             {
-              label: 'Custom Voices',
+              label: 'Your Voices',
               options: customVoices.map(v => ({ value: v.name, label: v.displayName })),
+            },
+          ]
+        : []),
+      ...(appVoices.length > 0
+        ? [
+            {
+              label: 'Included Voices',
+              options: appVoices.map(v => ({ value: v.name, label: v.displayName })),
             },
           ]
         : []),
