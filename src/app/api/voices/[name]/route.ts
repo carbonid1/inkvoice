@@ -1,5 +1,6 @@
 import { voiceService } from '@/lib/services/voice/voice.service'
 import { NextResponse } from 'next/server'
+import { validateVoiceParam } from './helpers/validateVoiceParam/validateVoiceParam'
 
 export const DELETE = async (
   _request: Request,
@@ -7,9 +8,8 @@ export const DELETE = async (
 ) => {
   const { name } = await params
 
-  if (name.includes('..') || name.includes('/')) {
-    return NextResponse.json({ error: 'Invalid voice name' }, { status: 400 })
-  }
+  const invalid = validateVoiceParam(name)
+  if (invalid) return invalid
 
   const result = await voiceService.deleteVoice(name)
 

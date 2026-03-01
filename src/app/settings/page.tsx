@@ -3,7 +3,7 @@
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
-import { VoiceOptionGroups } from '@/components/VoiceOptionGroups/VoiceOptionGroups'
+import { VoiceSelect } from '@/components/VoiceSelect/VoiceSelect'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
 import { useVoiceStore } from '@/store/useVoiceStore'
@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChunkingModeCard } from './components/ChunkingModeCard/ChunkingModeCard'
 import { ProgressDisplayCard } from './components/ProgressDisplayCard/ProgressDisplayCard'
 import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
+import { VoiceTagCard } from './components/VoiceTagCard/VoiceTagCard'
 import { VoiceUploadCard } from './components/VoiceUploadCard/VoiceUploadCard'
 
 type PlayingState = { name: string; type: 'source' | 'sample' } | null
@@ -134,14 +135,13 @@ export default function Settings() {
                   Select voice for TTS
                 </label>
                 <div className="flex gap-2">
-                  <select
+                  <VoiceSelect
                     id="voice-select"
+                    voices={voices}
                     value={voice}
-                    onChange={e => setVoice(e.target.value)}
-                    className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <VoiceOptionGroups voices={voices} />
-                  </select>
+                    onChange={setVoice}
+                    className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left"
+                  />
                   <button
                     onClick={() => playPreview(voice, 'source')}
                     className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-1.5 text-sm"
@@ -194,6 +194,7 @@ export default function Settings() {
           )}
         </div>
 
+        <VoiceTagCard voices={voices} />
         <VoiceUploadCard voices={voices} onVoicesChanged={refetch} />
         <PronunciationEditor />
         <ProgressDisplayCard />

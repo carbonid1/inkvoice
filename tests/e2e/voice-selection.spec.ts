@@ -8,53 +8,67 @@ test.describe('per-book voice selection', () => {
   }) => {
     await mockTTS(page)
 
-    // 1. Go to settings, set global voice
+    // 1. Go to settings, pick a voice via custom dropdown
     await page.goto('/settings')
-    const globalSelect = page.locator('#voice-select')
-    await globalSelect.waitFor()
-    const globalVoice = await globalSelect.inputValue()
+    const globalButton = page.locator('#voice-select')
+    await globalButton.waitFor()
+    const initialVoice = (await globalButton.textContent()) ?? ''
 
-    // Pick a different voice as global default
-    const allOptions = await globalSelect.locator('option').all()
-    const optionValues = await Promise.all(allOptions.map(o => o.getAttribute('value')))
-    const alternateValue = optionValues.find(v => v && v !== globalVoice)
-    if (alternateValue) {
-      await globalSelect.selectOption(alternateValue)
+    // Open dropdown and pick a different voice
+    await globalButton.click()
+    const listbox = page.getByRole('listbox')
+    await listbox.waitFor()
+    const options = await listbox.getByRole('option').all()
+
+    let alternateOption = null
+    for (const option of options) {
+      const text = (await option.textContent()) ?? ''
+      if (text && !text.includes(initialVoice)) {
+        alternateOption = option
+        break
+      }
     }
-    const newGlobalVoice = await globalSelect.inputValue()
-    const newGlobalDisplayName = await globalSelect
-      .locator(`option[value="${newGlobalVoice}"]`)
-      .textContent()
+
+    if (alternateOption) {
+      await alternateOption.click()
+    }
+
+    const newGlobalVoice = (await globalButton.textContent()) ?? ''
 
     // 2. Navigate to a book
     await navigateToBook(page)
 
-    // 3. Voice selector should show "Default ({displayName})" as selected
-    const bookVoiceSelect = page.getByRole('combobox', { name: 'Voice' })
-    await bookVoiceSelect.waitFor()
-    const selectedValue = await bookVoiceSelect.inputValue()
-    expect(selectedValue).toBe('__default__')
-    await expect(bookVoiceSelect.locator('option[value="__default__"]')).toContainText(
-      `Default (${newGlobalDisplayName})`,
-    )
+    // 3. Book voice selector should show "Default (...)" text
+    const bookVoiceButton = page.getByRole('button', { name: 'Voice' })
+    await bookVoiceButton.waitFor()
+    await expect(bookVoiceButton).toContainText(`Default (${newGlobalVoice})`)
 
-    // 4. Override voice at book level
-    const bookOptions = await bookVoiceSelect.locator('option').all()
-    const bookOptionValues = await Promise.all(bookOptions.map(o => o.getAttribute('value')))
-    const overrideValue = bookOptionValues.find(
-      v => v && v !== '__default__' && v !== newGlobalVoice,
-    )
-    if (overrideValue) {
-      await bookVoiceSelect.selectOption(overrideValue)
-      const overriddenValue = await bookVoiceSelect.inputValue()
-      expect(overriddenValue).not.toBe('__default__')
+    // 4. Override voice at book level — open dropdown, pick a non-default voice
+    await bookVoiceButton.click()
+    const bookListbox = page.getByRole('listbox')
+    await bookListbox.waitFor()
+    const bookOptions = await bookListbox.getByRole('option').all()
+
+    let overrideOption = null
+    for (const option of bookOptions) {
+      const text = (await option.textContent()) ?? ''
+      if (!text.includes('Default') && !text.includes(newGlobalVoice)) {
+        overrideOption = option
+        break
+      }
+    }
+
+    if (overrideOption) {
+      const overrideName = (await overrideOption.textContent()) ?? ''
+      await overrideOption.click()
+      // Button should now show the overridden voice name, not "Default"
+      await expect(bookVoiceButton).toContainText(overrideName.split('\n')[0] ?? '')
     }
 
     // 5. Go back to settings — global voice should be unchanged
     await page.goto('/settings')
-    const globalSelectAfter = page.locator('#voice-select')
-    await globalSelectAfter.waitFor()
-    const globalVoiceAfter = await globalSelectAfter.inputValue()
-    expect(globalVoiceAfter).toBe(newGlobalVoice)
+    const globalButtonAfter = page.locator('#voice-select')
+    await globalButtonAfter.waitFor()
+    await expect(globalButtonAfter).toHaveText(newGlobalVoice)
   })
 })

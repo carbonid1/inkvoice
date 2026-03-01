@@ -59,6 +59,7 @@ export const POST = async (request: Request) => {
       displayName: result.displayName,
       durationSeconds: result.durationSeconds,
       padded: result.padded,
+      tags: [],
     })
   } catch (error) {
     console.error('Error uploading voice:', error)

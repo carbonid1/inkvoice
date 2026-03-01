@@ -2,12 +2,13 @@ import { env } from '@/lib/config/env'
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import path from 'path'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
+import { normalizeTags } from './helpers/normalizeTags/normalizeTags'
 import { padWavTo40ms } from './helpers/padWavTo40ms/padWavTo40ms'
 import { prettifyVoiceName } from './helpers/prettifyVoiceName/prettifyVoiceName'
 import { slugifyVoiceName } from './helpers/slugifyVoiceName/slugifyVoiceName'
 import { validateVoiceName } from './helpers/validateVoiceName/validateVoiceName'
 import { validateWav } from './helpers/validateWav/validateWav'
-import type { VoiceEntry, VoiceMetadata } from './voice.types'
+import type { VoiceEntry, VoiceMetadata, VoiceType } from './voice.types'
 
 type UploadSuccess = {
   ok: true
@@ -27,6 +28,8 @@ type UploadResult = UploadSuccess | UploadError
 
 type DeleteResult = { ok: true } | { ok: false; reason: 'not_found' | 'app_voice' }
 
+type UpdateTagsResult = { ok: true; tags: string[] } | { ok: false; reason: 'not_found' }
+
 const fileExists = async (filePath: string): Promise<boolean> =>
   stat(filePath)
     .then(s => s.isFile())
@@ -42,68 +45,78 @@ const readDirSafe = async (dirPath: string): Promise<string[]> => readdir(dirPat
 export const createVoiceService = (voicesDir: string) => {
   const customDir = path.join(voicesDir, 'custom')
 
-  const listAppVoices = async (): Promise<VoiceEntry[]> => {
-    const entries = await readDirSafe(voicesDir)
-    const voices: VoiceEntry[] = []
-
-    for (const entry of entries) {
-      if (entry === 'custom') continue
-      const entryPath = path.join(voicesDir, entry)
-      if (!(await dirExists(entryPath))) continue
-      if (!(await fileExists(path.join(entryPath, 'source.wav')))) continue
-
-      const hasSample = await fileExists(path.join(entryPath, 'sample.wav'))
-      voices.push({
-        name: entry,
-        displayName: prettifyVoiceName(entry),
-        type: 'app',
-        hasSample,
-      })
+  const readMetadata = async (dirPath: string): Promise<Partial<VoiceMetadata> | null> => {
+    const metaPath = path.join(dirPath, 'metadata.json')
+    try {
+      const raw = JSON.parse(await readFile(metaPath, 'utf-8'))
+      return {
+        displayName: typeof raw.displayName === 'string' ? raw.displayName : undefined,
+        tags: Array.isArray(raw.tags)
+          ? raw.tags.filter((t: unknown) => typeof t === 'string')
+          : undefined,
+      }
+    } catch {
+      return null
     }
-
-    return voices.sort((a, b) => a.name.localeCompare(b.name))
   }
 
-  const listCustomVoices = async (): Promise<VoiceEntry[]> => {
-    const entries = await readDirSafe(customDir)
-    const voices: VoiceEntry[] = []
+  const writeMetadata = async (dirPath: string, meta: VoiceMetadata): Promise<void> => {
+    await writeFile(path.join(dirPath, 'metadata.json'), JSON.stringify(meta, null, 2))
+  }
 
-    for (const entry of entries) {
-      const entryPath = path.join(customDir, entry)
-      if (!(await dirExists(entryPath))) continue
-      if (!(await fileExists(path.join(entryPath, 'source.wav')))) continue
+  const listVoicesInDir = async (
+    dir: string,
+    type: VoiceType,
+    skip?: string[],
+  ): Promise<VoiceEntry[]> => {
+    const entries = await readDirSafe(dir)
+    const results = await Promise.all(
+      entries
+        .filter(entry => !skip?.includes(entry))
+        .map(async entry => {
+          const entryPath = path.join(dir, entry)
+          if (!(await fileExists(path.join(entryPath, 'source.wav')))) return null
 
-      const hasSample = await fileExists(path.join(entryPath, 'sample.wav'))
-      let displayName = prettifyVoiceName(entry)
+          const [hasSample, meta] = await Promise.all([
+            fileExists(path.join(entryPath, 'sample.wav')),
+            readMetadata(entryPath),
+          ])
 
-      const metaPath = path.join(entryPath, 'metadata.json')
-      try {
-        const meta: VoiceMetadata = JSON.parse(await readFile(metaPath, 'utf-8'))
-        displayName = meta.displayName
-      } catch {
-        // No metadata, use prettified slug
-      }
+          return {
+            name: entry,
+            displayName: meta?.displayName ?? prettifyVoiceName(entry),
+            type,
+            hasSample,
+            tags: meta?.tags ?? [],
+          } satisfies VoiceEntry
+        }),
+    )
 
-      voices.push({ name: entry, displayName, type: 'custom', hasSample })
-    }
-
-    return voices.sort((a, b) => a.name.localeCompare(b.name))
+    return results
+      .filter((v): v is VoiceEntry => v !== null)
+      .sort((a, b) => a.name.localeCompare(b.name))
   }
 
   const listVoices = async (): Promise<VoiceEntry[]> => {
-    const [appVoices, customVoices] = await Promise.all([listAppVoices(), listCustomVoices()])
+    const [appVoices, customVoices] = await Promise.all([
+      listVoicesInDir(voicesDir, 'app', ['custom']),
+      listVoicesInDir(customDir, 'custom'),
+    ])
     return [...appVoices, ...customVoices]
   }
 
-  const voiceNameExists = async (slug: string): Promise<boolean> => {
-    const appPath = path.join(voicesDir, slug)
-    if (await dirExists(appPath)) return true
+  const resolveVoiceDir = async (name: string): Promise<string | null> => {
+    const appPath = path.join(voicesDir, name)
+    if (name !== 'custom' && (await dirExists(appPath))) return appPath
 
-    const customPath = path.join(customDir, slug)
-    if (await dirExists(customPath)) return true
+    const customPath = path.join(customDir, name)
+    if (await dirExists(customPath)) return customPath
 
-    return false
+    return null
   }
+
+  const voiceNameExists = async (slug: string): Promise<boolean> =>
+    (await resolveVoiceDir(slug)) !== null
 
   const uploadVoice = async (
     displayName: string,
@@ -138,9 +151,7 @@ export const createVoiceService = (voicesDir: string) => {
     const voiceDir = path.join(customDir, slug)
     await mkdir(voiceDir, { recursive: true })
     await writeFile(path.join(voiceDir, 'source.wav'), padResult.buffer)
-
-    const metadata: VoiceMetadata = { displayName }
-    await writeFile(path.join(voiceDir, 'metadata.json'), JSON.stringify(metadata, null, 2))
+    await writeMetadata(voiceDir, { displayName, tags: [] })
 
     return {
       ok: true,
@@ -191,7 +202,29 @@ export const createVoiceService = (voicesDir: string) => {
     await writeFile(samplePath, buffer)
   }
 
-  return { listVoices, uploadVoice, deleteVoice, resolveVoicePath, resolveSamplePath, saveSample }
+  const updateVoiceTags = async (name: string, tags: string[]): Promise<UpdateTagsResult> => {
+    const voiceDir = await resolveVoiceDir(name)
+    if (!voiceDir) return { ok: false, reason: 'not_found' }
+
+    const meta = await readMetadata(voiceDir)
+    const normalized = normalizeTags(tags)
+    await writeMetadata(voiceDir, {
+      displayName: meta?.displayName ?? prettifyVoiceName(name),
+      tags: normalized,
+    })
+
+    return { ok: true, tags: normalized }
+  }
+
+  return {
+    listVoices,
+    uploadVoice,
+    deleteVoice,
+    resolveVoicePath,
+    resolveSamplePath,
+    saveSample,
+    updateVoiceTags,
+  }
 }
 
 export const voiceService = createVoiceService(env.voicesDir)

@@ -1,13 +1,13 @@
 import { voiceService } from '@/lib/services/voice/voice.service'
 import { readFile } from 'fs/promises'
 import { NextResponse } from 'next/server'
+import { validateVoiceParam } from '../helpers/validateVoiceParam/validateVoiceParam'
 
 export const GET = async (_request: Request, { params }: { params: Promise<{ name: string }> }) => {
   const { name } = await params
 
-  if (name.includes('..') || name.includes('/')) {
-    return NextResponse.json({ error: 'Invalid voice name' }, { status: 400 })
-  }
+  const invalid = validateVoiceParam(name)
+  if (invalid) return invalid
 
   const voicePath = await voiceService.resolveVoicePath(name)
   if (!voicePath) {

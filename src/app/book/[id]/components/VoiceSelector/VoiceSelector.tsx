@@ -1,6 +1,6 @@
 'use client'
 
-import { VoiceOptionGroups } from '@/components/VoiceOptionGroups/VoiceOptionGroups'
+import { VoiceSelect } from '@/components/VoiceSelect/VoiceSelect'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { useMemo } from 'react'
@@ -33,15 +33,14 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
 
   return (
     <div>
-      <select
+      <VoiceSelect
+        voices={voices}
         value={isOverridden ? effectiveVoice : DEFAULT_SENTINEL}
-        onChange={e => handleChange(e.target.value)}
+        onChange={handleChange}
         aria-label="Voice"
-        className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1"
-      >
-        <option value={DEFAULT_SENTINEL}>Default ({globalDisplayName})</option>
-        <VoiceOptionGroups voices={voices} />
-      </select>
+        className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 text-left"
+        extraOptions={[{ value: DEFAULT_SENTINEL, label: `Default (${globalDisplayName})` }]}
+      />
       {isStale && (
         <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
           Voice not found — using {effectiveVoice}

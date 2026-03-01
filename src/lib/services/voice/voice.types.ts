@@ -5,8 +5,10 @@ export type VoiceEntry = {
   displayName: string
   type: VoiceType
   hasSample: boolean
+  tags: string[]
 }
 
 export type VoiceMetadata = {
   displayName: string
+  tags: string[]
 }
