@@ -15,32 +15,37 @@ test.describe('per-book voice selection', () => {
     const globalVoice = await globalSelect.inputValue()
 
     // Pick a different voice as global default
-    const globalOptions = await globalSelect.locator('option').allTextContents()
-    const alternateVoice = globalOptions.find(name => name !== globalVoice)
-    if (alternateVoice) {
-      await globalSelect.selectOption(alternateVoice)
+    const allOptions = await globalSelect.locator('option').all()
+    const optionValues = await Promise.all(allOptions.map(o => o.getAttribute('value')))
+    const alternateValue = optionValues.find(v => v && v !== globalVoice)
+    if (alternateValue) {
+      await globalSelect.selectOption(alternateValue)
     }
     const newGlobalVoice = await globalSelect.inputValue()
+    const newGlobalDisplayName = await globalSelect
+      .locator(`option[value="${newGlobalVoice}"]`)
+      .textContent()
 
     // 2. Navigate to a book
     await navigateToBook(page)
 
-    // 3. Voice selector should show "Default ({globalVoice})" as selected
+    // 3. Voice selector should show "Default ({displayName})" as selected
     const bookVoiceSelect = page.getByRole('combobox', { name: 'Voice' })
     await bookVoiceSelect.waitFor()
     const selectedValue = await bookVoiceSelect.inputValue()
     expect(selectedValue).toBe('__default__')
-    await expect(bookVoiceSelect.locator('option:first-child')).toContainText(
-      `Default (${newGlobalVoice})`,
+    await expect(bookVoiceSelect.locator('option[value="__default__"]')).toContainText(
+      `Default (${newGlobalDisplayName})`,
     )
 
     // 4. Override voice at book level
-    const bookOptions = await bookVoiceSelect.locator('option').allTextContents()
-    const overrideVoice = bookOptions.find(
-      name => name !== `Default (${newGlobalVoice})` && name !== newGlobalVoice,
+    const bookOptions = await bookVoiceSelect.locator('option').all()
+    const bookOptionValues = await Promise.all(bookOptions.map(o => o.getAttribute('value')))
+    const overrideValue = bookOptionValues.find(
+      v => v && v !== '__default__' && v !== newGlobalVoice,
     )
-    if (overrideVoice) {
-      await bookVoiceSelect.selectOption(overrideVoice)
+    if (overrideValue) {
+      await bookVoiceSelect.selectOption(overrideValue)
       const overriddenValue = await bookVoiceSelect.inputValue()
       expect(overriddenValue).not.toBe('__default__')
     }

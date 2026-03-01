@@ -32,8 +32,9 @@ test.describe('bookmarks', () => {
     await mockBookmarks(page)
     await navigateToBook(page)
 
-    // Player bar bookmark button — initially "Add bookmark"
+    // Wait for player bar to render before asserting on its children
     const playerBar = page.locator('.fixed.bottom-0')
+    await expect(playerBar).toBeVisible()
     const bookmarkButton = playerBar.getByRole('button', { name: 'Add bookmark' })
     await expect(bookmarkButton).toBeVisible()
 

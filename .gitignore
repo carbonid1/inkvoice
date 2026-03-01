@@ -34,6 +34,9 @@ build/
 # Cache
 data/cache/
 
+# User-uploaded voices (unlicensed)
+data/voices/custom/
+
 # Playwright
 test-results/
 playwright-report/

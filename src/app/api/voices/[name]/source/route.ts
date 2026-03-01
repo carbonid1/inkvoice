@@ -1,21 +1,21 @@
+import { voiceService } from '@/lib/services/voice/voice.service'
 import { readFile } from 'fs/promises'
 import { NextResponse } from 'next/server'
-import path from 'path'
 
-const VOICES_DIR = path.join(process.cwd(), 'data', 'voices')
-
-export async function GET(_request: Request, { params }: { params: Promise<{ name: string }> }) {
+export const GET = async (_request: Request, { params }: { params: Promise<{ name: string }> }) => {
   const { name } = await params
 
-  // Prevent path traversal
   if (name.includes('..') || name.includes('/')) {
     return NextResponse.json({ error: 'Invalid voice name' }, { status: 400 })
   }
 
-  const sourcePath = path.join(VOICES_DIR, name, 'source.wav')
+  const voicePath = await voiceService.resolveVoicePath(name)
+  if (!voicePath) {
+    return NextResponse.json({ error: 'Source not found' }, { status: 404 })
+  }
 
   try {
-    const buffer = await readFile(sourcePath)
+    const buffer = await readFile(voicePath)
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'audio/wav',

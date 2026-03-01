@@ -11,6 +11,7 @@ type VoiceState = {
   setVoice: (voice: string) => void
   setBookVoice: (bookId: string, voice: string) => void
   clearBookVoice: (bookId: string) => void
+  clearVoiceFromAllBooks: (voiceName: string) => void
 }
 
 type PersistedVoiceState = Pick<VoiceState, 'voice' | 'bookVoices'>
@@ -27,6 +28,16 @@ export const useVoiceStore = create<VoiceState>()(
         set(state => {
           const { [bookId]: _, ...rest } = state.bookVoices
           return { bookVoices: rest }
+        }),
+      clearVoiceFromAllBooks: voiceName =>
+        set(state => {
+          const updated = Object.fromEntries(
+            Object.entries(state.bookVoices).filter(([, v]) => v !== voiceName),
+          )
+          return {
+            voice: state.voice === voiceName ? 'narrator' : state.voice,
+            bookVoices: updated,
+          }
         }),
     }),
     {

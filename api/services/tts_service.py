@@ -23,13 +23,19 @@ class TTSService:
         return self._model
 
     def get_voice_path(self, voice_name: str) -> Path:
-        """Get the path to a voice file, raising an error if not found."""
+        """Get the path to a voice file, checking app voices then custom voices."""
         voice_path = settings.voices_dir / voice_name / "source.wav"
-        if not voice_path.exists():
-            raise FileNotFoundError(
-                f"Voice '{voice_name}' not found. Add data/voices/{voice_name}/source.wav"
-            )
-        return voice_path
+        if voice_path.exists():
+            return voice_path
+
+        custom_path = settings.voices_dir / "custom" / voice_name / "source.wav"
+        if custom_path.exists():
+            return custom_path
+
+        raise FileNotFoundError(
+            f"Voice '{voice_name}' not found. "
+            f"Add data/voices/{voice_name}/source.wav or upload via settings."
+        )
 
     def generate(
         self,
@@ -64,7 +70,8 @@ class TTSService:
 
     def warmup(self) -> None:
         """Pre-load model and run a test generation to warm up JIT compilation."""
-        voice_files = list(settings.voices_dir.glob("*/source.wav"))
+        voice_files = list(settings.voices_dir.glob("*/source.wav")) + \
+            list((settings.voices_dir / "custom").glob("*/source.wav"))
         if not voice_files:
             print("Warning: No voice files found, skipping warmup")
             return

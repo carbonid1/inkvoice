@@ -3,6 +3,7 @@
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { PlayIcon } from '@/components/icons/PlayIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
+import { VoiceOptionGroups } from '@/components/VoiceOptionGroups/VoiceOptionGroups'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
@@ -10,11 +11,12 @@ import { useEffect, useRef, useState } from 'react'
 import { ChunkingModeCard } from './components/ChunkingModeCard/ChunkingModeCard'
 import { ProgressDisplayCard } from './components/ProgressDisplayCard/ProgressDisplayCard'
 import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
+import { VoiceUploadCard } from './components/VoiceUploadCard/VoiceUploadCard'
 
 type PlayingState = { name: string; type: 'source' | 'sample' } | null
 
 export default function Settings() {
-  const { voices, loading } = useVoices()
+  const { voices, loading, refetch } = useVoices()
   const [playingVoice, setPlayingVoice] = useState<PlayingState>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const voice = useVoiceStore(s => s.voice)
@@ -129,11 +131,7 @@ export default function Settings() {
                     onChange={e => setVoice(e.target.value)}
                     className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    {voices.map(v => (
-                      <option key={v.name} value={v.name}>
-                        {v.name}
-                      </option>
-                    ))}
+                    <VoiceOptionGroups voices={voices} />
                   </select>
                   <button
                     onClick={() => playPreview(voice, 'source')}
@@ -187,6 +185,7 @@ export default function Settings() {
           )}
         </div>
 
+        <VoiceUploadCard voices={voices} onVoicesChanged={refetch} />
         <PronunciationEditor />
         <ProgressDisplayCard />
         <ChunkingModeCard />
