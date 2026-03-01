@@ -1,7 +1,7 @@
 'use client'
 
-import { TagBadge } from '@/components/TagBadge/TagBadge'
 import { useState } from 'react'
+import { TagBadge } from '../TagBadge/TagBadge'
 
 type VoiceTagEditorProps = {
   tags: string[]
