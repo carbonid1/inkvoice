@@ -198,16 +198,18 @@ export default function BookReader() {
         <div className="max-w-3xl mx-auto px-4 pb-2">
           <div className="flex items-center gap-2">
             {overview.chapters.length > 1 && (
-              <Select
-                value={String(currentChapter)}
-                onChange={v => handleProgressChange(Number(v), 0)}
-                options={overview.chapters.map((chapter, idx) => ({
-                  value: String(idx),
-                  label: chapter.title,
-                }))}
-                aria-label="Chapter"
-                className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 flex-1 min-w-0 text-left"
-              />
+              <div className="flex-1 min-w-0">
+                <Select
+                  value={String(currentChapter)}
+                  onChange={v => handleProgressChange(Number(v), 0)}
+                  options={overview.chapters.map((chapter, idx) => ({
+                    value: String(idx),
+                    label: chapter.title,
+                  }))}
+                  aria-label="Chapter"
+                  className="w-full text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 text-left"
+                />
+              </div>
             )}
             {showChapterLoading && <SpinnerIcon className="w-4 h-4 animate-spin text-gray-400" />}
             <VoiceSelector bookId={bookId} />
