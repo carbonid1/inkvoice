@@ -8,7 +8,7 @@ type WavMetadata = {
 
 type WavError = {
   ok: false
-  code: 'INVALID_FORMAT' | 'TOO_SHORT'
+  code: 'INVALID_FORMAT' | 'TOO_SHORT' | 'TOO_LONG'
   message: string
 }
 
@@ -18,6 +18,7 @@ import { findWavChunk } from '../findWavChunk/findWavChunk'
 
 const MIN_HEADER_SIZE = 12
 const MIN_DURATION_SECONDS = 5
+const MAX_DURATION_SECONDS = 30
 
 export const validateWav = (buffer: Buffer): WavValidationResult => {
   if (buffer.length < MIN_HEADER_SIZE) {
@@ -60,6 +61,14 @@ export const validateWav = (buffer: Buffer): WavValidationResult => {
       ok: false,
       code: 'TOO_SHORT',
       message: `Voice reference must be at least ${MIN_DURATION_SECONDS} seconds (got ${durationSeconds.toFixed(1)}s)`,
+    }
+  }
+
+  if (durationSeconds > MAX_DURATION_SECONDS) {
+    return {
+      ok: false,
+      code: 'TOO_LONG',
+      message: `Voice reference must be at most ${MAX_DURATION_SECONDS} seconds (got ${durationSeconds.toFixed(1)}s)`,
     }
   }
 

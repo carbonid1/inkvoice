@@ -94,6 +94,18 @@ describe('validateWav', () => {
     expect(result).toMatchObject({ ok: true, bitsPerSample: 24 })
   })
 
+  it('rejects WAV longer than 30 seconds', () => {
+    const buffer = createWavBuffer({ durationSeconds: 45 })
+    const result = validateWav(buffer)
+    expect(result).toEqual({ ok: false, code: 'TOO_LONG', message: expect.any(String) })
+  })
+
+  it('accepts exactly 30 seconds', () => {
+    const buffer = createWavBuffer({ durationSeconds: 30 })
+    const result = validateWav(buffer)
+    expect(result).toMatchObject({ ok: true, durationSeconds: expect.closeTo(30, 1) })
+  })
+
   it('rejects RIFF header without WAVE format', () => {
     const buffer = createWavBuffer()
     buffer.write('AVI ', 8)
