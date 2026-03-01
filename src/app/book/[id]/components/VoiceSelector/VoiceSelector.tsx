@@ -39,6 +39,7 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
         onChange={handleChange}
         aria-label="Voice"
         className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 text-left"
+        menuClassName="right-0"
         extraOptions={[{ value: DEFAULT_SENTINEL, label: `Default (${globalDisplayName})` }]}
       />
       {isStale && (
