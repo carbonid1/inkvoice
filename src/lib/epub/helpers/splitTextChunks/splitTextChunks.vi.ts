@@ -107,6 +107,31 @@ describe('splitTextChunks', () => {
       })
     })
 
+    describe('curly quotes with heavy apostrophe usage', () => {
+      it('splits dialogue with contractions and apostrophized words without duplicates', () => {
+        const text =
+          '\u2018I wasn\u2019t gonna sit by while they made fools of us. ' +
+          'Had to torture \u2019em. ' +
+          'Made so\u2019s they understood what was comin\u2019 to them. ' +
+          'It wasn\u2019t pretty, I\u2019ll give you that. ' +
+          'She wasn\u2019t gettin\u2019 any younger waiting around. ' +
+          'The whole lot of \u2019em knew the score. ' +
+          'Nobody complained about that.\u2019'
+
+        const result = splitTextChunks(text)
+
+        expect(result).toEqual([
+          '\u2018I wasn\u2019t gonna sit by while they made fools of us.',
+          'Had to torture \u2019em.',
+          'Made so\u2019s they understood what was comin\u2019 to them.',
+          'It wasn\u2019t pretty, I\u2019ll give you that.',
+          'She wasn\u2019t gettin\u2019 any younger waiting around.',
+          'The whole lot of \u2019em knew the score.',
+          'Nobody complained about that.\u2019',
+        ])
+      })
+    })
+
     describe('existing behavior preserved', () => {
       it('splits regular sentences', () => {
         const result = splitTextChunks('Hello world. How are you? Fine!')

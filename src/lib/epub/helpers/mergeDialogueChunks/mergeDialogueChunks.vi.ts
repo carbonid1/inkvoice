@@ -142,4 +142,20 @@ describe('mergeDialogueChunks', () => {
   it('returns single sentence unchanged', () => {
     expect(mergeDialogueChunks(['"Hello," he said.'])).toEqual(['"Hello," he said.'])
   })
+
+  describe('curly quotes with heavy apostrophe usage', () => {
+    it('does not merge sentences where right single quotes are apostrophes', () => {
+      const input = [
+        '\u2018I wasn\u2019t gonna sit by while they made fools of us.',
+        'Had to torture \u2019em.',
+        'Made so\u2019s they understood what was comin\u2019 to them.',
+        'It wasn\u2019t pretty, I\u2019ll give you that.',
+        'She wasn\u2019t gettin\u2019 any younger waiting around.',
+        'The whole lot of \u2019em knew the score.',
+        'Nobody complained about that.\u2019',
+      ]
+
+      expect(mergeDialogueChunks(input)).toEqual(input)
+    })
+  })
 })
