@@ -1,12 +1,12 @@
 'use client'
 
-import { BookCard } from '@/components/BookCard'
 import { GearIcon } from '@/components/icons/GearIcon'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { BookCard } from './components/BookCard/BookCard'
 
 export default function Library() {
   const [loading, setLoading] = useState(true)

@@ -1,6 +1,5 @@
 'use client'
 
-import type { PlaybackMetrics } from '@/components/DebugPanel'
 import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
@@ -10,6 +9,7 @@ import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebounce
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import type { ChapterInfo } from '@/lib/types/book'
+import type { PlaybackMetrics } from '@/lib/types/debug'
 import { useDisplayStore } from '@/store/useDisplayStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { usePronunciationStore } from '@/store/usePronunciationStore'

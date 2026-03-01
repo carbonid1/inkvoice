@@ -1,10 +1,10 @@
 'use client'
 
-import type { PlaybackMetrics } from '@/components/DebugPanel'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 import { useFetchLifecycle } from '@/lib/hooks/useFetchLifecycle/useFetchLifecycle'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { ChapterInfo, ChunkingMode } from '@/lib/types/book'
+import type { PlaybackMetrics } from '@/lib/types/debug'
 import { useCallback, useMemo, useRef } from 'react'
 
 interface UsePrefetchQueueOptions {
