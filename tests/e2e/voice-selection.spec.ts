@@ -22,7 +22,7 @@ test.describe('per-book voice selection', () => {
       const isCurrent = await btn.getAttribute('aria-current')
       if (isCurrent !== 'true') {
         targetRow = btn
-        newVoiceName = (await btn.locator('.font-medium').textContent()) ?? ''
+        newVoiceName = (await btn.locator('.font-medium.truncate').textContent()) ?? ''
         break
       }
     }

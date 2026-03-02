@@ -13,7 +13,7 @@ type VoiceListProps = {
   playing: PlayingState
   onPlay: (name: string, type: AudioType) => void
   onDelete: (name: string) => void
-  deleting: boolean
+  deletingVoice: string | null
 }
 
 export const VoiceList = ({
@@ -23,7 +23,7 @@ export const VoiceList = ({
   playing,
   onPlay,
   onDelete,
-  deleting,
+  deletingVoice,
 }: VoiceListProps) => {
   const [editingTagsVoice, setEditingTagsVoice] = useState<string | null>(null)
   const [localVoices, setLocalVoices] = useState(voices)
@@ -59,48 +59,57 @@ export const VoiceList = ({
     <div className="space-y-4">
       {customVoices.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
             Your Voices
+            <span className="text-gray-400 dark:text-gray-500">
+              {' '}
+              &middot; {customVoices.length}
+            </span>
           </h3>
-          {customVoices.map(voice => (
-            <VoiceRow
-              key={voice.name}
-              voice={voice}
-              selected={voice.name === selectedVoice}
-              editingTags={editingTagsVoice === voice.name}
-              onSelect={() => onSelect(voice.name)}
-              onToggleTagEditor={() => toggleTagEditor(voice.name)}
-              playing={playing}
-              onPlay={onPlay}
-              onDelete={onDelete}
-              onTagsChanged={handleTagsChanged}
-              tagsSaving={saving}
-              deleting={deleting}
-            />
-          ))}
+          <div className="space-y-1">
+            {customVoices.map(voice => (
+              <VoiceRow
+                key={voice.name}
+                voice={voice}
+                selected={voice.name === selectedVoice}
+                editingTags={editingTagsVoice === voice.name}
+                onSelect={() => onSelect(voice.name)}
+                onToggleTagEditor={() => toggleTagEditor(voice.name)}
+                playing={playing}
+                onPlay={onPlay}
+                onDelete={onDelete}
+                onTagsChanged={handleTagsChanged}
+                tagsSaving={saving}
+                deletingVoice={deletingVoice}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {appVoices.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
             Included Voices
+            <span className="text-gray-400 dark:text-gray-500"> &middot; {appVoices.length}</span>
           </h3>
-          {appVoices.map(voice => (
-            <VoiceRow
-              key={voice.name}
-              voice={voice}
-              selected={voice.name === selectedVoice}
-              editingTags={editingTagsVoice === voice.name}
-              onSelect={() => onSelect(voice.name)}
-              onToggleTagEditor={() => toggleTagEditor(voice.name)}
-              playing={playing}
-              onPlay={onPlay}
-              onTagsChanged={handleTagsChanged}
-              tagsSaving={saving}
-              deleting={deleting}
-            />
-          ))}
+          <div className="space-y-1">
+            {appVoices.map(voice => (
+              <VoiceRow
+                key={voice.name}
+                voice={voice}
+                selected={voice.name === selectedVoice}
+                editingTags={editingTagsVoice === voice.name}
+                onSelect={() => onSelect(voice.name)}
+                onToggleTagEditor={() => toggleTagEditor(voice.name)}
+                playing={playing}
+                onPlay={onPlay}
+                onTagsChanged={handleTagsChanged}
+                tagsSaving={saving}
+                deletingVoice={deletingVoice}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

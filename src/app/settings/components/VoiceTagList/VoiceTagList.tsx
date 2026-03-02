@@ -1,3 +1,5 @@
+import { TagBadge } from '../TagBadge/TagBadge'
+
 type VoiceTagListProps = {
   tags: string[]
 }
@@ -5,5 +7,11 @@ type VoiceTagListProps = {
 export const VoiceTagList = ({ tags }: VoiceTagListProps) => {
   if (tags.length === 0) return null
 
-  return <span className="text-xs text-gray-500 dark:text-gray-400">{tags.join(', ')}</span>
+  return (
+    <div className="flex flex-wrap gap-1">
+      {tags.map(tag => (
+        <TagBadge key={tag} tag={tag} />
+      ))}
+    </div>
+  )
 }

@@ -7,9 +7,11 @@ import { SpeakerIcon } from '@/components/icons/SpeakerIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
+import { useState } from 'react'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
 import { VoiceTagList } from '../../VoiceTagList/VoiceTagList'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
+import { VoiceAvatar } from './VoiceAvatar'
 
 type VoiceRowProps = {
   voice: VoiceEntry
@@ -22,7 +24,7 @@ type VoiceRowProps = {
   onDelete?: (name: string) => void
   onTagsChanged: (name: string, tags: string[]) => void
   tagsSaving: boolean
-  deleting: boolean
+  deletingVoice: string | null
 }
 
 const isPlaying = (playing: PlayingState, name: string, type: AudioType) =>
@@ -39,25 +41,29 @@ export const VoiceRow = ({
   onDelete,
   onTagsChanged,
   tagsSaving,
-  deleting,
+  deletingVoice,
 }: VoiceRowProps) => {
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const playingSource = isPlaying(playing, voice.name, 'source')
   const playingSample = isPlaying(playing, voice.name, 'sample')
 
   return (
     <div
-      className={`group border-b border-gray-100 dark:border-gray-700 transition-colors border-l-2 ${
-        selected ? 'bg-blue-50 dark:bg-blue-900/20 border-l-blue-500' : 'border-l-transparent'
+      className={`group rounded-lg transition-colors ${
+        selected
+          ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-800'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'
       }`}
     >
-      <div className="flex items-center gap-2 py-2 px-1">
+      <div className="flex items-center gap-2 py-2.5 px-3">
         <button
           type="button"
           onClick={onSelect}
           aria-current={selected ? 'true' : undefined}
           data-voice={voice.name}
-          className="flex items-center gap-3 flex-1 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded transition-colors py-0.5 px-1 min-w-0 cursor-pointer"
+          className="flex items-center gap-3 flex-1 text-left rounded transition-colors min-w-0 cursor-pointer"
         >
+          <VoiceAvatar displayName={voice.displayName} type={voice.type} />
           <span className="font-medium text-sm truncate">{voice.displayName}</span>
           {voice.tags.length > 0 && <VoiceTagList tags={voice.tags} />}
         </button>
@@ -73,13 +79,9 @@ export const VoiceRow = ({
             <button
               type="button"
               onClick={() => onPlay(voice.name, 'source')}
-              className="p-1 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
+              className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
             >
-              {playingSource ? (
-                <StopIcon className="w-3.5 h-3.5" />
-              ) : (
-                <PlayIcon className="w-3.5 h-3.5" />
-              )}
+              {playingSource ? <StopIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
             </button>
           </Tooltip>
 
@@ -88,12 +90,12 @@ export const VoiceRow = ({
               <button
                 type="button"
                 onClick={() => onPlay(voice.name, 'sample')}
-                className="p-1 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
+                className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
               >
                 {playingSample ? (
-                  <StopIcon className="w-3.5 h-3.5" />
+                  <StopIcon className="w-4 h-4" />
                 ) : (
-                  <SpeakerIcon className="w-3.5 h-3.5" />
+                  <SpeakerIcon className="w-4 h-4" />
                 )}
               </button>
             </Tooltip>
@@ -103,25 +105,48 @@ export const VoiceRow = ({
             <button
               type="button"
               onClick={onToggleTagEditor}
-              className={`p-1 transition-colors cursor-pointer ${
+              className={`p-1.5 transition-colors cursor-pointer ${
                 editingTags ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'
               }`}
             >
-              <PencilIcon className="w-3.5 h-3.5" />
+              <PencilIcon className="w-4 h-4" />
             </button>
           </Tooltip>
 
-          {onDelete && (
+          {onDelete && !confirmingDelete && (
             <Tooltip label={`Remove "${voice.displayName}"`}>
               <button
                 type="button"
-                onClick={() => onDelete(voice.name)}
-                disabled={deleting}
-                className="p-1 text-gray-400 hover:text-red-500 disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors cursor-pointer"
+                onClick={() => setConfirmingDelete(true)}
+                disabled={deletingVoice === voice.name}
+                className="p-1.5 text-gray-400 hover:text-red-500 disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors cursor-pointer"
               >
-                <CloseIcon className="w-3.5 h-3.5" />
+                <CloseIcon className="w-4 h-4" />
               </button>
             </Tooltip>
+          )}
+
+          {confirmingDelete && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Delete?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete?.(voice.name)
+                  setConfirmingDelete(false)
+                }}
+                className="px-2 py-0.5 text-xs rounded bg-red-500 hover:bg-red-600 text-white transition-colors cursor-pointer"
+              >
+                Delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(false)}
+                className="px-2 py-0.5 text-xs rounded bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           )}
         </div>
       </div>

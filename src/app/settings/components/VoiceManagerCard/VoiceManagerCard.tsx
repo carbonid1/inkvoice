@@ -18,7 +18,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   const setVoice = useVoiceStore(s => s.setVoice)
   const clearVoiceFromAllBooks = useVoiceStore(s => s.clearVoiceFromAllBooks)
   const { playing, error: previewError, play } = useVoicePreview()
-  const { deleting, deleteVoice } = useDeleteVoice()
+  const { deletingVoice, deleteVoice } = useDeleteVoice()
 
   const handleDelete = async (voiceName: string) => {
     const deleted = await deleteVoice(voiceName)
@@ -31,7 +31,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
       <h2 className="text-lg font-semibold mb-2">Voices</h2>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Voice changes apply to new audio generation. Cached audio will use the original settings.
+        Choose a voice for your narration. Changing voices will re-generate any unheard audio.
       </p>
 
       {loading ? (
@@ -55,7 +55,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
             playing={playing}
             onPlay={play}
             onDelete={handleDelete}
-            deleting={deleting}
+            deletingVoice={deletingVoice}
           />
 
           {previewError && (

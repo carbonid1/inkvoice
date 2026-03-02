@@ -1,5 +1,6 @@
 'use client'
 
+import { PlusIcon } from '@/components/icons/PlusIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { useRef, useState } from 'react'
@@ -42,9 +43,14 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
-        className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors cursor-pointer"
+        className={`w-full rounded-lg border-2 border-dashed py-2.5 px-3 text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+          open
+            ? 'border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+            : 'border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400'
+        }`}
       >
-        {open ? '- Hide Upload' : '+ Add Voice'}
+        <PlusIcon className="w-4 h-4" />
+        {open ? 'Hide Upload' : 'Add Voice'}
       </button>
 
       {open && (

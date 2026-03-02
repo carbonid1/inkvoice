@@ -6,9 +6,11 @@ import { VoiceTagList } from './VoiceTagList'
 const renderWith = (ui: React.ReactElement) => render(<StrictMode>{ui}</StrictMode>)
 
 describe('VoiceTagList', () => {
-  it('renders tags as comma-separated text', () => {
+  it('renders each tag as a badge', () => {
     renderWith(<VoiceTagList tags={['british', 'male', 'warm']} />)
-    expect(screen.getByText('british, male, warm')).toBeInTheDocument()
+    expect(screen.getByText('british')).toBeInTheDocument()
+    expect(screen.getByText('male')).toBeInTheDocument()
+    expect(screen.getByText('warm')).toBeInTheDocument()
   })
 
   it('renders nothing when tags are empty', () => {

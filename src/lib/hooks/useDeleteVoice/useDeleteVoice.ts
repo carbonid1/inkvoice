@@ -3,15 +3,15 @@
 import { useCallback, useMemo, useState } from 'react'
 
 type DeleteState = {
-  deleting: boolean
+  deletingVoice: string | null
   deleteVoice: (name: string) => Promise<boolean>
 }
 
 export const useDeleteVoice = (): DeleteState => {
-  const [deleting, setDeleting] = useState(false)
+  const [deletingVoice, setDeletingVoice] = useState<string | null>(null)
 
   const deleteVoice = useCallback(async (name: string): Promise<boolean> => {
-    setDeleting(true)
+    setDeletingVoice(name)
 
     try {
       const response = await fetch(`/api/voices/${encodeURIComponent(name)}`, {
@@ -22,9 +22,9 @@ export const useDeleteVoice = (): DeleteState => {
     } catch {
       return false
     } finally {
-      setDeleting(false)
+      setDeletingVoice(null)
     }
   }, [])
 
-  return useMemo(() => ({ deleting, deleteVoice }), [deleting, deleteVoice])
+  return useMemo(() => ({ deletingVoice, deleteVoice }), [deletingVoice, deleteVoice])
 }

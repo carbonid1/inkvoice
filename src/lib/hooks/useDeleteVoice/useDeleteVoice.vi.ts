@@ -10,8 +10,8 @@ describe('useDeleteVoice', () => {
     expect(result.current.deleteVoice).toBe(first)
   })
 
-  it('initializes with deleting false', () => {
+  it('initializes with deletingVoice null', () => {
     const { result } = renderHook(() => useDeleteVoice())
-    expect(result.current.deleting).toBe(false)
+    expect(result.current.deletingVoice).toBeNull()
   })
 })

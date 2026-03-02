@@ -26,7 +26,7 @@ const defaultProps = {
   onPlay: vi.fn(),
   onTagsChanged: vi.fn(),
   tagsSaving: false,
-  deleting: false,
+  deletingVoice: null,
 }
 
 const renderRow = (overrides = {}) =>
@@ -96,7 +96,8 @@ describe('VoiceRow', () => {
   it('tags are always visible inline', () => {
     renderRow()
 
-    expect(screen.getByText('female, british')).toBeInTheDocument()
+    expect(screen.getByText('female')).toBeInTheDocument()
+    expect(screen.getByText('british')).toBeInTheDocument()
   })
 
   it('delete button shown only when onDelete is provided', () => {
@@ -122,5 +123,38 @@ describe('VoiceRow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Play voice sample' }))
     expect(onPlay).toHaveBeenCalledWith('clara', 'sample')
+  })
+
+  it('shows inline confirmation when delete is clicked', () => {
+    const onDelete = vi.fn()
+    renderRow({ onDelete })
+
+    fireEvent.click(screen.getByRole('button', { name: /Remove/ }))
+
+    expect(screen.getByText('Delete?')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    expect(onDelete).not.toHaveBeenCalled()
+  })
+
+  it('confirming delete calls onDelete', () => {
+    const onDelete = vi.fn()
+    renderRow({ onDelete })
+
+    fireEvent.click(screen.getByRole('button', { name: /Remove/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+    expect(onDelete).toHaveBeenCalledWith('clara')
+  })
+
+  it('cancel dismisses confirmation', () => {
+    const onDelete = vi.fn()
+    renderRow({ onDelete })
+
+    fireEvent.click(screen.getByRole('button', { name: /Remove/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByText('Delete?')).not.toBeInTheDocument()
+    expect(onDelete).not.toHaveBeenCalled()
   })
 })

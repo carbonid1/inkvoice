@@ -33,7 +33,7 @@ const defaultProps = {
   playing: null,
   onPlay: vi.fn(),
   onDelete: vi.fn(),
-  deleting: false,
+  deletingVoice: null,
 }
 
 const renderList = (overrides = {}) =>
@@ -48,8 +48,8 @@ describe('VoiceList', () => {
     renderList()
 
     const headings = screen.getAllByRole('heading', { level: 3 })
-    expect(headings[0]).toHaveTextContent('Your Voices')
-    expect(headings[1]).toHaveTextContent('Included Voices')
+    expect(headings[0]).toHaveTextContent(/Your Voices/)
+    expect(headings[1]).toHaveTextContent(/Included Voices/)
   })
 
   it('hides "Your Voices" heading when no custom voices', () => {
@@ -57,7 +57,7 @@ describe('VoiceList', () => {
 
     const headings = screen.getAllByRole('heading', { level: 3 })
     expect(headings).toHaveLength(1)
-    expect(headings[0]).toHaveTextContent('Included Voices')
+    expect(headings[0]).toHaveTextContent(/Included Voices/)
   })
 
   it('selected voice row has aria-current', () => {
