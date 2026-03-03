@@ -48,7 +48,7 @@ export const Reader = ({
         block: 'center',
       })
     }
-  }, [currentChapter, currentSentence])
+  }, [currentChapter, currentSentence, chapter])
 
   if (!chapter) {
     return (
