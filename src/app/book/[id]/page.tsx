@@ -162,10 +162,16 @@ export default function BookReader() {
     recoveryBookmark !== undefined &&
     (recoveryBookmark.chapter !== currentChapter || recoveryBookmark.sentence !== currentSentence)
 
+  const currentChapterInfo = overview.chapters[currentChapter] ?? {
+    title: '',
+    sentenceCount: 0,
+    wordCount: 0,
+  }
+
   const debugMetrics: DebugMetrics = {
     ...playbackMetrics,
     currentSentence,
-    totalSentences: overview.chapters[currentChapter]?.sentenceCount ?? 0,
+    totalSentences: currentChapterInfo.sentenceCount,
     currentChapter,
     totalChapters: overview.chapters.length,
   }
@@ -221,6 +227,7 @@ export default function BookReader() {
           chapter={currentChapter}
           sentence={currentSentence}
           progress={currentProgress}
+          chapterInfo={currentChapterInfo}
         />
       </header>
 
