@@ -37,6 +37,9 @@ data/cache/
 # User-uploaded voices (unlicensed)
 data/voices/custom/
 
+# Skills CLI
+.agents/
+
 # Playwright
 test-results/
 playwright-report/
