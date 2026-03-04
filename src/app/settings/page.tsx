@@ -7,6 +7,7 @@ import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { ChunkingModeCard } from './components/ChunkingModeCard/ChunkingModeCard'
+import { CreditsCard } from './components/CreditsCard/CreditsCard'
 import { ProgressDisplayCard } from './components/ProgressDisplayCard/ProgressDisplayCard'
 import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 import { VoiceManagerCard } from './components/VoiceManagerCard/VoiceManagerCard'
@@ -44,6 +45,7 @@ export default function Settings() {
         <PronunciationEditor />
         <ProgressDisplayCard />
         <ChunkingModeCard />
+        <CreditsCard />
       </main>
     </div>
   )
