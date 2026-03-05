@@ -12,6 +12,7 @@ export type Progress = {
   sentencesPerChapter?: number[]
   wordsPerChapter?: number[]
   lastReadAt?: number
+  chapterPositions?: Record<number, number>
 }
 
 type ProgressState = {
@@ -36,17 +37,24 @@ export const useProgressStore = create<ProgressState>()(
       progress: {},
 
       setProgress: (bookId, chapter, sentence) =>
-        set(state => ({
-          progress: {
-            ...state.progress,
-            [bookId]: {
-              ...state.progress[bookId],
-              chapter,
-              sentence,
-              lastReadAt: Date.now(),
+        set(state => {
+          const existing = state.progress[bookId]
+          return {
+            progress: {
+              ...state.progress,
+              [bookId]: {
+                ...existing,
+                chapter,
+                sentence,
+                lastReadAt: Date.now(),
+                chapterPositions: {
+                  ...existing?.chapterPositions,
+                  [chapter]: sentence,
+                },
+              },
             },
-          },
-        })),
+          }
+        }),
 
       setBookMetadata: (bookId, totalChapters, sentencesPerChapter, wordsPerChapter) =>
         set(state => ({

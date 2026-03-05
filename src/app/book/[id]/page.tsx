@@ -208,7 +208,11 @@ export default function BookReader() {
               <div className="flex-1 min-w-0">
                 <Select
                   value={String(currentChapter)}
-                  onChange={v => handleProgressChange(Number(v), 0)}
+                  onChange={v => {
+                    const chapter = Number(v)
+                    const saved = getProgress(bookId).chapterPositions?.[chapter] ?? 0
+                    handleProgressChange(chapter, saved)
+                  }}
                   options={overview.chapters.map((chapter, idx) => ({
                     value: String(idx),
                     label: chapter.title,
