@@ -62,7 +62,7 @@ export const BookmarkDrawer = ({
           <Tooltip label="Close" shortcut="Esc" position="bottom">
             <button
               onClick={onClose}
-              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <CloseIcon className="w-5 h-5" />
             </button>
@@ -94,7 +94,7 @@ export const BookmarkDrawer = ({
                         {bookmark.preview ??
                           `${chunkingMode === 'paragraph' ? 'Paragraph' : 'Sentence'} ${bookmark.sentence + 1}`}
                       </p>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                      <span className="text-xs text-gray-400 dark:text-gray-400">
                         {formatTimeAgo(bookmark.createdAt)}
                       </span>
                     </div>
@@ -103,8 +103,8 @@ export const BookmarkDrawer = ({
                         e.stopPropagation()
                         removeBookmark(bookId, bookmark.id)
                       }}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Remove bookmark"
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      aria-label="Remove bookmark"
                     >
                       <CloseIcon className="w-4 h-4" />
                     </button>

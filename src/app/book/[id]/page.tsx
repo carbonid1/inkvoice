@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { DebugPanel } from './components/DebugPanel/DebugPanel'
+import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
 import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
@@ -159,13 +160,7 @@ export default function BookReader() {
   const showChapterLoading = useDebouncedLoading(chapterLoading)
   const currentProgress = getProgress(bookId)
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading book...</div>
-      </div>
-    )
-  }
+  if (loading) return <PageSkeleton />
 
   if (error || !overview) {
     return (
@@ -249,7 +244,12 @@ export default function BookReader() {
                 />
               </div>
             )}
-            {showChapterLoading && <SpinnerIcon className="w-4 h-4 animate-spin text-gray-400" />}
+            {showChapterLoading && (
+              <>
+                <SpinnerIcon className="w-4 h-4 animate-spin text-gray-400" aria-hidden="true" />
+                <span className="sr-only">Loading chapter</span>
+              </>
+            )}
             <VoiceSelector bookId={bookId} />
           </div>
         </div>

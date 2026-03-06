@@ -35,8 +35,8 @@ export const RecoveryBanner = ({
       </p>
       <button
         onClick={() => setDismissed(true)}
-        className="p-1 text-amber-400 hover:text-amber-600 transition-colors flex-shrink-0 ml-2"
-        title="Dismiss"
+        className="p-2 text-amber-400 hover:text-amber-600 transition-colors flex-shrink-0 ml-2"
+        aria-label="Dismiss"
       >
         <CloseIcon className="w-4 h-4" />
       </button>

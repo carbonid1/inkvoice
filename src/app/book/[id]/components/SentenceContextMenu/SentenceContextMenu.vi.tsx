@@ -23,7 +23,7 @@ describe('SentenceContextMenu', () => {
         target={{ x: 100, y: 200, chapter: 3, sentence: 5 }}
       />,
     )
-    expect(screen.getByRole('button', { name: 'Regenerate Audio' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Regenerate Audio' })).toBeInTheDocument()
   })
 
   it('calls onRegenerate with chapter and sentence and closes', async () => {
@@ -39,7 +39,7 @@ describe('SentenceContextMenu', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: 'Regenerate Audio' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Regenerate Audio' }))
 
     expect(onRegenerate).toHaveBeenCalledWith(3, 5)
     expect(onClose).toHaveBeenCalled()

@@ -40,7 +40,7 @@ export const ProgressIndicator = ({
         <div className="max-w-3xl mx-auto px-4 pb-1">
           <div className="flex justify-end">
             <Tooltip label="Based on 350 words per page" position="bottom">
-              <p className="text-xs text-gray-400 dark:text-gray-500 cursor-default">
+              <p className="text-xs text-gray-400 dark:text-gray-400 cursor-default">
                 Page {pagePosition.currentPage} of {pagePosition.totalPages}
               </p>
             </Tooltip>
@@ -49,12 +49,15 @@ export const ProgressIndicator = ({
       )}
 
       {showChapterBar && (
-        <div className="h-0.5 bg-gray-100 dark:bg-gray-800">
-          <div
-            className="h-full bg-blue-500 transition-all duration-300"
-            style={{ width: `${chapterPercent}%` }}
-          />
-        </div>
+        <>
+          <div className="h-0.5 bg-gray-100 dark:bg-gray-800" aria-hidden="true">
+            <div
+              className="h-full bg-blue-500 transition-all duration-300"
+              style={{ width: `${chapterPercent}%` }}
+            />
+          </div>
+          <span className="sr-only">{chapterPercent}% through chapter</span>
+        </>
       )}
     </>
   )

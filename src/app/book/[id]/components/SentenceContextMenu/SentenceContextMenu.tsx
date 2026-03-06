@@ -74,8 +74,10 @@ export const SentenceContextMenu = ({
       ref={menuRef}
       style={{ left: position.left, top: position.top }}
       className="fixed z-50 min-w-[180px] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1"
+      role="menu"
     >
       <button
+        role="menuitem"
         onClick={handleClick}
         disabled={loading}
         className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"

@@ -51,6 +51,7 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
         </div>
         <button
           onClick={togglePrefetch}
+          aria-pressed={prefetchEnabled}
           className="w-full text-left hover:text-green-300 transition-colors cursor-pointer"
         >
           Prefetch: {prefetchEnabled ? 'ON' : 'OFF'}
