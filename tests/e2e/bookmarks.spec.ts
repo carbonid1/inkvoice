@@ -20,7 +20,7 @@ test.describe('bookmarks', () => {
     // Drawer should slide in and show the bookmark
     const drawer = page.getByRole('dialog', { name: 'Bookmarks' })
     await expect(drawer).toHaveClass(/translate-x-0/)
-    await expect(drawer.getByText('Sentence 1')).toBeVisible()
+    await expect(drawer.getByText('Paragraph 1')).toBeVisible()
 
     // Close with Escape — slides out
     await page.keyboard.press('Escape')

@@ -7,10 +7,10 @@ import { navigateToBook } from './helpers/navigateToBook'
 // Chapters 12+ are actual novel text with many sentences
 const CHAPTER_A = 12
 const CHAPTER_B = 13
-const SENTENCE_INDEX = 3
+const SENTENCE_INDEX = 1
 
 const activeSentence = (page: import('@playwright/test').Page) =>
-  page.locator('main span.bg-blue-100')
+  page.locator('main span.bg-amber-200\\/70')
 
 const allSentences = (page: import('@playwright/test').Page) =>
   page.locator('main span.cursor-pointer')

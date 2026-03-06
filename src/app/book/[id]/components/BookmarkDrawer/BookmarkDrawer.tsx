@@ -11,7 +11,6 @@ import type { BookmarkDrawerProps } from './BookmarkDrawer.types'
 export const BookmarkDrawer = ({
   bookId,
   isOpen,
-  chunkingMode,
   onClose,
   onNavigate,
   chapterNames,
@@ -91,8 +90,7 @@ export const BookmarkDrawer = ({
                         {chapterNames[bookmark.chapter] ?? `Chapter ${bookmark.chapter + 1}`}
                       </div>
                       <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {bookmark.preview ??
-                          `${chunkingMode === 'paragraph' ? 'Paragraph' : 'Sentence'} ${bookmark.sentence + 1}`}
+                        {bookmark.preview ?? `Paragraph ${bookmark.sentence + 1}`}
                       </p>
                       <span className="text-xs text-gray-400 dark:text-gray-400">
                         {formatTimeAgo(bookmark.createdAt)}

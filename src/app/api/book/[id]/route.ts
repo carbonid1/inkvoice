@@ -1,4 +1,3 @@
-import { parseChunkingMode } from '@/app/api/helpers/parseChunkingMode/parseChunkingMode'
 import { getBookService } from '@/lib/services/book/book.service'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -8,13 +7,12 @@ type RouteParams = {
   }>
 }
 
-export const GET = async (request: NextRequest, { params }: RouteParams) => {
+export const GET = async (_request: NextRequest, { params }: RouteParams) => {
   const { id } = await params
-  const mode = parseChunkingMode(request.nextUrl.searchParams)
   const bookService = getBookService()
 
   try {
-    const overview = await bookService.getBookOverview(id, mode)
+    const overview = await bookService.getBookOverview(id)
     if (!overview) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 })
     }

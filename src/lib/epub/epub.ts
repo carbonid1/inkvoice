@@ -1,4 +1,4 @@
-import type { ChunkingMode, ParsedBook, ParsedChapter } from '@/lib/types/book'
+import type { ParsedBook, ParsedChapter } from '@/lib/types/book'
 import EPub from 'epub2'
 import { unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
@@ -7,22 +7,12 @@ import { inferChapterTitle } from './helpers/inferChapterTitle/inferChapterTitle
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
 // Re-export types for backwards compatibility
-export type {
-  ChunkingMode,
-  ContentBlock,
-  ParsedBook,
-  ParsedChapter,
-  TextSegment,
-} from '@/lib/types/book'
+export type { ContentBlock, ParsedBook, ParsedChapter, TextSegment } from '@/lib/types/book'
 
 // Re-export parseHtmlContent for external use
 export { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
-export const parseEpub = async (
-  arrayBuffer: ArrayBuffer,
-  bookId: string,
-  chunkingMode: ChunkingMode = 'sentence',
-): Promise<ParsedBook> => {
+export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promise<ParsedBook> => {
   // Use epub2 for server-side parsing (epubjs is browser-only)
   const tempPath = join(tmpdir(), `epub-${Date.now()}-${Math.random().toString(36).slice(2)}.epub`)
 
@@ -96,7 +86,7 @@ export const parseEpub = async (
         if (!html) continue
 
         // Parse HTML to get rich content and sentences
-        const { content, sentences } = await parseHtmlContent(html, getImage, chunkingMode)
+        const { content, sentences } = await parseHtmlContent(html, getImage)
 
         const hasContent = sentences.length > 0 || content.some(b => b.type === 'image')
         if (!hasContent) continue

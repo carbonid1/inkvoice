@@ -1,4 +1,4 @@
-import type { ChunkingMode, ContentBlock, TextSegment } from '@/lib/types/book'
+import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { JSDOM } from 'jsdom'
 import { getPlainText } from './helpers/getPlainText/getPlainText'
 import { isAttributionElement } from './helpers/isAttributionElement/isAttributionElement'
@@ -25,15 +25,13 @@ const isLinkListParagraph = (el: Element): boolean => {
 export const parseHtmlContent = (
   html: string,
   getImage: (id: string) => Promise<string | null>,
-  chunkingMode: ChunkingMode = 'sentence',
 ): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
-  return parseHtmlContentSync(html, getImage, chunkingMode)
+  return parseHtmlContentSync(html, getImage)
 }
 
 const parseHtmlContentSync = async (
   html: string,
   getImage: (id: string) => Promise<string | null>,
-  chunkingMode: ChunkingMode = 'sentence',
 ): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
   const dom = new JSDOM(html)
   const doc = dom.window.document
@@ -45,7 +43,7 @@ const parseHtmlContentSync = async (
   // Convert an element's text into chunk-aligned segments, registering each
   // chunk in the shared sentences array. Returns null if the element is empty.
   const toSegments = (node: Element): TextSegment[] | null => {
-    const mappings = splitNodeIntoChunks(node, chunkingMode)
+    const mappings = splitNodeIntoChunks(node)
     if (mappings.length === 0) return null
     return mappings.map(m => {
       const idx = sentences.length

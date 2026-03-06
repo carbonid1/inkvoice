@@ -11,12 +11,11 @@ import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebounce
 import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics, PlaybackMetrics } from '@/lib/types/debug'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
-import { useDisplayStore } from '@/store/useDisplayStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import type { MouseEvent } from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { DebugPanel } from './components/DebugPanel/DebugPanel'
@@ -36,12 +35,8 @@ export default function BookReader() {
   const params = useParams()
   const bookId = params.id as string
 
-  const chunkingMode = useDisplayStore(s => s.chunkingMode)
   const { effectiveVoice } = useBookVoice(bookId)
-  const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(
-    bookId,
-    chunkingMode,
-  )
+  const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(bookId)
 
   const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
   const [currentChapter, setCurrentChapter] = useState(initialChapter)
@@ -67,16 +62,6 @@ export default function BookReader() {
     setCurrentSentence(initialSentence)
   }, [initialChapter, initialSentence])
 
-  // Reset sentence position when chunking mode changes
-  const prevModeRef = useRef(chunkingMode)
-  useEffect(() => {
-    if (prevModeRef.current !== chunkingMode) {
-      prevModeRef.current = chunkingMode
-      setCurrentSentence(0)
-      setProgress(bookId, currentChapter, 0)
-    }
-  }, [chunkingMode, bookId, currentChapter, setProgress])
-
   // Fetch chapter content when currentChapter changes
   useEffect(() => {
     if (!overview) return
@@ -84,9 +69,7 @@ export default function BookReader() {
     const fetchChapter = async () => {
       setChapterLoading(true)
       try {
-        const response = await fetch(
-          `/api/book/${bookId}/chapter/${currentChapter}?mode=${chunkingMode}`,
-        )
+        const response = await fetch(`/api/book/${bookId}/chapter/${currentChapter}`)
         if (!response.ok) throw new Error('Failed to load chapter')
         const data: ParsedChapter = await response.json()
         setChapterData(data)
@@ -98,7 +81,7 @@ export default function BookReader() {
     }
 
     fetchChapter()
-  }, [bookId, overview, currentChapter, chunkingMode])
+  }, [bookId, overview, currentChapter])
 
   const handleProgressChange = useCallback(
     (chapter: number, sentence: number) => {
@@ -128,10 +111,10 @@ export default function BookReader() {
 
   const handleRegenerate = useCallback(
     async (chapter: number, sentence: number) => {
-      const params = new URLSearchParams({ voice: effectiveVoice, mode: chunkingMode })
+      const params = new URLSearchParams({ voice: effectiveVoice })
       await fetch(`/api/tts/${bookId}/${chapter}/${sentence}?${params}`, { method: 'DELETE' })
     },
-    [bookId, effectiveVoice, chunkingMode],
+    [bookId, effectiveVoice],
   )
 
   // Bookmarks
@@ -269,7 +252,6 @@ export default function BookReader() {
               chapterNames[recoveryBookmark.chapter] ?? `Chapter ${recoveryBookmark.chapter + 1}`
             }
             sentence={recoveryBookmark.sentence}
-            chunkingMode={chunkingMode}
             onNavigate={() =>
               handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.sentence)
             }
@@ -307,7 +289,6 @@ export default function BookReader() {
       <BookmarkDrawer
         bookId={bookId}
         isOpen={drawerOpen}
-        chunkingMode={chunkingMode}
         onClose={() => setDrawerOpen(false)}
         onNavigate={handleProgressChange}
         chapterNames={chapterNames}

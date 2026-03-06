@@ -1,7 +1,6 @@
 'use client'
 
 import type { DebugMetrics } from '@/lib/types/debug'
-import { useDisplayStore } from '@/store/useDisplayStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 
 type DebugPanelProps = {
@@ -10,7 +9,6 @@ type DebugPanelProps = {
 }
 
 export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
-  const chunkingMode = useDisplayStore(s => s.chunkingMode)
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
   const togglePrefetch = usePrefetchStore(s => s.toggle)
   if (!visible) return null
@@ -40,8 +38,7 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
           Cache: {metrics.cacheUsedMB ?? 0}MB / {metrics.cacheMaxMB ?? 800}MB ({cachePercent}%)
         </div>
         <div>
-          {chunkingMode === 'paragraph' ? 'Paragraph' : 'Sentence'}: {metrics.currentSentence + 1}/
-          {metrics.totalSentences}
+          Paragraph: {metrics.currentSentence + 1}/{metrics.totalSentences}
           {metrics.totalChapters > 1 && (
             <span>
               {' '}

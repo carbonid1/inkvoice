@@ -3,7 +3,7 @@
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 import { useFetchLifecycle } from '@/lib/hooks/useFetchLifecycle/useFetchLifecycle'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
-import type { ChapterInfo, ChunkingMode } from '@/lib/types/book'
+import type { ChapterInfo } from '@/lib/types/book'
 import type { PlaybackMetrics } from '@/lib/types/debug'
 import { useCallback, useMemo, useRef } from 'react'
 
@@ -11,7 +11,6 @@ interface UsePrefetchQueueOptions {
   bookId: string
   voice: string
   pronunciationVersion: number
-  chunkingMode: ChunkingMode
   chaptersRef: React.MutableRefObject<ChapterInfo[]>
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
@@ -28,7 +27,6 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     bookId,
     voice,
     pronunciationVersion,
-    chunkingMode,
     chaptersRef,
     currentChapterRef,
     currentSentenceRef,
@@ -48,14 +46,14 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
   const getCacheKey = useCallback(
     (ch: number, sent: number) =>
-      `${ch}_${sent}_${voice ?? DEFAULT_VOICE}_pv${pronunciationVersion}_${chunkingMode}`,
-    [voice, pronunciationVersion, chunkingMode],
+      `${ch}_${sent}_${voice ?? DEFAULT_VOICE}_pv${pronunciationVersion}`,
+    [voice, pronunciationVersion],
   )
 
   const getTTSUrl = useCallback(
     (ch: number, sent: number) =>
-      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}&pv=${pronunciationVersion}&mode=${chunkingMode}`,
-    [bookId, voice, pronunciationVersion, chunkingMode],
+      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}&pv=${pronunciationVersion}`,
+    [bookId, voice, pronunciationVersion],
   )
 
   const countAhead = useCallback(() => {

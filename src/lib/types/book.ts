@@ -2,8 +2,6 @@
  * Book-related types extracted from epub.ts
  */
 
-export type ChunkingMode = 'sentence' | 'paragraph'
-
 export interface TextSegment {
   sentenceIndex: number
   html: string

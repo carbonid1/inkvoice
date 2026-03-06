@@ -1,4 +1,3 @@
-import { parseChunkingMode } from '@/app/api/helpers/parseChunkingMode/parseChunkingMode'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { pronunciationService } from '@/lib/services/pronunciation/pronunciation.service'
@@ -29,7 +28,6 @@ const parseRequest = async (
     voiceService.resolveVoicePath,
     voiceService.listVoices,
   )
-  const mode = parseChunkingMode(request.nextUrl.searchParams)
   const chapterIdx = parseInt(chapter, 10)
   const sentenceIdx = parseInt(sentence, 10)
 
@@ -38,7 +36,7 @@ const parseRequest = async (
   }
 
   const bookService = getBookService()
-  const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx, mode)
+  const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
   if (!rawText) {
     return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
   }
