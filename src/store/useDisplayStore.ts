@@ -6,38 +6,36 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 
 import { createDebouncedStorage } from './debouncedStorage'
 
-type ProgressDisplay = 'bar' | 'pages' | 'both'
-
 type DisplayState = {
-  progressDisplay: ProgressDisplay
-  setProgressDisplay: (mode: ProgressDisplay) => void
   chunkingMode: ChunkingMode
   setChunkingMode: (mode: ChunkingMode) => void
 }
 
-type PersistedDisplayState = Pick<DisplayState, 'progressDisplay' | 'chunkingMode'>
+type PersistedDisplayState = Pick<DisplayState, 'chunkingMode'>
 
 export const useDisplayStore = create<DisplayState>()(
   persist(
     set => ({
-      progressDisplay: 'both',
-      setProgressDisplay: progressDisplay => set({ progressDisplay }),
       chunkingMode: 'sentence' as ChunkingMode,
       setChunkingMode: chunkingMode => set({ chunkingMode }),
     }),
     {
       name: 'inkvoice-display',
-      version: 2,
+      version: 3,
       storage: createJSONStorage<PersistedDisplayState>(() => createDebouncedStorage()),
       partialize: state => ({
-        progressDisplay: state.progressDisplay,
         chunkingMode: state.chunkingMode,
       }),
       migrate: (persisted, version) => {
+        const state = persisted as Record<string, unknown>
         if (version < 2) {
-          return { ...(persisted as PersistedDisplayState), chunkingMode: 'sentence' as const }
+          return { ...state, chunkingMode: 'sentence' as const }
         }
-        return persisted as PersistedDisplayState
+        if (version < 3) {
+          const { progressDisplay: _, ...rest } = state
+          return rest as PersistedDisplayState
+        }
+        return state as PersistedDisplayState
       },
     },
   ),

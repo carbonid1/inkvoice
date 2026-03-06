@@ -111,6 +111,23 @@ describe('Tooltip', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Custom label')
   })
 
+  it('applies max-width and wraps text when maxWidth is set', () => {
+    renderWithStrictMode(
+      <Tooltip label="Long tooltip text" maxWidth={200}>
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const wrapper = screen.getByRole('button').parentElement!
+    fireEvent.mouseEnter(wrapper)
+    act(() => vi.advanceTimersByTime(200))
+
+    const tooltip = screen.getByRole('tooltip')
+    expect(tooltip).toHaveStyle({ maxWidth: '200px' })
+    expect(tooltip.className).toContain('whitespace-normal')
+    expect(tooltip.className).not.toContain('whitespace-nowrap')
+  })
+
   it('cancels pending show when mouse leaves before delay', () => {
     renderWithStrictMode(
       <Tooltip label="Test">

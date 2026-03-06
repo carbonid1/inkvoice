@@ -6,12 +6,19 @@ type TooltipProps = {
   label: string
   shortcut?: string
   position?: 'top' | 'bottom'
+  maxWidth?: number
   children: ReactElement
 }
 
 const SHOW_DELAY = 200
 
-export const Tooltip = ({ label, shortcut, position = 'top', children }: TooltipProps) => {
+export const Tooltip = ({
+  label,
+  shortcut,
+  position = 'top',
+  maxWidth,
+  children,
+}: TooltipProps) => {
   const [visible, setVisible] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -49,7 +56,8 @@ export const Tooltip = ({ label, shortcut, position = 'top', children }: Tooltip
       {visible && (
         <div
           role="tooltip"
-          className={`absolute left-1/2 -translate-x-1/2 z-50 whitespace-nowrap
+          style={maxWidth ? { maxWidth } : undefined}
+          className={`absolute left-1/2 -translate-x-1/2 z-50 ${maxWidth ? 'whitespace-normal' : 'whitespace-nowrap'}
             pointer-events-none bg-gray-900 dark:bg-gray-100
             text-white dark:text-gray-900 text-xs rounded-lg shadow-lg
             px-2.5 py-1.5 flex items-center gap-1.5 ${positionClasses}`}

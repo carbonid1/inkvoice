@@ -1,7 +1,7 @@
 'use client'
 
+import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { ChapterInfo } from '@/lib/types/book'
-import { useDisplayStore } from '@/store/useDisplayStore'
 import type { Progress } from '@/store/useProgressStore'
 import { computeChapterProgressPercent } from '../../helpers/computeChapterProgressPercent/computeChapterProgressPercent'
 import { computePagePosition } from '../../helpers/computePagePosition/computePagePosition'
@@ -20,14 +20,9 @@ export const ProgressIndicator = ({
   progress,
   chapterInfo,
 }: ProgressIndicatorProps) => {
-  const progressDisplay = useDisplayStore(s => s.progressDisplay)
-  const showBar = progressDisplay === 'bar' || progressDisplay === 'both'
-  const showPages = progressDisplay === 'pages' || progressDisplay === 'both'
-
   const chapterPercent =
     computeChapterProgressPercent({ sentence, sentencesInChapter: chapterInfo.sentenceCount }) ?? 0
-  const showChapterBar =
-    showBar && shouldShowChapterProgress({ wordsInChapter: chapterInfo.wordCount })
+  const showChapterBar = shouldShowChapterProgress({ wordsInChapter: chapterInfo.wordCount })
 
   const pagePosition =
     progress.wordsPerChapter && progress.sentencesPerChapter
@@ -41,11 +36,15 @@ export const ProgressIndicator = ({
 
   return (
     <>
-      {showPages && pagePosition && (
+      {pagePosition && (
         <div className="max-w-3xl mx-auto px-4 pb-1">
-          <p className="text-xs text-gray-400 dark:text-gray-500 text-right">
-            Page {pagePosition.currentPage} of {pagePosition.totalPages}
-          </p>
+          <div className="flex justify-end">
+            <Tooltip label="Based on 350 words per page" position="bottom">
+              <p className="text-xs text-gray-400 dark:text-gray-500 cursor-default">
+                Page {pagePosition.currentPage} of {pagePosition.totalPages}
+              </p>
+            </Tooltip>
+          </div>
         </div>
       )}
 

@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import { ChunkingModeCard } from './components/ChunkingModeCard/ChunkingModeCard'
 import { CreditsCard } from './components/CreditsCard/CreditsCard'
-import { ProgressDisplayCard } from './components/ProgressDisplayCard/ProgressDisplayCard'
 import { PronunciationEditor } from './components/PronunciationEditor/PronunciationEditor'
 import { VoiceManagerCard } from './components/VoiceManagerCard/VoiceManagerCard'
 
@@ -43,7 +42,6 @@ export default function Settings() {
       <main className="max-w-2xl mx-auto space-y-6">
         <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
         <PronunciationEditor />
-        <ProgressDisplayCard />
         <ChunkingModeCard />
         <CreditsCard />
       </main>
