@@ -1,17 +1,19 @@
 'use client'
 
 import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type MouseEvent, type ReactNode, useEffect, useRef } from 'react'
 import { ContentBlock } from './components/ContentBlock'
 import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
 import { findTitleGroupMembers } from './helpers/findTitleGroupMembers/findTitleGroupMembers'
 import { SegmentList } from './helpers/renderSegments/renderSegments'
+import { ACTIVE_SENTENCE_HIGHLIGHT } from './Reader.consts'
 
 interface ReaderProps {
   chapter: ParsedChapter
   currentChapter: number
   currentSentence: number
   onSentenceClick?: (chapter: number, sentence: number) => void
+  onSentenceContextMenu?: (e: MouseEvent, chapter: number, sentence: number) => void
   bookmarkedSentences?: Set<number>
 }
 
@@ -37,6 +39,7 @@ export const Reader = ({
   currentChapter,
   currentSentence,
   onSentenceClick,
+  onSentenceContextMenu,
   bookmarkedSentences,
 }: ReaderProps) => {
   const currentSentenceRef = useRef<HTMLSpanElement>(null)
@@ -96,6 +99,7 @@ export const Reader = ({
           block={isSubtitle ? normalizeCaps(block) : block}
           currentSentence={currentSentence}
           onSentenceClick={onSentenceClick}
+          onSentenceContextMenu={onSentenceContextMenu}
           currentChapter={currentChapter}
           sentenceRef={currentSentenceRef}
           isInTitleGroup={titleGroupMember.has(idx)}
@@ -143,6 +147,7 @@ export const Reader = ({
               segments={duplicateBlock.segments}
               currentSentence={currentSentence}
               onSentenceClick={onSentenceClick}
+              onSentenceContextMenu={onSentenceContextMenu}
               currentChapter={currentChapter}
               sentenceRef={currentSentenceRef}
               bookmarkedSentences={bookmarkedSentences}
@@ -170,7 +175,7 @@ export const Reader = ({
               onClick={() => onSentenceClick?.(currentChapter, idx)}
               className={`cursor-pointer transition-colors ${
                 isActive
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded px-1 -mx-1'
+                  ? `${ACTIVE_SENTENCE_HIGHLIGHT} px-1 -mx-1`
                   : 'hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >

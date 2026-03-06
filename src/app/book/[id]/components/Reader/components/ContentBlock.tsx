@@ -1,7 +1,7 @@
 'use client'
 
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
-import type { RefObject } from 'react'
+import type { MouseEvent, RefObject } from 'react'
 import { isFilenameAlt } from '../helpers/isFilenameAlt/isFilenameAlt'
 import { renderSegments } from '../helpers/renderSegments/renderSegments'
 
@@ -9,6 +9,7 @@ interface ContentBlockProps {
   block: ContentBlockType
   currentSentence: number
   onSentenceClick?: (chapter: number, sentence: number) => void
+  onSentenceContextMenu?: (e: MouseEvent, chapter: number, sentence: number) => void
   currentChapter: number
   sentenceRef: RefObject<HTMLSpanElement>
   isInTitleGroup?: boolean
@@ -20,6 +21,7 @@ export const ContentBlock = ({
   block,
   currentSentence,
   onSentenceClick,
+  onSentenceContextMenu,
   currentChapter,
   sentenceRef,
   isInTitleGroup,
@@ -31,6 +33,7 @@ export const ContentBlock = ({
       segments: segs,
       currentSentence,
       onSentenceClick,
+      onSentenceContextMenu,
       currentChapter,
       sentenceRef,
       bookmarkedSentences,

@@ -9,10 +9,19 @@ import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import { voiceService } from '@/lib/services/voice/voice.service'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(
+type RouteParams = { params: Promise<{ bookId: string; chapter: string; sentence: string }> }
+
+type RequestContext = {
+  bookId: string
+  voice: string
+  fellBack: boolean
+  text: string
+}
+
+const parseRequest = async (
   request: NextRequest,
-  { params }: { params: Promise<{ bookId: string; chapter: string; sentence: string }> },
-) {
+  params: RouteParams['params'],
+): Promise<RequestContext | NextResponse> => {
   const { bookId, chapter, sentence } = await params
   const requestedVoice = request.nextUrl.searchParams.get('voice') || DEFAULT_VOICE
   const { voice, fellBack } = await resolveValidVoice(
@@ -29,19 +38,33 @@ export async function GET(
   }
 
   const bookService = getBookService()
+  const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx, mode)
+  if (!rawText) {
+    return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
+  }
+
+  const text = await pronunciationService.apply(rawText)
+  return { bookId, voice, fellBack, text }
+}
+
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const result = await parseRequest(request, params)
+  if (result instanceof NextResponse) return result
+
+  const cacheService = getCacheService()
+  const deleted = await cacheService.delete(result.text, result.voice)
+  return NextResponse.json({ deleted })
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const result = await parseRequest(request, params)
+  if (result instanceof NextResponse) return result
+
+  const { voice, fellBack, text, bookId } = result
   const cacheService = getCacheService()
   const ttsService = getTTSService()
 
   try {
-    // Get sentence text (uses cached ParsedBook)
-    const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx, mode)
-    if (!rawText) {
-      return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
-    }
-
-    // Apply pronunciation overrides before cache lookup
-    const text = await pronunciationService.apply(rawText)
-
     const makeHeaders = (xCache: string, stats: { usedBytes: number; maxBytes: number }) => {
       const headers: Record<string, string> = {
         'Content-Type': 'audio/wav',

@@ -1,12 +1,14 @@
 'use client'
 
 import type { TextSegment } from '@/lib/types/book'
-import type { RefObject } from 'react'
+import type { MouseEvent, RefObject } from 'react'
+import { ACTIVE_SENTENCE_HIGHLIGHT } from '../../Reader.consts'
 
 export type RenderSegmentsParams = {
   segments: TextSegment[] | undefined
   currentSentence: number
   onSentenceClick: ((chapter: number, sentence: number) => void) | undefined
+  onSentenceContextMenu?: (e: MouseEvent, chapter: number, sentence: number) => void
   currentChapter: number
   sentenceRef: RefObject<HTMLSpanElement>
   bookmarkedSentences?: Set<number>
@@ -18,6 +20,7 @@ export const renderSegments = ({
   segments,
   currentSentence,
   onSentenceClick,
+  onSentenceContextMenu,
   currentChapter,
   sentenceRef,
   bookmarkedSentences,
@@ -31,9 +34,14 @@ export const renderSegments = ({
         <span
           ref={isActive ? sentenceRef : undefined}
           onClick={() => onSentenceClick?.(currentChapter, segment.sentenceIndex)}
+          onContextMenu={
+            onSentenceContextMenu
+              ? e => onSentenceContextMenu(e, currentChapter, segment.sentenceIndex)
+              : undefined
+          }
           className={`cursor-pointer transition-colors ${
             isActive
-              ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded px-0.5 -mx-0.5'
+              ? `${ACTIVE_SENTENCE_HIGHLIGHT} px-0.5 -mx-0.5`
               : 'hover:bg-gray-100 dark:hover:bg-gray-800'
           } ${isBookmarked ? 'border-l-2 border-amber-400 dark:border-amber-500 pl-1 -ml-1' : ''}`}
           dangerouslySetInnerHTML={{ __html: segment.html }}

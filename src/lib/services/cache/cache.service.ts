@@ -142,6 +142,26 @@ class TTSCacheService implements CacheService {
     }
   }
 
+  async delete(text: string, voice: string): Promise<boolean> {
+    await this.ensureInitialized()
+
+    const hash = getCacheHash(text, voice)
+    const entry = this.metadata.entries[hash]
+    if (!entry) return false
+
+    const filePath = path.join(this.cacheDir, `${hash}.wav`)
+    try {
+      await fs.unlink(filePath)
+    } catch {
+      // File already gone
+    }
+
+    this.metadata.totalSize -= entry.size
+    delete this.metadata.entries[hash]
+    await this.saveMetadata()
+    return true
+  }
+
   async clear(): Promise<void> {
     await this.ensureInitialized()
 

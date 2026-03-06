@@ -43,9 +43,9 @@ describe('SegmentList', () => {
     const active = screen.getByText('Active')
     const inactive = screen.getByText('Inactive')
 
-    expect(active.className).toContain('bg-blue-100')
+    expect(active.className).toContain('bg-amber-200/70')
     expect(active.className).not.toContain('hover:bg-gray-100')
-    expect(inactive.className).not.toContain('bg-blue-100')
+    expect(inactive.className).not.toContain('bg-amber-200/70')
   })
 
   it('applies hover classes to inactive sentences', () => {

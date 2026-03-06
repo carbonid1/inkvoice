@@ -6,6 +6,7 @@ import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { Select } from '@/components/Select/Select'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
+import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics, PlaybackMetrics } from '@/lib/types/debug'
@@ -14,6 +15,7 @@ import { useDisplayStore } from '@/store/useDisplayStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import type { MouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
@@ -22,6 +24,10 @@ import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
 import { RecoveryBanner } from './components/RecoveryBanner/RecoveryBanner'
+import {
+  SentenceContextMenu,
+  type ContextMenuTarget,
+} from './components/SentenceContextMenu/SentenceContextMenu'
 import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 
@@ -30,6 +36,7 @@ export default function BookReader() {
   const bookId = params.id as string
 
   const chunkingMode = useDisplayStore(s => s.chunkingMode)
+  const { effectiveVoice } = useBookVoice(bookId)
   const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(
     bookId,
     chunkingMode,
@@ -41,6 +48,8 @@ export default function BookReader() {
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [contextMenuTarget, setContextMenuTarget] = useState<ContextMenuTarget | null>(null)
+
   const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
     isGenerating: false,
     ahead: 0,
@@ -104,6 +113,24 @@ export default function BookReader() {
       handleProgressChange(chapter, sentence)
     },
     [handleProgressChange],
+  )
+
+  const handleSentenceContextMenu = useCallback(
+    (e: MouseEvent, chapter: number, sentence: number) => {
+      e.preventDefault()
+      setContextMenuTarget({ x: e.clientX, y: e.clientY, chapter, sentence })
+    },
+    [],
+  )
+
+  const handleCloseContextMenu = useCallback(() => setContextMenuTarget(null), [])
+
+  const handleRegenerate = useCallback(
+    async (chapter: number, sentence: number) => {
+      const params = new URLSearchParams({ voice: effectiveVoice, mode: chunkingMode })
+      await fetch(`/api/tts/${bookId}/${chapter}/${sentence}?${params}`, { method: 'DELETE' })
+    },
+    [bookId, effectiveVoice, chunkingMode],
   )
 
   // Bookmarks
@@ -254,6 +281,7 @@ export default function BookReader() {
             currentChapter={currentChapter}
             currentSentence={currentSentence}
             onSentenceClick={handleSentenceClick}
+            onSentenceContextMenu={handleSentenceContextMenu}
             bookmarkedSentences={bookmarkedSentences}
           />
         ) : (
@@ -283,6 +311,12 @@ export default function BookReader() {
         onClose={() => setDrawerOpen(false)}
         onNavigate={handleProgressChange}
         chapterNames={chapterNames}
+      />
+
+      <SentenceContextMenu
+        target={contextMenuTarget}
+        onRegenerate={handleRegenerate}
+        onClose={handleCloseContextMenu}
       />
     </div>
   )

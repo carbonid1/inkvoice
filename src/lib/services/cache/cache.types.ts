@@ -10,6 +10,9 @@ export interface CacheService {
   /** Get cache statistics */
   getStats(): Promise<CacheStats>
 
+  /** Delete a single cached entry */
+  delete(text: string, voice: string): Promise<boolean>
+
   /** Clear all cached data */
   clear(): Promise<void>
 }
