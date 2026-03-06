@@ -41,40 +41,40 @@ describe('VoiceRow', () => {
     const onSelect = vi.fn()
     renderRow({ onSelect })
 
-    fireEvent.click(screen.getByRole('button', { name: /Clara/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Clara/ }))
     expect(onSelect).toHaveBeenCalledOnce()
   })
 
   it('selected row has aria-current', () => {
     renderRow({ selected: true })
 
-    const row = screen.getByRole('button', { name: /Clara/ })
+    const row = screen.getByRole('button', { name: /^Clara/ })
     expect(row).toHaveAttribute('aria-current', 'true')
   })
 
   it('unselected row does not have aria-current', () => {
     renderRow({ selected: false })
 
-    const row = screen.getByRole('button', { name: /Clara/ })
+    const row = screen.getByRole('button', { name: /^Clara/ })
     expect(row).not.toHaveAttribute('aria-current', 'true')
   })
 
-  it('source button has aria-label "Play source audio"', () => {
+  it('source button has aria-label with voice name', () => {
     renderRow()
 
-    expect(screen.getByRole('button', { name: 'Play source audio' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Play source audio for Clara/ })).toBeInTheDocument()
   })
 
-  it('sample button has aria-label "Play voice sample"', () => {
+  it('sample button has aria-label with voice name', () => {
     renderRow()
 
-    expect(screen.getByRole('button', { name: 'Play voice sample' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Play voice sample for Clara/ })).toBeInTheDocument()
   })
 
   it('sample button hidden when hasSample is false', () => {
     renderRow({ voice: makeVoice({ hasSample: false }) })
 
-    expect(screen.queryByRole('button', { name: 'Play voice sample' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Play voice sample/ })).not.toBeInTheDocument()
   })
 
   it('source button shows "Stop" label when playing source', () => {
@@ -82,14 +82,14 @@ describe('VoiceRow', () => {
     renderRow({ playing })
 
     expect(screen.getByRole('button', { name: 'Stop' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Play source audio' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Play source audio/ })).not.toBeInTheDocument()
   })
 
   it('edit tags button calls onToggleTagEditor', () => {
     const onToggleTagEditor = vi.fn()
     renderRow({ onToggleTagEditor })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit tags' }))
+    fireEvent.click(screen.getByRole('button', { name: /Edit tags for Clara/ }))
     expect(onToggleTagEditor).toHaveBeenCalledOnce()
   })
 
@@ -113,7 +113,7 @@ describe('VoiceRow', () => {
     const onPlay = vi.fn()
     renderRow({ onPlay })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Play source audio' }))
+    fireEvent.click(screen.getByRole('button', { name: /Play source audio for Clara/ }))
     expect(onPlay).toHaveBeenCalledWith('clara', 'source')
   })
 
@@ -121,7 +121,7 @@ describe('VoiceRow', () => {
     const onPlay = vi.fn()
     renderRow({ onPlay })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Play voice sample' }))
+    fireEvent.click(screen.getByRole('button', { name: /Play voice sample for Clara/ }))
     expect(onPlay).toHaveBeenCalledWith('clara', 'sample')
   })
 

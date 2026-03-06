@@ -45,6 +45,7 @@ export const VoiceTagEditor = ({ tags, onTagsChanged, saving }: VoiceTagEditorPr
         onChange={e => setTagInput(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Add tag..."
+        aria-label="Add tag"
         disabled={saving}
         className="w-full p-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
       />

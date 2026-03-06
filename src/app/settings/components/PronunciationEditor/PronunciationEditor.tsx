@@ -1,5 +1,6 @@
 'use client'
 
+import { CloseIcon } from '@/components/icons/CloseIcon'
 import { SpeakerIcon } from '@/components/icons/SpeakerIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { StopIcon } from '@/components/icons/StopIcon'
@@ -190,28 +191,21 @@ export const PronunciationEditor = () => {
                 return (
                   <div key={word} className="flex items-center gap-3 text-sm">
                     <span className="font-medium min-w-[120px]">{word}</span>
-                    <span className="text-gray-500 dark:text-gray-400">&rarr;</span>
+                    <span className="text-gray-500 dark:text-gray-300">&rarr;</span>
                     <span className="flex-1 text-gray-700 dark:text-gray-300">{pronunciation}</span>
                     <button
                       onClick={() => playPreview(pronunciation)}
-                      className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-                      title={`Preview "${pronunciation}"`}
+                      className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                      aria-label={`Preview "${pronunciation}"`}
                     >
                       {getPreviewIcon(pronunciation)}
                     </button>
                     <button
                       onClick={() => handleDelete(word)}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      title={`Remove "${word}"`}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label={`Remove "${word}"`}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-4 h-4"
-                      >
-                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                      </svg>
+                      <CloseIcon className="w-4 h-4" />
                     </button>
                   </div>
                 )
@@ -226,6 +220,7 @@ export const PronunciationEditor = () => {
               onChange={e => setNewWord(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Word"
+              aria-label="Word to override"
               className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <input
@@ -234,13 +229,14 @@ export const PronunciationEditor = () => {
               onChange={e => setNewPronunciation(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Pronunciation"
+              aria-label="Pronunciation replacement"
               className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
               onClick={() => playPreview(newPronunciation.trim())}
               disabled={!newPronunciation.trim()}
               className="p-2 text-gray-400 hover:text-blue-500 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
-              title="Preview pronunciation"
+              aria-label="Preview pronunciation"
             >
               {getPreviewIcon(newPronunciation.trim())}
             </button>

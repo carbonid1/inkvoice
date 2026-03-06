@@ -63,7 +63,7 @@ describe('VoiceList', () => {
   it('selected voice row has aria-current', () => {
     renderList({ selectedVoice: 'clara' })
 
-    const claraButton = screen.getByRole('button', { name: /Clara/ })
+    const claraButton = screen.getByRole('button', { name: /^Clara/ })
     expect(claraButton).toHaveAttribute('aria-current', 'true')
   })
 

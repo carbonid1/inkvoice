@@ -79,7 +79,8 @@ export const VoiceRow = ({
             <button
               type="button"
               onClick={() => onPlay(voice.name, 'source')}
-              className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
+              aria-label={playingSource ? 'Stop' : `Play source audio for ${voice.displayName}`}
+              className="p-2 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
             >
               {playingSource ? <StopIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
             </button>
@@ -90,7 +91,8 @@ export const VoiceRow = ({
               <button
                 type="button"
                 onClick={() => onPlay(voice.name, 'sample')}
-                className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
+                aria-label={playingSample ? 'Stop' : `Play voice sample for ${voice.displayName}`}
+                className="p-2 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
               >
                 {playingSample ? (
                   <StopIcon className="w-4 h-4" />
@@ -105,7 +107,8 @@ export const VoiceRow = ({
             <button
               type="button"
               onClick={onToggleTagEditor}
-              className={`p-1.5 transition-colors cursor-pointer ${
+              aria-label={`Edit tags for ${voice.displayName}`}
+              className={`p-2 transition-colors cursor-pointer ${
                 editingTags ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'
               }`}
             >
@@ -119,7 +122,8 @@ export const VoiceRow = ({
                 type="button"
                 onClick={() => setConfirmingDelete(true)}
                 disabled={deletingVoice === voice.name}
-                className="p-1.5 text-gray-400 hover:text-red-500 disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors cursor-pointer"
+                aria-label={`Remove ${voice.displayName}`}
+                className="p-2 text-gray-400 hover:text-red-500 disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors cursor-pointer"
               >
                 <CloseIcon className="w-4 h-4" />
               </button>

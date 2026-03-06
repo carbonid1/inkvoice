@@ -43,7 +43,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
-        className={`w-full rounded-lg border-2 border-dashed py-2.5 px-3 text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+        className={`w-full rounded-lg border py-2.5 px-3 text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer ${
           open
             ? 'border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
             : 'border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400'
@@ -65,6 +65,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               }}
               onKeyDown={handleKeyDown}
               placeholder="Voice name"
+              aria-label="Voice name"
               className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <input

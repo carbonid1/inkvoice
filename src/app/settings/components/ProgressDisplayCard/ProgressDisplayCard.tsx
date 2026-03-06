@@ -16,6 +16,7 @@ export const ProgressDisplayCard = () => {
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
       <h2 className="text-lg font-semibold mb-4">Progress Display</h2>
       <fieldset className="space-y-3">
+        <legend className="sr-only">Progress Display</legend>
         {OPTIONS.map(option => (
           <label key={option.value} className="flex items-center gap-3 cursor-pointer">
             <input
