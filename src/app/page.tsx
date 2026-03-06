@@ -63,6 +63,7 @@ export default function Library() {
                 <div className="w-full aspect-[2/3] bg-gray-200 dark:bg-gray-600 animate-pulse rounded mb-3" />
                 <div className="h-4 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-3/4 mb-2" />
                 <div className="h-3 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-1/2" />
+                <div className="h-3 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-2/5 mt-1" />
               </div>
             ))}
           </div>
