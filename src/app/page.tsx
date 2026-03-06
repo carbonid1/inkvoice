@@ -40,12 +40,12 @@ export default function Library() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">InkVoice</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Your local audiobook reader</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Your local audiobook reader</p>
           </div>
           <Link
             href="/settings"
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="Settings"
+            aria-label="Settings"
           >
             <GearIcon />
           </Link>
@@ -53,7 +53,20 @@ export default function Library() {
       </header>
 
       <main className="max-w-6xl mx-auto">
-        {loading && <div className="text-center py-12 text-gray-500">Loading books...</div>}
+        {loading && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div
+                key={i}
+                className="flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+              >
+                <div className="w-full aspect-[2/3] bg-gray-200 dark:bg-gray-600 animate-pulse rounded mb-3" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {error && <div className="text-center py-12 text-red-600 dark:text-red-400">{error}</div>}
 

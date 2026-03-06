@@ -21,12 +21,15 @@ export const BookCard = ({ book }: BookCardProps) => {
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors cursor-pointer bg-white dark:bg-gray-800">
+      <div className="h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors bg-white dark:bg-gray-800">
         <div className="w-full aspect-[2/3] bg-gray-100 dark:bg-gray-700 rounded mb-3 flex items-center justify-center overflow-hidden relative">
           {!coverError ? (
             <>
               {!coverLoaded && (
-                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-600 animate-pulse" />
+                <div
+                  className="absolute inset-0 bg-gray-200 dark:bg-gray-600 animate-pulse"
+                  aria-hidden="true"
+                />
               )}
               <img
                 src={`/api/book/${book.id}/cover`}
@@ -49,11 +52,12 @@ export const BookCard = ({ book }: BookCardProps) => {
           )}
           {/* Progress bar at bottom of cover */}
           {progressPercent !== null && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black/20">
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black/20" aria-hidden="true">
               <div
                 className={`h-full ${isFinished ? 'bg-green-500' : 'bg-blue-500'}`}
                 style={{ width: `${Math.min(progressPercent, 100)}%` }}
               />
+              <span className="sr-only">{progressPercent}% complete</span>
             </div>
           )}
         </div>
