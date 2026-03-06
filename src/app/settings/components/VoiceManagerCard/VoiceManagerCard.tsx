@@ -4,6 +4,7 @@ import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { VoiceList } from './components/VoiceList'
+import { VoiceListSkeleton } from './components/VoiceListSkeleton'
 import { VoiceUploadSection } from './components/VoiceUploadSection'
 import { useVoicePreview } from './hooks/useVoicePreview/useVoicePreview'
 
@@ -35,7 +36,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
       </p>
 
       {loading ? (
-        <div className="text-gray-500">Loading voices...</div>
+        <VoiceListSkeleton />
       ) : voices.length === 0 ? (
         <div className="text-gray-500">
           <p>No voices found.</p>
