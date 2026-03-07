@@ -12,7 +12,6 @@ import type { ChapterInfo } from '@/lib/types/book'
 import type { PlaybackMetrics } from '@/lib/types/debug'
 import { usePlaybackStore } from '@/store/usePlaybackStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
-import { usePronunciationStore } from '@/store/usePronunciationStore'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { PlaybackControls } from './PlaybackControls'
 
@@ -44,7 +43,6 @@ export const PlayerContainer = ({
   const { effectiveVoice: voice } = useBookVoice(bookId, voiceNames)
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
   const autoAdvanceChapters = usePlaybackStore(s => s.autoAdvanceChapters)
-  const pronunciationVersion = usePronunciationStore(s => s.version)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
   const pendingChapterAdvanceRef = useRef(false)
   const onChapterEndRef = useRef(onChapterEnd)
@@ -91,7 +89,6 @@ export const PlayerContainer = ({
   const prefetch = usePrefetchQueue({
     bookId,
     voice,
-    pronunciationVersion,
     chaptersRef: position.chaptersRef,
     currentChapterRef: position.currentChapterRef,
     currentSentenceRef: position.currentSentenceRef,

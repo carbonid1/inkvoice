@@ -10,7 +10,6 @@ import { useCallback, useMemo, useRef } from 'react'
 interface UsePrefetchQueueOptions {
   bookId: string
   voice: string
-  pronunciationVersion: number
   chaptersRef: React.MutableRefObject<ChapterInfo[]>
   currentChapterRef: React.MutableRefObject<number>
   currentSentenceRef: React.MutableRefObject<number>
@@ -26,7 +25,6 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   const {
     bookId,
     voice,
-    pronunciationVersion,
     chaptersRef,
     currentChapterRef,
     currentSentenceRef,
@@ -45,15 +43,14 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   })
 
   const getCacheKey = useCallback(
-    (ch: number, sent: number) =>
-      `${ch}_${sent}_${voice ?? DEFAULT_VOICE}_pv${pronunciationVersion}`,
-    [voice, pronunciationVersion],
+    (ch: number, sent: number) => `${ch}_${sent}_${voice ?? DEFAULT_VOICE}`,
+    [voice],
   )
 
   const getTTSUrl = useCallback(
     (ch: number, sent: number) =>
-      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}&pv=${pronunciationVersion}`,
-    [bookId, voice, pronunciationVersion],
+      `/api/tts/${bookId}/${ch}/${sent}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}`,
+    [bookId, voice],
   )
 
   const countAhead = useCallback(() => {

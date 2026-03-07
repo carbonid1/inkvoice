@@ -1,6 +1,5 @@
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
-import { pronunciationService } from '@/lib/services/pronunciation/pronunciation.service'
 import { getTTSService } from '@/lib/services/tts/tts.server'
 import { TTSError } from '@/lib/services/tts/tts.types'
 import { resolveValidVoice } from '@/lib/services/voice/helpers/resolveValidVoice/resolveValidVoice'
@@ -36,12 +35,11 @@ const parseRequest = async (
   }
 
   const bookService = getBookService()
-  const rawText = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
-  if (!rawText) {
+  const text = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
+  if (!text) {
     return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
   }
 
-  const text = await pronunciationService.apply(rawText)
   return { bookId, voice, fellBack, text }
 }
 
