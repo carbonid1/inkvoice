@@ -10,7 +10,6 @@ import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { PlaybackMetrics } from '@/lib/types/debug'
-import { usePlaybackStore } from '@/store/usePlaybackStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { PlaybackControls } from './PlaybackControls'
@@ -42,15 +41,12 @@ export const PlayerContainer = ({
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
   const { effectiveVoice: voice } = useBookVoice(bookId, voiceNames)
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
-  const autoAdvanceChapters = usePlaybackStore(s => s.autoAdvanceChapters)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
   const pendingChapterAdvanceRef = useRef(false)
   const onChapterEndRef = useRef(onChapterEnd)
-  const autoAdvanceRef = useRef(autoAdvanceChapters)
 
   useEffect(() => {
     onChapterEndRef.current = onChapterEnd
-    autoAdvanceRef.current = autoAdvanceChapters
   })
 
   const position = useBookPosition({
@@ -75,7 +71,7 @@ export const PlayerContainer = ({
       }
 
       // Check for chapter boundary
-      if (next.ch !== position.currentChapterRef.current && !autoAdvanceRef.current) {
+      if (next.ch !== position.currentChapterRef.current) {
         pendingChapterAdvanceRef.current = true
         audioPlayer.setPlaying(false)
         onChapterEndRef.current?.()

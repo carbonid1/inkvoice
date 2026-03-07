@@ -7,7 +7,6 @@ import { useVoiceStore } from '@/store/useVoiceStore'
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { CreditsCard } from './components/CreditsCard/CreditsCard'
-import { PlaybackCard } from './components/PlaybackCard/PlaybackCard'
 import { VoiceManagerCard } from './components/VoiceManagerCard/VoiceManagerCard'
 
 export default function Settings() {
@@ -40,7 +39,6 @@ export default function Settings() {
 
       <main className="max-w-2xl mx-auto space-y-6">
         <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
-        <PlaybackCard />
         <CreditsCard />
       </main>
     </div>
