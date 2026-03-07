@@ -18,6 +18,7 @@ import type { MouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
+import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
 import { DebugPanel } from './components/DebugPanel/DebugPanel'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
 import { PlayerContainer } from './components/player/PlayerContainer'
@@ -45,6 +46,7 @@ export default function BookReader() {
   const [showDebug, setShowDebug] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [contextMenuTarget, setContextMenuTarget] = useState<ContextMenuTarget | null>(null)
+  const [showChapterEndModal, setShowChapterEndModal] = useState(false)
 
   const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
     isGenerating: false,
@@ -116,6 +118,14 @@ export default function BookReader() {
     },
     [bookId, effectiveVoice],
   )
+
+  // Chapter end interstitial
+  const handleChapterEnd = useCallback(() => setShowChapterEndModal(true), [])
+  const handleContinueChapter = useCallback(() => {
+    setShowChapterEndModal(false)
+    handleProgressChange(currentChapter + 1, 0)
+  }, [currentChapter, handleProgressChange])
+  const handleDismissChapterEnd = useCallback(() => setShowChapterEndModal(false), [])
 
   // Bookmarks
   const fetchBookmarks = useBookmarkStore(s => s.fetchBookmarks)
@@ -282,6 +292,7 @@ export default function BookReader() {
         onDebugUpdate={setPlaybackMetrics}
         isCurrentBookmarked={isCurrentBookmarked}
         onBookmarkToggle={toggleBookmark}
+        onChapterEnd={handleChapterEnd}
       />
 
       <DebugPanel metrics={debugMetrics} visible={showDebug} />
@@ -298,6 +309,16 @@ export default function BookReader() {
         target={contextMenuTarget}
         onRegenerate={handleRegenerate}
         onClose={handleCloseContextMenu}
+      />
+
+      <ChapterEndModal
+        isOpen={showChapterEndModal}
+        completedChapterTitle={currentChapterInfo.title}
+        nextChapterTitle={overview.chapters[currentChapter + 1]?.title ?? ''}
+        chaptersCompleted={currentChapter + 1}
+        totalChapters={overview.chapters.length}
+        onContinue={handleContinueChapter}
+        onDismiss={handleDismissChapterEnd}
       />
     </div>
   )

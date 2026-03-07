@@ -10,6 +10,7 @@ import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { PlaybackMetrics } from '@/lib/types/debug'
+import { usePlaybackStore } from '@/store/usePlaybackStore'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { usePronunciationStore } from '@/store/usePronunciationStore'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -24,6 +25,7 @@ interface PlayerContainerProps {
   onDebugUpdate?: (updater: (prev: PlaybackMetrics) => PlaybackMetrics) => void
   isCurrentBookmarked?: boolean
   onBookmarkToggle?: () => void
+  onChapterEnd?: () => void
 }
 
 export const PlayerContainer = ({
@@ -35,13 +37,23 @@ export const PlayerContainer = ({
   onDebugUpdate,
   isCurrentBookmarked,
   onBookmarkToggle,
+  onChapterEnd,
 }: PlayerContainerProps) => {
   const { voices } = useVoices()
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
   const { effectiveVoice: voice } = useBookVoice(bookId, voiceNames)
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
+  const autoAdvanceChapters = usePlaybackStore(s => s.autoAdvanceChapters)
   const pronunciationVersion = usePronunciationStore(s => s.version)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
+  const pendingChapterAdvanceRef = useRef(false)
+  const onChapterEndRef = useRef(onChapterEnd)
+  const autoAdvanceRef = useRef(autoAdvanceChapters)
+
+  useEffect(() => {
+    onChapterEndRef.current = onChapterEnd
+    autoAdvanceRef.current = autoAdvanceChapters
+  })
 
   const position = useBookPosition({
     chapters,
@@ -52,10 +64,27 @@ export const PlayerContainer = ({
 
   const audioPlayer = useAudioPlayer({
     onEnded: () => {
-      if (!position.advanceToNext()) {
+      const next = position.getNextPosition(
+        position.currentChapterRef.current,
+        position.currentSentenceRef.current,
+      )
+
+      if (!next) {
+        // End of book
         playingPositionRef.current = null
         audioPlayer.setPlaying(false)
+        return
       }
+
+      // Check for chapter boundary
+      if (next.ch !== position.currentChapterRef.current && !autoAdvanceRef.current) {
+        pendingChapterAdvanceRef.current = true
+        audioPlayer.setPlaying(false)
+        onChapterEndRef.current?.()
+        return
+      }
+
+      position.onProgressChangeRef.current(next.ch, next.sent)
     },
   })
 
@@ -168,9 +197,21 @@ export const PlayerContainer = ({
     continuePrefetching()
   }, [currentChapter, currentSentence, updateDebugMetrics, continuePrefetching, resetFailures])
 
+  // Clear pending chapter advance when chapter changes (user continued or navigated)
+  useEffect(() => {
+    pendingChapterAdvanceRef.current = false
+  }, [currentChapter])
+
   // Play when position changes and isPlaying
   useEffect(() => {
     if (!isPlaying) return
+
+    // If at chapter boundary, re-trigger interstitial instead of replaying
+    if (pendingChapterAdvanceRef.current) {
+      setPlaying(false)
+      onChapterEndRef.current?.()
+      return
+    }
 
     const pos = playingPositionRef.current
     const isSameSentence = pos !== null && pos.ch === currentChapter && pos.sent === currentSentence
@@ -180,7 +221,7 @@ export const PlayerContainer = ({
     } else {
       playCurrentSentence()
     }
-  }, [isPlaying, currentChapter, currentSentence, playCurrentSentence, resume])
+  }, [isPlaying, currentChapter, currentSentence, playCurrentSentence, resume, setPlaying])
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {
