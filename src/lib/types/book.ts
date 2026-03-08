@@ -27,6 +27,7 @@ export interface ParsedBook {
   title: string
   author: string
   chapters: ParsedChapter[]
+  tocTree?: TocNode[]
 }
 
 export interface BookPosition {
@@ -52,9 +53,16 @@ export interface ChapterInfo {
   wordCount: number
 }
 
+export type TocNode = {
+  title: string
+  chapterIndex: number
+  children: TocNode[]
+}
+
 export interface BookOverview {
   id: string
   title: string
   author: string
   chapters: ChapterInfo[]
+  tocTree?: TocNode[]
 }

@@ -2,8 +2,8 @@
 
 import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
+import { ListIcon } from '@/components/icons/ListIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
-import { Select } from '@/components/Select/Select'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
@@ -18,6 +18,7 @@ import type { MouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
+import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
 import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
 import { DebugPanel } from './components/DebugPanel/DebugPanel'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
@@ -46,7 +47,7 @@ export default function BookReader() {
   const [currentSentence, setCurrentSentence] = useState(initialSentence)
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [activeDrawer, setActiveDrawer] = useState<'chapter' | 'bookmark' | null>(null)
   const [contextMenuTarget, setContextMenuTarget] = useState<ContextMenuTarget | null>(null)
   const [showChapterEndModal, setShowChapterEndModal] = useState(false)
 
@@ -150,10 +151,26 @@ export default function BookReader() {
   // Keyboard shortcuts
   useHotkeys('d', () => setShowDebug(prev => !prev))
   useHotkeys('b', toggleBookmark)
-  useHotkeys('shift+b', () => setDrawerOpen(prev => !prev))
+  useHotkeys('shift+b', () => setActiveDrawer(prev => (prev === 'bookmark' ? null : 'bookmark')))
+  useHotkeys('t', () => setActiveDrawer(prev => (prev === 'chapter' ? null : 'chapter')))
+
+  // Drawer callbacks
+  const closeDrawer = useCallback(() => setActiveDrawer(null), [])
+  const handleChapterNavigate = useCallback(
+    (chapter: number) => {
+      const saved = getProgress(bookId).chapterPositions?.[chapter] ?? 0
+      handleProgressChange(chapter, saved)
+    },
+    [bookId, getProgress, handleProgressChange],
+  )
 
   const showChapterLoading = useDebouncedLoading(chapterLoading)
   const currentProgress = getProgress(bookId)
+
+  const chapterNames = useMemo(
+    () => overview?.chapters.map(ch => ch.title) ?? [],
+    [overview?.chapters],
+  )
 
   if (loading) return <PageSkeleton />
 
@@ -167,8 +184,6 @@ export default function BookReader() {
       </div>
     )
   }
-
-  const chapterNames = overview.chapters.map(ch => ch.title)
 
   const recoveryBookmark =
     bookmarksForBook.length > 0
@@ -217,7 +232,7 @@ export default function BookReader() {
           </div>
           <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
             <button
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => setActiveDrawer('bookmark')}
               className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
               <BookmarkIcon className="w-5 h-5" />
@@ -228,22 +243,16 @@ export default function BookReader() {
         <div className="max-w-3xl mx-auto px-4 pb-1.5">
           <div className="flex items-center gap-2">
             {overview.chapters.length > 1 && (
-              <div className="flex-1 min-w-0">
-                <Select
-                  value={String(currentChapter)}
-                  onChange={v => {
-                    const chapter = Number(v)
-                    const saved = getProgress(bookId).chapterPositions?.[chapter] ?? 0
-                    handleProgressChange(chapter, saved)
-                  }}
-                  options={overview.chapters.map((chapter, idx) => ({
-                    value: String(idx),
-                    label: chapter.title,
-                  }))}
-                  aria-label="Chapter"
-                  className="w-full text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 text-left"
-                />
-              </div>
+              <Tooltip label="Table of Contents" shortcut="T" position="bottom">
+                <button
+                  onClick={() => setActiveDrawer('chapter')}
+                  className="flex items-center gap-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors min-w-0"
+                  aria-label="Table of Contents"
+                >
+                  <ListIcon className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{currentChapterInfo.title}</span>
+                </button>
+              </Tooltip>
             )}
             {showChapterLoading && (
               <>
@@ -307,10 +316,19 @@ export default function BookReader() {
 
       <DebugPanel metrics={debugMetrics} visible={showDebug} />
 
+      <ChapterDrawer
+        isOpen={activeDrawer === 'chapter'}
+        onClose={closeDrawer}
+        onNavigate={handleChapterNavigate}
+        chapters={overview.chapters}
+        tocTree={overview.tocTree}
+        currentChapter={currentChapter}
+      />
+
       <BookmarkDrawer
         bookId={bookId}
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        isOpen={activeDrawer === 'bookmark'}
+        onClose={closeDrawer}
         onNavigate={handleProgressChange}
         chapterNames={chapterNames}
       />

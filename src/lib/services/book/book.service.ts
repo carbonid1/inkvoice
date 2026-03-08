@@ -99,6 +99,7 @@ class BookServiceImpl implements BookService {
         sentenceCount: ch.sentences.length,
         wordCount: ch.sentences.reduce((sum, s) => sum + countWords(s), 0),
       })),
+      tocTree: book.tocTree,
     }
   }
 

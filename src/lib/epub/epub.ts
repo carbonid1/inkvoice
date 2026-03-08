@@ -1,10 +1,17 @@
-import type { ParsedBook, ParsedChapter } from '@/lib/types/book'
+import type { ParsedBook, ParsedChapter, TocNode } from '@/lib/types/book'
 import EPub from 'epub2'
 import { unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
+import { buildTocTree } from './helpers/buildTocTree/buildTocTree'
 import { inferChapterTitle } from './helpers/inferChapterTitle/inferChapterTitle'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
+
+const countLeaves = (nodes: TocNode[]): number =>
+  nodes.reduce(
+    (sum, node) => sum + (node.children.length === 0 ? 1 : countLeaves(node.children)),
+    0,
+  )
 
 // Re-export types for backwards compatibility
 export type { ContentBlock, ParsedBook, ParsedChapter, TextSegment } from '@/lib/types/book'
@@ -32,6 +39,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
     }
 
     const chapters: ParsedChapter[] = []
+    const idToChapterIndex = new Map<string, number>()
 
     // Helper to get image as base64 data URL
     const getImage = async (src: string): Promise<string | null> => {
@@ -109,9 +117,25 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
           chapters.length + 1,
         )
 
+        idToChapterIndex.set(item.id, chapters.length)
         chapters.push({ title, sentences, content })
       } catch (e) {
         console.error(`Failed to parse chapter ${item.id}:`, e)
+      }
+    }
+
+    // Build hierarchical TOC from ncx if available
+    // Only use when: tree has nesting AND covers all chapters
+    const ncx = (epub as unknown as { ncx: Array<{ id: string; ncx_index: number; sub: never[] }> })
+      .ncx
+    let tocTree: TocNode[] | undefined
+    if (ncx && ncx.length > 0) {
+      const tree = buildTocTree(ncx, idToChapterIndex, tocLabels)
+      const hasHierarchy = tree.some(node => node.children.length > 0)
+      const leafCount = countLeaves(tree)
+      const coversAllChapters = leafCount >= chapters.length
+      if (hasHierarchy && coversAllChapters) {
+        tocTree = tree
       }
     }
 
@@ -120,6 +144,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
       title: epub.metadata?.title || 'Unknown Title',
       author: epub.metadata?.creator || 'Unknown Author',
       chapters,
+      tocTree,
     }
   } finally {
     // Clean up temp file

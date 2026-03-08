@@ -15,14 +15,21 @@ const activeSentence = (page: import('@playwright/test').Page) =>
 const allSentences = (page: import('@playwright/test').Page) =>
   page.locator('main span.cursor-pointer')
 
-const chapterButton = (page: import('@playwright/test').Page) =>
-  page.locator('button[aria-label="Chapter"]')
+const tocButton = (page: import('@playwright/test').Page) =>
+  page.locator('button[aria-label="Table of Contents"]')
 
 const selectChapter = async (page: import('@playwright/test').Page, index: number) => {
-  await chapterButton(page).click()
-  const listbox = page.getByRole('listbox')
-  await listbox.waitFor()
-  await listbox.getByRole('option').nth(index).click()
+  await tocButton(page).click()
+  const drawer = page.getByRole('dialog', { name: 'Table of Contents' })
+  await drawer.waitFor()
+  // Expand all collapsed groups so all chapters are visible
+  const collapsedToggles = drawer.locator('button[aria-label="Expand"]')
+  const count = await collapsedToggles.count()
+  for (let i = 0; i < count; i++) {
+    await collapsedToggles.nth(0).click()
+  }
+  // Click the chapter button by data attribute
+  await drawer.locator(`button[data-chapter-index="${index}"]`).click()
   await allSentences(page).first().waitFor()
 }
 
