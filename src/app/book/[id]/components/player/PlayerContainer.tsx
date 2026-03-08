@@ -225,7 +225,7 @@ export const PlayerContainer = ({
   }, [isPlaying, pause, setPlaying])
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+    <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
       <div className="max-w-2xl mx-auto relative">
         {audioPlayer.error && (
           <div className="text-sm text-red-600 dark:text-red-400 mb-2 text-center">

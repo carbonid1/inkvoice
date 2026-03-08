@@ -200,9 +200,9 @@ export default function BookReader() {
   }
 
   return (
-    <div className="min-h-screen pb-24">
-      <header className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-4">
+    <div className="h-dvh flex flex-col">
+      <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-4">
           <Tooltip label="Back to Library" position="bottom">
             <Link
               href="/"
@@ -225,7 +225,7 @@ export default function BookReader() {
           </Tooltip>
         </div>
 
-        <div className="max-w-3xl mx-auto px-4 pb-2">
+        <div className="max-w-3xl mx-auto px-4 pb-1.5">
           <div className="flex items-center gap-2">
             {overview.chapters.length > 1 && (
               <div className="flex-1 min-w-0">
@@ -263,32 +263,34 @@ export default function BookReader() {
         />
       </header>
 
-      <main className="max-w-3xl mx-auto">
-        {showRecoveryBanner && recoveryBookmark && (
-          <RecoveryBanner
-            chapterName={
-              chapterNames[recoveryBookmark.chapter] ?? `Chapter ${recoveryBookmark.chapter + 1}`
-            }
-            sentence={recoveryBookmark.sentence}
-            onNavigate={() =>
-              handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.sentence)
-            }
-          />
-        )}
-        {chapterData ? (
-          <Reader
-            chapter={chapterData}
-            currentChapter={currentChapter}
-            currentSentence={currentSentence}
-            onSentenceClick={handleSentenceClick}
-            onSentenceContextMenu={handleSentenceContextMenu}
-            bookmarkedSentences={bookmarkedSentences}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            Loading chapter...
-          </div>
-        )}
+      <main className="flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-3xl mx-auto">
+          {showRecoveryBanner && recoveryBookmark && (
+            <RecoveryBanner
+              chapterName={
+                chapterNames[recoveryBookmark.chapter] ?? `Chapter ${recoveryBookmark.chapter + 1}`
+              }
+              sentence={recoveryBookmark.sentence}
+              onNavigate={() =>
+                handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.sentence)
+              }
+            />
+          )}
+          {chapterData ? (
+            <Reader
+              chapter={chapterData}
+              currentChapter={currentChapter}
+              currentSentence={currentSentence}
+              onSentenceClick={handleSentenceClick}
+              onSentenceContextMenu={handleSentenceContextMenu}
+              bookmarkedSentences={bookmarkedSentences}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              Loading chapter...
+            </div>
+          )}
+        </div>
       </main>
 
       <PlayerContainer

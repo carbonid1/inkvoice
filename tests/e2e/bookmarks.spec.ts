@@ -9,10 +9,9 @@ test.describe('bookmarks', () => {
     await mockBookmarks(page)
     await navigateToBook(page)
 
-    // Add a bookmark first
-    const playerBar = page.locator('.fixed.bottom-0')
-    await playerBar.getByRole('button', { name: 'Add bookmark' }).click()
-    await expect(playerBar.getByRole('button', { name: 'Remove bookmark' })).toBeVisible()
+    // Add a bookmark first (exact case matches player bar, not drawer)
+    await page.getByRole('button', { name: 'Add Bookmark', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Remove Bookmark', exact: true })).toBeVisible()
 
     // Open drawer with Shift+B
     await page.keyboard.press('Shift+B')
@@ -32,16 +31,14 @@ test.describe('bookmarks', () => {
     await mockBookmarks(page)
     await navigateToBook(page)
 
-    // Wait for player bar to render before asserting on its children
-    const playerBar = page.locator('.fixed.bottom-0')
-    await expect(playerBar).toBeVisible()
-    const bookmarkButton = playerBar.getByRole('button', { name: 'Add bookmark' })
+    // Wait for bookmark button to render (exact case matches player bar, not drawer)
+    const bookmarkButton = page.getByRole('button', { name: 'Add Bookmark', exact: true })
     await expect(bookmarkButton).toBeVisible()
 
     // Click to add bookmark
     await bookmarkButton.click()
 
-    // Should now show "Remove bookmark" in the player bar
-    await expect(playerBar.getByRole('button', { name: 'Remove bookmark' })).toBeVisible()
+    // Should now show "Remove Bookmark"
+    await expect(page.getByRole('button', { name: 'Remove Bookmark', exact: true })).toBeVisible()
   })
 })
