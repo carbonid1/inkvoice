@@ -8,6 +8,16 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        serif: [
+          'var(--font-literata)',
+          'Georgia',
+          'Cambria',
+          '"Times New Roman"',
+          'Times',
+          'serif',
+        ],
+      },
       keyframes: {
         fadeScaleIn: {
           '0%': { opacity: '0', transform: 'scale(0.95)' },

@@ -1,5 +1,12 @@
 import type { Metadata } from 'next'
+import { Literata } from 'next/font/google'
 import './globals.css'
+
+const literata = Literata({
+  subsets: ['latin'],
+  variable: '--font-literata',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'InkVoice',
@@ -8,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={literata.variable}>
       <body className="min-h-screen">{children}</body>
     </html>
   )
