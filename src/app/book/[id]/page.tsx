@@ -30,6 +30,8 @@ import {
   type ContextMenuTarget,
 } from './components/SentenceContextMenu/SentenceContextMenu'
 import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
+import { WORDS_PER_PAGE } from './helpers/computePagePosition/computePagePosition'
+import { shouldShowChapterProgress } from './helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 
 export default function BookReader() {
@@ -183,6 +185,12 @@ export default function BookReader() {
     wordCount: 0,
   }
 
+  const nextChapter = overview.chapters[currentChapter + 1]
+  const nextChapterPageCount =
+    nextChapter && shouldShowChapterProgress({ wordsInChapter: nextChapter.wordCount })
+      ? Math.ceil(nextChapter.wordCount / WORDS_PER_PAGE)
+      : null
+
   const debugMetrics: DebugMetrics = {
     ...playbackMetrics,
     currentSentence,
@@ -314,7 +322,8 @@ export default function BookReader() {
       <ChapterEndModal
         isOpen={showChapterEndModal}
         completedChapterTitle={currentChapterInfo.title}
-        nextChapterTitle={overview.chapters[currentChapter + 1]?.title ?? ''}
+        nextChapterTitle={nextChapter?.title ?? ''}
+        nextChapterPageCount={nextChapterPageCount}
         chaptersCompleted={currentChapter + 1}
         totalChapters={overview.chapters.length}
         onContinue={handleContinueChapter}

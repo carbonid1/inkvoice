@@ -6,6 +6,7 @@ const defaultProps = {
   isOpen: true,
   completedChapterTitle: 'The Beginning',
   nextChapterTitle: 'The Journey',
+  nextChapterPageCount: 10,
   chaptersCompleted: 3,
   totalChapters: 10,
   onContinue: vi.fn(),

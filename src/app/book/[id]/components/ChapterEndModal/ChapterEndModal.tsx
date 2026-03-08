@@ -7,6 +7,7 @@ export const ChapterEndModal = ({
   isOpen,
   completedChapterTitle,
   nextChapterTitle,
+  nextChapterPageCount,
   chaptersCompleted,
   totalChapters,
   onContinue,
@@ -49,6 +50,11 @@ export const ChapterEndModal = ({
           {/* Next chapter */}
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Up next</p>
           <p className="font-medium text-gray-900 dark:text-gray-100">{nextChapterTitle}</p>
+          {nextChapterPageCount !== null && (
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              ~{nextChapterPageCount} pages
+            </p>
+          )}
 
           {/* Progress */}
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-4">

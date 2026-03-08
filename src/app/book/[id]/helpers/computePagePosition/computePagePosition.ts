@@ -1,4 +1,4 @@
-const WORDS_PER_PAGE = 350
+export const WORDS_PER_PAGE = 350
 
 type PagePositionInput = {
   chapter: number
