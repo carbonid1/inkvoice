@@ -40,7 +40,7 @@ export default function Library() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">InkVoice</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">Your local audiobook reader</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Read and listen to your books</p>
           </div>
           <Link
             href="/settings"
