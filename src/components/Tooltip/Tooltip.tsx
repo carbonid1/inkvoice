@@ -21,6 +21,7 @@ export const Tooltip = ({
 }: TooltipProps) => {
   const [visible, setVisible] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   const show = useCallback(() => {
     timeoutRef.current = setTimeout(() => setVisible(true), SHOW_DELAY)
@@ -40,13 +41,34 @@ export const Tooltip = ({
     }
   }, [])
 
+  useEffect(() => {
+    if (!visible) return
+    let lastCheck = 0
+    const handlePointerMove = (e: PointerEvent) => {
+      if (e.timeStamp - lastCheck < 100) return
+      lastCheck = e.timeStamp
+      const rect = wrapperRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const inside =
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      if (!inside) hide()
+    }
+    document.addEventListener('pointermove', handlePointerMove, { passive: true })
+    return () => document.removeEventListener('pointermove', handlePointerMove)
+  }, [visible, hide])
+
   const positionClasses = position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
 
   return (
     <div
+      ref={wrapperRef}
       className="relative inline-flex"
       onMouseEnter={show}
       onMouseLeave={hide}
+      onPointerDown={hide}
       onFocus={show}
       onBlur={hide}
     >

@@ -128,6 +128,91 @@ describe('Tooltip', () => {
     expect(tooltip.className).not.toContain('whitespace-nowrap')
   })
 
+  it('hides on pointerdown', () => {
+    renderWithStrictMode(
+      <Tooltip label="Test">
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const wrapper = screen.getByRole('button').parentElement!
+    fireEvent.mouseEnter(wrapper)
+    act(() => vi.advanceTimersByTime(200))
+    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+
+    fireEvent.pointerDown(wrapper)
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('hides when pointer moves outside while visible', () => {
+    renderWithStrictMode(
+      <Tooltip label="Test">
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const wrapper = screen.getByRole('button').parentElement!
+    vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue({
+      left: 100,
+      right: 200,
+      top: 100,
+      bottom: 150,
+      width: 100,
+      height: 50,
+      x: 100,
+      y: 100,
+      toJSON: () => ({}),
+    })
+
+    fireEvent.mouseEnter(wrapper)
+    act(() => vi.advanceTimersByTime(200))
+    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+
+    act(() => {
+      document.dispatchEvent(
+        new PointerEvent('pointermove', {
+          clientX: 300,
+          clientY: 300,
+          bubbles: true,
+        }),
+      )
+    })
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('hides on pointerdown when shown via focus', () => {
+    renderWithStrictMode(
+      <Tooltip label="Focus test">
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const button = screen.getByRole('button')
+    fireEvent.focus(button)
+    act(() => vi.advanceTimersByTime(200))
+    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+
+    fireEvent.pointerDown(button.parentElement!)
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('cancels pending show on pointerdown before delay', () => {
+    renderWithStrictMode(
+      <Tooltip label="Test">
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const wrapper = screen.getByRole('button').parentElement!
+    fireEvent.mouseEnter(wrapper)
+    act(() => vi.advanceTimersByTime(100))
+    fireEvent.pointerDown(wrapper)
+    act(() => vi.advanceTimersByTime(200))
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
   it('cancels pending show when mouse leaves before delay', () => {
     renderWithStrictMode(
       <Tooltip label="Test">
