@@ -15,6 +15,7 @@ import { useParams } from 'next/navigation'
 import type { MouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { toast } from 'sonner'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
 import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
@@ -152,6 +153,12 @@ export default function BookReader() {
   useHotkeys('b', toggleBookmark)
   useHotkeys('shift+b', () => setActiveDrawer(prev => (prev === 'bookmark' ? null : 'bookmark')))
   useHotkeys('t', () => setActiveDrawer(prev => (prev === 'chapter' ? null : 'chapter')))
+  useHotkeys('mod+z', () => {
+    const { lastDeleted, undoRemoveBookmark } = useBookmarkStore.getState()
+    if (!lastDeleted) return
+    undoRemoveBookmark()
+    toast.dismiss()
+  })
 
   // Drawer callbacks
   const closeDrawer = useCallback(() => setActiveDrawer(null), [])

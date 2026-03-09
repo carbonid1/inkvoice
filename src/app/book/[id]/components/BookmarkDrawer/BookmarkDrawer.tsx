@@ -2,10 +2,13 @@
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
+import { getModKey } from '@/lib/helpers/getModKey/getModKey'
+import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { toast } from 'sonner'
 import type { BookmarkDrawerProps } from './BookmarkDrawer.types'
 
 export const BookmarkDrawer = ({
@@ -17,7 +20,17 @@ export const BookmarkDrawer = ({
 }: BookmarkDrawerProps) => {
   const bookmarks = useBookmarkStore(s => s.bookmarks[bookId] ?? [])
   const removeBookmark = useBookmarkStore(s => s.removeBookmark)
+  const undoRemoveBookmark = useBookmarkStore(s => s.undoRemoveBookmark)
   const drawerRef = useRef<HTMLDivElement>(null)
+
+  const handleRemove = async (bookmark: Bookmark) => {
+    await removeBookmark(bookId, bookmark.id)
+    toast('Bookmark removed', {
+      description: `${getModKey()}+Z to undo`,
+      action: { label: 'Undo', onClick: () => undoRemoveBookmark() },
+      duration: 5000,
+    })
+  }
 
   useHotkeys('shift+b', onClose, { enabled: isOpen })
   useHotkeys('escape', onClose, { enabled: isOpen })
@@ -99,7 +112,7 @@ export const BookmarkDrawer = ({
                     <button
                       onClick={e => {
                         e.stopPropagation()
-                        removeBookmark(bookId, bookmark.id)
+                        handleRemove(bookmark)
                       }}
                       className="p-2 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                       aria-label="Remove bookmark"
