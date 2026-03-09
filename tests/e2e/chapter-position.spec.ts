@@ -28,8 +28,15 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
   for (let i = 0; i < count; i++) {
     await collapsedToggles.nth(0).click()
   }
-  // Click the chapter button by data attribute
+  // Wait for chapter API response before checking DOM
+  const chapterResponse = page.waitForResponse(
+    resp =>
+      resp.url().includes('/api/book/') &&
+      resp.url().includes('/chapter/') &&
+      resp.status() === 200,
+  )
   await drawer.locator(`button[data-chapter-index="${index}"]`).click()
+  await chapterResponse
   await allSentences(page).first().waitFor()
 }
 
