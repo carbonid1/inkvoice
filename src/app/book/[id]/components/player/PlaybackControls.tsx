@@ -1,11 +1,7 @@
 'use client'
 
-import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'
-import { PauseIcon } from '@/components/icons/PauseIcon'
-import { PlayIcon } from '@/components/icons/PlayIcon'
-import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { ChevronLeft, ChevronRight, Loader2, Pause, Play } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 type PlaybackControlsProps = {
@@ -34,7 +30,7 @@ export const PlaybackControls = ({
           onClick={onSkipBack}
           className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
-          <ChevronLeftIcon className="w-6 h-6" />
+          <ChevronLeft className="w-6 h-6" />
         </button>
       </Tooltip>
 
@@ -43,11 +39,11 @@ export const PlaybackControls = ({
           onClick={onPlayPause}
           className="p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors relative"
         >
-          {isLoading && <SpinnerIcon className="w-6 h-6 animate-spin absolute inset-0 m-auto" />}
+          {isLoading && <Loader2 className="w-6 h-6 animate-spin absolute inset-0 m-auto" />}
           {isPlaying ? (
-            <PauseIcon className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
+            <Pause className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
           ) : (
-            <PlayIcon className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
+            <Play className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
           )}
         </button>
       </Tooltip>
@@ -57,7 +53,7 @@ export const PlaybackControls = ({
           onClick={onSkipForward}
           className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
-          <ChevronRightIcon />
+          <ChevronRight className="w-6 h-6" />
         </button>
       </Tooltip>
     </div>

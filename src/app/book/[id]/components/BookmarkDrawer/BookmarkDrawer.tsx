@@ -1,9 +1,9 @@
 'use client'
 
-import { CloseIcon } from '@/components/icons/CloseIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
+import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import type { BookmarkDrawerProps } from './BookmarkDrawer.types'
@@ -63,7 +63,7 @@ export const BookmarkDrawer = ({
               onClick={onClose}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <CloseIcon className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
           </Tooltip>
         </div>
@@ -104,7 +104,7 @@ export const BookmarkDrawer = ({
                       className="p-2 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                       aria-label="Remove bookmark"
                     >
-                      <CloseIcon className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                     </button>
                   </button>
                 </li>

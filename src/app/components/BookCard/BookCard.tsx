@@ -1,10 +1,10 @@
 'use client'
 
-import { BookIcon } from '@/components/icons/BookIcon'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
 import type { Book } from '@/lib/types/book'
 import { useProgressStore } from '@/store/useProgressStore'
+import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -48,7 +48,7 @@ export const BookCard = ({ book }: BookCardProps) => {
               />
             </>
           ) : (
-            <BookIcon />
+            <BookOpen className="w-12 h-12 text-gray-400 dark:text-gray-500" />
           )}
           {/* Progress bar at bottom of cover */}
           {progressPercent !== null && (

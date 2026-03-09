@@ -1,9 +1,5 @@
 'use client'
 
-import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
-import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
-import { ListIcon } from '@/components/icons/ListIcon'
-import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
@@ -13,6 +9,7 @@ import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics, PlaybackMetrics } from '@/lib/types/debug'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { useProgressStore } from '@/store/useProgressStore'
+import { BookMarked, ChevronLeft, List, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import type { MouseEvent } from 'react'
@@ -224,7 +221,7 @@ export default function BookReader() {
               href="/"
               className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
-              <ChevronLeftIcon />
+              <ChevronLeft className="w-5 h-5" />
             </Link>
           </Tooltip>
           <div className="flex-1 min-w-0">
@@ -236,7 +233,7 @@ export default function BookReader() {
               onClick={() => setActiveDrawer('bookmark')}
               className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
-              <BookmarkIcon className="w-5 h-5" />
+              <BookMarked className="w-5 h-5" />
             </button>
           </Tooltip>
         </div>
@@ -250,14 +247,14 @@ export default function BookReader() {
                   className="flex items-center gap-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors min-w-0"
                   aria-label="Table of Contents"
                 >
-                  <ListIcon className="w-4 h-4 flex-shrink-0" />
+                  <List className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">{currentChapterInfo.title}</span>
                 </button>
               </Tooltip>
             )}
             {showChapterLoading && (
               <>
-                <SpinnerIcon className="w-4 h-4 animate-spin text-gray-400" aria-hidden="true" />
+                <Loader2 className="w-4 h-4 animate-spin text-gray-400" aria-hidden="true" />
                 <span className="sr-only">Loading chapter</span>
               </>
             )}

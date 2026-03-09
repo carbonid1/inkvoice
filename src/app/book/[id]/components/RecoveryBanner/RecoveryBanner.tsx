@@ -1,6 +1,6 @@
 'use client'
 
-import { CloseIcon } from '@/components/icons/CloseIcon'
+import { X } from 'lucide-react'
 import { useState } from 'react'
 
 type RecoveryBannerProps = {
@@ -30,7 +30,7 @@ export const RecoveryBanner = ({ chapterName, sentence, onNavigate }: RecoveryBa
         className="p-2 text-amber-400 hover:text-amber-600 transition-colors flex-shrink-0 ml-2"
         aria-label="Dismiss"
       >
-        <CloseIcon className="w-4 h-4" />
+        <X className="w-4 h-4" />
       </button>
     </div>
   )

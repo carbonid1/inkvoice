@@ -1,9 +1,8 @@
 'use client'
 
-import { ChevronDownIcon } from '@/components/icons/ChevronDownIcon'
-import { CloseIcon } from '@/components/icons/CloseIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { TocNode } from '@/lib/types/book'
+import { ChevronDown, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { WORDS_PER_PAGE } from '../../helpers/computePagePosition/computePagePosition'
@@ -124,7 +123,7 @@ export const ChapterDrawer = ({
               onClick={onClose}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <CloseIcon className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
           </Tooltip>
         </div>
@@ -172,7 +171,7 @@ const TocGroupCollapsible = ({
           style={indent > 0 ? { marginLeft: `${indent * 20}px` } : undefined}
           aria-label={isExpanded ? 'Collapse' : 'Expand'}
         >
-          <ChevronDownIcon
+          <ChevronDown
             className={`w-4 h-4 text-gray-400 transition-transform ${
               isExpanded ? '' : '-rotate-90'
             }`}

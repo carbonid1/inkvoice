@@ -1,10 +1,10 @@
 'use client'
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
-import { GearIcon } from '@/components/icons/GearIcon'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
 import { useProgressStore } from '@/store/useProgressStore'
+import { Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { BookCard } from './components/BookCard/BookCard'
@@ -48,7 +48,7 @@ export default function Library() {
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label="Settings"
           >
-            <GearIcon />
+            <Settings />
           </Link>
         </div>
       </PageHeader>

@@ -1,10 +1,10 @@
 'use client'
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
-import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
 import { useVoiceStore } from '@/store/useVoiceStore'
+import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { CreditsCard } from './components/CreditsCard/CreditsCard'
@@ -32,7 +32,7 @@ export default function Settings() {
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             title="Back to library"
           >
-            <ChevronLeftIcon className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </Link>
           <h1 className="text-3xl font-bold">Settings</h1>
         </div>

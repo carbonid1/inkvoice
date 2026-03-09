@@ -1,12 +1,8 @@
 'use client'
 
-import { CloseIcon } from '@/components/icons/CloseIcon'
-import { PencilIcon } from '@/components/icons/PencilIcon'
-import { PlayIcon } from '@/components/icons/PlayIcon'
-import { SpeakerIcon } from '@/components/icons/SpeakerIcon'
-import { StopIcon } from '@/components/icons/StopIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
+import { Pencil, Play, Square, Volume2, X } from 'lucide-react'
 import { useState } from 'react'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
 import { VoiceTagList } from '../../VoiceTagList/VoiceTagList'
@@ -82,7 +78,7 @@ export const VoiceRow = ({
               aria-label={playingSource ? 'Stop' : `Play source audio for ${voice.displayName}`}
               className="p-2 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
             >
-              {playingSource ? <StopIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
+              {playingSource ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </button>
           </Tooltip>
 
@@ -94,11 +90,7 @@ export const VoiceRow = ({
                 aria-label={playingSample ? 'Stop' : `Play voice sample for ${voice.displayName}`}
                 className="p-2 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
               >
-                {playingSample ? (
-                  <StopIcon className="w-4 h-4" />
-                ) : (
-                  <SpeakerIcon className="w-4 h-4" />
-                )}
+                {playingSample ? <Square className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
             </Tooltip>
           )}
@@ -112,7 +104,7 @@ export const VoiceRow = ({
                 editingTags ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'
               }`}
             >
-              <PencilIcon className="w-4 h-4" />
+              <Pencil className="w-4 h-4" />
             </button>
           </Tooltip>
 
@@ -125,7 +117,7 @@ export const VoiceRow = ({
                 aria-label={`Remove ${voice.displayName}`}
                 className="p-2 text-gray-400 hover:text-red-500 disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors cursor-pointer"
               >
-                <CloseIcon className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </button>
             </Tooltip>
           )}

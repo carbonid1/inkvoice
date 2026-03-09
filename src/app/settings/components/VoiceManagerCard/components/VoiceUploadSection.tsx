@@ -1,8 +1,7 @@
 'use client'
 
-import { PlusIcon } from '@/components/icons/PlusIcon'
-import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
+import { Loader2, Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 
 const ACCEPTED_FORMATS =
@@ -49,7 +48,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
             : 'border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400'
         }`}
       >
-        <PlusIcon className="w-4 h-4" />
+        <Plus className="w-4 h-4" />
         {open ? 'Hide Upload' : 'Add Voice'}
       </button>
 
@@ -85,7 +84,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               disabled={!name.trim() || !file || uploading}
               className="px-3 py-2 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              {uploading && <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />}
+              {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {uploading ? 'Uploading...' : 'Upload'}
             </button>
             {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}

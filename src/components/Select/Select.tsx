@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDownIcon } from '@/components/icons/ChevronDownIcon'
+import { ChevronDown } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { SelectOption, SelectProps } from './Select.types'
 
@@ -106,7 +106,7 @@ export const Select = ({
         onClick={() => setOpen(prev => !prev)}
       >
         <span className="truncate">{displayText}</span>
-        <ChevronDownIcon
+        <ChevronDown
           className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>

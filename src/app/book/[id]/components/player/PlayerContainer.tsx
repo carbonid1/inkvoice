@@ -1,6 +1,5 @@
 'use client'
 
-import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
@@ -11,6 +10,7 @@ import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { PlaybackMetrics } from '@/lib/types/debug'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
+import { Bookmark } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { PlaybackControls } from './PlaybackControls'
 
@@ -252,13 +252,13 @@ export const PlayerContainer = ({
                 onClick={onBookmarkToggle}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
-                <BookmarkIcon
+                <Bookmark
                   className={`w-5 h-5 ${
                     isCurrentBookmarked
                       ? 'text-amber-500 dark:text-amber-400'
                       : 'text-gray-400 dark:text-gray-500'
                   }`}
-                  filled={isCurrentBookmarked}
+                  fill={isCurrentBookmarked ? 'currentColor' : 'none'}
                 />
               </button>
             </Tooltip>
