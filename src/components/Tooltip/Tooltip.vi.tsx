@@ -213,6 +213,45 @@ describe('Tooltip', () => {
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
 
+  it('does not show when disabled is true', () => {
+    renderWithStrictMode(
+      <Tooltip label="Test" disabled>
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const wrapper = screen.getByRole('button').parentElement!
+    fireEvent.mouseEnter(wrapper)
+    act(() => vi.advanceTimersByTime(200))
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
+    fireEvent.focus(screen.getByRole('button'))
+    act(() => vi.advanceTimersByTime(200))
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('hides tooltip when disabled becomes true while visible', () => {
+    const { rerender } = renderWithStrictMode(
+      <Tooltip label="Test">
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const wrapper = screen.getByRole('button').parentElement!
+    fireEvent.mouseEnter(wrapper)
+    act(() => vi.advanceTimersByTime(200))
+    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+
+    rerender(
+      <StrictMode>
+        <Tooltip label="Test" disabled>
+          <button>Click me</button>
+        </Tooltip>
+      </StrictMode>,
+    )
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
   it('cancels pending show when mouse leaves before delay', () => {
     renderWithStrictMode(
       <Tooltip label="Test">

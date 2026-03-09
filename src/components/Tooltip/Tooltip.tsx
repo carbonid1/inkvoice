@@ -7,6 +7,7 @@ type TooltipProps = {
   shortcut?: string
   position?: 'top' | 'bottom'
   maxWidth?: number
+  disabled?: boolean
   children: ReactElement
 }
 
@@ -17,6 +18,7 @@ export const Tooltip = ({
   shortcut,
   position = 'top',
   maxWidth,
+  disabled,
   children,
 }: TooltipProps) => {
   const [visible, setVisible] = useState(false)
@@ -24,8 +26,9 @@ export const Tooltip = ({
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const show = useCallback(() => {
+    if (disabled) return
     timeoutRef.current = setTimeout(() => setVisible(true), SHOW_DELAY)
-  }, [])
+  }, [disabled])
 
   const hide = useCallback(() => {
     if (timeoutRef.current) {
@@ -34,6 +37,13 @@ export const Tooltip = ({
     }
     setVisible(false)
   }, [])
+
+  useEffect(() => {
+    if (disabled && timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+  }, [disabled])
 
   useEffect(() => {
     return () => {
@@ -75,7 +85,7 @@ export const Tooltip = ({
       {cloneElement(children, {
         'aria-label': children.props['aria-label'] ?? label,
       })}
-      {visible && (
+      {visible && !disabled && (
         <div
           role="tooltip"
           style={maxWidth ? { maxWidth } : undefined}

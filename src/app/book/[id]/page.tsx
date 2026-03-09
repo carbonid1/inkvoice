@@ -19,6 +19,7 @@ import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
 import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
 import { DebugPanel } from './components/DebugPanel/DebugPanel'
+import { FontSizePopover } from './components/FontSizePopover/FontSizePopover'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
 import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
@@ -259,6 +260,7 @@ export default function BookReader() {
               </>
             )}
             <VoiceSelector bookId={bookId} />
+            <FontSizePopover />
           </div>
         </div>
 

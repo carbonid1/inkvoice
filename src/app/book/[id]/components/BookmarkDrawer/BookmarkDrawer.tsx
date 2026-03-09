@@ -51,7 +51,7 @@ export const BookmarkDrawer = ({
         role="dialog"
         aria-label="Bookmarks"
         tabIndex={-1}
-        className={`fixed inset-y-0 right-0 w-80 max-w-[85vw] z-40 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl transition-transform duration-200 ease-out outline-none ${
+        className={`fixed inset-y-0 right-0 w-96 max-w-[85vw] z-40 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl transition-transform duration-200 ease-out outline-none ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
