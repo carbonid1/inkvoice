@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={literata.variable}>
       <body className="min-h-screen">
         {children}
-        <Toaster position="bottom-center" />
+        <Toaster />
       </body>
     </html>
   )

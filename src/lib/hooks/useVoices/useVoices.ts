@@ -11,7 +11,6 @@ export const useVoices = () => {
   const [loading, setLoading] = useState(true)
 
   const fetchVoices = useCallback(async () => {
-    setLoading(true)
     try {
       const response = await fetch('/api/voices')
       if (response.ok) {

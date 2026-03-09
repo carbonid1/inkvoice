@@ -5,6 +5,7 @@ import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
 import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -21,7 +22,9 @@ export const BookmarkDrawer = ({
   const bookmarks = useBookmarkStore(s => s.bookmarks[bookId] ?? [])
   const removeBookmark = useBookmarkStore(s => s.removeBookmark)
   const undoRemoveBookmark = useBookmarkStore(s => s.undoRemoveBookmark)
+  const [listParent] = useAutoAnimate()
   const drawerRef = useRef<HTMLDivElement>(null)
+  const prevBookmarkIdsRef = useRef(new Set(bookmarks.map(b => b.id)))
 
   const handleRemove = async (bookmark: Bookmark) => {
     await removeBookmark(bookId, bookmark.id)
@@ -34,6 +37,21 @@ export const BookmarkDrawer = ({
 
   useHotkeys('shift+b', onClose, { enabled: isOpen })
   useHotkeys('escape', onClose, { enabled: isOpen })
+
+  // Scroll restored bookmark into view
+  useEffect(() => {
+    const prevIds = prevBookmarkIdsRef.current
+    const restoredId = bookmarks.find(b => !prevIds.has(b.id))?.id
+    prevBookmarkIdsRef.current = new Set(bookmarks.map(b => b.id))
+
+    if (restoredId) {
+      requestAnimationFrame(() => {
+        document
+          .querySelector(`[data-bookmark-id="${restoredId}"]`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    }
+  }, [bookmarks])
 
   // Trap focus inside drawer when open
   useEffect(() => {
@@ -88,9 +106,9 @@ export const BookmarkDrawer = ({
               <p className="text-gray-400">No bookmarks yet</p>
             </div>
           ) : (
-            <ul className="pt-1 pb-8">
+            <ul ref={listParent} className="pt-1 pb-8">
               {sorted.map(bookmark => (
-                <li key={bookmark.id}>
+                <li key={bookmark.id} data-bookmark-id={bookmark.id}>
                   <button
                     onClick={() => {
                       onNavigate(bookmark.chapter, bookmark.sentence)

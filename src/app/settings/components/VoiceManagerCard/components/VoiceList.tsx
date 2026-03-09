@@ -2,6 +2,7 @@
 
 import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoiceTags'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { useCallback, useEffect, useState } from 'react'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
 import { VoiceRow } from './VoiceRow'
@@ -23,6 +24,8 @@ export const VoiceList = ({
   onPlay,
   onDelete,
 }: VoiceListProps) => {
+  const [customParent] = useAutoAnimate()
+  const [appParent] = useAutoAnimate()
   const [editingTagsVoice, setEditingTagsVoice] = useState<string | null>(null)
   const [localVoices, setLocalVoices] = useState(voices)
   const { saving, updateTags } = useUpdateVoiceTags()
@@ -64,7 +67,7 @@ export const VoiceList = ({
               &middot; {customVoices.length}
             </span>
           </h3>
-          <div className="space-y-1">
+          <div ref={customParent} className="space-y-1">
             {customVoices.map(voice => (
               <VoiceRow
                 key={voice.name}
@@ -90,7 +93,7 @@ export const VoiceList = ({
             Included Voices
             <span className="text-gray-400 dark:text-gray-500"> &middot; {appVoices.length}</span>
           </h3>
-          <div className="space-y-1">
+          <div ref={appParent} className="space-y-1">
             {appVoices.map(voice => (
               <VoiceRow
                 key={voice.name}
