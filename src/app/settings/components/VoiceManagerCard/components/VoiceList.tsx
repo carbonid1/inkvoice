@@ -13,7 +13,6 @@ type VoiceListProps = {
   playing: PlayingState
   onPlay: (name: string, type: AudioType) => void
   onDelete: (name: string) => void
-  deletingVoice: string | null
 }
 
 export const VoiceList = ({
@@ -23,7 +22,6 @@ export const VoiceList = ({
   playing,
   onPlay,
   onDelete,
-  deletingVoice,
 }: VoiceListProps) => {
   const [editingTagsVoice, setEditingTagsVoice] = useState<string | null>(null)
   const [localVoices, setLocalVoices] = useState(voices)
@@ -80,7 +78,6 @@ export const VoiceList = ({
                 onDelete={onDelete}
                 onTagsChanged={handleTagsChanged}
                 tagsSaving={saving}
-                deletingVoice={deletingVoice}
               />
             ))}
           </div>
@@ -106,7 +103,6 @@ export const VoiceList = ({
                 onPlay={onPlay}
                 onTagsChanged={handleTagsChanged}
                 tagsSaving={saving}
-                deletingVoice={deletingVoice}
               />
             ))}
           </div>

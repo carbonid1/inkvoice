@@ -1,5 +1,5 @@
 import { env } from '@/lib/config/env'
-import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises'
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises'
 import path from 'path'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
 import { normalizeTags } from './helpers/normalizeTags/normalizeTags'
@@ -28,6 +28,8 @@ type UploadResult = UploadSuccess | UploadError
 
 type DeleteResult = { ok: true } | { ok: false; reason: 'not_found' | 'app_voice' }
 
+type RestoreResult = { ok: true } | { ok: false; reason: 'not_found' }
+
 type UpdateTagsResult = { ok: true; tags: string[] } | { ok: false; reason: 'not_found' }
 
 const fileExists = async (filePath: string): Promise<boolean> =>
@@ -41,6 +43,12 @@ const dirExists = async (dirPath: string): Promise<boolean> =>
     .catch(() => false)
 
 const readDirSafe = async (dirPath: string): Promise<string[]> => readdir(dirPath).catch(() => [])
+
+const isEnoent = (error: unknown): boolean =>
+  error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT'
+
+// TODO: Replace _deleted suffix with database soft-delete flag
+const DELETED_SUFFIX = '_deleted'
 
 export const createVoiceService = (voicesDir: string) => {
   const customDir = path.join(voicesDir, 'custom')
@@ -72,6 +80,7 @@ export const createVoiceService = (voicesDir: string) => {
     const entries = await readDirSafe(dir)
     const results = await Promise.all(
       entries
+        .filter(entry => !entry.endsWith(DELETED_SUFFIX))
         .filter(entry => !skip?.includes(entry))
         .map(async entry => {
           const entryPath = path.join(dir, entry)
@@ -164,9 +173,12 @@ export const createVoiceService = (voicesDir: string) => {
 
   const deleteVoice = async (name: string): Promise<DeleteResult> => {
     const customPath = path.join(customDir, name)
-    if (await dirExists(customPath)) {
-      await rm(customPath, { recursive: true })
+    try {
+      await rm(customPath + DELETED_SUFFIX, { recursive: true, force: true })
+      await rename(customPath, customPath + DELETED_SUFFIX)
       return { ok: true }
+    } catch (error) {
+      if (!isEnoent(error)) throw error
     }
 
     const appPath = path.join(voicesDir, name)
@@ -175,6 +187,16 @@ export const createVoiceService = (voicesDir: string) => {
     }
 
     return { ok: false, reason: 'not_found' }
+  }
+
+  const restoreVoice = async (name: string): Promise<RestoreResult> => {
+    try {
+      await rename(path.join(customDir, name + DELETED_SUFFIX), path.join(customDir, name))
+      return { ok: true }
+    } catch (error) {
+      if (!isEnoent(error)) throw error
+      return { ok: false, reason: 'not_found' }
+    }
   }
 
   const resolveVoicePath = async (name: string): Promise<string | null> => {
@@ -220,6 +242,7 @@ export const createVoiceService = (voicesDir: string) => {
     listVoices,
     uploadVoice,
     deleteVoice,
+    restoreVoice,
     resolveVoicePath,
     resolveSamplePath,
     saveSample,

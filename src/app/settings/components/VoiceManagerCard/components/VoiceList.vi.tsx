@@ -33,7 +33,6 @@ const defaultProps = {
   playing: null,
   onPlay: vi.fn(),
   onDelete: vi.fn(),
-  deletingVoice: null,
 }
 
 const renderList = (overrides = {}) =>

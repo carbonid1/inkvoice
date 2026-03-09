@@ -88,7 +88,7 @@ export const BookmarkDrawer = ({
               <p className="text-gray-400">No bookmarks yet</p>
             </div>
           ) : (
-            <ul className="py-2">
+            <ul className="pt-1 pb-8">
               {sorted.map(bookmark => (
                 <li key={bookmark.id}>
                   <button

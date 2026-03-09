@@ -23,3 +23,21 @@ export const DELETE = async (
 
   return NextResponse.json({ error: 'Voice not found' }, { status: 404 })
 }
+
+export const PATCH = async (
+  _request: Request,
+  { params }: { params: Promise<{ name: string }> },
+) => {
+  const { name } = await params
+
+  const invalid = validateVoiceParam(name)
+  if (invalid) return invalid
+
+  const result = await voiceService.restoreVoice(name)
+
+  if (result.ok) {
+    return NextResponse.json({ success: true })
+  }
+
+  return NextResponse.json({ error: 'No deleted voice found' }, { status: 404 })
+}

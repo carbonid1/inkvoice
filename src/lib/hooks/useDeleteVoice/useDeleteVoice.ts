@@ -1,30 +1,34 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
-type DeleteState = {
-  deletingVoice: string | null
+type DeleteVoiceState = {
   deleteVoice: (name: string) => Promise<boolean>
+  restoreVoice: (name: string) => Promise<boolean>
 }
 
-export const useDeleteVoice = (): DeleteState => {
-  const [deletingVoice, setDeletingVoice] = useState<string | null>(null)
-
+export const useDeleteVoice = (): DeleteVoiceState => {
   const deleteVoice = useCallback(async (name: string): Promise<boolean> => {
-    setDeletingVoice(name)
-
     try {
       const response = await fetch(`/api/voices/${encodeURIComponent(name)}`, {
         method: 'DELETE',
       })
-
       return response.ok
     } catch {
       return false
-    } finally {
-      setDeletingVoice(null)
     }
   }, [])
 
-  return useMemo(() => ({ deletingVoice, deleteVoice }), [deletingVoice, deleteVoice])
+  const restoreVoice = useCallback(async (name: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/voices/${encodeURIComponent(name)}`, {
+        method: 'PATCH',
+      })
+      return response.ok
+    } catch {
+      return false
+    }
+  }, [])
+
+  return useMemo(() => ({ deleteVoice, restoreVoice }), [deleteVoice, restoreVoice])
 }

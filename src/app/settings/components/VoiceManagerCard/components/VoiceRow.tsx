@@ -3,7 +3,6 @@
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { Pencil, Play, Square, Volume2, X } from 'lucide-react'
-import { useState } from 'react'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
 import { VoiceTagList } from '../../VoiceTagList/VoiceTagList'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
@@ -20,7 +19,6 @@ type VoiceRowProps = {
   onDelete?: (name: string) => void
   onTagsChanged: (name: string, tags: string[]) => void
   tagsSaving: boolean
-  deletingVoice: string | null
 }
 
 const isPlaying = (playing: PlayingState, name: string, type: AudioType) =>
@@ -37,9 +35,7 @@ export const VoiceRow = ({
   onDelete,
   onTagsChanged,
   tagsSaving,
-  deletingVoice,
 }: VoiceRowProps) => {
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const playingSource = isPlaying(playing, voice.name, 'source')
   const playingSample = isPlaying(playing, voice.name, 'sample')
 
@@ -108,41 +104,17 @@ export const VoiceRow = ({
             </button>
           </Tooltip>
 
-          {onDelete && !confirmingDelete && (
+          {onDelete && (
             <Tooltip label={`Remove "${voice.displayName}"`}>
               <button
                 type="button"
-                onClick={() => setConfirmingDelete(true)}
-                disabled={deletingVoice === voice.name}
+                onClick={() => onDelete(voice.name)}
                 aria-label={`Remove ${voice.displayName}`}
-                className="p-2 text-gray-400 hover:text-red-500 disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors cursor-pointer"
+                className="p-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </Tooltip>
-          )}
-
-          {confirmingDelete && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-500 dark:text-gray-400">Delete?</span>
-              <button
-                type="button"
-                onClick={() => {
-                  onDelete?.(voice.name)
-                  setConfirmingDelete(false)
-                }}
-                className="px-2 py-0.5 text-xs rounded bg-red-500 hover:bg-red-600 text-white transition-colors cursor-pointer"
-              >
-                Delete
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(false)}
-                className="px-2 py-0.5 text-xs rounded bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
           )}
         </div>
       </div>

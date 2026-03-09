@@ -153,13 +153,40 @@ describe('voiceService', () => {
     expect(result.code).toBe('NAME_TAKEN')
   })
 
-  it('deletes a custom voice', async () => {
+  it('soft-deletes a custom voice by renaming with _deleted suffix', async () => {
     const service = createVoiceService(voicesDir)
     const result = await service.deleteVoice('my-voice')
     expect(result).toEqual({ ok: true })
 
-    const exists = await fs.stat(path.join(voicesDir, 'custom', 'my-voice')).catch(() => null)
-    expect(exists).toBeNull()
+    // Original dir should be gone
+    const original = await fs.stat(path.join(voicesDir, 'custom', 'my-voice')).catch(() => null)
+    expect(original).toBeNull()
+
+    // _deleted dir should exist with files intact
+    const deleted = await fs.stat(path.join(voicesDir, 'custom', 'my-voice_deleted'))
+    expect(deleted.isDirectory()).toBe(true)
+    const source = await fs.stat(path.join(voicesDir, 'custom', 'my-voice_deleted', 'source.wav'))
+    expect(source.isFile()).toBe(true)
+  })
+
+  it('clears stale _deleted dir before soft-deleting', async () => {
+    const service = createVoiceService(voicesDir)
+
+    // Create a stale _deleted dir with old content
+    const staleDir = path.join(voicesDir, 'custom', 'my-voice_deleted')
+    await fs.mkdir(staleDir, { recursive: true })
+    await fs.writeFile(path.join(staleDir, 'source.wav'), Buffer.alloc(10))
+    await fs.writeFile(path.join(staleDir, 'old-file.txt'), 'stale')
+
+    const result = await service.deleteVoice('my-voice')
+    expect(result).toEqual({ ok: true })
+
+    // _deleted dir should have current files, not stale ones
+    const deletedDir = path.join(voicesDir, 'custom', 'my-voice_deleted')
+    const files = await fs.readdir(deletedDir)
+    expect(files).toContain('source.wav')
+    expect(files).toContain('metadata.json')
+    expect(files).not.toContain('old-file.txt')
   })
 
   it('refuses to delete an app voice', async () => {
@@ -176,6 +203,42 @@ describe('voiceService', () => {
     const service = createVoiceService(voicesDir)
     const result = await service.deleteVoice('does-not-exist')
     expect(result).toEqual({ ok: false, reason: 'not_found' })
+  })
+
+  it('restores a soft-deleted voice', async () => {
+    const service = createVoiceService(voicesDir)
+    await service.deleteVoice('my-voice')
+    const result = await service.restoreVoice('my-voice')
+    expect(result).toEqual({ ok: true })
+
+    // Original dir restored
+    const restored = await fs.stat(path.join(voicesDir, 'custom', 'my-voice'))
+    expect(restored.isDirectory()).toBe(true)
+
+    // _deleted dir gone
+    const deleted = await fs
+      .stat(path.join(voicesDir, 'custom', 'my-voice_deleted'))
+      .catch(() => null)
+    expect(deleted).toBeNull()
+
+    // Shows up in listing again
+    const voices = await service.listVoices()
+    expect(voices.map(v => v.name)).toContain('my-voice')
+  })
+
+  it('returns not_found when restoring a non-deleted voice', async () => {
+    const service = createVoiceService(voicesDir)
+    const result = await service.restoreVoice('does-not-exist')
+    expect(result).toEqual({ ok: false, reason: 'not_found' })
+  })
+
+  it('excludes soft-deleted voices from listing', async () => {
+    const service = createVoiceService(voicesDir)
+    await service.deleteVoice('my-voice')
+    const voices = await service.listVoices()
+    const names = voices.map(v => v.name)
+    expect(names).not.toContain('my-voice')
+    expect(names).not.toContain('my-voice_deleted')
   })
 
   it('resolves voice path for app voice', async () => {

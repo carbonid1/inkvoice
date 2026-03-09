@@ -10,8 +10,11 @@ describe('useDeleteVoice', () => {
     expect(result.current.deleteVoice).toBe(first)
   })
 
-  it('initializes with deletingVoice null', () => {
-    const { result } = renderHook(() => useDeleteVoice())
-    expect(result.current.deletingVoice).toBeNull()
+  it('restoreVoice callback is stable across rerenders', () => {
+    const { result, rerender } = renderHook(() => useDeleteVoice())
+    expect(result.current.restoreVoice).toBeTypeOf('function')
+    const first = result.current.restoreVoice
+    rerender()
+    expect(result.current.restoreVoice).toBe(first)
   })
 })
