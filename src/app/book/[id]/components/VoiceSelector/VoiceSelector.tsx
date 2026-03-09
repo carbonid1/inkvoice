@@ -19,7 +19,9 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
     voiceNames,
   )
 
-  if (loading || voices.length === 0) return null
+  if (loading || voices.length === 0) {
+    return <div className="w-28 h-7 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+  }
 
   const globalDisplayName = voices.find(v => v.name === globalVoice)?.displayName ?? globalVoice
 
