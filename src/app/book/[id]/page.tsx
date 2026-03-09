@@ -4,6 +4,7 @@ import { BookmarkIcon } from '@/components/icons/BookmarkIcon'
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'
 import { ListIcon } from '@/components/icons/ListIcon'
 import { SpinnerIcon } from '@/components/icons/SpinnerIcon'
+import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
@@ -216,7 +217,7 @@ export default function BookReader() {
 
   return (
     <div className="h-dvh flex flex-col">
-      <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <PageHeader>
         <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-4">
           <Tooltip label="Back to Library" position="bottom">
             <Link
@@ -270,7 +271,7 @@ export default function BookReader() {
           progress={currentProgress}
           chapterInfo={currentChapterInfo}
         />
-      </header>
+      </PageHeader>
 
       <main className="flex-1 min-h-0 overflow-y-auto">
         <div className="max-w-3xl mx-auto">

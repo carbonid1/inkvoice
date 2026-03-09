@@ -1,5 +1,6 @@
 'use client'
 
+import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { GearIcon } from '@/components/icons/GearIcon'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
@@ -35,9 +36,9 @@ export default function Library() {
   }, [setBooks])
 
   return (
-    <div className="min-h-screen p-8">
-      <header className="max-w-6xl mx-auto mb-8">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen">
+      <PageHeader>
+        <div className="max-w-6xl mx-auto px-8 py-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">InkVoice</h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">Read and listen to your books</p>
@@ -50,9 +51,9 @@ export default function Library() {
             <GearIcon />
           </Link>
         </div>
-      </header>
+      </PageHeader>
 
-      <main className="max-w-6xl mx-auto">
+      <main className="max-w-6xl mx-auto px-8 py-8">
         {loading && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {Array.from({ length: 5 }, (_, i) => (
