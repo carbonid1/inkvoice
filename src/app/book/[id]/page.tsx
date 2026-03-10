@@ -178,6 +178,19 @@ export default function BookReader() {
     [overview?.chapters],
   )
 
+  const recoveryBookmark = useMemo(
+    () =>
+      bookmarksForBook.length > 0
+        ? bookmarksForBook.reduce((furthest, b) =>
+            b.chapter > furthest.chapter ||
+            (b.chapter === furthest.chapter && b.sentence > furthest.sentence)
+              ? b
+              : furthest,
+          )
+        : undefined,
+    [bookmarksForBook],
+  )
+
   if (loading) return <PageSkeleton />
 
   if (error || !overview) {
@@ -190,11 +203,6 @@ export default function BookReader() {
       </div>
     )
   }
-
-  const recoveryBookmark =
-    bookmarksForBook.length > 0
-      ? bookmarksForBook.reduce((latest, b) => (b.createdAt > latest.createdAt ? b : latest))
-      : undefined
 
   const showRecoveryBanner =
     recoveryBookmark !== undefined &&
@@ -286,7 +294,6 @@ export default function BookReader() {
               chapterName={
                 chapterNames[recoveryBookmark.chapter] ?? `Chapter ${recoveryBookmark.chapter + 1}`
               }
-              sentence={recoveryBookmark.sentence}
               onNavigate={() =>
                 handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.sentence)
               }
