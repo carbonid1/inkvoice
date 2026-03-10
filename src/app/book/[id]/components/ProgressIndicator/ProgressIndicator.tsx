@@ -2,25 +2,16 @@
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { ChapterInfo } from '@/lib/types/book'
-import type { Progress } from '@/store/useProgressStore'
 import { computeChapterPagePosition } from '../../helpers/computeChapterPagePosition/computeChapterPagePosition'
 import { computeChapterProgressPercent } from '../../helpers/computeChapterProgressPercent/computeChapterProgressPercent'
-import { computePagePosition } from '../../helpers/computePagePosition/computePagePosition'
 import { shouldShowChapterProgress } from '../../helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 
 type ProgressIndicatorProps = {
-  chapter: number
   sentence: number
-  progress: Progress
   chapterInfo: ChapterInfo
 }
 
-export const ProgressIndicator = ({
-  chapter,
-  sentence,
-  progress,
-  chapterInfo,
-}: ProgressIndicatorProps) => {
+export const ProgressIndicator = ({ sentence, chapterInfo }: ProgressIndicatorProps) => {
   const chapterPercent =
     computeChapterProgressPercent({ sentence, sentencesInChapter: chapterInfo.sentenceCount }) ?? 0
   const showChapterBar = shouldShowChapterProgress({ wordsInChapter: chapterInfo.wordCount })
@@ -32,30 +23,8 @@ export const ProgressIndicator = ({
       })
     : null
 
-  const pagePosition =
-    progress.wordsPerChapter && progress.sentencesPerChapter
-      ? computePagePosition({
-          chapter,
-          sentence,
-          wordsPerChapter: progress.wordsPerChapter,
-          sentencesPerChapter: progress.sentencesPerChapter,
-        })
-      : null
-
   return (
     <>
-      {pagePosition && (
-        <div className="max-w-3xl mx-auto px-4 pb-1">
-          <div className="flex justify-end">
-            <Tooltip label="Based on 350 words per page" position="bottom">
-              <p className="text-xs text-gray-400 dark:text-gray-400 cursor-default">
-                Page {pagePosition.currentPage} of {pagePosition.totalPages}
-              </p>
-            </Tooltip>
-          </div>
-        </div>
-      )}
-
       {showChapterBar && (
         <Tooltip
           label={

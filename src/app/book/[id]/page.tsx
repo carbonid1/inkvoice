@@ -33,7 +33,10 @@ import {
   type ContextMenuTarget,
 } from './components/SentenceContextMenu/SentenceContextMenu'
 import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
-import { WORDS_PER_PAGE } from './helpers/computePagePosition/computePagePosition'
+import {
+  WORDS_PER_PAGE,
+  computePagePosition,
+} from './helpers/computePagePosition/computePagePosition'
 import { shouldShowChapterProgress } from './helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 import { useBookSearch } from './hooks/useBookSearch/useBookSearch'
@@ -256,6 +259,16 @@ export default function BookReader() {
     wordCount: 0,
   }
 
+  const pagePosition =
+    currentProgress.wordsPerChapter && currentProgress.sentencesPerChapter
+      ? computePagePosition({
+          chapter: currentChapter,
+          sentence: currentSentence,
+          wordsPerChapter: currentProgress.wordsPerChapter,
+          sentencesPerChapter: currentProgress.sentencesPerChapter,
+        })
+      : null
+
   const nextChapter = overview.chapters[currentChapter + 1]
   const nextChapterPageCount =
     nextChapter && shouldShowChapterProgress({ wordsInChapter: nextChapter.wordCount })
@@ -327,15 +340,17 @@ export default function BookReader() {
             )}
             <VoiceSelector bookId={bookId} />
             <FontSizePopover />
+            {pagePosition && (
+              <Tooltip label="Based on 350 words per page" position="bottom" className="ml-auto">
+                <p className="text-xs text-gray-400 cursor-default whitespace-nowrap">
+                  Page {pagePosition.currentPage} of {pagePosition.totalPages}
+                </p>
+              </Tooltip>
+            )}
           </div>
         </div>
 
-        <ProgressIndicator
-          chapter={currentChapter}
-          sentence={currentSentence}
-          progress={currentProgress}
-          chapterInfo={currentChapterInfo}
-        />
+        <ProgressIndicator sentence={currentSentence} chapterInfo={currentChapterInfo} />
       </PageHeader>
 
       <main className="flex-1 min-h-0 overflow-y-auto">
