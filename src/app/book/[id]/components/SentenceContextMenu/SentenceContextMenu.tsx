@@ -11,7 +11,7 @@ export type ContextMenuTarget = {
 
 type SentenceContextMenuProps = {
   target: ContextMenuTarget | null
-  onRegenerate: (chapter: number, sentence: number) => Promise<void>
+  onRegenerate: (chapter: number, sentence: number) => void | Promise<void>
   onClose: () => void
 }
 
@@ -21,7 +21,6 @@ export const SentenceContextMenu = ({
   onClose,
 }: SentenceContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null)
-  const [loading, setLoading] = useState(false)
   const [position, setPosition] = useState<{ left: number; top: number }>({ left: 0, top: 0 })
 
   useLayoutEffect(() => {
@@ -30,11 +29,6 @@ export const SentenceContextMenu = ({
     const left = Math.min(target.x, window.innerWidth - menu.offsetWidth - 8)
     const top = Math.min(target.y, window.innerHeight - menu.offsetHeight - 8)
     setPosition({ left: Math.max(8, left), top: Math.max(8, top) })
-  }, [target])
-
-  useEffect(() => {
-    if (!target) return
-    setLoading(false)
   }, [target])
 
   useEffect(() => {
@@ -59,14 +53,9 @@ export const SentenceContextMenu = ({
 
   if (!target) return null
 
-  const handleClick = async () => {
-    setLoading(true)
-    try {
-      await onRegenerate(target.chapter, target.sentence)
-    } finally {
-      setLoading(false)
-      onClose()
-    }
+  const handleClick = () => {
+    onRegenerate(target.chapter, target.sentence)
+    onClose()
   }
 
   return (
@@ -79,10 +68,9 @@ export const SentenceContextMenu = ({
       <button
         role="menuitem"
         onClick={handleClick}
-        disabled={loading}
-        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
-        {loading ? 'Regenerating...' : 'Regenerate Audio'}
+        Regenerate Audio
       </button>
     </div>
   )

@@ -24,6 +24,7 @@ interface PlayerContainerProps {
   isCurrentBookmarked?: boolean
   onBookmarkToggle?: () => void
   onChapterEnd?: () => void
+  replayKey?: number
 }
 
 export const PlayerContainer = ({
@@ -36,6 +37,7 @@ export const PlayerContainer = ({
   isCurrentBookmarked,
   onBookmarkToggle,
   onChapterEnd,
+  replayKey = 0,
 }: PlayerContainerProps) => {
   const { voices } = useVoices()
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
@@ -43,6 +45,7 @@ export const PlayerContainer = ({
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
   const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
   const pendingChapterAdvanceRef = useRef(false)
+  const prevReplayKeyRef = useRef(replayKey)
   const onChapterEndRef = useRef(onChapterEnd)
 
   useEffect(() => {
@@ -94,7 +97,8 @@ export const PlayerContainer = ({
 
   const { setLoading, setError, play, resume, shouldPlay, pause, stop, setPlaying, isPlaying } =
     audioPlayer
-  const { fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures } = prefetch
+  const { fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, clearPrefetched } =
+    prefetch
 
   // Counter to detect when a newer playCurrentSentence call has superseded this one
   const playIdRef = useRef(0)
@@ -199,6 +203,9 @@ export const PlayerContainer = ({
   useEffect(() => {
     if (!isPlaying) return
 
+    // Replay effect handles replayKey changes — skip to avoid double fetch
+    if (replayKey !== prevReplayKeyRef.current) return
+
     // If at chapter boundary, re-trigger interstitial instead of replaying
     if (pendingChapterAdvanceRef.current) {
       setPlaying(false)
@@ -214,7 +221,36 @@ export const PlayerContainer = ({
     } else {
       playCurrentSentence()
     }
-  }, [isPlaying, currentChapter, currentSentence, playCurrentSentence, resume, setPlaying])
+  }, [
+    isPlaying,
+    currentChapter,
+    currentSentence,
+    replayKey,
+    playCurrentSentence,
+    resume,
+    setPlaying,
+  ])
+
+  // Force replay on regenerate (replayKey changes)
+  useEffect(() => {
+    if (replayKey === prevReplayKeyRef.current) return
+    prevReplayKeyRef.current = replayKey
+    playingPositionRef.current = null
+    clearPrefetched(currentChapter, currentSentence)
+    if (isPlaying) {
+      playCurrentSentence()
+    } else {
+      setPlaying(true)
+    }
+  }, [
+    replayKey,
+    currentChapter,
+    currentSentence,
+    isPlaying,
+    setPlaying,
+    playCurrentSentence,
+    clearPrefetched,
+  ])
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {

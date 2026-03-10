@@ -54,6 +54,7 @@ export default function BookReader() {
   const [activeDrawer, setActiveDrawer] = useState<'chapter' | 'bookmark' | null>(null)
   const [contextMenuTarget, setContextMenuTarget] = useState<ContextMenuTarget | null>(null)
   const [showChapterEndModal, setShowChapterEndModal] = useState(false)
+  const [replayKey, setReplayKey] = useState(0)
 
   const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
     isGenerating: false,
@@ -119,11 +120,17 @@ export default function BookReader() {
   const handleCloseContextMenu = useCallback(() => setContextMenuTarget(null), [])
 
   const handleRegenerate = useCallback(
-    async (chapter: number, sentence: number) => {
+    (chapter: number, sentence: number) => {
       const params = new URLSearchParams({ voice: effectiveVoice })
-      await fetch(`/api/tts/${bookId}/${chapter}/${sentence}?${params}`, { method: 'DELETE' })
+      fetch(`/api/tts/${bookId}/${chapter}/${sentence}?${params}`, { method: 'DELETE' }).catch(
+        console.error,
+      )
+      if (chapter !== currentChapter || sentence !== currentSentence) {
+        handleProgressChange(chapter, sentence)
+      }
+      setReplayKey(k => k + 1)
     },
-    [bookId, effectiveVoice],
+    [bookId, effectiveVoice, currentChapter, currentSentence, handleProgressChange],
   )
 
   // Chapter end interstitial
@@ -376,6 +383,7 @@ export default function BookReader() {
         isCurrentBookmarked={isCurrentBookmarked}
         onBookmarkToggle={toggleBookmark}
         onChapterEnd={handleChapterEnd}
+        replayKey={replayKey}
       />
 
       <DebugPanel metrics={debugMetrics} visible={showDebug} />

@@ -172,6 +172,14 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     consecutiveFailuresRef.current = 0
   }, [])
 
+  const clearPrefetched = useCallback(
+    (ch: number, sent: number) => {
+      prefetchedRef.current.delete(getCacheKey(ch, sent))
+      updateDebugMetrics()
+    },
+    [getCacheKey, updateDebugMetrics],
+  )
+
   const fetchAudio = useCallback(
     async (ch: number, sent: number): Promise<string | null> => {
       const chapterData = chaptersRef.current[ch]
@@ -224,8 +232,16 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
       continuePrefetching,
       updateDebugMetrics,
       resetFailures,
+      clearPrefetched,
       cacheStatsRef,
     }),
-    [fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, cacheStatsRef],
+    [
+      fetchAudio,
+      continuePrefetching,
+      updateDebugMetrics,
+      resetFailures,
+      clearPrefetched,
+      cacheStatsRef,
+    ],
   )
 }
