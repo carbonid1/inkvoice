@@ -167,11 +167,11 @@ const TocGroupCollapsible = ({
     <div>
       <div
         data-active={isCurrent || undefined}
-        className={`flex items-center ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+        className={`flex items-center gap-1 ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
       >
         <button
           onClick={() => setIsExpanded(prev => !prev)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
           style={indent > 0 ? { marginLeft: `${indent * 20}px` } : undefined}
           aria-label={isExpanded ? 'Collapse' : 'Expand'}
         >
@@ -183,7 +183,7 @@ const TocGroupCollapsible = ({
         </button>
         <button
           onClick={() => onNavigate(node.chapterIndex)}
-          className={`flex-1 text-left text-sm py-2 pr-4 transition-colors ${
+          className={`flex-1 text-left text-sm py-2.5 pr-4 transition-colors ${
             isCurrent
               ? 'font-medium text-blue-700 dark:text-blue-300'
               : 'hover:text-blue-600 dark:hover:text-blue-400'
