@@ -7,6 +7,7 @@ import { SentenceContextMenu } from './SentenceContextMenu'
 
 const defaultProps = {
   onRegenerate: vi.fn().mockResolvedValue(undefined),
+  onCopyText: vi.fn(),
   onClose: vi.fn(),
 }
 
@@ -34,6 +35,7 @@ describe('SentenceContextMenu', () => {
     render(
       <SentenceContextMenu
         onRegenerate={onRegenerate}
+        onCopyText={vi.fn()}
         onClose={onClose}
         target={{ x: 100, y: 200, chapter: 3, sentence: 5 }}
       />,

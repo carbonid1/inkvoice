@@ -119,6 +119,14 @@ export default function BookReader() {
 
   const handleCloseContextMenu = useCallback(() => setContextMenuTarget(null), [])
 
+  const handleCopyText = useCallback(
+    (_chapter: number, sentence: number) => {
+      const text = chapterData?.sentences[sentence]?.trim()
+      if (text) navigator.clipboard.writeText(text)
+    },
+    [chapterData],
+  )
+
   const handleRegenerate = useCallback(
     (chapter: number, sentence: number) => {
       const params = new URLSearchParams({ voice: effectiveVoice })
@@ -408,6 +416,7 @@ export default function BookReader() {
       <SentenceContextMenu
         target={contextMenuTarget}
         onRegenerate={handleRegenerate}
+        onCopyText={handleCopyText}
         onClose={handleCloseContextMenu}
       />
 

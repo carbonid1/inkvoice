@@ -9,6 +9,7 @@ type TooltipProps = {
   delay?: number
   maxWidth?: number
   disabled?: boolean
+  className?: string
   children: ReactElement
 }
 
@@ -21,6 +22,7 @@ export const Tooltip = ({
   delay = DEFAULT_DELAY,
   maxWidth,
   disabled,
+  className,
   children,
 }: TooltipProps) => {
   const [visible, setVisible] = useState(false)
@@ -77,7 +79,7 @@ export const Tooltip = ({
   return (
     <div
       ref={wrapperRef}
-      className="relative inline-flex"
+      className={`relative inline-flex${className ? ` ${className}` : ''}`}
       onMouseEnter={show}
       onMouseLeave={hide}
       onPointerDown={hide}

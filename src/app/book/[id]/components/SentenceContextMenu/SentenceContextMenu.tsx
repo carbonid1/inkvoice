@@ -1,5 +1,6 @@
 'use client'
 
+import { Copy, RefreshCw } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 export type ContextMenuTarget = {
@@ -12,12 +13,14 @@ export type ContextMenuTarget = {
 type SentenceContextMenuProps = {
   target: ContextMenuTarget | null
   onRegenerate: (chapter: number, sentence: number) => void | Promise<void>
+  onCopyText: (chapter: number, sentence: number) => void
   onClose: () => void
 }
 
 export const SentenceContextMenu = ({
   target,
   onRegenerate,
+  onCopyText,
   onClose,
 }: SentenceContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null)
@@ -53,7 +56,12 @@ export const SentenceContextMenu = ({
 
   if (!target) return null
 
-  const handleClick = () => {
+  const handleCopy = () => {
+    onCopyText(target.chapter, target.sentence)
+    onClose()
+  }
+
+  const handleRegenerate = () => {
     onRegenerate(target.chapter, target.sentence)
     onClose()
   }
@@ -67,9 +75,19 @@ export const SentenceContextMenu = ({
     >
       <button
         role="menuitem"
-        onClick={handleClick}
-        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        onClick={handleCopy}
+        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
+        <Copy className="w-4 h-4" />
+        Copy Text
+      </button>
+      <div className="border-t border-gray-200 dark:border-gray-700" />
+      <button
+        role="menuitem"
+        onClick={handleRegenerate}
+        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      >
+        <RefreshCw className="w-4 h-4" />
         Regenerate Audio
       </button>
     </div>

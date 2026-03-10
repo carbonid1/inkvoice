@@ -65,11 +65,15 @@ export const ProgressIndicator = ({
           }
           position="bottom"
           delay={600}
+          className="w-full [display:flex] -mt-3"
         >
-          <div>
-            <div className="h-0.5 bg-gray-100 dark:bg-gray-800" aria-hidden="true">
+          <div className="w-full pt-3 cursor-default group/bar">
+            <div
+              className="h-0.5 bg-gray-100 dark:bg-gray-800 transition-shadow duration-200 group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.25)] dark:group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.4)] motion-reduce:transition-none"
+              aria-hidden="true"
+            >
               <div
-                className="h-full bg-blue-500 transition-all duration-300"
+                className="h-full bg-blue-500 transition-[width] duration-300"
                 style={{ width: `${chapterPercent}%` }}
               />
             </div>
