@@ -21,10 +21,7 @@ interface ReaderProps {
   activeSearchSentence?: number
 }
 
-const isAllCaps = (s: string): boolean =>
-  s.replace(/[^a-zA-Z]/g, '').length > 0 && s === s.toUpperCase()
-
-const toTitleCase = (s: string): string => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+import { isAllCaps, toTitleCase } from '@/lib/epub/helpers/normalizeTitle/normalizeTitle'
 
 const normalizeCaps = (block: ContentBlockType): ContentBlockType => {
   const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''

@@ -3,10 +3,9 @@
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { TocNode } from '@/lib/types/book'
 import { ChevronDown, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { WORDS_PER_PAGE } from '../../helpers/computePagePosition/computePagePosition'
-import { shouldShowChapterProgress } from '../../helpers/shouldShowChapterProgress/shouldShowChapterProgress'
+import { computeStartPages } from '../../helpers/computeStartPages/computeStartPages'
 import type { ChapterDrawerProps } from './ChapterDrawer.types'
 
 export const ChapterDrawer = ({
@@ -18,7 +17,8 @@ export const ChapterDrawer = ({
   currentChapter,
 }: ChapterDrawerProps) => {
   const drawerRef = useRef<HTMLDivElement>(null)
-  const activeRef = useRef<HTMLButtonElement>(null)
+
+  const startPages = useMemo(() => computeStartPages(chapters.map(c => c.wordCount)), [chapters])
 
   useHotkeys('t', onClose, { enabled: isOpen })
   useHotkeys('escape', onClose, { enabled: isOpen })
@@ -26,9 +26,8 @@ export const ChapterDrawer = ({
   useEffect(() => {
     if (isOpen) {
       drawerRef.current?.focus()
-      // Scroll active chapter into view after drawer opens
       requestAnimationFrame(() => {
-        activeRef.current?.scrollIntoView({ block: 'center' })
+        drawerRef.current?.querySelector('[data-active]')?.scrollIntoView({ block: 'center' })
       })
     }
   }, [isOpen])
@@ -42,14 +41,13 @@ export const ChapterDrawer = ({
     const chapter = chapters[chapterIndex]
     if (!chapter) return null
 
-    const showPageCount = shouldShowChapterProgress({ wordsInChapter: chapter.wordCount })
-    const pageCount = showPageCount ? Math.ceil(chapter.wordCount / WORDS_PER_PAGE) : 0
+    const startPage = startPages[chapterIndex]
     const isCurrent = chapterIndex === currentChapter
 
     return (
       <button
         key={chapterIndex}
-        ref={isCurrent ? activeRef : undefined}
+        data-active={isCurrent || undefined}
         data-chapter-index={chapterIndex}
         title={title}
         onClick={() => handleNavigate(chapterIndex)}
@@ -60,7 +58,6 @@ export const ChapterDrawer = ({
         }`}
         style={indent > 0 ? { paddingLeft: `${16 + indent * 20}px` } : undefined}
       >
-        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />}
         <span
           className={`text-sm truncate flex-1 ${
             isCurrent ? 'font-medium text-blue-700 dark:text-blue-300' : ''
@@ -68,9 +65,9 @@ export const ChapterDrawer = ({
         >
           {title}
         </span>
-        {pageCount > 0 && (
+        {startPage !== undefined && (
           <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 tabular-nums">
-            {pageCount} {pageCount === 1 ? 'page' : 'pages'}
+            {startPage}
           </span>
         )}
       </button>
@@ -88,6 +85,7 @@ export const ChapterDrawer = ({
         node={node}
         indent={indent}
         currentChapter={currentChapter}
+        startPage={startPages[node.chapterIndex]}
         onNavigate={handleNavigate}
         renderTocGroup={renderTocGroup}
       />
@@ -148,6 +146,7 @@ type TocGroupCollapsibleProps = {
   node: TocNode
   indent: number
   currentChapter: number
+  startPage: number | undefined
   onNavigate: (chapter: number) => void
   renderTocGroup: (node: TocNode, indent: number) => React.ReactNode
 }
@@ -156,15 +155,20 @@ const TocGroupCollapsible = ({
   node,
   indent,
   currentChapter,
+  startPage,
   onNavigate,
   renderTocGroup,
 }: TocGroupCollapsibleProps) => {
   const containsCurrent = nodeContainsChapter(node, currentChapter)
+  const isCurrent = node.chapterIndex === currentChapter
   const [isExpanded, setIsExpanded] = useState(containsCurrent)
 
   return (
     <div>
-      <div className="flex items-center">
+      <div
+        data-active={isCurrent || undefined}
+        className={`flex items-center ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+      >
         <button
           onClick={() => setIsExpanded(prev => !prev)}
           className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
@@ -179,10 +183,19 @@ const TocGroupCollapsible = ({
         </button>
         <button
           onClick={() => onNavigate(node.chapterIndex)}
-          className="flex-1 text-left text-sm font-medium py-2 pr-4 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          className={`flex-1 text-left text-sm py-2 pr-4 transition-colors ${
+            isCurrent
+              ? 'font-medium text-blue-700 dark:text-blue-300'
+              : 'hover:text-blue-600 dark:hover:text-blue-400'
+          }`}
         >
           {node.title}
         </button>
+        {startPage !== undefined && (
+          <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 tabular-nums pr-4">
+            {startPage}
+          </span>
+        )}
       </div>
 
       {isExpanded && <div>{node.children.map(child => renderTocGroup(child, indent + 1))}</div>}

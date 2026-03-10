@@ -124,6 +124,27 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
       }
     }
 
+    // Map navPoint IDs to chapter indices via href fallback.
+    // epub2 assigns navPoint IDs (e.g. "navPoint-15") to NCX entries whose href
+    // includes a fragment (e.g. "file.html#section"). These don't match spine item
+    // IDs, so buildTocTree would drop them. Fix: strip fragment, match by base href.
+    const hrefToChapterIndex = new Map<string, number>()
+    for (const item of flow) {
+      const idx = idToChapterIndex.get(item.id)
+      if (item.href && idx !== undefined) {
+        hrefToChapterIndex.set(item.href, idx)
+      }
+    }
+    for (const entry of epub.toc || []) {
+      if (entry.id && !idToChapterIndex.has(entry.id) && entry.href) {
+        const baseHref = entry.href.split('#')[0]
+        const chapterIndex = hrefToChapterIndex.get(baseHref)
+        if (chapterIndex !== undefined) {
+          idToChapterIndex.set(entry.id, chapterIndex)
+        }
+      }
+    }
+
     // Build hierarchical TOC from ncx if available
     // Only use when: tree has nesting AND covers all chapters
     const ncx = (epub as unknown as { ncx: Array<{ id: string; ncx_index: number; sub: never[] }> })
