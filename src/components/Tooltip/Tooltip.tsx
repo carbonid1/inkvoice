@@ -6,17 +6,19 @@ type TooltipProps = {
   label: string
   shortcut?: string
   position?: 'top' | 'bottom'
+  delay?: number
   maxWidth?: number
   disabled?: boolean
   children: ReactElement
 }
 
-const SHOW_DELAY = 200
+const DEFAULT_DELAY = 200
 
 export const Tooltip = ({
   label,
   shortcut,
   position = 'top',
+  delay = DEFAULT_DELAY,
   maxWidth,
   disabled,
   children,
@@ -27,8 +29,8 @@ export const Tooltip = ({
 
   const show = useCallback(() => {
     if (disabled) return
-    timeoutRef.current = setTimeout(() => setVisible(true), SHOW_DELAY)
-  }, [disabled])
+    timeoutRef.current = setTimeout(() => setVisible(true), delay)
+  }, [disabled, delay])
 
   const hide = useCallback(() => {
     if (timeoutRef.current) {

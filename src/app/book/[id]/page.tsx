@@ -2,6 +2,7 @@
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
@@ -9,11 +10,11 @@ import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics, PlaybackMetrics } from '@/lib/types/debug'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { useProgressStore } from '@/store/useProgressStore'
-import { BookMarked, ChevronLeft, List, Loader2 } from 'lucide-react'
+import { BookMarked, ChevronLeft, List, Loader2, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import type { MouseEvent } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
@@ -26,6 +27,7 @@ import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
 import { RecoveryBanner } from './components/RecoveryBanner/RecoveryBanner'
+import { SearchBar } from './components/SearchBar/SearchBar'
 import {
   SentenceContextMenu,
   type ContextMenuTarget,
@@ -34,6 +36,7 @@ import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
 import { WORDS_PER_PAGE } from './helpers/computePagePosition/computePagePosition'
 import { shouldShowChapterProgress } from './helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
+import { useBookSearch } from './hooks/useBookSearch/useBookSearch'
 
 export default function BookReader() {
   const params = useParams()
@@ -41,6 +44,7 @@ export default function BookReader() {
 
   const { effectiveVoice } = useBookVoice(bookId)
   const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(bookId)
+  const search = useBookSearch(bookId)
 
   const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
   const [currentChapter, setCurrentChapter] = useState(initialChapter)
@@ -153,6 +157,15 @@ export default function BookReader() {
   useHotkeys('b', toggleBookmark)
   useHotkeys('shift+b', () => setActiveDrawer(prev => (prev === 'bookmark' ? null : 'bookmark')))
   useHotkeys('t', () => setActiveDrawer(prev => (prev === 'chapter' ? null : 'chapter')))
+  useHotkeys(
+    'mod+f',
+    e => {
+      e.preventDefault()
+      search.open()
+    },
+    { preventDefault: true },
+  )
+  useHotkeys('escape', () => search.close(), { enabled: search.isOpen })
   useHotkeys('mod+z', () => {
     const { lastDeleted, undoRemoveBookmark } = useBookmarkStore.getState()
     if (!lastDeleted) return
@@ -169,6 +182,20 @@ export default function BookReader() {
     },
     [bookId, getProgress, handleProgressChange],
   )
+
+  // Search: navigate to current match when it changes
+  const prevSearchMatchRef = useRef<{ chapter: number; sentence: number } | null>(null)
+  useEffect(() => {
+    const match = search.currentMatch
+    if (!match) {
+      prevSearchMatchRef.current = null
+      return
+    }
+    const prev = prevSearchMatchRef.current
+    if (prev && prev.chapter === match.chapter && prev.sentence === match.sentence) return
+    prevSearchMatchRef.current = { chapter: match.chapter, sentence: match.sentence }
+    handleSentenceClick(match.chapter, match.sentence)
+  }, [search.currentMatch, handleSentenceClick])
 
   const showChapterLoading = useDebouncedLoading(chapterLoading)
   const currentProgress = getProgress(bookId)
@@ -244,6 +271,15 @@ export default function BookReader() {
             <h1 className="font-semibold truncate">{overview.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{overview.author}</p>
           </div>
+          <Tooltip label="Search" shortcut={`${getModKey()}+F`} position="bottom">
+            <button
+              onClick={() => (search.isOpen ? search.close() : search.open())}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              aria-label="Search in book"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </Tooltip>
           <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
             <button
               onClick={() => setActiveDrawer('bookmark')}
@@ -288,6 +324,18 @@ export default function BookReader() {
       </PageHeader>
 
       <main className="flex-1 min-h-0 overflow-y-auto">
+        {search.isOpen && (
+          <SearchBar
+            query={search.query}
+            totalMatches={search.totalMatches}
+            currentMatchIndex={search.currentMatchIndex}
+            loading={search.loading}
+            onQueryChange={search.setQuery}
+            onNext={search.goToNextMatch}
+            onPrevious={search.goToPreviousMatch}
+            onClose={search.close}
+          />
+        )}
         <div className="max-w-3xl mx-auto">
           {showRecoveryBanner && recoveryBookmark && (
             <RecoveryBanner
@@ -307,6 +355,8 @@ export default function BookReader() {
               onSentenceClick={handleSentenceClick}
               onSentenceContextMenu={handleSentenceContextMenu}
               bookmarkedSentences={bookmarkedSentences}
+              searchQuery={search.isOpen ? search.query : undefined}
+              activeSearchSentence={search.currentMatch?.sentence}
             />
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-500">

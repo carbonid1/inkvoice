@@ -3,6 +3,7 @@
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { Progress } from '@/store/useProgressStore'
+import { computeChapterPagePosition } from '../../helpers/computeChapterPagePosition/computeChapterPagePosition'
 import { computeChapterProgressPercent } from '../../helpers/computeChapterProgressPercent/computeChapterProgressPercent'
 import { computePagePosition } from '../../helpers/computePagePosition/computePagePosition'
 import { shouldShowChapterProgress } from '../../helpers/shouldShowChapterProgress/shouldShowChapterProgress'
@@ -23,6 +24,13 @@ export const ProgressIndicator = ({
   const chapterPercent =
     computeChapterProgressPercent({ sentence, sentencesInChapter: chapterInfo.sentenceCount }) ?? 0
   const showChapterBar = shouldShowChapterProgress({ wordsInChapter: chapterInfo.wordCount })
+  const chapterPagePosition = showChapterBar
+    ? computeChapterPagePosition({
+        sentence,
+        sentenceCount: chapterInfo.sentenceCount,
+        wordCount: chapterInfo.wordCount,
+      })
+    : null
 
   const pagePosition =
     progress.wordsPerChapter && progress.sentencesPerChapter
@@ -49,15 +57,25 @@ export const ProgressIndicator = ({
       )}
 
       {showChapterBar && (
-        <>
-          <div className="h-0.5 bg-gray-100 dark:bg-gray-800" aria-hidden="true">
-            <div
-              className="h-full bg-blue-500 transition-all duration-300"
-              style={{ width: `${chapterPercent}%` }}
-            />
+        <Tooltip
+          label={
+            chapterPagePosition
+              ? `Chapter page ${chapterPagePosition.currentPage} of ${chapterPagePosition.totalPages}`
+              : `${chapterPercent}% through chapter`
+          }
+          position="bottom"
+          delay={600}
+        >
+          <div>
+            <div className="h-0.5 bg-gray-100 dark:bg-gray-800" aria-hidden="true">
+              <div
+                className="h-full bg-blue-500 transition-all duration-300"
+                style={{ width: `${chapterPercent}%` }}
+              />
+            </div>
+            <span className="sr-only">{chapterPercent}% through chapter</span>
           </div>
-          <span className="sr-only">{chapterPercent}% through chapter</span>
-        </>
+        </Tooltip>
       )}
     </>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { SelectOption, SelectProps } from './Select.types'
 
 export const Select = ({
@@ -14,11 +14,20 @@ export const Select = ({
   className,
   menuClassName,
   renderOption,
+  onOpenChange,
   'aria-label': ariaLabel,
 }: SelectProps) => {
   const [open, setOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const changeOpen = useCallback(
+    (next: boolean) => {
+      setOpen(next)
+      onOpenChange?.(next)
+    },
+    [onOpenChange],
+  )
 
   // Build flat items list with group metadata
   const { items, groupStartIndices } = useMemo(() => {
@@ -40,22 +49,22 @@ export const Select = ({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
+        changeOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  }, [changeOpen])
 
   const selectItem = (itemValue: string) => {
     onChange(itemValue)
-    setOpen(false)
+    changeOpen(false)
     setHighlightedIndex(-1)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      setOpen(false)
+      changeOpen(false)
       setHighlightedIndex(-1)
       return
     }
@@ -63,7 +72,7 @@ export const Select = ({
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
-        setOpen(true)
+        changeOpen(true)
         setHighlightedIndex(0)
       }
       return
@@ -103,7 +112,7 @@ export const Select = ({
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={ariaLabel}
-        onClick={() => setOpen(prev => !prev)}
+        onClick={() => changeOpen(!open)}
       >
         <span className="truncate">{displayText}</span>
         <ChevronDown

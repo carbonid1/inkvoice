@@ -243,11 +243,7 @@ export const PlayerContainer = ({
 
         {onBookmarkToggle && (
           <div className="absolute right-0 top-1/2 -translate-y-1/2">
-            <Tooltip
-              label={isCurrentBookmarked ? 'Remove Bookmark' : 'Add Bookmark'}
-              shortcut="B"
-              position="top"
-            >
+            <Tooltip label={isCurrentBookmarked ? 'Remove Bookmark' : 'Add Bookmark'} shortcut="B">
               <button
                 onClick={onBookmarkToggle}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

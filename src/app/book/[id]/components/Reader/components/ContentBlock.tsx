@@ -15,6 +15,8 @@ interface ContentBlockProps {
   isInTitleGroup?: boolean
   isSubtitle?: boolean
   bookmarkedSentences?: Set<number>
+  searchQuery?: string
+  activeSearchSentence?: number
 }
 
 export const ContentBlock = ({
@@ -27,6 +29,8 @@ export const ContentBlock = ({
   isInTitleGroup,
   isSubtitle,
   bookmarkedSentences,
+  searchQuery,
+  activeSearchSentence,
 }: ContentBlockProps) => {
   const segments = (segs: TextSegment[] | undefined) =>
     renderSegments({
@@ -37,6 +41,8 @@ export const ContentBlock = ({
       currentChapter,
       sentenceRef,
       bookmarkedSentences,
+      searchQuery,
+      activeSearchSentence,
     })
 
   switch (block.type) {

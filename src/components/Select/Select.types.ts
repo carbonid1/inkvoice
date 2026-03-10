@@ -25,5 +25,6 @@ export type SelectProps = {
   className?: string
   menuClassName?: string
   renderOption?: (option: SelectOption, state: SelectOptionState) => ReactNode
+  onOpenChange?: (open: boolean) => void
   'aria-label'?: string
 }

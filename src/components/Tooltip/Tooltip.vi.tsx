@@ -252,6 +252,23 @@ describe('Tooltip', () => {
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
 
+  it('shows after custom delay, not before', () => {
+    renderWithStrictMode(
+      <Tooltip label="Slow tooltip" delay={500}>
+        <button>Click me</button>
+      </Tooltip>,
+    )
+
+    const wrapper = screen.getByRole('button').parentElement!
+    fireEvent.mouseEnter(wrapper)
+
+    act(() => vi.advanceTimersByTime(499))
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
+    act(() => vi.advanceTimersByTime(1))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Slow tooltip')
+  })
+
   it('cancels pending show when mouse leaves before delay', () => {
     renderWithStrictMode(
       <Tooltip label="Test">

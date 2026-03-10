@@ -25,7 +25,7 @@ export const PlaybackControls = ({
 
   return (
     <div className="flex items-center justify-center gap-4">
-      <Tooltip label="Previous Sentence" shortcut="←" position="top">
+      <Tooltip label="Previous Sentence" shortcut="←">
         <button
           onClick={onSkipBack}
           className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -34,7 +34,7 @@ export const PlaybackControls = ({
         </button>
       </Tooltip>
 
-      <Tooltip label={isPlaying ? 'Pause' : 'Play'} shortcut="Space" position="top">
+      <Tooltip label={isPlaying ? 'Pause' : 'Play'} shortcut="Space">
         <button
           onClick={onPlayPause}
           className="p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors relative"
@@ -48,7 +48,7 @@ export const PlaybackControls = ({
         </button>
       </Tooltip>
 
-      <Tooltip label="Next Sentence" shortcut="→" position="top">
+      <Tooltip label="Next Sentence" shortcut="→">
         <button
           onClick={onSkipForward}
           className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

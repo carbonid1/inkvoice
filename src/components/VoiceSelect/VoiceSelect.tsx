@@ -14,6 +14,7 @@ type VoiceSelectProps = {
   className?: string
   menuClassName?: string
   extraOptions?: SelectOption[]
+  onOpenChange?: (open: boolean) => void
   'aria-label'?: string
 }
 
@@ -26,6 +27,7 @@ export const VoiceSelect = ({
   className,
   menuClassName,
   extraOptions,
+  onOpenChange,
   'aria-label': ariaLabel,
 }: VoiceSelectProps) => {
   const groups: SelectGroup[] = useMemo(() => {
@@ -82,6 +84,7 @@ export const VoiceSelect = ({
       className={className}
       menuClassName={menuClassName}
       renderOption={renderOption}
+      onOpenChange={onOpenChange}
       aria-label={ariaLabel}
     />
   )
