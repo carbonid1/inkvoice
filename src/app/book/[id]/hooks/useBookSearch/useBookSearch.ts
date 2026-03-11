@@ -9,7 +9,7 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQueryState] = useState('')
   const [results, setResults] = useState<SearchMatch[]>([])
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0)
+  const [highlightedIndex, setHighlightedIndexState] = useState(0)
   const [loading, setLoading] = useState(false)
   const [truncated, setTruncated] = useState(false)
 
@@ -26,7 +26,7 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
     setIsOpen(false)
     setQueryState('')
     setResults([])
-    setCurrentMatchIndex(0)
+    setHighlightedIndexState(0)
     setLoading(false)
     setTruncated(false)
     if (abortControllerRef.current) {
@@ -47,7 +47,6 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
 
       if (searchQuery.length < 2) {
         setResults([])
-        setCurrentMatchIndex(0)
         setLoading(false)
         setTruncated(false)
         return
@@ -69,7 +68,7 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
 
         if (!controller.signal.aborted) {
           setResults(data.matches)
-          setCurrentMatchIndex(0)
+          setHighlightedIndexState(0)
           setTruncated(data.truncated)
           setLoading(false)
         }
@@ -96,16 +95,20 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
     [fetchResults],
   )
 
-  const goToNextMatch = useCallback(() => {
+  const highlightNext = useCallback(() => {
     const len = resultsLengthRef.current
     if (len === 0) return
-    setCurrentMatchIndex(prev => (prev + 1) % len)
+    setHighlightedIndexState(prev => (prev + 1) % len)
   }, [])
 
-  const goToPreviousMatch = useCallback(() => {
+  const highlightPrevious = useCallback(() => {
     const len = resultsLengthRef.current
     if (len === 0) return
-    setCurrentMatchIndex(prev => (prev - 1 + len) % len)
+    setHighlightedIndexState(prev => (prev - 1 + len) % len)
+  }, [])
+
+  const setHighlightedIndex = useCallback((index: number) => {
+    setHighlightedIndexState(index)
   }, [])
 
   // Cleanup on unmount
@@ -116,37 +119,35 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
     }
   }, [])
 
-  const currentMatch = results.length > 0 ? (results[currentMatchIndex] ?? null) : null
-
   return useMemo(
     () => ({
       isOpen,
       query,
       results,
-      totalMatches: results.length,
-      currentMatchIndex,
-      currentMatch,
+      highlightedIndex,
+      highlightedMatch: results.length > 0 ? (results[highlightedIndex] ?? null) : null,
       loading,
       truncated,
       open,
       close,
       setQuery,
-      goToNextMatch,
-      goToPreviousMatch,
+      highlightNext,
+      highlightPrevious,
+      setHighlightedIndex,
     }),
     [
       isOpen,
       query,
       results,
-      currentMatchIndex,
-      currentMatch,
+      highlightedIndex,
       loading,
       truncated,
       open,
       close,
       setQuery,
-      goToNextMatch,
-      goToPreviousMatch,
+      highlightNext,
+      highlightPrevious,
+      setHighlightedIndex,
     ],
   )
 }

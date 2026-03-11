@@ -17,14 +17,14 @@ export type UseBookSearchResult = {
   isOpen: boolean
   query: string
   results: SearchMatch[]
-  totalMatches: number
-  currentMatchIndex: number
-  currentMatch: SearchMatch | null
+  highlightedIndex: number
+  highlightedMatch: SearchMatch | null
   loading: boolean
   truncated: boolean
   open: () => void
   close: () => void
   setQuery: (query: string) => void
-  goToNextMatch: () => void
-  goToPreviousMatch: () => void
+  highlightNext: () => void
+  highlightPrevious: () => void
+  setHighlightedIndex: (index: number) => void
 }

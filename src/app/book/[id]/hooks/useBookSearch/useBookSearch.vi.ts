@@ -77,9 +77,7 @@ describe('useBookSearch', () => {
     expect(result.current.isOpen).toBe(false)
     expect(result.current.query).toBe('')
     expect(result.current.results).toEqual([])
-    expect(result.current.totalMatches).toBe(0)
-    expect(result.current.currentMatchIndex).toBe(0)
-    expect(result.current.currentMatch).toBeNull()
+    expect(result.current.highlightedMatch).toBeNull()
     expect(result.current.loading).toBe(false)
     expect(result.current.truncated).toBe(false)
   })
@@ -97,32 +95,15 @@ describe('useBookSearch', () => {
     expect(result.current.isOpen).toBe(false)
     expect(result.current.query).toBe('')
     expect(result.current.results).toEqual([])
-    expect(result.current.totalMatches).toBe(0)
-    expect(result.current.currentMatchIndex).toBe(0)
   })
 
-  it('goToNextMatch wraps around', async () => {
+  it('highlightedMatch reflects results at highlightedIndex', async () => {
     const { result } = await setupWithResults()
 
-    expect(result.current.currentMatchIndex).toBe(0)
+    expect(result.current.highlightedMatch).toEqual(result.current.results[0])
 
-    act(() => result.current.goToNextMatch())
-    expect(result.current.currentMatchIndex).toBe(1)
-
-    act(() => result.current.goToNextMatch())
-    expect(result.current.currentMatchIndex).toBe(2)
-
-    act(() => result.current.goToNextMatch())
-    expect(result.current.currentMatchIndex).toBe(0) // wraps
-  })
-
-  it('goToPreviousMatch wraps around', async () => {
-    const { result } = await setupWithResults()
-
-    expect(result.current.currentMatchIndex).toBe(0)
-
-    act(() => result.current.goToPreviousMatch())
-    expect(result.current.currentMatchIndex).toBe(2) // wraps to end
+    act(() => result.current.highlightNext())
+    expect(result.current.highlightedMatch).toEqual(result.current.results[1])
   })
 
   it('callbacks are stable across re-renders', () => {
@@ -130,13 +111,85 @@ describe('useBookSearch', () => {
     const firstOpen = result.current.open
     const firstClose = result.current.close
     const firstSetQuery = result.current.setQuery
-    const firstGoToNext = result.current.goToNextMatch
-    const firstGoToPrev = result.current.goToPreviousMatch
+    const firstHighlightNext = result.current.highlightNext
+    const firstHighlightPrev = result.current.highlightPrevious
+    const firstSetHighlightedIndex = result.current.setHighlightedIndex
     rerender()
     expect(result.current.open).toBe(firstOpen)
     expect(result.current.close).toBe(firstClose)
     expect(result.current.setQuery).toBe(firstSetQuery)
-    expect(result.current.goToNextMatch).toBe(firstGoToNext)
-    expect(result.current.goToPreviousMatch).toBe(firstGoToPrev)
+    expect(result.current.highlightNext).toBe(firstHighlightNext)
+    expect(result.current.highlightPrevious).toBe(firstHighlightPrev)
+    expect(result.current.setHighlightedIndex).toBe(firstSetHighlightedIndex)
+  })
+
+  describe('highlightedIndex', () => {
+    it('initializes to 0', () => {
+      const { result } = renderHook(() => useBookSearch('book-1'))
+      expect(result.current.highlightedIndex).toBe(0)
+    })
+
+    it('highlightNext wraps around results length', async () => {
+      const { result } = await setupWithResults()
+
+      act(() => result.current.highlightNext())
+      expect(result.current.highlightedIndex).toBe(1)
+
+      act(() => result.current.highlightNext())
+      expect(result.current.highlightedIndex).toBe(2)
+
+      act(() => result.current.highlightNext())
+      expect(result.current.highlightedIndex).toBe(0) // wraps
+    })
+
+    it('highlightPrevious wraps around results length', async () => {
+      const { result } = await setupWithResults()
+
+      act(() => result.current.highlightPrevious())
+      expect(result.current.highlightedIndex).toBe(2) // wraps to end
+    })
+
+    it('resets to 0 when new results arrive', async () => {
+      const { result } = await setupWithResults()
+
+      // Move highlight
+      act(() => result.current.highlightNext())
+      expect(result.current.highlightedIndex).toBe(1)
+
+      // Trigger new search
+      const newResponse = mockSearchResponse({ query: 'new' })
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(newResponse),
+      })
+      act(() => result.current.setQuery('new'))
+      await act(async () => {
+        vi.useFakeTimers()
+        vi.advanceTimersByTime(300)
+        vi.useRealTimers()
+      })
+      // Wait for fetch to resolve and state to settle
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+        expect(result.current.highlightedIndex).toBe(0)
+      })
+    })
+
+    it('close resets highlightedIndex', async () => {
+      const { result } = await setupWithResults()
+
+      act(() => result.current.highlightNext())
+      expect(result.current.highlightedIndex).toBe(1)
+
+      act(() => result.current.close())
+      expect(result.current.highlightedIndex).toBe(0)
+    })
+
+    it('setHighlightedIndex sets arbitrary index', async () => {
+      const { result } = await setupWithResults()
+
+      act(() => result.current.setHighlightedIndex(2))
+      expect(result.current.highlightedIndex).toBe(2)
+    })
   })
 })

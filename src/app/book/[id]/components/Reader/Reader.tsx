@@ -17,8 +17,6 @@ interface ReaderProps {
   onSentenceClick?: (chapter: number, sentence: number) => void
   onSentenceContextMenu?: (e: MouseEvent, chapter: number, sentence: number) => void
   bookmarkedSentences?: Set<number>
-  searchQuery?: string
-  activeSearchSentence?: number
 }
 
 import { isAllCaps, toTitleCase } from '@/lib/epub/helpers/normalizeTitle/normalizeTitle'
@@ -42,8 +40,6 @@ export const Reader = ({
   onSentenceClick,
   onSentenceContextMenu,
   bookmarkedSentences,
-  searchQuery,
-  activeSearchSentence,
 }: ReaderProps) => {
   const currentSentenceRef = useRef<HTMLSpanElement>(null)
 
@@ -109,8 +105,6 @@ export const Reader = ({
           isInTitleGroup={titleGroupMember.has(idx)}
           isSubtitle={isSubtitle}
           bookmarkedSentences={bookmarkedSentences}
-          searchQuery={searchQuery}
-          activeSearchSentence={activeSearchSentence}
         />
       )
     }
@@ -157,8 +151,6 @@ export const Reader = ({
               currentChapter={currentChapter}
               sentenceRef={currentSentenceRef}
               bookmarkedSentences={bookmarkedSentences}
-              searchQuery={searchQuery}
-              activeSearchSentence={activeSearchSentence}
             />
           ) : (
             chapter.title

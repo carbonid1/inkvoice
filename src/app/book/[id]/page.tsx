@@ -14,7 +14,7 @@ import { BookMarked, ChevronLeft, List, Loader2, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import type { MouseEvent } from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
@@ -27,7 +27,7 @@ import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
 import { RecoveryBanner } from './components/RecoveryBanner/RecoveryBanner'
-import { SearchBar } from './components/SearchBar/SearchBar'
+import { SearchPalette } from './components/SearchPalette/SearchPalette'
 import {
   SentenceContextMenu,
   type ContextMenuTarget,
@@ -201,19 +201,14 @@ export default function BookReader() {
     [bookId, getProgress, handleProgressChange],
   )
 
-  // Search: navigate to current match when it changes
-  const prevSearchMatchRef = useRef<{ chapter: number; sentence: number } | null>(null)
-  useEffect(() => {
-    const match = search.currentMatch
-    if (!match) {
-      prevSearchMatchRef.current = null
-      return
-    }
-    const prev = prevSearchMatchRef.current
-    if (prev && prev.chapter === match.chapter && prev.sentence === match.sentence) return
-    prevSearchMatchRef.current = { chapter: match.chapter, sentence: match.sentence }
-    handleSentenceClick(match.chapter, match.sentence)
-  }, [search.currentMatch, handleSentenceClick])
+  const closeSearch = search.close
+  const handleSearchSelect = useCallback(
+    (chapter: number, sentence: number) => {
+      handleSentenceClick(chapter, sentence)
+      closeSearch()
+    },
+    [handleSentenceClick, closeSearch],
+  )
 
   const showChapterLoading = useDebouncedLoading(chapterLoading)
   const currentProgress = getProgress(bookId)
@@ -354,18 +349,6 @@ export default function BookReader() {
       </PageHeader>
 
       <main className="flex-1 min-h-0 overflow-y-auto">
-        {search.isOpen && (
-          <SearchBar
-            query={search.query}
-            totalMatches={search.totalMatches}
-            currentMatchIndex={search.currentMatchIndex}
-            loading={search.loading}
-            onQueryChange={search.setQuery}
-            onNext={search.goToNextMatch}
-            onPrevious={search.goToPreviousMatch}
-            onClose={search.close}
-          />
-        )}
         <div className="max-w-3xl mx-auto">
           {showRecoveryBanner && recoveryBookmark && (
             <RecoveryBanner
@@ -385,8 +368,6 @@ export default function BookReader() {
               onSentenceClick={handleSentenceClick}
               onSentenceContextMenu={handleSentenceContextMenu}
               bookmarkedSentences={bookmarkedSentences}
-              searchQuery={search.isOpen ? search.query : undefined}
-              activeSearchSentence={search.currentMatch?.sentence}
             />
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-500">
@@ -395,6 +376,22 @@ export default function BookReader() {
           )}
         </div>
       </main>
+
+      {search.isOpen && (
+        <SearchPalette
+          query={search.query}
+          results={search.results}
+          highlightedIndex={search.highlightedIndex}
+          loading={search.loading}
+          truncated={search.truncated}
+          onQueryChange={search.setQuery}
+          onHighlightNext={search.highlightNext}
+          onHighlightPrevious={search.highlightPrevious}
+          onHighlight={search.setHighlightedIndex}
+          onSelect={handleSearchSelect}
+          onClose={search.close}
+        />
+      )}
 
       <PlayerContainer
         bookId={bookId}
