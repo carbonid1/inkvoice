@@ -79,7 +79,7 @@ test.describe('voice upload', () => {
 
     // Success toast should appear
     await expect(page.getByText('Voice added')).toBeVisible()
-    await expect(page.getByText('A sample is being generated in the background.')).toBeVisible()
+    await expect(page.getByText('Open a book to start listening')).toBeVisible()
 
     // Form should collapse
     await expect(page.getByLabel('Voice name')).not.toBeVisible()
@@ -108,6 +108,50 @@ test.describe('voice upload', () => {
 
     // Form should stay open
     await expect(page.getByLabel('Voice name')).toBeVisible()
+  })
+
+  test('newly uploaded voice shows pulsing sample button', async ({ page }) => {
+    await mockVoiceManagement(page)
+    await navigateToSettings(page)
+
+    await page.getByText('Add Voice').click()
+    await page.getByLabel('Voice name').fill('New Voice')
+    await setUploadFile(page)
+
+    const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
+    await expect(uploadButton).toBeEnabled()
+    await uploadButton.click()
+
+    // The new voice row should have a disabled pulsing sample button
+    const sampleButton = page.getByRole('button', { name: /Generating sample for New Voice/ })
+    await expect(sampleButton).toBeVisible()
+    await expect(sampleButton).toBeDisabled()
+  })
+
+  test('sample button becomes interactive when sample is ready', async ({ page }) => {
+    const { markSampleReady } = await mockVoiceManagement(page)
+    await navigateToSettings(page)
+
+    await page.getByText('Add Voice').click()
+    await page.getByLabel('Voice name').fill('New Voice')
+    await setUploadFile(page)
+
+    const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
+    await expect(uploadButton).toBeEnabled()
+    await uploadButton.click()
+
+    // Verify pulsing state first
+    await expect(
+      page.getByRole('button', { name: /Generating sample for New Voice/ }),
+    ).toBeVisible()
+
+    // Mark sample as ready — polling will pick it up
+    markSampleReady('new-voice')
+
+    // Button should become interactive (polling refetches voice list)
+    const playButton = page.getByRole('button', { name: /Play voice sample for New Voice/ })
+    await expect(playButton).toBeVisible({ timeout: 10000 })
+    await expect(playButton).toBeEnabled()
   })
 
   test('Enter key triggers upload', async ({ page }) => {

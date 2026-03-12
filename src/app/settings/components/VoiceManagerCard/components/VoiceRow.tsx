@@ -37,6 +37,8 @@ export const VoiceRow = ({
 }: VoiceRowProps) => {
   const playingSource = isPlaying(playing, voice.name, 'source')
   const playingSample = isPlaying(playing, voice.name, 'sample')
+  const showSampleButton = voice.hasSample || voice.type === 'custom'
+  const sampleGenerating = showSampleButton && !voice.hasSample
 
   return (
     <div
@@ -76,13 +78,32 @@ export const VoiceRow = ({
             </button>
           </Tooltip>
 
-          {voice.hasSample && (
-            <Tooltip label={playingSample ? 'Stop' : 'Play voice sample'}>
+          {showSampleButton && (
+            <Tooltip
+              label={
+                sampleGenerating
+                  ? 'Generating sample...'
+                  : playingSample
+                    ? 'Stop'
+                    : 'Play voice sample'
+              }
+            >
               <button
                 type="button"
                 onClick={() => onPlay(voice.name, 'sample')}
-                aria-label={playingSample ? 'Stop' : `Play voice sample for ${voice.displayName}`}
-                className="p-2 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
+                disabled={sampleGenerating}
+                aria-label={
+                  sampleGenerating
+                    ? `Generating sample for ${voice.displayName}`
+                    : playingSample
+                      ? 'Stop'
+                      : `Play voice sample for ${voice.displayName}`
+                }
+                className={`p-2 transition-colors ${
+                  sampleGenerating
+                    ? 'opacity-40 animate-pulse cursor-not-allowed'
+                    : 'text-gray-400 hover:text-blue-500 cursor-pointer'
+                }`}
               >
                 {playingSample ? <Square className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>

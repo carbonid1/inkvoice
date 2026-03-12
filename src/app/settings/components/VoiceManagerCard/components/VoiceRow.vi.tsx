@@ -70,10 +70,42 @@ describe('VoiceRow', () => {
     expect(screen.getByRole('button', { name: /Play voice sample for Clara/ })).toBeInTheDocument()
   })
 
-  it('sample button hidden when hasSample is false', () => {
-    renderRow({ voice: makeVoice({ hasSample: false }) })
+  it('sample button hidden when hasSample is false for app voices', () => {
+    renderRow({ voice: makeVoice({ hasSample: false, type: 'app' }) })
 
-    expect(screen.queryByRole('button', { name: /Play voice sample/ })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Play voice sample|Generating sample/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows disabled generating button for custom voice without sample', () => {
+    renderRow({
+      voice: makeVoice({
+        hasSample: false,
+        type: 'custom',
+        name: 'my-voice',
+        displayName: 'My Voice',
+      }),
+    })
+
+    const button = screen.getByRole('button', { name: /Generating sample for My Voice/ })
+    expect(button).toBeDisabled()
+    expect(button).toHaveClass('animate-pulse')
+  })
+
+  it('shows interactive sample button for custom voice with sample', () => {
+    renderRow({
+      voice: makeVoice({
+        hasSample: true,
+        type: 'custom',
+        name: 'my-voice',
+        displayName: 'My Voice',
+      }),
+    })
+
+    const button = screen.getByRole('button', { name: /Play voice sample for My Voice/ })
+    expect(button).not.toBeDisabled()
+    expect(button).not.toHaveClass('animate-pulse')
   })
 
   it('source button shows "Stop" label when playing source', () => {

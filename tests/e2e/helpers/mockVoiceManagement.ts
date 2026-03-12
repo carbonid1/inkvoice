@@ -39,13 +39,16 @@ const silencePath = path.resolve(__dirname, '../../fixtures/silence.wav')
 export const mockVoiceManagement = async (page: Page) => {
   const uploadedVoices: Voice[] = []
   const deletedNames = new Set<string>()
+  const samplesReady = new Set<string>()
   const silenceBuffer = fs.readFileSync(silencePath)
 
   await page.route('**/api/voices', (route, request) => {
     const method = request.method()
 
     if (method === 'GET') {
-      const visible = [...MOCK_VOICES, ...uploadedVoices].filter(v => !deletedNames.has(v.name))
+      const visible = [...MOCK_VOICES, ...uploadedVoices]
+        .filter(v => !deletedNames.has(v.name))
+        .map(v => ({ ...v, hasSample: v.hasSample || samplesReady.has(v.name) }))
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -141,12 +144,30 @@ export const mockVoiceManagement = async (page: Page) => {
     })
   })
 
-  await page.route('**/api/voices/*/sample', route => {
-    route.fulfill({
-      status: 200,
-      contentType: 'audio/wav',
-      body: silenceBuffer,
-    })
+  await page.route('**/api/voices/*/sample', (route, request) => {
+    const url = new URL(request.url())
+    const segments = url.pathname.split('/')
+    const voiceName = segments[segments.length - 2] ?? ''
+    const method = request.method()
+
+    const allVoices = [...MOCK_VOICES, ...uploadedVoices]
+    const voice = allVoices.find(v => v.name === voiceName)
+    const hasSample = voice?.hasSample || samplesReady.has(voiceName)
+
+    if (method === 'HEAD') {
+      route.fulfill({ status: hasSample ? 200 : 404 })
+      return
+    }
+
+    if (hasSample) {
+      route.fulfill({
+        status: 200,
+        contentType: 'audio/wav',
+        body: silenceBuffer,
+      })
+    } else {
+      route.fulfill({ status: 404 })
+    }
   })
 
   // Mock tags endpoint
@@ -161,5 +182,8 @@ export const mockVoiceManagement = async (page: Page) => {
   return {
     getUploadedVoices: () => [...uploadedVoices],
     getDeletedNames: () => new Set(deletedNames),
+    markSampleReady: (voiceName: string) => {
+      samplesReady.add(voiceName)
+    },
   }
 }

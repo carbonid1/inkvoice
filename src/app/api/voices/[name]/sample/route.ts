@@ -3,6 +3,24 @@ import { readFile } from 'fs/promises'
 import { NextResponse } from 'next/server'
 import { validateVoiceParam } from '../helpers/validateVoiceParam/validateVoiceParam'
 
+export const HEAD = async (
+  _request: Request,
+  { params }: { params: Promise<{ name: string }> },
+) => {
+  const { name } = await params
+
+  const invalid = validateVoiceParam(name)
+  if (invalid) return invalid
+
+  const samplePath = await voiceService.resolveSamplePath(name)
+
+  if (!samplePath) {
+    return new NextResponse(null, { status: 404 })
+  }
+
+  return new NextResponse(null, { status: 200 })
+}
+
 export const GET = async (_request: Request, { params }: { params: Promise<{ name: string }> }) => {
   const { name } = await params
 

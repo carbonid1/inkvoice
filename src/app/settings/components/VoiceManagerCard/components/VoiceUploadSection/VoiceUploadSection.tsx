@@ -5,6 +5,7 @@ import { Loader2, Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
+import { useSamplePolling } from './hooks/useSamplePolling/useSamplePolling'
 
 const ACCEPTED_FORMATS =
   'audio/wav,audio/mpeg,audio/mp4,audio/ogg,audio/flac,.wav,.mp3,.m4a,.ogg,.flac'
@@ -18,6 +19,7 @@ type VoiceUploadSectionProps = {
 
 export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps) => {
   const { uploading, error, upload, reset } = useUploadVoice()
+  const { startPolling } = useSamplePolling({ onSampleReady: onVoicesChanged })
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [file, setFile] = useState<File | null>(null)
@@ -54,8 +56,9 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
       setFileDuration(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       onVoicesChanged()
+      startPolling(result.name)
       setOpen(false)
-      toast('Voice added', { description: 'A sample is being generated in the background.' })
+      toast('Voice added', { description: 'Open a book to start listening' })
     }
   }
 
