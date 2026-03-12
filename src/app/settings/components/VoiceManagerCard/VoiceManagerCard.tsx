@@ -121,9 +121,9 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   )
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+    <div className="bg-background rounded-lg p-6 shadow-sm border border-border">
       <h2 className="text-lg font-semibold mb-2">Voices</h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         Choose a voice for your narration. Changing voices will re-generate any unheard audio.
       </p>
 
@@ -134,9 +134,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
           <p>No voices found.</p>
           <p className="text-sm mt-2">
             Add voices to{' '}
-            <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-              data/voices/&lt;name&gt;/source.wav
-            </code>
+            <code className="bg-muted px-1 rounded">data/voices/&lt;name&gt;/source.wav</code>
           </p>
         </div>
       ) : (

@@ -60,10 +60,10 @@ export const SearchResultsPanel = ({
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase truncate">
+                  <span className="text-xs font-medium text-muted-foreground uppercase truncate">
                     {entry.chapterTitle}
                   </span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
+                  <span className="text-[10px] text-muted-foreground tabular-nums flex-shrink-0">
                     {entry.matchCount}
                   </span>
                 </div>
@@ -86,7 +86,7 @@ export const SearchResultsPanel = ({
                 onClick={() => onSelect(resultEntry.resultIndex)}
                 onMouseEnter={() => onHighlight(resultEntry.resultIndex)}
               >
-                <p className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 leading-snug">
+                <p className="text-sm text-foreground line-clamp-2 leading-snug">
                   {highlightSnippet(
                     resultEntry.match.textSnippet,
                     query,
@@ -99,7 +99,7 @@ export const SearchResultsPanel = ({
         </div>
       </div>
       {truncated && (
-        <div className="text-xs text-gray-400 dark:text-gray-500 text-center py-2 border-t border-gray-100 dark:border-gray-700">
+        <div className="text-xs text-muted-foreground text-center py-2 border-t border-border">
           Results limited to 500 matches
         </div>
       )}

@@ -22,7 +22,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="group h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all bg-white dark:bg-gray-800 relative">
+      <div className="group h-full flex flex-col p-4 border border-border rounded-lg hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all bg-background relative">
         {onRemove && (
           <button
             onClick={e => {
@@ -36,14 +36,11 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
             <X className="w-3.5 h-3.5" />
           </button>
         )}
-        <div className="w-full aspect-[2/3] bg-gray-100 dark:bg-gray-700 rounded mb-3 flex items-center justify-center overflow-hidden relative">
+        <div className="w-full aspect-[2/3] bg-muted rounded mb-3 flex items-center justify-center overflow-hidden relative">
           {!coverError ? (
             <>
               {!coverLoaded && (
-                <div
-                  className="absolute inset-0 bg-gray-200 dark:bg-gray-600 animate-pulse"
-                  aria-hidden="true"
-                />
+                <div className="absolute inset-0 bg-muted animate-pulse" aria-hidden="true" />
               )}
               <img
                 src={`/api/book/${book.id}/cover`}
@@ -62,7 +59,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
               />
             </>
           ) : (
-            <BookOpen className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+            <BookOpen className="w-12 h-12 text-muted-foreground" />
           )}
           {/* Progress bar at bottom of cover */}
           {progressPercent !== null && (
@@ -75,10 +72,8 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
             </div>
           )}
         </div>
-        <h3 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
-          {book.title}
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">{book.author}</p>
+        <h3 className="font-medium text-foreground line-clamp-2 mb-1">{book.title}</h3>
+        <p className="text-sm text-muted-foreground line-clamp-1">{book.author}</p>
         <div className="min-h-[1.25rem] mt-1">
           {isFinished ? (
             <p className="text-xs text-green-500">Finished</p>

@@ -86,7 +86,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
         className={`w-full rounded-lg border py-2.5 px-3 text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer ${
           open
             ? 'border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-            : 'border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400'
+            : 'border-border text-muted-foreground hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400'
         }`}
       >
         <Plus className="w-4 h-4" />
@@ -106,19 +106,19 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               onKeyDown={handleKeyDown}
               placeholder="Voice name"
               aria-label="Voice name"
-              className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 p-2 text-sm border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <input
               ref={fileInputRef}
               type="file"
               accept={ACCEPTED_FORMATS}
               onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
-              className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600 dark:file:bg-blue-900/20 dark:file:text-blue-400"
+              className="flex-1 p-2 text-sm border border-border rounded-lg bg-background text-foreground file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600 dark:file:bg-blue-900/20 dark:file:text-blue-400"
             />
           </div>
           {durationText && (
             <p
-              className={`text-sm ${isDurationInvalid ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}
+              className={`text-sm ${isDurationInvalid ? 'text-red-500 dark:text-red-400' : 'text-muted-foreground'}`}
             >
               Duration: {durationText}
             </p>
@@ -136,7 +136,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               <p className="text-sm text-red-500 dark:text-red-400">{displayError}</p>
             )}
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Upload a WAV, MP3, M4A, OGG, or FLAC file (5–30 seconds). A TTS sample will be generated
             automatically.
           </p>

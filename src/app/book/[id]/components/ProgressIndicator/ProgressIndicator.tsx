@@ -38,7 +38,7 @@ export const ProgressIndicator = ({ sentence, chapterInfo }: ProgressIndicatorPr
         >
           <div className="w-full pt-3 cursor-default group/bar">
             <div
-              className="h-0.5 bg-gray-100 dark:bg-gray-800 transition-shadow duration-200 group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.25)] dark:group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.4)] motion-reduce:transition-none"
+              className="h-0.5 bg-muted transition-shadow duration-200 group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.25)] dark:group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.4)] motion-reduce:transition-none"
               aria-hidden="true"
             >
               <div

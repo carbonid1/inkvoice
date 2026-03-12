@@ -70,22 +70,22 @@ export const SentenceContextMenu = ({
     <div
       ref={menuRef}
       style={{ left: position.left, top: position.top }}
-      className="fixed z-50 min-w-[180px] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1"
+      className="fixed z-50 min-w-[180px] bg-background rounded-lg shadow-lg border border-border py-1"
       role="menu"
     >
       <button
         role="menuitem"
         onClick={handleCopy}
-        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-accent transition-colors"
       >
         <Copy className="w-4 h-4" />
         Copy Text
       </button>
-      <div className="border-t border-gray-200 dark:border-gray-700" />
+      <div className="border-t border-border" />
       <button
         role="menuitem"
         onClick={handleRegenerate}
-        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-accent transition-colors"
       >
         <RefreshCw className="w-4 h-4" />
         Regenerate Audio

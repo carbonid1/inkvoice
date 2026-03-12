@@ -283,21 +283,18 @@ export default function BookReader() {
       <PageHeader>
         <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-4">
           <Tooltip label="Back to Library" position="bottom">
-            <Link
-              href="/"
-              className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-            >
+            <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-full transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </Link>
           </Tooltip>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold truncate">{overview.title}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{overview.author}</p>
+            <p className="text-sm text-muted-foreground truncate">{overview.author}</p>
           </div>
           <Tooltip label="Search" shortcut={`${getModKey()}+F`} position="bottom">
             <button
               onClick={() => (search.isOpen ? search.close() : search.open())}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              className="p-2 hover:bg-accent rounded-full transition-colors"
               aria-label="Search in book"
             >
               <Search className="w-5 h-5" />
@@ -306,7 +303,7 @@ export default function BookReader() {
           <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
             <button
               onClick={() => setActiveDrawer('bookmark')}
-              className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              className="p-2 -mr-2 hover:bg-accent rounded-full transition-colors"
             >
               <BookMarked className="w-5 h-5" />
             </button>
@@ -319,7 +316,7 @@ export default function BookReader() {
               <Tooltip label="Table of Contents" shortcut="T" position="bottom">
                 <button
                   onClick={() => setActiveDrawer('chapter')}
-                  className="flex items-center gap-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors min-w-0"
+                  className="flex items-center gap-1.5 text-sm bg-muted rounded px-2 py-1 hover:bg-accent transition-colors min-w-0"
                   aria-label="Table of Contents"
                 >
                   <List className="w-4 h-4 flex-shrink-0" />

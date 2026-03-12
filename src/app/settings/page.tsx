@@ -7,6 +7,7 @@ import { useVoiceStore } from '@/store/useVoiceStore'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { AppearanceCard } from './components/AppearanceCard/AppearanceCard'
 import { CreditsCard } from './components/CreditsCard/CreditsCard'
 import { VoiceManagerCard } from './components/VoiceManagerCard/VoiceManagerCard'
 
@@ -29,7 +30,7 @@ export default function Settings() {
         <div className="max-w-2xl mx-auto px-8 py-6 flex items-center gap-4">
           <Link
             href="/"
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-full hover:bg-accent transition-colors"
             title="Back to library"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -40,6 +41,7 @@ export default function Settings() {
 
       <main className="max-w-2xl mx-auto px-8 py-8 space-y-6">
         <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
+        <AppearanceCard />
         <CreditsCard />
       </main>
     </div>

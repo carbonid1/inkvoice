@@ -1,3 +1,4 @@
+import { ThemeProvider } from '@/components/ThemeProvider/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import type { Metadata } from 'next'
 import { Literata } from 'next/font/google'
@@ -16,10 +17,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={literata.variable}>
+    <html lang="en" className={literata.variable} suppressHydrationWarning>
       <body className="min-h-screen">
-        {children}
-        <Toaster />
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

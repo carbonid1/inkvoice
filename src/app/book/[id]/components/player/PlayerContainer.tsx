@@ -261,7 +261,7 @@ export const PlayerContainer = ({
   }, [isPlaying, pause, setPlaying])
 
   return (
-    <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.05)] dark:shadow-[0_-1px_3px_rgba(0,0,0,0.3)] px-4 py-2">
+    <div className="flex-shrink-0 bg-background border-t border-border shadow-[0_-1px_3px_rgba(0,0,0,0.05)] dark:shadow-[0_-1px_3px_rgba(0,0,0,0.3)] px-4 py-2">
       <div className="max-w-2xl mx-auto relative">
         {audioPlayer.error && (
           <div className="text-sm text-red-600 dark:text-red-400 mb-2 text-center">
@@ -282,13 +282,13 @@ export const PlayerContainer = ({
             <Tooltip label={isCurrentBookmarked ? 'Remove Bookmark' : 'Add Bookmark'} shortcut="B">
               <button
                 onClick={onBookmarkToggle}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 rounded-full hover:bg-accent transition-colors"
               >
                 <Bookmark
                   className={`w-5 h-5 ${
                     isCurrentBookmarked
                       ? 'text-amber-500 dark:text-amber-400'
-                      : 'text-gray-400 dark:text-gray-500'
+                      : 'text-muted-foreground'
                   }`}
                   fill={isCurrentBookmarked ? 'currentColor' : 'none'}
                 />

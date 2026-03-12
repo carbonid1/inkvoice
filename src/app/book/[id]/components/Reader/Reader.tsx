@@ -122,7 +122,7 @@ export const Reader = ({
           elements.push(
             <div
               key={`epigraph-${epigraphGroupStartIndex}`}
-              className="mt-4 pb-6 mb-6 border-gray-200 dark:border-gray-700"
+              className="mt-4 pb-6 mb-6 border-border"
             >
               {content
                 .slice(epigraphGroupStartIndex, idx + 1)
@@ -174,9 +174,7 @@ export const Reader = ({
               ref={isActive ? currentSentenceRef : undefined}
               onClick={() => onSentenceClick?.(currentChapter, idx)}
               className={`cursor-pointer transition-colors ${
-                isActive
-                  ? `${ACTIVE_SENTENCE_HIGHLIGHT} px-1 -mx-1`
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                isActive ? `${ACTIVE_SENTENCE_HIGHLIGHT} px-1 -mx-1` : 'hover:bg-accent'
               }`}
             >
               {sentence}{' '}

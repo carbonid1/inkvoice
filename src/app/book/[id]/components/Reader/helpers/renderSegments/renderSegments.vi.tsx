@@ -59,7 +59,7 @@ describe('SegmentList', () => {
     )
 
     const inactive = screen.getByText('Inactive')
-    expect(inactive.className).toContain('hover:bg-gray-100')
+    expect(inactive.className).toContain('hover:bg-accent')
   })
 
   it('calls onSentenceClick with chapter and sentence index on click', async () => {

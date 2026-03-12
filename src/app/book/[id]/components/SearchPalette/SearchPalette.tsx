@@ -65,9 +65,9 @@ export const SearchPalette = ({
     <div className="fixed inset-0 z-50 bg-black/30" onClick={handleBackdropClick}>
       <div
         ref={panelRef}
-        className="mx-auto mt-[15vh] max-w-2xl w-[calc(100%-2rem)] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-900 overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-150"
+        className="mx-auto mt-[15vh] max-w-2xl w-[calc(100%-2rem)] rounded-xl shadow-2xl border border-border bg-background overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-150"
       >
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
           <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <input
             ref={inputRef}
@@ -82,13 +82,13 @@ export const SearchPalette = ({
           {loading && <Loader2 className="w-4 h-4 animate-spin text-gray-400 flex-shrink-0" />}
           {showNoResults && <span className="text-xs text-gray-400 flex-shrink-0">No results</span>}
           {showMatchCount && results.length > 0 && (
-            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 tabular-nums">
+            <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums">
               {results.length} {results.length === 1 ? 'result' : 'results'}
             </span>
           )}
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors flex-shrink-0"
+            className="p-1 hover:bg-accent rounded transition-colors flex-shrink-0"
             aria-label="Close search"
           >
             <X className="w-4 h-4" />

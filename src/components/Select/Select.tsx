@@ -123,7 +123,7 @@ export const Select = ({
       {open && (
         <ul
           role="listbox"
-          className={`absolute z-50 mt-1 min-w-full w-max bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto ${menuClassName ?? ''}`}
+          className={`absolute z-50 mt-1 min-w-full w-max bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto ${menuClassName ?? ''}`}
         >
           {items.map((item, index) => {
             const groupHeader = groupStartIndices.find(g => g.index === index)

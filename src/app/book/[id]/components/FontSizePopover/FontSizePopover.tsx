@@ -49,7 +49,7 @@ export const FontSizePopover = () => {
       <Tooltip label="Font Size" shortcut="F" position="bottom" disabled={open}>
         <button
           onClick={toggle}
-          className="inline-flex items-center bg-gray-100 dark:bg-gray-800 rounded px-2 py-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          className="inline-flex items-center bg-muted rounded px-2 py-1.5 hover:bg-accent transition-colors"
           aria-label="Font Size"
         >
           <ALargeSmall className="w-4 h-4" />
@@ -57,7 +57,7 @@ export const FontSizePopover = () => {
       </Tooltip>
 
       {open && (
-        <div className="absolute z-50 mt-1 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-1 flex gap-1">
+        <div className="absolute z-50 mt-1 right-0 bg-background border border-border rounded-lg shadow-lg p-1 flex gap-1">
           {FONT_SIZE_OPTIONS.map(option => (
             <button
               key={option.value}
@@ -66,7 +66,7 @@ export const FontSizePopover = () => {
               className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors ${
                 fontSize === option.value
                   ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-muted-foreground hover:bg-accent'
               }`}
             >
               {option.label}

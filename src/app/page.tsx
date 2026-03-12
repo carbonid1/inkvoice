@@ -212,11 +212,11 @@ export default function Library() {
         <div className="max-w-6xl mx-auto px-8 py-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">InkVoice</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">Read and listen to your books</p>
+            <p className="text-muted-foreground mt-1">Read and listen to your books</p>
           </div>
           <Link
             href="/settings"
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-full hover:bg-accent transition-colors"
             aria-label="Settings"
           >
             <Settings />
@@ -230,12 +230,12 @@ export default function Library() {
             {Array.from({ length: 5 }, (_, i) => (
               <div
                 key={i}
-                className="flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+                className="flex flex-col p-4 border border-border rounded-lg bg-background"
               >
-                <div className="w-full aspect-[2/3] bg-gray-200 dark:bg-gray-600 animate-pulse rounded mb-3" />
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-3/4 mb-2" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-1/2" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-600 animate-pulse rounded w-2/5 mt-1" />
+                <div className="w-full aspect-[2/3] bg-muted animate-pulse rounded mb-3" />
+                <div className="h-4 bg-muted animate-pulse rounded w-3/4 mb-2" />
+                <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                <div className="h-3 bg-muted animate-pulse rounded w-2/5 mt-1" />
               </div>
             ))}
           </div>

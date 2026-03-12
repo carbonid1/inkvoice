@@ -45,7 +45,7 @@ export const ContentBlock = ({
 
       if (isInTitleGroup) {
         const titleClasses = isSubtitle
-          ? 'text-lg font-medium text-gray-600 dark:text-gray-400 text-center mb-6'
+          ? 'text-lg font-medium text-muted-foreground text-center mb-6'
           : 'text-2xl font-bold text-center mt-12 mb-2'
         return <HeadingTag className={titleClasses}>{segments(block.segments)}</HeadingTag>
       }
@@ -68,7 +68,7 @@ export const ContentBlock = ({
     case 'paragraph':
       if (isInTitleGroup) {
         const titleClasses = isSubtitle
-          ? 'text-lg font-medium text-gray-600 dark:text-gray-400 text-center mb-6'
+          ? 'text-lg font-medium text-muted-foreground text-center mb-6'
           : 'text-2xl font-bold text-center mt-12 mb-2'
         return <p className={titleClasses}>{segments(block.segments)}</p>
       }
@@ -76,14 +76,14 @@ export const ContentBlock = ({
 
     case 'blockquote':
       return (
-        <blockquote className="border-l-2 border-gray-300 dark:border-gray-600 pl-5 my-1 italic text-gray-600 dark:text-gray-400 text-[0.95rem] leading-relaxed">
+        <blockquote className="border-l-2 border-border pl-5 my-1 italic text-muted-foreground text-[0.95rem] leading-relaxed">
           {segments(block.segments)}
         </blockquote>
       )
 
     case 'attribution':
       return (
-        <p className="pl-5 my-1 text-sm text-gray-500 dark:text-gray-500 text-right">
+        <p className="pl-5 my-1 text-sm text-muted-foreground text-right">
           {'\u2014 '}
           {segments(block.segments)}
         </p>
@@ -111,7 +111,7 @@ export const ContentBlock = ({
             className="max-w-full h-auto mx-auto rounded"
           />
           {caption && (
-            <figcaption className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <figcaption className="text-center text-sm text-muted-foreground mt-2">
               {caption}
             </figcaption>
           )}

@@ -45,7 +45,7 @@ export const VoiceRow = ({
       className={`group rounded-lg transition-colors ${
         selected
           ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-800'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'
+          : 'hover:bg-accent'
       }`}
     >
       <div className="flex items-center gap-2 py-2.5 px-3">

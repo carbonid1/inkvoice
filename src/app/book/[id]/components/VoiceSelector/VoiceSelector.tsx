@@ -22,7 +22,7 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
   )
 
   if (loading || voices.length === 0) {
-    return <div className="w-28 h-7 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+    return <div className="w-28 h-7 bg-muted rounded animate-pulse" />
   }
 
   const globalDisplayName = voices.find(v => v.name === globalVoice)?.displayName ?? globalVoice
@@ -44,7 +44,7 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
           onChange={handleChange}
           onOpenChange={setDropdownOpen}
           aria-label="Voice"
-          className="text-sm bg-gray-100 dark:bg-gray-800 border-none rounded px-2 py-1 text-left"
+          className="text-sm bg-muted border-none rounded px-2 py-1 text-left"
           menuClassName="right-0"
           extraOptions={[{ value: DEFAULT_SENTINEL, label: `Default (${globalDisplayName})` }]}
         />

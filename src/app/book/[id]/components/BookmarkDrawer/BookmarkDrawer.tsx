@@ -82,17 +82,17 @@ export const BookmarkDrawer = ({
         role="dialog"
         aria-label="Bookmarks"
         tabIndex={-1}
-        className={`fixed inset-y-0 right-0 w-96 max-w-[85vw] z-40 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl transition-transform duration-200 ease-out outline-none ${
+        className={`fixed inset-y-0 right-0 w-96 max-w-[85vw] z-40 bg-background border-l border-border shadow-xl transition-transform duration-200 ease-out outline-none ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">Bookmarks</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-full hover:bg-accent transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -114,16 +114,16 @@ export const BookmarkDrawer = ({
                       onNavigate(bookmark.chapter, bookmark.sentence)
                       onClose()
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-between group"
+                    className="w-full text-left px-4 py-3 hover:bg-accent transition-colors flex items-center justify-between group"
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-medium">
                         {chapterNames[bookmark.chapter] ?? `Chapter ${bookmark.chapter + 1}`}
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {bookmark.preview ?? `Paragraph ${bookmark.sentence + 1}`}
                       </p>
-                      <span className="text-xs text-gray-400 dark:text-gray-400">
+                      <span className="text-xs text-muted-foreground">
                         {formatTimeAgo(bookmark.createdAt)}
                       </span>
                     </div>

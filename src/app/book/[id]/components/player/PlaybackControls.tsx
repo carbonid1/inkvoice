@@ -26,10 +26,7 @@ export const PlaybackControls = ({
   return (
     <div className="flex items-center justify-center gap-4">
       <Tooltip label="Previous Sentence" shortcut="←">
-        <button
-          onClick={onSkipBack}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        >
+        <button onClick={onSkipBack} className="p-2 rounded-full hover:bg-accent transition-colors">
           <ChevronLeft className="w-6 h-6" />
         </button>
       </Tooltip>
@@ -51,7 +48,7 @@ export const PlaybackControls = ({
       <Tooltip label="Next Sentence" shortcut="→">
         <button
           onClick={onSkipForward}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded-full hover:bg-accent transition-colors"
         >
           <ChevronRight className="w-6 h-6" />
         </button>

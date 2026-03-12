@@ -41,9 +41,7 @@ export const renderSegments = ({
               : undefined
           }
           className={`cursor-pointer transition-colors ${
-            isActive
-              ? `${ACTIVE_SENTENCE_HIGHLIGHT} px-0.5 -mx-0.5`
-              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+            isActive ? `${ACTIVE_SENTENCE_HIGHLIGHT} px-0.5 -mx-0.5` : 'hover:bg-accent'
           } ${isBookmarked ? 'border-l-2 border-amber-400 dark:border-amber-500 pl-1 -ml-1' : ''}`}
           dangerouslySetInnerHTML={{ __html: segment.html }}
         />{' '}

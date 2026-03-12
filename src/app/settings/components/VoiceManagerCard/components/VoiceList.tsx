@@ -53,19 +53,16 @@ export const VoiceList = ({
   const appVoices = localVoices.filter(v => v.type === 'app')
 
   if (localVoices.length === 0) {
-    return <p className="text-gray-500 dark:text-gray-400 text-sm">No voices available</p>
+    return <p className="text-muted-foreground text-sm">No voices available</p>
   }
 
   return (
     <div className="space-y-4">
       {customVoices.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
             Your Voices
-            <span className="text-gray-400 dark:text-gray-500">
-              {' '}
-              &middot; {customVoices.length}
-            </span>
+            <span className="text-muted-foreground"> &middot; {customVoices.length}</span>
           </h3>
           <div ref={customParent} className="space-y-1">
             {customVoices.map(voice => (
@@ -89,9 +86,9 @@ export const VoiceList = ({
 
       {appVoices.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
             Included Voices
-            <span className="text-gray-400 dark:text-gray-500"> &middot; {appVoices.length}</span>
+            <span className="text-muted-foreground"> &middot; {appVoices.length}</span>
           </h3>
           <div ref={appParent} className="space-y-1">
             {appVoices.map(voice => (

@@ -52,9 +52,7 @@ export const ChapterDrawer = ({
         title={title}
         onClick={() => handleNavigate(chapterIndex)}
         className={`w-full text-left px-4 py-2.5 transition-colors flex items-center gap-2 min-w-0 ${
-          isCurrent
-            ? 'bg-blue-50 dark:bg-blue-900/20'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+          isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-accent'
         }`}
         style={indent > 0 ? { paddingLeft: `${16 + indent * 20}px` } : undefined}
       >
@@ -66,7 +64,7 @@ export const ChapterDrawer = ({
           {title}
         </span>
         {startPage !== undefined && (
-          <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 tabular-nums">
+          <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums">
             {startPage}
           </span>
         )}
@@ -109,17 +107,17 @@ export const ChapterDrawer = ({
         role="dialog"
         aria-label="Table of Contents"
         tabIndex={-1}
-        className={`fixed inset-y-0 left-0 w-96 max-w-[85vw] z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl transition-transform duration-200 ease-out outline-none ${
+        className={`fixed inset-y-0 left-0 w-96 max-w-[85vw] z-40 bg-background border-r border-border shadow-xl transition-transform duration-200 ease-out outline-none ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">Table of Contents</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-full hover:bg-accent transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -171,7 +169,7 @@ const TocGroupCollapsible = ({
       >
         <button
           onClick={() => setIsExpanded(prev => !prev)}
-          className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          className="p-2.5 hover:bg-accent rounded transition-colors"
           style={indent > 0 ? { marginLeft: `${indent * 20}px` } : undefined}
           aria-label={isExpanded ? 'Collapse' : 'Expand'}
         >
@@ -192,7 +190,7 @@ const TocGroupCollapsible = ({
           {node.title}
         </button>
         {startPage !== undefined && (
-          <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 tabular-nums pr-4">
+          <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums pr-4">
             {startPage}
           </span>
         )}
