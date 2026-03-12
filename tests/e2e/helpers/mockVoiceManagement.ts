@@ -1,0 +1,165 @@
+import type { Page } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
+
+type Voice = {
+  name: string
+  displayName: string
+  type: 'app' | 'custom'
+  hasSample: boolean
+  tags: string[]
+}
+
+const MOCK_VOICES: Voice[] = [
+  {
+    name: 'clara',
+    displayName: 'Clara',
+    type: 'app',
+    hasSample: true,
+    tags: ['female', 'american'],
+  },
+  {
+    name: 'tony',
+    displayName: 'Tony',
+    type: 'app',
+    hasSample: true,
+    tags: ['male', 'american'],
+  },
+  {
+    name: 'test-voice',
+    displayName: 'Test Voice',
+    type: 'custom',
+    hasSample: false,
+    tags: [],
+  },
+]
+
+const silencePath = path.resolve(__dirname, '../../fixtures/silence.wav')
+
+export const mockVoiceManagement = async (page: Page) => {
+  const uploadedVoices: Voice[] = []
+  const deletedNames = new Set<string>()
+  const silenceBuffer = fs.readFileSync(silencePath)
+
+  await page.route('**/api/voices', (route, request) => {
+    const method = request.method()
+
+    if (method === 'GET') {
+      const visible = [...MOCK_VOICES, ...uploadedVoices].filter(v => !deletedNames.has(v.name))
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(visible),
+      })
+      return
+    }
+
+    if (method === 'POST') {
+      const postData = request.postData() ?? ''
+      const nameMatch = postData.match(/name="name"\r?\n\r?\n([^\r\n]+)/)
+      const displayName = nameMatch?.[1]?.trim() ?? 'Unknown'
+      const name = displayName.toLowerCase().replace(/\s+/g, '-')
+
+      const existing = [...MOCK_VOICES, ...uploadedVoices].find(v => v.name === name)
+      if (existing && !deletedNames.has(name)) {
+        route.fulfill({
+          status: 409,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Voice name already taken', code: 'NAME_TAKEN' }),
+        })
+        return
+      }
+
+      const voice: Voice = {
+        name,
+        displayName,
+        type: 'custom',
+        hasSample: false,
+        tags: [],
+      }
+      uploadedVoices.push(voice)
+
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          name,
+          displayName,
+          durationSeconds: 10,
+          padded: false,
+          tags: [],
+        }),
+      })
+      return
+    }
+
+    route.fallback()
+  })
+
+  // Mock DELETE and PATCH /api/voices/{name}
+  await page.route('**/api/voices/*', (route, request) => {
+    const method = request.method()
+    const url = new URL(request.url())
+    const segments = url.pathname.split('/')
+    const name = segments[segments.length - 1] ?? ''
+
+    // Skip sub-routes (source, sample, tags)
+    if (['source', 'sample', 'tags'].includes(name)) {
+      route.fallback()
+      return
+    }
+
+    if (method === 'DELETE') {
+      deletedNames.add(name)
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      })
+      return
+    }
+
+    if (method === 'PATCH') {
+      deletedNames.delete(name)
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      })
+      return
+    }
+
+    route.fallback()
+  })
+
+  // Mock voice audio routes
+  await page.route('**/api/voices/*/source', route => {
+    route.fulfill({
+      status: 200,
+      contentType: 'audio/wav',
+      body: silenceBuffer,
+    })
+  })
+
+  await page.route('**/api/voices/*/sample', route => {
+    route.fulfill({
+      status: 200,
+      contentType: 'audio/wav',
+      body: silenceBuffer,
+    })
+  })
+
+  // Mock tags endpoint
+  await page.route('**/api/voices/*/tags', route => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  })
+
+  return {
+    getUploadedVoices: () => [...uploadedVoices],
+    getDeletedNames: () => new Set(deletedNames),
+  }
+}

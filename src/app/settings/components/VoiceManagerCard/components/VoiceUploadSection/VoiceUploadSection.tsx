@@ -3,9 +3,14 @@
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { Loader2, Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
 
 const ACCEPTED_FORMATS =
   'audio/wav,audio/mpeg,audio/mp4,audio/ogg,audio/flac,.wav,.mp3,.m4a,.ogg,.flac'
+
+const MIN_DURATION = 5
+const MAX_DURATION = 30
 
 type VoiceUploadSectionProps = {
   onVoicesChanged: () => void
@@ -16,17 +21,41 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [fileDuration, setFileDuration] = useState<number | null>(null)
+  const [durationError, setDurationError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
+  const isDurationInvalid =
+    fileDuration !== null && (fileDuration < MIN_DURATION || fileDuration > MAX_DURATION)
+
+  const handleFileChange = async (selectedFile: File | null) => {
+    setFile(selectedFile)
+    setFileDuration(null)
+    setDurationError(null)
+    reset()
+
+    if (!selectedFile) return
+
+    try {
+      const duration = await getAudioDuration(selectedFile)
+      setFileDuration(duration)
+    } catch {
+      setDurationError('Could not read audio file')
+    }
+  }
+
   const handleUpload = async () => {
-    if (!file || !name.trim()) return
+    if (!file || !name.trim() || isDurationInvalid) return
 
     const result = await upload(file, name.trim())
     if (result) {
       setName('')
       setFile(null)
+      setFileDuration(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       onVoicesChanged()
+      setOpen(false)
+      toast('Voice added', { description: 'A sample is being generated in the background.' })
     }
   }
 
@@ -36,6 +65,15 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
       handleUpload()
     }
   }
+
+  const displayError = error ?? durationError
+
+  const durationText =
+    fileDuration !== null
+      ? isDurationInvalid
+        ? `${fileDuration.toFixed(1)}s — must be ${MIN_DURATION}–${MAX_DURATION} seconds`
+        : `${fileDuration.toFixed(1)}s`
+      : null
 
   return (
     <div>
@@ -71,27 +109,33 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               ref={fileInputRef}
               type="file"
               accept={ACCEPTED_FORMATS}
-              onChange={e => {
-                setFile(e.target.files?.[0] ?? null)
-                reset()
-              }}
+              onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
               className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600 dark:file:bg-blue-900/20 dark:file:text-blue-400"
             />
           </div>
+          {durationText && (
+            <p
+              className={`text-sm ${isDurationInvalid ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}
+            >
+              Duration: {durationText}
+            </p>
+          )}
           <div className="flex items-center gap-2">
             <button
               onClick={handleUpload}
-              disabled={!name.trim() || !file || uploading}
+              disabled={!name.trim() || !file || uploading || isDurationInvalid}
               className="px-3 py-2 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {uploading ? 'Uploading...' : 'Upload'}
             </button>
-            {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
+            {displayError && (
+              <p className="text-sm text-red-500 dark:text-red-400">{displayError}</p>
+            )}
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Upload a WAV, MP3, M4A, OGG, or FLAC file (at least 5 seconds). A TTS sample will be
-            generated automatically.
+            Upload a WAV, MP3, M4A, OGG, or FLAC file (5–30 seconds). A TTS sample will be generated
+            automatically.
           </p>
         </div>
       )}

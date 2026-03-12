@@ -9,7 +9,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'
 import { VoiceList } from './components/VoiceList'
 import { VoiceListSkeleton } from './components/VoiceListSkeleton'
-import { VoiceUploadSection } from './components/VoiceUploadSection'
+import { VoiceUploadSection } from './components/VoiceUploadSection/VoiceUploadSection'
 import { useVoicePreview } from './hooks/useVoicePreview/useVoicePreview'
 
 type UndoState = {
