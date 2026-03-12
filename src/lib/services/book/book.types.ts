@@ -24,4 +24,13 @@ export interface BookService {
 
   /** Clear the book cache */
   clearCache(): void
+
+  /** Upload a new book file and return its metadata */
+  uploadBook(filename: string, buffer: Buffer): Promise<Book>
+
+  /** Soft-delete a book file (rename with _deleted suffix) */
+  deleteBook(bookId: string): Promise<boolean>
+
+  /** Restore a soft-deleted book file */
+  restoreBook(bookId: string): Promise<boolean>
 }

@@ -1,6 +1,15 @@
 import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
 import type { Book, BookMetadata, BookOverview, ParsedBook, ParsedChapter } from '@/lib/types/book'
-import { findBookFile, getBookIdFromFilename, listEpubFiles, readBookFile } from './book.helpers'
+import {
+  findBookFile,
+  findDeletedBookFile,
+  getBookIdFromFilename,
+  listEpubFiles,
+  readBookFile,
+  restoreBookFile,
+  softDeleteBookFile,
+  writeBookFile,
+} from './book.helpers'
 import type { BookService } from './book.types'
 import { countWords } from './helpers/countWords/countWords'
 
@@ -25,6 +34,10 @@ class BookCache {
       }
     }
     this.cache.set(bookId, book)
+  }
+
+  evict(bookId: string): void {
+    this.cache.delete(bookId)
   }
 
   clear(): void {
@@ -151,6 +164,41 @@ class BookServiceImpl implements BookService {
 
   clearCache(): void {
     this.cache.clear()
+  }
+
+  async uploadBook(filename: string, buffer: Buffer): Promise<Book> {
+    await writeBookFile(filename, buffer)
+
+    const id = getBookIdFromFilename(filename)
+
+    try {
+      const arrayBuffer = buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength,
+      ) as ArrayBuffer
+      const metadata = await getBookMetadata(arrayBuffer)
+      return { id, title: metadata.title, author: metadata.author, filename }
+    } catch {
+      return { id, title: filename.replace('.epub', ''), author: 'Unknown', filename }
+    }
+  }
+
+  async deleteBook(bookId: string): Promise<boolean> {
+    const filename = await findBookFile(bookId)
+    if (!filename) return false
+
+    await softDeleteBookFile(filename)
+    this.cache.evict(bookId)
+    return true
+  }
+
+  async restoreBook(bookId: string): Promise<boolean> {
+    const deletedFile = await findDeletedBookFile(bookId)
+    if (!deletedFile) return false
+
+    const originalFilename = deletedFile.replace(/_deleted$/, '')
+    await restoreBookFile(originalFilename)
+    return true
   }
 }
 

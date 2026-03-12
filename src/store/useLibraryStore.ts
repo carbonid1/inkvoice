@@ -8,6 +8,7 @@ export type LibraryState = {
   currentBook: string | null
   setBooks: (books: Book[]) => void
   setCurrentBook: (bookId: string | null) => void
+  addBooks: (books: Book[]) => void
 }
 
 export const useLibraryStore = create<LibraryState>()(set => ({
@@ -15,4 +16,5 @@ export const useLibraryStore = create<LibraryState>()(set => ({
   currentBook: null,
   setBooks: books => set({ books }),
   setCurrentBook: bookId => set({ currentBook: bookId }),
+  addBooks: books => set(state => ({ books: [...state.books, ...books] })),
 }))

@@ -4,15 +4,16 @@ import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/com
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
 import type { Book } from '@/lib/types/book'
 import { useProgressStore } from '@/store/useProgressStore'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
-interface BookCardProps {
+type BookCardProps = {
   book: Book
+  onRemove?: () => void
 }
 
-export const BookCard = ({ book }: BookCardProps) => {
+export const BookCard = ({ book, onRemove }: BookCardProps) => {
   const [coverLoaded, setCoverLoaded] = useState(false)
   const [coverError, setCoverError] = useState(false)
   const progress = useProgressStore(state => state.progress[book.id])
@@ -21,7 +22,20 @@ export const BookCard = ({ book }: BookCardProps) => {
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors bg-white dark:bg-gray-800">
+      <div className="group h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors bg-white dark:bg-gray-800 relative">
+        {onRemove && (
+          <button
+            onClick={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              onRemove()
+            }}
+            className="absolute top-2 right-2 z-10 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+            aria-label={`Remove ${book.title}`}
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
         <div className="w-full aspect-[2/3] bg-gray-100 dark:bg-gray-700 rounded mb-3 flex items-center justify-center overflow-hidden relative">
           {!coverError ? (
             <>

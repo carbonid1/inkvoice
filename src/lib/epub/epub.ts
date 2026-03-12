@@ -7,6 +7,18 @@ import { buildTocTree } from './helpers/buildTocTree/buildTocTree'
 import { inferChapterTitle } from './helpers/inferChapterTitle/inferChapterTitle'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
+// Monkey-patch epub2's walkNavMap to fix a crash when navLabel.text is
+// an empty string. The original code uses `(navLabel.text || navLabel || "").trim()`
+// which resolves to the navLabel *object* when text is falsy, then .trim() throws.
+const origWalkNavMap = EPub.prototype.walkNavMap
+EPub.prototype.walkNavMap = function (...args: Parameters<typeof origWalkNavMap>) {
+  try {
+    return origWalkNavMap.apply(this, args)
+  } catch {
+    return []
+  }
+}
+
 const countLeaves = (nodes: TocNode[]): number =>
   nodes.reduce(
     (sum, node) => sum + (node.children.length === 0 ? 1 : countLeaves(node.children)),

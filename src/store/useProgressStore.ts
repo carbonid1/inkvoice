@@ -25,6 +25,7 @@ type ProgressState = {
     wordsPerChapter: number[],
   ) => void
   getProgress: (bookId: string) => Progress
+  removeProgress: (bookId: string) => void
 }
 
 type PersistedProgressState = Pick<ProgressState, 'progress'>
@@ -72,6 +73,12 @@ export const useProgressStore = create<ProgressState>()(
       getProgress: bookId => {
         return get().progress[bookId] || DEFAULT_PROGRESS
       },
+
+      removeProgress: bookId =>
+        set(state => {
+          const { [bookId]: _, ...rest } = state.progress
+          return { progress: rest }
+        }),
     }),
     {
       name: 'inkvoice-progress',

@@ -62,10 +62,20 @@ export const createBookmarkService = (filePath = DEFAULT_FILE) => {
     return true
   }
 
+  const removeAllBookmarks = async (bookId: string): Promise<boolean> => {
+    const map = await readMap()
+    if (!(bookId in map)) return false
+
+    const { [bookId]: _, ...rest } = map
+    await writeMap(rest)
+    return true
+  }
+
   return {
     getBookmarks,
     addBookmark,
     removeBookmark,
+    removeAllBookmarks,
   }
 }
 
