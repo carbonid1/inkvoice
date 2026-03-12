@@ -6,7 +6,6 @@ import { Pencil, Play, Square, Volume2, X } from 'lucide-react'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
 import { VoiceTagList } from '../../VoiceTagList/VoiceTagList'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
-import { VoiceAvatar } from './VoiceAvatar'
 
 type VoiceRowProps = {
   voice: VoiceEntry
@@ -55,7 +54,6 @@ export const VoiceRow = ({
           data-voice={voice.name}
           className="flex items-center gap-3 flex-1 text-left rounded transition-colors min-w-0 cursor-pointer"
         >
-          <VoiceAvatar displayName={voice.displayName} type={voice.type} />
           <span className="font-medium text-sm truncate">{voice.displayName}</span>
           {voice.tags.length > 0 && <VoiceTagList tags={voice.tags} />}
         </button>
