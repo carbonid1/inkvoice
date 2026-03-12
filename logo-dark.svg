@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f0f12"/><stop offset="100%" stop-color="#1a1a1f"/></linearGradient>
+    <radialGradient id="base" cx=".45" cy=".5" r=".55"><stop offset="0%" stop-color="#44403c"/><stop offset="55%" stop-color="#292524"/><stop offset="100%" stop-color="#1c1917"/></radialGradient>
+    <linearGradient id="hl" x1="0" y1=".15" x2=".7" y2=".85"><stop offset="0%" stop-color="#a8a29e" stop-opacity=".5"/><stop offset="25%" stop-color="#78716c" stop-opacity=".3"/><stop offset="55%" stop-color="#57534e" stop-opacity=".08"/><stop offset="100%" stop-color="#1c1917" stop-opacity="0"/></linearGradient>
+    <linearGradient id="rim" x1="1" y1=".3" x2="0" y2=".7"><stop offset="0%" stop-color="#78716c" stop-opacity=".35"/><stop offset="30%" stop-color="#57534e" stop-opacity=".1"/><stop offset="100%" stop-color="#1c1917" stop-opacity="0"/></linearGradient>
+    <radialGradient id="spec" cx=".4" cy=".12" r=".18"><stop offset="0%" stop-color="#fff" stop-opacity=".75"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="mid" cx=".3" cy=".45" r=".22"><stop offset="0%" stop-color="#e7e5e4" stop-opacity=".3"/><stop offset="100%" stop-color="#e7e5e4" stop-opacity="0"/></radialGradient>
+    <radialGradient id="caustic" cx=".5" cy=".88" r=".22"><stop offset="0%" stop-color="#d6d3d1" stop-opacity=".18"/><stop offset="100%" stop-color="#d6d3d1" stop-opacity="0"/></radialGradient>
+    <radialGradient id="surface" cx=".5" cy=".5" r=".5"><stop offset="0%" stop-color="#44403c" stop-opacity=".12"/><stop offset="100%" stop-color="#44403c" stop-opacity="0"/></radialGradient>
+    <clipPath id="drop-clip"><path d="M40 10 C40 20 53 28 53 37 C53 44 47 48 40 48 C33 48 27 44 27 37 C27 28 40 20 40 10 Z"/></clipPath>
+  </defs>
+  <rect width="80" height="80" rx="16" fill="url(#bg)"/>
+  <ellipse cx="40" cy="56" rx="22" ry="7" fill="url(#surface)"/>
+  <ellipse cx="40" cy="56" rx="30" ry="10.5" fill="none" stroke="#a8a29e" stroke-width=".9" opacity=".2"/>
+  <ellipse cx="40" cy="56" rx="23" ry="8" fill="none" stroke="#d6d3d1" stroke-width="1.1" opacity=".32"/>
+  <path d="M40 10 C40 20 53 28 53 37 C53 44 47 48 40 48 C33 48 27 44 27 37 C27 28 40 20 40 10 Z"
+        fill="url(#base)" stroke="#57534e" stroke-width=".5"/>
+  <g clip-path="url(#drop-clip)">
+    <ellipse cx="31" cy="26" rx="7" ry="16" fill="url(#hl)" transform="rotate(-12, 31, 26)"/>
+    <ellipse cx="51" cy="32" rx="5" ry="13" fill="url(#rim)" transform="rotate(10, 51, 32)"/>
+    <circle cx="39" cy="16" r="4" fill="url(#spec)"/>
+    <ellipse cx="33" cy="32" rx="4.5" ry="7" fill="url(#mid)" transform="rotate(-6, 33, 32)"/>
+    <ellipse cx="40" cy="45" rx="7" ry="3" fill="url(#caustic)"/>
+  </g>
+  <ellipse cx="40" cy="56" rx="16" ry="5.5" fill="none" stroke="#e7e5e4" stroke-width="1.3" opacity=".48"/>
+  <ellipse cx="40" cy="56" rx="9.5" ry="3.3" fill="none" stroke="#f5f5f4" stroke-width="1.7" opacity=".68"/>
+</svg>
