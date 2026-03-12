@@ -348,7 +348,7 @@ export default function BookReader() {
         <ProgressIndicator sentence={currentSentence} chapterInfo={currentChapterInfo} />
       </PageHeader>
 
-      <main className="flex-1 min-h-0 overflow-y-auto">
+      <main className="flex-1 min-h-0 overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/40">
         <div className="max-w-3xl mx-auto">
           {showRecoveryBanner && recoveryBookmark && (
             <RecoveryBanner

@@ -22,7 +22,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="group h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors bg-white dark:bg-gray-800 relative">
+      <div className="group h-full flex flex-col p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all bg-white dark:bg-gray-800 relative">
         {onRemove && (
           <button
             onClick={e => {
@@ -30,7 +30,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
               e.stopPropagation()
               onRemove()
             }}
-            className="absolute top-2 right-2 z-10 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+            className="absolute top-2 right-2 z-10 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity hover:bg-black/80"
             aria-label={`Remove ${book.title}`}
           >
             <X className="w-3.5 h-3.5" />
