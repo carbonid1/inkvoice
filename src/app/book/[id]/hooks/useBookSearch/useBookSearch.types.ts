@@ -1,6 +1,6 @@
 export type SearchMatch = {
   chapter: number
-  sentence: number
+  paragraph: number
   chapterTitle: string
   textSnippet: string
   matchPositions: number[]

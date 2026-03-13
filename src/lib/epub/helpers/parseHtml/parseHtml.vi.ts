@@ -33,24 +33,24 @@ describe('structural invariants', () => {
   it('should produce sequential sentence indices with no gaps', async () => {
     const { content } = await parseHtmlContent(mixedHtml, noopGetImage)
     const allSegments = getAllSegments(content)
-    const indices = allSegments.map(segment => segment.sentenceIndex).sort((a, b) => a - b)
+    const indices = allSegments.map(segment => segment.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
   it('should have total segment count equal to total sentence count', async () => {
-    const { content, sentences } = await parseHtmlContent(mixedHtml, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(mixedHtml, noopGetImage)
     const allSegments = getAllSegments(content)
 
-    expect(allSegments.length).toBe(sentences.length)
+    expect(allSegments.length).toBe(paragraphs.length)
   })
 
   it('should have every sentence index point to a valid sentence', async () => {
-    const { content, sentences } = await parseHtmlContent(mixedHtml, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(mixedHtml, noopGetImage)
     const allSegments = getAllSegments(content)
 
     allSegments.forEach(segment => {
-      expect(sentences[segment.sentenceIndex]).toBeDefined()
+      expect(paragraphs[segment.paragraphIndex]).toBeDefined()
     })
   })
 })
@@ -178,12 +178,12 @@ describe('nested container flattening', () => {
 describe('br handling', () => {
   it('should keep sentence indices synchronized with br present', async () => {
     const html = '<body><p>First sentence.<br/>Second sentence.</p><p>Third sentence.</p></body>'
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
     const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.sentenceIndex).sort((a, b) => a - b)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
-    expect(allSegments.length).toBe(sentences.length)
+    expect(allSegments.length).toBe(paragraphs.length)
   })
 })
 
@@ -259,12 +259,12 @@ describe('link-list paragraph splitting', () => {
   it('should maintain sequential sentence indices across split paragraphs', async () => {
     const html =
       '<body><p><a href="a">First</a> <a href="b">Second</a> <a href="c">Third</a></p></body>'
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
     const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.sentenceIndex).sort((a, b) => a - b)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
-    expect(allSegments.length).toBe(sentences.length)
+    expect(allSegments.length).toBe(paragraphs.length)
   })
 })
 

@@ -3,7 +3,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { SentenceContextMenu } from './SentenceContextMenu'
+import { ParagraphContextMenu } from './ParagraphContextMenu'
 
 const defaultProps = {
   onRegenerate: vi.fn().mockResolvedValue(undefined),
@@ -11,33 +11,33 @@ const defaultProps = {
   onClose: vi.fn(),
 }
 
-describe('SentenceContextMenu', () => {
+describe('ParagraphContextMenu', () => {
   it('renders nothing when target is null', () => {
-    const { container } = render(<SentenceContextMenu {...defaultProps} target={null} />)
+    const { container } = render(<ParagraphContextMenu {...defaultProps} target={null} />)
     expect(container.innerHTML).toBe('')
   })
 
   it('shows Regenerate Audio button when target is provided', () => {
     render(
-      <SentenceContextMenu
+      <ParagraphContextMenu
         {...defaultProps}
-        target={{ x: 100, y: 200, chapter: 3, sentence: 5 }}
+        target={{ x: 100, y: 200, chapter: 3, paragraph: 5 }}
       />,
     )
     expect(screen.getByRole('menuitem', { name: 'Regenerate Audio' })).toBeInTheDocument()
   })
 
-  it('calls onRegenerate with chapter and sentence and closes', async () => {
+  it('calls onRegenerate with chapter and paragraph and closes', async () => {
     const onRegenerate = vi.fn().mockResolvedValue(undefined)
     const onClose = vi.fn()
     const user = userEvent.setup()
 
     render(
-      <SentenceContextMenu
+      <ParagraphContextMenu
         onRegenerate={onRegenerate}
         onCopyText={vi.fn()}
         onClose={onClose}
-        target={{ x: 100, y: 200, chapter: 3, sentence: 5 }}
+        target={{ x: 100, y: 200, chapter: 3, paragraph: 5 }}
       />,
     )
 
@@ -52,10 +52,10 @@ describe('SentenceContextMenu', () => {
     const user = userEvent.setup()
 
     render(
-      <SentenceContextMenu
+      <ParagraphContextMenu
         {...defaultProps}
         onClose={onClose}
-        target={{ x: 100, y: 200, chapter: 0, sentence: 0 }}
+        target={{ x: 100, y: 200, chapter: 0, paragraph: 0 }}
       />,
     )
 
@@ -70,10 +70,10 @@ describe('SentenceContextMenu', () => {
     render(
       <div>
         <span data-testid="outside">outside</span>
-        <SentenceContextMenu
+        <ParagraphContextMenu
           {...defaultProps}
           onClose={onClose}
-          target={{ x: 100, y: 200, chapter: 0, sentence: 0 }}
+          target={{ x: 100, y: 200, chapter: 0, paragraph: 0 }}
         />
       </div>,
     )

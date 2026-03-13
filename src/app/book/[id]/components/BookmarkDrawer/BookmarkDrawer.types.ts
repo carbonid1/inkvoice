@@ -2,6 +2,6 @@ export type BookmarkDrawerProps = {
   bookId: string
   isOpen: boolean
   onClose: () => void
-  onNavigate: (chapter: number, sentence: number) => void
+  onNavigate: (chapter: number, paragraph: number) => void
   chapterNames: string[]
 }

@@ -23,15 +23,15 @@ import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
 import { DebugPanel } from './components/DebugPanel/DebugPanel'
 import { FontSizePopover } from './components/FontSizePopover/FontSizePopover'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
+import {
+  ParagraphContextMenu,
+  type ContextMenuTarget,
+} from './components/ParagraphContextMenu/ParagraphContextMenu'
 import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
 import { RecoveryBanner } from './components/RecoveryBanner/RecoveryBanner'
 import { SearchPalette } from './components/SearchPalette/SearchPalette'
-import {
-  SentenceContextMenu,
-  type ContextMenuTarget,
-} from './components/SentenceContextMenu/SentenceContextMenu'
 import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
 import {
   WORDS_PER_PAGE,
@@ -46,12 +46,12 @@ export default function BookReader() {
   const bookId = params.id as string
 
   const { effectiveVoice } = useBookVoice(bookId)
-  const { overview, loading, error, initialChapter, initialSentence } = useBookOverview(bookId)
+  const { overview, loading, error, initialChapter, initialParagraph } = useBookOverview(bookId)
   const search = useBookSearch(bookId)
 
   const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
   const [currentChapter, setCurrentChapter] = useState(initialChapter)
-  const [currentSentence, setCurrentSentence] = useState(initialSentence)
+  const [currentParagraph, setCurrentParagraph] = useState(initialParagraph)
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   const [activeDrawer, setActiveDrawer] = useState<'chapter' | 'bookmark' | null>(null)
@@ -72,8 +72,8 @@ export default function BookReader() {
   // Sync position when hook resolves initial values from overview
   useEffect(() => {
     setCurrentChapter(initialChapter)
-    setCurrentSentence(initialSentence)
-  }, [initialChapter, initialSentence])
+    setCurrentParagraph(initialParagraph)
+  }, [initialChapter, initialParagraph])
 
   // Fetch chapter content when currentChapter changes
   useEffect(() => {
@@ -97,25 +97,25 @@ export default function BookReader() {
   }, [bookId, overview, currentChapter])
 
   const handleProgressChange = useCallback(
-    (chapter: number, sentence: number) => {
+    (chapter: number, paragraph: number) => {
       setCurrentChapter(chapter)
-      setCurrentSentence(sentence)
-      setProgress(bookId, chapter, sentence)
+      setCurrentParagraph(paragraph)
+      setProgress(bookId, chapter, paragraph)
     },
     [bookId, setProgress],
   )
 
-  const handleSentenceClick = useCallback(
-    (chapter: number, sentence: number) => {
-      handleProgressChange(chapter, sentence)
+  const handleParagraphClick = useCallback(
+    (chapter: number, paragraph: number) => {
+      handleProgressChange(chapter, paragraph)
     },
     [handleProgressChange],
   )
 
-  const handleSentenceContextMenu = useCallback(
-    (e: MouseEvent, chapter: number, sentence: number) => {
+  const handleParagraphContextMenu = useCallback(
+    (e: MouseEvent, chapter: number, paragraph: number) => {
       e.preventDefault()
-      setContextMenuTarget({ x: e.clientX, y: e.clientY, chapter, sentence })
+      setContextMenuTarget({ x: e.clientX, y: e.clientY, chapter, paragraph })
     },
     [],
   )
@@ -123,25 +123,25 @@ export default function BookReader() {
   const handleCloseContextMenu = useCallback(() => setContextMenuTarget(null), [])
 
   const handleCopyText = useCallback(
-    (_chapter: number, sentence: number) => {
-      const text = chapterData?.sentences[sentence]?.trim()
+    (_chapter: number, paragraph: number) => {
+      const text = chapterData?.paragraphs[paragraph]?.trim()
       if (text) navigator.clipboard.writeText(text)
     },
     [chapterData],
   )
 
   const handleRegenerate = useCallback(
-    (chapter: number, sentence: number) => {
+    (chapter: number, paragraph: number) => {
       const params = new URLSearchParams({ voice: effectiveVoice })
-      fetch(`/api/tts/${bookId}/${chapter}/${sentence}?${params}`, { method: 'DELETE' }).catch(
+      fetch(`/api/tts/${bookId}/${chapter}/${paragraph}?${params}`, { method: 'DELETE' }).catch(
         console.error,
       )
-      if (chapter !== currentChapter || sentence !== currentSentence) {
-        handleProgressChange(chapter, sentence)
+      if (chapter !== currentChapter || paragraph !== currentParagraph) {
+        handleProgressChange(chapter, paragraph)
       }
       setReplayKey(k => k + 1)
     },
-    [bookId, effectiveVoice, currentChapter, currentSentence, handleProgressChange],
+    [bookId, effectiveVoice, currentChapter, currentParagraph, handleProgressChange],
   )
 
   // Chapter end interstitial
@@ -158,11 +158,11 @@ export default function BookReader() {
   const { isBookmarked: isCurrentBookmarked, toggle: toggleBookmark } = useBookmarkToggle({
     bookId,
     chapter: currentChapter,
-    sentence: currentSentence,
-    preview: chapterData?.sentences[currentSentence]?.trim() || undefined,
+    paragraph: currentParagraph,
+    preview: chapterData?.paragraphs[currentParagraph]?.trim() || undefined,
   })
-  const bookmarkedSentences = useMemo(
-    () => new Set(bookmarksForBook.filter(b => b.chapter === currentChapter).map(b => b.sentence)),
+  const bookmarkedParagraphs = useMemo(
+    () => new Set(bookmarksForBook.filter(b => b.chapter === currentChapter).map(b => b.paragraph)),
     [bookmarksForBook, currentChapter],
   )
 
@@ -203,11 +203,11 @@ export default function BookReader() {
 
   const closeSearch = search.close
   const handleSearchSelect = useCallback(
-    (chapter: number, sentence: number) => {
-      handleSentenceClick(chapter, sentence)
+    (chapter: number, paragraph: number) => {
+      handleParagraphClick(chapter, paragraph)
       closeSearch()
     },
-    [handleSentenceClick, closeSearch],
+    [handleParagraphClick, closeSearch],
   )
 
   const showChapterLoading = useDebouncedLoading(chapterLoading)
@@ -223,7 +223,7 @@ export default function BookReader() {
       bookmarksForBook.length > 0
         ? bookmarksForBook.reduce((furthest, b) =>
             b.chapter > furthest.chapter ||
-            (b.chapter === furthest.chapter && b.sentence > furthest.sentence)
+            (b.chapter === furthest.chapter && b.paragraph > furthest.paragraph)
               ? b
               : furthest,
           )
@@ -246,21 +246,21 @@ export default function BookReader() {
 
   const showRecoveryBanner =
     recoveryBookmark !== undefined &&
-    (recoveryBookmark.chapter !== currentChapter || recoveryBookmark.sentence !== currentSentence)
+    (recoveryBookmark.chapter !== currentChapter || recoveryBookmark.paragraph !== currentParagraph)
 
   const currentChapterInfo = overview.chapters[currentChapter] ?? {
     title: '',
-    sentenceCount: 0,
+    paragraphCount: 0,
     wordCount: 0,
   }
 
   const pagePosition =
-    currentProgress.wordsPerChapter && currentProgress.sentencesPerChapter
+    currentProgress.wordsPerChapter && currentProgress.paragraphsPerChapter
       ? computePagePosition({
           chapter: currentChapter,
-          sentence: currentSentence,
+          paragraph: currentParagraph,
           wordsPerChapter: currentProgress.wordsPerChapter,
-          sentencesPerChapter: currentProgress.sentencesPerChapter,
+          paragraphsPerChapter: currentProgress.paragraphsPerChapter,
         })
       : null
 
@@ -272,8 +272,8 @@ export default function BookReader() {
 
   const debugMetrics: DebugMetrics = {
     ...playbackMetrics,
-    currentSentence,
-    totalSentences: currentChapterInfo.sentenceCount,
+    currentParagraph,
+    totalParagraphs: currentChapterInfo.paragraphCount,
     currentChapter,
     totalChapters: overview.chapters.length,
   }
@@ -342,7 +342,7 @@ export default function BookReader() {
           </div>
         </div>
 
-        <ProgressIndicator sentence={currentSentence} chapterInfo={currentChapterInfo} />
+        <ProgressIndicator paragraph={currentParagraph} chapterInfo={currentChapterInfo} />
       </PageHeader>
 
       <main className="flex-1 min-h-0 overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/40">
@@ -353,7 +353,7 @@ export default function BookReader() {
                 chapterNames[recoveryBookmark.chapter] ?? `Chapter ${recoveryBookmark.chapter + 1}`
               }
               onNavigate={() =>
-                handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.sentence)
+                handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.paragraph)
               }
             />
           )}
@@ -361,10 +361,10 @@ export default function BookReader() {
             <Reader
               chapter={chapterData}
               currentChapter={currentChapter}
-              currentSentence={currentSentence}
-              onSentenceClick={handleSentenceClick}
-              onSentenceContextMenu={handleSentenceContextMenu}
-              bookmarkedSentences={bookmarkedSentences}
+              currentParagraph={currentParagraph}
+              onParagraphClick={handleParagraphClick}
+              onParagraphContextMenu={handleParagraphContextMenu}
+              bookmarkedParagraphs={bookmarkedParagraphs}
             />
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-500">
@@ -394,7 +394,7 @@ export default function BookReader() {
         bookId={bookId}
         chapters={overview.chapters}
         currentChapter={currentChapter}
-        currentSentence={currentSentence}
+        currentParagraph={currentParagraph}
         onProgressChange={handleProgressChange}
         onDebugUpdate={setPlaybackMetrics}
         isCurrentBookmarked={isCurrentBookmarked}
@@ -422,7 +422,7 @@ export default function BookReader() {
         chapterNames={chapterNames}
       />
 
-      <SentenceContextMenu
+      <ParagraphContextMenu
         target={contextMenuTarget}
         onRegenerate={handleRegenerate}
         onCopyText={handleCopyText}

@@ -4,7 +4,7 @@ import { findMatchPositions } from './helpers/findMatchPositions/findMatchPositi
 
 type SearchMatch = {
   chapter: number
-  sentence: number
+  paragraph: number
   chapterTitle: string
   textSnippet: string
   matchPositions: number[]
@@ -48,13 +48,13 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
 
     for (let chapterIndex = 0; chapterIndex < book.chapters.length; chapterIndex++) {
       const chapter = book.chapters[chapterIndex]!
-      for (let sentenceIndex = 0; sentenceIndex < chapter.sentences.length; sentenceIndex++) {
-        const text = chapter.sentences[sentenceIndex]!
+      for (let paragraphIndex = 0; paragraphIndex < chapter.paragraphs.length; paragraphIndex++) {
+        const text = chapter.paragraphs[paragraphIndex]!
         const positions = findMatchPositions(text, query)
         if (positions.length > 0) {
           matches.push({
             chapter: chapterIndex,
-            sentence: sentenceIndex,
+            paragraph: paragraphIndex,
             chapterTitle: chapter.title,
             textSnippet: text.length > 200 ? text.slice(0, 200) + '...' : text,
             matchPositions: positions,

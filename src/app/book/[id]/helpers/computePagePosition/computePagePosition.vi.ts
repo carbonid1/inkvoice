@@ -6,9 +6,9 @@ describe('computePagePosition', () => {
     expect(
       computePagePosition({
         chapter: 0,
-        sentence: 0,
+        paragraph: 0,
         wordsPerChapter: [],
-        sentencesPerChapter: [],
+        paragraphsPerChapter: [],
       }),
     ).toBeNull()
   })
@@ -17,9 +17,9 @@ describe('computePagePosition', () => {
     expect(
       computePagePosition({
         chapter: 0,
-        sentence: 0,
+        paragraph: 0,
         wordsPerChapter: [0, 0],
-        sentencesPerChapter: [5, 5],
+        paragraphsPerChapter: [5, 5],
       }),
     ).toBeNull()
   })
@@ -27,9 +27,9 @@ describe('computePagePosition', () => {
   it('returns page 1 at start of book', () => {
     const result = computePagePosition({
       chapter: 0,
-      sentence: 0,
+      paragraph: 0,
       wordsPerChapter: [700, 700],
-      sentencesPerChapter: [10, 10],
+      paragraphsPerChapter: [10, 10],
     })
     // 1400 words / 350 wpp = 4 pages
     expect(result).toEqual({ currentPage: 1, totalPages: 4 })
@@ -37,13 +37,13 @@ describe('computePagePosition', () => {
 
   it('computes correct mid-book position', () => {
     // 1050 words total = 3 pages. Chapter 0 = 350 words, chapter 1 = 700 words.
-    // At chapter 1, sentence 5/10 = halfway through ch1 = 350 + 350 = 700 words read
+    // At chapter 1, paragraph 5/10 = halfway through ch1 = 350 + 350 = 700 words read
     // 700 / 350 = 2, floor + 1 = 3
     const result = computePagePosition({
       chapter: 1,
-      sentence: 5,
+      paragraph: 5,
       wordsPerChapter: [350, 700],
-      sentencesPerChapter: [10, 10],
+      paragraphsPerChapter: [10, 10],
     })
     expect(result).toEqual({ currentPage: 3, totalPages: 3 })
   })
@@ -52,9 +52,9 @@ describe('computePagePosition', () => {
     // At the very end — chapter index past last chapter
     const result = computePagePosition({
       chapter: 2,
-      sentence: 0,
+      paragraph: 0,
       wordsPerChapter: [350, 350],
-      sentencesPerChapter: [10, 10],
+      paragraphsPerChapter: [10, 10],
     })
     expect(result).toEqual({ currentPage: 2, totalPages: 2 })
   })
@@ -62,9 +62,9 @@ describe('computePagePosition', () => {
   it('handles single-chapter book', () => {
     const result = computePagePosition({
       chapter: 0,
-      sentence: 0,
+      paragraph: 0,
       wordsPerChapter: [100],
-      sentencesPerChapter: [5],
+      paragraphsPerChapter: [5],
     })
     expect(result).toEqual({ currentPage: 1, totalPages: 1 })
   })

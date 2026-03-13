@@ -6,8 +6,8 @@ export type PlaybackMetrics = {
 }
 
 export type PositionMetrics = {
-  currentSentence: number
-  totalSentences: number
+  currentParagraph: number
+  totalParagraphs: number
   currentChapter: number
   totalChapters: number
 }

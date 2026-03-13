@@ -5,12 +5,12 @@ import { findTitleGroupMembers } from './findTitleGroupMembers'
 const heading = (text: string, level = 1): ContentBlock => ({
   type: 'heading',
   level,
-  segments: [{ sentenceIndex: 0, html: text }],
+  segments: [{ paragraphIndex: 0, html: text }],
 })
 
 const paragraph = (text: string): ContentBlock => ({
   type: 'paragraph',
-  segments: [{ sentenceIndex: 0, html: text }],
+  segments: [{ paragraphIndex: 0, html: text }],
 })
 
 const image = (): ContentBlock => ({

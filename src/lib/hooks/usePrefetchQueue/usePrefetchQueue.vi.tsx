@@ -6,10 +6,10 @@ import { usePrefetchQueue } from './usePrefetchQueue'
 
 const strictWrapper = ({ children }: { children: ReactNode }) => <StrictMode>{children}</StrictMode>
 
-const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
-  sentenceCounts.map((n, i) => ({
+const makeChapters = (paragraphCounts: number[]): ChapterInfo[] =>
+  paragraphCounts.map((n, i) => ({
     title: `Chapter ${i}`,
-    sentenceCount: n,
+    paragraphCount: n,
     wordCount: n * 10,
   }))
 
@@ -20,7 +20,7 @@ const stableOptions = () => {
     voice: 'narrator',
     chaptersRef: { current: chapters },
     currentChapterRef: { current: 0 },
-    currentSentenceRef: { current: 0 },
+    currentParagraphRef: { current: 0 },
     onDebugUpdate: vi.fn(),
     prefetchEnabled: true,
   }
@@ -79,7 +79,7 @@ describe('usePrefetchQueue', () => {
     })
 
     it('passes abort signal to fetch calls', async () => {
-      // Use chapter with 2 sentences: current=0, will prefetch sentence 1
+      // Use chapter with 2 paragraphs: current=0, will prefetch paragraph 1
       const chapters = makeChapters([2])
       const opts = {
         ...stableOptions(),
@@ -114,7 +114,7 @@ describe('usePrefetchQueue', () => {
       const abortError = new Error('Aborted')
       abortError.name = 'AbortError'
 
-      // Use 2 sentences: current=0, will try to prefetch sentence 1
+      // Use 2 paragraphs: current=0, will try to prefetch paragraph 1
       const chapters = makeChapters([2])
       const opts = {
         ...stableOptions(),
@@ -124,7 +124,7 @@ describe('usePrefetchQueue', () => {
       let callCount = 0
       fetchMock.mockImplementation(() => {
         callCount++
-        // First call fails with AbortError, second succeeds
+        // First call fails with AbortError, second call succeeds
         if (callCount === 1) {
           return Promise.reject(abortError)
         }
@@ -148,7 +148,7 @@ describe('usePrefetchQueue', () => {
         expect(fetchMock).toHaveBeenCalledTimes(1)
       })
 
-      // Second attempt on same sentence should work
+      // Second attempt on same paragraph should work
       // (proving AbortError didn't increment failures)
       result.current.continuePrefetching()
 
@@ -273,7 +273,7 @@ describe('usePrefetchQueue', () => {
         ...stableOptions(),
         chaptersRef: { current: chapters },
         currentChapterRef: { current: 0 },
-        currentSentenceRef: { current: 0 },
+        currentParagraphRef: { current: 0 },
       }
 
       const mockHeaders = new Headers({
@@ -296,7 +296,7 @@ describe('usePrefetchQueue', () => {
 
       await waitFor(
         () => {
-          // All 44 sentences ahead (1 through 44) should be prefetched
+          // All 44 paragraphs ahead (1 through 44) should be prefetched
           // even though they're all MISSes — old code would stop at 30
           expect(fetchMock).toHaveBeenCalledTimes(44)
         },

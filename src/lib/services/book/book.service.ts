@@ -138,8 +138,8 @@ class BookServiceImpl implements BookService {
       author: book.author,
       chapters: book.chapters.map(ch => ({
         title: ch.title,
-        sentenceCount: ch.sentences.length,
-        wordCount: ch.sentences.reduce((sum, s) => sum + countWords(s), 0),
+        paragraphCount: ch.paragraphs.length,
+        wordCount: ch.paragraphs.reduce((sum, s) => sum + countWords(s), 0),
       })),
       tocTree: book.tocTree,
     }
@@ -151,7 +151,7 @@ class BookServiceImpl implements BookService {
     return book.chapters[chapterIndex] ?? null
   }
 
-  async getSentence(bookId: string, chapter: number, sentence: number): Promise<string | null> {
+  async getParagraph(bookId: string, chapter: number, paragraph: number): Promise<string | null> {
     const book = await this.getBook(bookId)
     if (!book) {
       return null
@@ -162,7 +162,7 @@ class BookServiceImpl implements BookService {
       return null
     }
 
-    return chapterData.sentences[sentence] ?? null
+    return chapterData.paragraphs[paragraph] ?? null
   }
 
   async getMetadata(bookId: string): Promise<BookMetadata | null> {

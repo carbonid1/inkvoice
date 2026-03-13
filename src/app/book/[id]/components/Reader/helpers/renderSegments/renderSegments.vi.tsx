@@ -7,14 +7,14 @@ import { describe, expect, it, vi } from 'vitest'
 import type { RenderSegmentsParams } from './renderSegments'
 import { SegmentList } from './renderSegments'
 
-const makeSegment = (sentenceIndex: number, html: string) => ({ sentenceIndex, html })
+const makeSegment = (paragraphIndex: number, html: string) => ({ paragraphIndex, html })
 
 const defaultProps = (overrides?: Partial<RenderSegmentsParams>): RenderSegmentsParams => ({
   segments: [makeSegment(0, 'Hello world')],
-  currentSentence: -1,
-  onSentenceClick: undefined,
+  currentParagraph: -1,
+  onParagraphClick: undefined,
   currentChapter: 0,
-  sentenceRef: createRef<HTMLSpanElement>(),
+  paragraphRef: createRef<HTMLSpanElement>(),
   ...overrides,
 })
 
@@ -30,12 +30,12 @@ describe('SegmentList', () => {
     expect(screen.getByText('brown').closest('span')).toBeInTheDocument()
   })
 
-  it('applies active highlight to the current sentence', () => {
+  it('applies active highlight to the current paragraph', () => {
     render(
       <SegmentList
         {...defaultProps({
           segments: [makeSegment(0, 'Active'), makeSegment(1, 'Inactive')],
-          currentSentence: 0,
+          currentParagraph: 0,
         })}
       />,
     )
@@ -48,12 +48,12 @@ describe('SegmentList', () => {
     expect(inactive.className).not.toContain('bg-amber-200/70')
   })
 
-  it('applies hover classes to inactive sentences', () => {
+  it('applies hover classes to inactive paragraphs', () => {
     render(
       <SegmentList
         {...defaultProps({
           segments: [makeSegment(0, 'Active'), makeSegment(1, 'Inactive')],
-          currentSentence: 0,
+          currentParagraph: 0,
         })}
       />,
     )
@@ -62,7 +62,7 @@ describe('SegmentList', () => {
     expect(inactive.className).toContain('hover:bg-accent')
   })
 
-  it('calls onSentenceClick with chapter and sentence index on click', async () => {
+  it('calls onParagraphClick with chapter and paragraph index on click', async () => {
     const onClick = vi.fn()
     const user = userEvent.setup()
 
@@ -71,7 +71,7 @@ describe('SegmentList', () => {
         {...defaultProps({
           segments: [makeSegment(5, 'Click me')],
           currentChapter: 3,
-          onSentenceClick: onClick,
+          onParagraphClick: onClick,
         })}
       />,
     )
@@ -80,12 +80,12 @@ describe('SegmentList', () => {
     expect(onClick).toHaveBeenCalledWith(3, 5)
   })
 
-  it('applies bookmark border to bookmarked sentences', () => {
+  it('applies bookmark border to bookmarked paragraphs', () => {
     render(
       <SegmentList
         {...defaultProps({
           segments: [makeSegment(0, 'Marked'), makeSegment(1, 'Unmarked')],
-          bookmarkedSentences: new Set([0]),
+          bookmarkedParagraphs: new Set([0]),
         })}
       />,
     )

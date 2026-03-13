@@ -7,15 +7,15 @@ import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 import { navigateToBook } from './helpers/navigateToBook'
 
 // Early chapters are front matter (cover, copyright, etc.)
-// Chapters 12+ are actual novel text with many sentences
+// Chapters 12+ are actual novel text with many paragraphs
 const CHAPTER_A = 12
 const CHAPTER_B = 13
-const SENTENCE_INDEX = 1
+const PARAGRAPH_INDEX = 1
 
-const activeSentence = (page: import('@playwright/test').Page) =>
+const activeParagraph = (page: import('@playwright/test').Page) =>
   page.locator('main span.bg-amber-200\\/70')
 
-const allSentences = (page: import('@playwright/test').Page) =>
+const allParagraphs = (page: import('@playwright/test').Page) =>
   page.locator('main span.cursor-pointer')
 
 const tocButton = (page: import('@playwright/test').Page) =>
@@ -40,10 +40,10 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
   )
   await drawer.locator(`button[data-chapter-index="${index}"]`).click()
   await chapterResponse
-  await allSentences(page).first().waitFor()
+  await allParagraphs(page).first().waitFor()
 }
 
-const setupAndClickSentence = async (page: import('@playwright/test').Page) => {
+const setupAndClickParagraph = async (page: import('@playwright/test').Page) => {
   await mockTTS(page)
   await mockProgress(page)
   await mockVoicePreferences(page)
@@ -54,17 +54,17 @@ const setupAndClickSentence = async (page: import('@playwright/test').Page) => {
   // Navigate to a text chapter (Cover is image-only)
   await selectChapter(page, CHAPTER_A)
 
-  const target = allSentences(page).nth(SENTENCE_INDEX)
+  const target = allParagraphs(page).nth(PARAGRAPH_INDEX)
   await target.click()
-  await expect(activeSentence(page)).toBeVisible()
+  await expect(activeParagraph(page)).toBeVisible()
 
-  const text = await activeSentence(page).textContent()
+  const text = await activeParagraph(page).textContent()
   return text!
 }
 
 test.describe('chapter position preservation', () => {
-  test('preserves sentence position when switching chapters and returning', async ({ page }) => {
-    const expectedText = await setupAndClickSentence(page)
+  test('preserves paragraph position when switching chapters and returning', async ({ page }) => {
+    const expectedText = await setupAndClickParagraph(page)
 
     // Switch to a different chapter
     await selectChapter(page, CHAPTER_B)
@@ -72,8 +72,8 @@ test.describe('chapter position preservation', () => {
     // Switch back to the original chapter
     await selectChapter(page, CHAPTER_A)
 
-    // The previously selected sentence should still be highlighted
-    await expect(activeSentence(page)).toBeVisible()
-    await expect(activeSentence(page)).toHaveText(expectedText)
+    // The previously selected paragraph should still be highlighted
+    await expect(activeParagraph(page)).toBeVisible()
+    await expect(activeParagraph(page)).toHaveText(expectedText)
   })
 })

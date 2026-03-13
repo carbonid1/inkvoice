@@ -4,16 +4,14 @@ import type { Bookmark } from './bookmark.types'
 const toBookmark = (row: {
   id: string
   chapter: number
-  sentence: number
+  paragraph: number
   createdAt: number
-  label: string | null
   preview: string | null
 }): Bookmark => ({
   id: row.id,
   chapter: row.chapter,
-  sentence: row.sentence,
+  paragraph: row.paragraph,
   createdAt: row.createdAt,
-  ...(row.label !== null && { label: row.label }),
   ...(row.preview !== null && { preview: row.preview }),
 })
 
@@ -28,11 +26,11 @@ const getBookmarks = async (bookId: string): Promise<Bookmark[]> => {
 const addBookmark = async (
   bookId: string,
   chapter: number,
-  sentence: number,
+  paragraph: number,
   preview?: string,
 ): Promise<Bookmark> => {
   const existing = await prisma.bookmark.findFirst({
-    where: { bookId, chapter, sentence },
+    where: { bookId, chapter, paragraph },
   })
   if (existing) return toBookmark(existing)
 
@@ -40,7 +38,7 @@ const addBookmark = async (
     data: {
       bookId,
       chapter,
-      sentence,
+      paragraph,
       createdAt: Date.now(),
       ...(preview !== undefined && { preview: preview.slice(0, 120) }),
     },

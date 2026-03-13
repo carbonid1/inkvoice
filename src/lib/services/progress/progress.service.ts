@@ -13,9 +13,8 @@ const getAll = async (): Promise<Record<string, Progress>> => {
 type ProgressRow = {
   bookId: string
   chapter: number
-  sentence: number
-  totalChapters: number | null
-  sentencesPerChapter: string | null
+  paragraph: number
+  paragraphsPerChapter: string | null
   wordsPerChapter: string | null
   lastReadAt: number | null
   chapterPositions: string | null
@@ -23,10 +22,9 @@ type ProgressRow = {
 
 const toProgress = (row: ProgressRow): Progress => ({
   chapter: row.chapter,
-  sentence: row.sentence,
-  ...(row.totalChapters !== null && { totalChapters: row.totalChapters }),
-  ...(row.sentencesPerChapter !== null && {
-    sentencesPerChapter: JSON.parse(row.sentencesPerChapter) as number[],
+  paragraph: row.paragraph,
+  ...(row.paragraphsPerChapter !== null && {
+    paragraphsPerChapter: JSON.parse(row.paragraphsPerChapter) as number[],
   }),
   ...(row.wordsPerChapter !== null && {
     wordsPerChapter: JSON.parse(row.wordsPerChapter) as number[],
@@ -46,9 +44,10 @@ const get = async (bookId: string): Promise<Progress | null> => {
 const upsert = async (bookId: string, data: Progress): Promise<void> => {
   const serialized = {
     chapter: data.chapter,
-    sentence: data.sentence,
-    totalChapters: data.totalChapters ?? null,
-    sentencesPerChapter: data.sentencesPerChapter ? JSON.stringify(data.sentencesPerChapter) : null,
+    paragraph: data.paragraph,
+    paragraphsPerChapter: data.paragraphsPerChapter
+      ? JSON.stringify(data.paragraphsPerChapter)
+      : null,
     wordsPerChapter: data.wordsPerChapter ? JSON.stringify(data.wordsPerChapter) : null,
     lastReadAt: data.lastReadAt ?? null,
     chapterPositions: data.chapterPositions ? JSON.stringify(data.chapterPositions) : null,

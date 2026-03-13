@@ -16,13 +16,13 @@ export type BookmarkState = {
   addBookmark: (
     bookId: string,
     chapter: number,
-    sentence: number,
+    paragraph: number,
     preview?: string,
   ) => Promise<Bookmark>
   removeBookmark: (bookId: string, bookmarkId: string) => Promise<void>
   undoRemoveBookmark: () => Promise<void>
   clearLastDeleted: () => void
-  isBookmarked: (bookId: string, chapter: number, sentence: number) => boolean
+  isBookmarked: (bookId: string, chapter: number, paragraph: number) => boolean
 }
 
 const UNDO_WINDOW_MS = 5000
@@ -41,12 +41,12 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
     }
   },
 
-  addBookmark: async (bookId, chapter, sentence, preview?) => {
+  addBookmark: async (bookId, chapter, paragraph, preview?) => {
     try {
       const response = await fetch(`/api/bookmarks/${bookId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chapter, sentence, preview }),
+        body: JSON.stringify({ chapter, paragraph, preview }),
       })
       const bookmark: Bookmark = await response.json()
       set(state => ({
@@ -97,7 +97,7 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
     const { bookId, bookmark } = lastDeleted
     try {
       get().clearLastDeleted()
-      await get().addBookmark(bookId, bookmark.chapter, bookmark.sentence, bookmark.preview)
+      await get().addBookmark(bookId, bookmark.chapter, bookmark.paragraph, bookmark.preview)
     } catch {
       // Restore undo state so user can retry
       const timerId = setTimeout(() => get().clearLastDeleted(), UNDO_WINDOW_MS)
@@ -111,6 +111,6 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
     set({ lastDeleted: null })
   },
 
-  isBookmarked: (bookId, chapter, sentence) =>
-    get().bookmarks[bookId]?.some(b => b.chapter === chapter && b.sentence === sentence) ?? false,
+  isBookmarked: (bookId, chapter, paragraph) =>
+    get().bookmarks[bookId]?.some(b => b.chapter === chapter && b.paragraph === paragraph) ?? false,
 }))

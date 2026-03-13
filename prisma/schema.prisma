@@ -12,7 +12,6 @@ model Book {
   title    String
   author   String
   filename String
-  addedAt  DateTime @default(now())
 
   progress  ReadingProgress?
   bookmarks Bookmark[]
@@ -20,14 +19,13 @@ model Book {
 }
 
 model ReadingProgress {
-  bookId              String @id
-  chapter             Int    @default(0)
-  sentence            Int    @default(0)
-  totalChapters       Int?
-  sentencesPerChapter String? // JSON: number[]
-  wordsPerChapter     String? // JSON: number[]
-  lastReadAt          Int? // Unix timestamp ms
-  chapterPositions    String? // JSON: Record<number, number>
+  bookId               String @id
+  chapter              Int    @default(0)
+  paragraph            Int    @default(0)
+  paragraphsPerChapter String? // JSON: number[]
+  wordsPerChapter      String? // JSON: number[]
+  lastReadAt           Int? // Unix timestamp ms
+  chapterPositions     String? // JSON: Record<number, number>
 
   book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
@@ -36,8 +34,7 @@ model Bookmark {
   id        String @id @default(uuid())
   bookId    String
   chapter   Int
-  sentence  Int
-  label     String?
+  paragraph Int
   preview   String?
   createdAt Int // Unix timestamp ms
 

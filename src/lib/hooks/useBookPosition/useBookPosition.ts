@@ -7,58 +7,58 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 interface UseBookPositionOptions {
   chapters: ChapterInfo[]
   currentChapter: number
-  currentSentence: number
-  onProgressChange: (chapter: number, sentence: number) => void
+  currentParagraph: number
+  onProgressChange: (chapter: number, paragraph: number) => void
 }
 
 export const useBookPosition = (options: UseBookPositionOptions) => {
-  const { chapters, currentChapter, currentSentence, onProgressChange } = options
+  const { chapters, currentChapter, currentParagraph, onProgressChange } = options
 
   // Keep refs in sync for use in callbacks
   const chaptersRef = useRef(chapters)
   const currentChapterRef = useRef(currentChapter)
-  const currentSentenceRef = useRef(currentSentence)
+  const currentParagraphRef = useRef(currentParagraph)
   const onProgressChangeRef = useRef(onProgressChange)
 
   useEffect(() => {
     chaptersRef.current = chapters
     currentChapterRef.current = currentChapter
-    currentSentenceRef.current = currentSentence
+    currentParagraphRef.current = currentParagraph
     onProgressChangeRef.current = onProgressChange
-  }, [chapters, currentChapter, currentSentence, onProgressChange])
+  }, [chapters, currentChapter, currentParagraph, onProgressChange])
 
   const chapter = chapters[currentChapter]
-  const totalSentences = chapter?.sentenceCount || 0
+  const totalParagraphs = chapter?.paragraphCount || 0
 
   const getNextPosition = useCallback(
-    (ch: number, sent: number) => getNextPositionHelper(chaptersRef.current, ch, sent),
+    (ch: number, para: number) => getNextPositionHelper(chaptersRef.current, ch, para),
     [],
   )
 
   const skipBack = useCallback(() => {
-    if (currentSentence > 0) {
-      onProgressChange(currentChapter, currentSentence - 1)
+    if (currentParagraph > 0) {
+      onProgressChange(currentChapter, currentParagraph - 1)
     } else if (currentChapter > 0) {
       const prevChapter = chapters[currentChapter - 1]
       if (prevChapter) {
-        onProgressChange(currentChapter - 1, prevChapter.sentenceCount - 1)
+        onProgressChange(currentChapter - 1, prevChapter.paragraphCount - 1)
       }
     }
-  }, [currentChapter, currentSentence, chapters, onProgressChange])
+  }, [currentChapter, currentParagraph, chapters, onProgressChange])
 
   const skipForward = useCallback(() => {
     const ch = chapters[currentChapter]
-    if (ch && currentSentence < ch.sentenceCount - 1) {
-      onProgressChange(currentChapter, currentSentence + 1)
+    if (ch && currentParagraph < ch.paragraphCount - 1) {
+      onProgressChange(currentChapter, currentParagraph + 1)
     } else if (currentChapter < chapters.length - 1) {
       onProgressChange(currentChapter + 1, 0)
     }
-  }, [currentChapter, currentSentence, chapters, onProgressChange])
+  }, [currentChapter, currentParagraph, chapters, onProgressChange])
 
   const advanceToNext = useCallback((): boolean => {
-    const next = getNextPosition(currentChapterRef.current, currentSentenceRef.current)
+    const next = getNextPosition(currentChapterRef.current, currentParagraphRef.current)
     if (next) {
-      onProgressChangeRef.current(next.ch, next.sent)
+      onProgressChangeRef.current(next.ch, next.para)
       return true
     }
     return false // End of book
@@ -67,9 +67,9 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
   return useMemo(
     () => ({
       chapter,
-      totalSentences,
+      totalParagraphs,
       currentChapter,
-      currentSentence,
+      currentParagraph,
       totalChapters: chapters.length,
       skipBack,
       skipForward,
@@ -78,14 +78,14 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
       // Expose refs for prefetch queue
       chaptersRef,
       currentChapterRef,
-      currentSentenceRef,
+      currentParagraphRef,
       onProgressChangeRef,
     }),
     [
       chapter,
-      totalSentences,
+      totalParagraphs,
       currentChapter,
-      currentSentence,
+      currentParagraph,
       chapters.length,
       skipBack,
       skipForward,
@@ -93,7 +93,7 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
       getNextPosition,
       chaptersRef,
       currentChapterRef,
-      currentSentenceRef,
+      currentParagraphRef,
       onProgressChangeRef,
     ],
   )

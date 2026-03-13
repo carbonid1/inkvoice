@@ -7,22 +7,22 @@ export type ContextMenuTarget = {
   x: number
   y: number
   chapter: number
-  sentence: number
+  paragraph: number
 }
 
-type SentenceContextMenuProps = {
+type ParagraphContextMenuProps = {
   target: ContextMenuTarget | null
-  onRegenerate: (chapter: number, sentence: number) => void | Promise<void>
-  onCopyText: (chapter: number, sentence: number) => void
+  onRegenerate: (chapter: number, paragraph: number) => void | Promise<void>
+  onCopyText: (chapter: number, paragraph: number) => void
   onClose: () => void
 }
 
-export const SentenceContextMenu = ({
+export const ParagraphContextMenu = ({
   target,
   onRegenerate,
   onCopyText,
   onClose,
-}: SentenceContextMenuProps) => {
+}: ParagraphContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState<{ left: number; top: number }>({ left: 0, top: 0 })
 
@@ -57,12 +57,12 @@ export const SentenceContextMenu = ({
   if (!target) return null
 
   const handleCopy = () => {
-    onCopyText(target.chapter, target.sentence)
+    onCopyText(target.chapter, target.paragraph)
     onClose()
   }
 
   const handleRegenerate = () => {
-    onRegenerate(target.chapter, target.sentence)
+    onRegenerate(target.chapter, target.paragraph)
     onClose()
   }
 

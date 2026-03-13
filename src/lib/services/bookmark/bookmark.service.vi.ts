@@ -41,14 +41,13 @@ describe('bookmarkService', () => {
       id: 'uuid-1',
       bookId: 'book-1',
       chapter: 2,
-      sentence: 5,
+      paragraph: 5,
       createdAt: 1000,
-      label: null,
       preview: null,
     })
 
     const bookmark = await bookmarkService.addBookmark('book-1', 2, 5)
-    expect(bookmark).toMatchObject({ chapter: 2, sentence: 5 })
+    expect(bookmark).toMatchObject({ chapter: 2, paragraph: 5 })
     expect(bookmark.id).toBe('uuid-1')
     expect(bookmark.createdAt).toBe(1000)
   })
@@ -58,9 +57,8 @@ describe('bookmarkService', () => {
       id: 'uuid-1',
       bookId: 'book-1',
       chapter: 3,
-      sentence: 7,
+      paragraph: 7,
       createdAt: 1000,
-      label: null,
       preview: null,
     }
     mockPrisma.bookmark.findFirst.mockResolvedValue(existing)
@@ -95,9 +93,8 @@ describe('bookmarkService', () => {
       id: 'uuid-1',
       bookId: 'book-1',
       chapter: 1,
-      sentence: 0,
+      paragraph: 0,
       createdAt: 1000,
-      label: null,
       preview: 'The quick brown fox',
     })
 
@@ -118,7 +115,6 @@ describe('bookmarkService', () => {
         id: 'uuid-1',
         bookId: 'book-1',
         ...data,
-        label: null,
       }),
     )
 
@@ -132,9 +128,8 @@ describe('bookmarkService', () => {
       id: 'uuid-1',
       bookId: 'book-1',
       chapter: 0,
-      sentence: 0,
+      paragraph: 0,
       createdAt: 1000,
-      label: null,
       preview: null,
     })
 

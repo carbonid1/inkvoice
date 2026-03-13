@@ -23,18 +23,18 @@ export const PUT = async (request: NextRequest, { params }: RouteParams) => {
 
   try {
     const body = await request.json()
-    const { chapter, sentence } = body as { chapter: unknown; sentence: unknown }
+    const { chapter, paragraph } = body as { chapter: unknown; paragraph: unknown }
 
     if (
       typeof chapter !== 'number' ||
-      typeof sentence !== 'number' ||
+      typeof paragraph !== 'number' ||
       chapter < 0 ||
-      sentence < 0 ||
+      paragraph < 0 ||
       !Number.isInteger(chapter) ||
-      !Number.isInteger(sentence)
+      !Number.isInteger(paragraph)
     ) {
       return NextResponse.json(
-        { error: 'chapter and sentence must be non-negative integers' },
+        { error: 'chapter and paragraph must be non-negative integers' },
         { status: 400 },
       )
     }

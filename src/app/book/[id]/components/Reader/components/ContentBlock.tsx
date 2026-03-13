@@ -7,36 +7,36 @@ import { renderSegments } from '../helpers/renderSegments/renderSegments'
 
 interface ContentBlockProps {
   block: ContentBlockType
-  currentSentence: number
-  onSentenceClick?: (chapter: number, sentence: number) => void
-  onSentenceContextMenu?: (e: MouseEvent, chapter: number, sentence: number) => void
+  currentParagraph: number
+  onParagraphClick?: (chapter: number, paragraph: number) => void
+  onParagraphContextMenu?: (e: MouseEvent, chapter: number, paragraph: number) => void
   currentChapter: number
-  sentenceRef: RefObject<HTMLSpanElement>
+  paragraphRef: RefObject<HTMLSpanElement>
   isInTitleGroup?: boolean
   isSubtitle?: boolean
-  bookmarkedSentences?: Set<number>
+  bookmarkedParagraphs?: Set<number>
 }
 
 export const ContentBlock = ({
   block,
-  currentSentence,
-  onSentenceClick,
-  onSentenceContextMenu,
+  currentParagraph,
+  onParagraphClick,
+  onParagraphContextMenu,
   currentChapter,
-  sentenceRef,
+  paragraphRef,
   isInTitleGroup,
   isSubtitle,
-  bookmarkedSentences,
+  bookmarkedParagraphs,
 }: ContentBlockProps) => {
   const segments = (segs: TextSegment[] | undefined) =>
     renderSegments({
       segments: segs,
-      currentSentence,
-      onSentenceClick,
-      onSentenceContextMenu,
+      currentParagraph,
+      onParagraphClick,
+      onParagraphContextMenu,
       currentChapter,
-      sentenceRef,
-      bookmarkedSentences,
+      paragraphRef,
+      bookmarkedParagraphs,
     })
 
   switch (block.type) {

@@ -1,8 +1,8 @@
 import { WORDS_PER_PAGE } from '../computePagePosition/computePagePosition'
 
 type ChapterPagePositionInput = {
-  sentence: number
-  sentenceCount: number
+  paragraph: number
+  paragraphCount: number
   wordCount: number
 }
 
@@ -12,15 +12,15 @@ type ChapterPagePosition = {
 }
 
 export const computeChapterPagePosition = ({
-  sentence,
-  sentenceCount,
+  paragraph,
+  paragraphCount,
   wordCount,
 }: ChapterPagePositionInput): ChapterPagePosition | null => {
-  if (sentenceCount === 0 || wordCount === 0) return null
+  if (paragraphCount === 0 || wordCount === 0) return null
 
   const totalPages = Math.ceil(wordCount / WORDS_PER_PAGE)
-  const sentenceFraction = sentence / sentenceCount
-  const wordsRead = sentenceFraction * wordCount
+  const paragraphFraction = paragraph / paragraphCount
+  const wordsRead = paragraphFraction * wordCount
   const currentPage = Math.min(Math.floor(wordsRead / WORDS_PER_PAGE) + 1, totalPages)
 
   return { currentPage, totalPages }

@@ -36,7 +36,7 @@ export const SearchPalette = ({
       e.preventDefault()
       const match = results[highlightedIndex]
       if (match) {
-        onSelect(match.chapter, match.sentence)
+        onSelect(match.chapter, match.paragraph)
       }
     } else if (e.key === 'Escape') {
       e.preventDefault()
@@ -47,7 +47,7 @@ export const SearchPalette = ({
   const handleSelectResult = (resultIndex: number) => {
     const match = results[resultIndex]
     if (match) {
-      onSelect(match.chapter, match.sentence)
+      onSelect(match.chapter, match.paragraph)
     }
   }
 

@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto'
 type Bookmark = {
   id: string
   chapter: number
-  sentence: number
+  paragraph: number
   createdAt: number
 }
 
@@ -27,11 +27,11 @@ export const mockBookmarks = async (page: Page) => {
     }
 
     if (method === 'POST') {
-      const body = request.postDataJSON() as { chapter: number; sentence: number }
+      const body = request.postDataJSON() as { chapter: number; paragraph: number }
       const bookmark: Bookmark = {
         id: randomUUID(),
         chapter: body.chapter,
-        sentence: body.sentence,
+        paragraph: body.paragraph,
         createdAt: Date.now(),
       }
       const existing = store.get(bookId) ?? []

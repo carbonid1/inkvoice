@@ -5,7 +5,7 @@ import { useBookmarkStore } from './useBookmarkStore'
 const mockBookmark = (overrides: Partial<Bookmark> = {}): Bookmark => ({
   id: 'bm-1',
   chapter: 2,
-  sentence: 5,
+  paragraph: 5,
   createdAt: 1000,
   ...overrides,
 })
@@ -35,10 +35,10 @@ describe('fetchBookmarks', () => {
 
 describe('addBookmark', () => {
   it('calls API and appends to local state', async () => {
-    const existing = mockBookmark({ id: 'bm-1', chapter: 1, sentence: 0 })
+    const existing = mockBookmark({ id: 'bm-1', chapter: 1, paragraph: 0 })
     useBookmarkStore.setState({ bookmarks: { 'book-1': [existing] } })
 
-    const created = mockBookmark({ id: 'bm-2', chapter: 3, sentence: 7 })
+    const created = mockBookmark({ id: 'bm-2', chapter: 3, paragraph: 7 })
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -54,15 +54,15 @@ describe('addBookmark', () => {
     expect(fetch).toHaveBeenCalledWith('/api/bookmarks/book-1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chapter: 3, sentence: 7 }),
+      body: JSON.stringify({ chapter: 3, paragraph: 7 }),
     })
   })
 })
 
 describe('removeBookmark', () => {
   it('calls API and removes from local state', async () => {
-    const keep = mockBookmark({ id: 'bm-1', chapter: 1, sentence: 0 })
-    const remove = mockBookmark({ id: 'bm-2', chapter: 3, sentence: 7 })
+    const keep = mockBookmark({ id: 'bm-1', chapter: 1, paragraph: 0 })
+    const remove = mockBookmark({ id: 'bm-2', chapter: 3, paragraph: 7 })
     useBookmarkStore.setState({ bookmarks: { 'book-1': [keep, remove] } })
 
     vi.stubGlobal(
@@ -84,7 +84,7 @@ describe('removeBookmark', () => {
   })
 
   it('saves deleted bookmark to lastDeleted', async () => {
-    const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, sentence: 5 })
+    const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, paragraph: 5 })
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     vi.stubGlobal(
@@ -106,7 +106,7 @@ describe('removeBookmark', () => {
 
 describe('undoRemoveBookmark', () => {
   it('re-adds the deleted bookmark and clears lastDeleted', async () => {
-    const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, sentence: 5, preview: 'Hello world' })
+    const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, paragraph: 5, preview: 'Hello world' })
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     let callCount = 0
@@ -129,7 +129,7 @@ describe('undoRemoveBookmark', () => {
     const restored = useBookmarkStore.getState().bookmarks['book-1'] ?? []
     expect(restored).toHaveLength(1)
     expect(restored[0]?.chapter).toBe(2)
-    expect(restored[0]?.sentence).toBe(5)
+    expect(restored[0]?.paragraph).toBe(5)
   })
 
   it('is a no-op when lastDeleted is null', async () => {
@@ -162,8 +162,8 @@ describe('clearLastDeleted', () => {
 
 describe('sequential deletes', () => {
   it('overwrites lastDeleted with the latest deletion', async () => {
-    const first = mockBookmark({ id: 'bm-1', chapter: 1, sentence: 0 })
-    const second = mockBookmark({ id: 'bm-2', chapter: 3, sentence: 7 })
+    const first = mockBookmark({ id: 'bm-1', chapter: 1, paragraph: 0 })
+    const second = mockBookmark({ id: 'bm-2', chapter: 3, paragraph: 7 })
     useBookmarkStore.setState({ bookmarks: { 'book-1': [first, second] } })
 
     vi.stubGlobal(
@@ -208,9 +208,9 @@ describe('auto-clear timer', () => {
 })
 
 describe('isBookmarked', () => {
-  it('returns true for matching chapter and sentence', () => {
+  it('returns true for matching chapter and paragraph', () => {
     useBookmarkStore.setState({
-      bookmarks: { 'book-1': [mockBookmark({ chapter: 2, sentence: 5 })] },
+      bookmarks: { 'book-1': [mockBookmark({ chapter: 2, paragraph: 5 })] },
     })
 
     expect(useBookmarkStore.getState().isBookmarked('book-1', 2, 5)).toBe(true)
@@ -218,7 +218,7 @@ describe('isBookmarked', () => {
 
   it('returns false for non-matching position', () => {
     useBookmarkStore.setState({
-      bookmarks: { 'book-1': [mockBookmark({ chapter: 2, sentence: 5 })] },
+      bookmarks: { 'book-1': [mockBookmark({ chapter: 2, paragraph: 5 })] },
     })
 
     expect(useBookmarkStore.getState().isBookmarked('book-1', 2, 6)).toBe(false)

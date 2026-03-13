@@ -105,10 +105,10 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
 
         if (!html) continue
 
-        // Parse HTML to get rich content and sentences
-        const { content, sentences } = await parseHtmlContent(html, getImage)
+        // Parse HTML to get rich content and paragraphs
+        const { content, paragraphs } = await parseHtmlContent(html, getImage)
 
-        const hasContent = sentences.length > 0 || content.some(b => b.type === 'image')
+        const hasContent = paragraphs.length > 0 || content.some(b => b.type === 'image')
         if (!hasContent) continue
 
         const htmlHeading = html
@@ -116,7 +116,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
           ?.replace(/<[^>]+>/g, '')
           ?.replace(/\s+/g, ' ')
           ?.trim()
-        const isImageOnly = sentences.length === 0 && content.some(b => b.type === 'image')
+        const isImageOnly = paragraphs.length === 0 && content.some(b => b.type === 'image')
 
         const title = inferChapterTitle(
           {
@@ -130,7 +130,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         )
 
         idToChapterIndex.set(item.id, chapters.length)
-        chapters.push({ title, sentences, content })
+        chapters.push({ title, paragraphs, content })
       } catch (e) {
         console.error(`Failed to parse chapter ${item.id}:`, e)
       }

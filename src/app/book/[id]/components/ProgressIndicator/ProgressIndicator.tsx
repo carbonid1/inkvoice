@@ -7,18 +7,19 @@ import { computeChapterProgressPercent } from '../../helpers/computeChapterProgr
 import { shouldShowChapterProgress } from '../../helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 
 type ProgressIndicatorProps = {
-  sentence: number
+  paragraph: number
   chapterInfo: ChapterInfo
 }
 
-export const ProgressIndicator = ({ sentence, chapterInfo }: ProgressIndicatorProps) => {
+export const ProgressIndicator = ({ paragraph, chapterInfo }: ProgressIndicatorProps) => {
   const chapterPercent =
-    computeChapterProgressPercent({ sentence, sentencesInChapter: chapterInfo.sentenceCount }) ?? 0
+    computeChapterProgressPercent({ paragraph, paragraphsInChapter: chapterInfo.paragraphCount }) ??
+    0
   const showChapterBar = shouldShowChapterProgress({ wordsInChapter: chapterInfo.wordCount })
   const chapterPagePosition = showChapterBar
     ? computeChapterPagePosition({
-        sentence,
-        sentenceCount: chapterInfo.sentenceCount,
+        paragraph,
+        paragraphCount: chapterInfo.paragraphCount,
         wordCount: chapterInfo.wordCount,
       })
     : null

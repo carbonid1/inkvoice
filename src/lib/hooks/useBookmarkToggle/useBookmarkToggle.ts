@@ -5,10 +5,10 @@ import type { UseBookmarkToggleArgs, UseBookmarkToggleReturn } from './useBookma
 export const useBookmarkToggle = ({
   bookId,
   chapter,
-  sentence,
+  paragraph,
   preview,
 }: UseBookmarkToggleArgs): UseBookmarkToggleReturn => {
-  const isBookmarked = useBookmarkStore(s => s.isBookmarked(bookId, chapter, sentence))
+  const isBookmarked = useBookmarkStore(s => s.isBookmarked(bookId, chapter, paragraph))
   const bookmarks = useBookmarkStore(s => s.bookmarks[bookId])
   const addBookmark = useBookmarkStore(s => s.addBookmark)
   const removeBookmark = useBookmarkStore(s => s.removeBookmark)
@@ -20,14 +20,14 @@ export const useBookmarkToggle = ({
 
   const toggle = useCallback(() => {
     if (isBookmarked) {
-      const bookmark = bookmarks?.find(b => b.chapter === chapter && b.sentence === sentence)
+      const bookmark = bookmarks?.find(b => b.chapter === chapter && b.paragraph === paragraph)
       if (bookmark) {
         removeBookmark(bookId, bookmark.id)
       }
     } else {
-      addBookmark(bookId, chapter, sentence, previewRef.current)
+      addBookmark(bookId, chapter, paragraph, previewRef.current)
     }
-  }, [isBookmarked, bookmarks, addBookmark, removeBookmark, bookId, chapter, sentence])
+  }, [isBookmarked, bookmarks, addBookmark, removeBookmark, bookId, chapter, paragraph])
 
   return { isBookmarked, toggle }
 }

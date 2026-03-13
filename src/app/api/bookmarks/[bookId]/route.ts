@@ -18,22 +18,22 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
 
   try {
     const body = await request.json()
-    const { chapter, sentence, preview } = body as {
+    const { chapter, paragraph, preview } = body as {
       chapter: unknown
-      sentence: unknown
+      paragraph: unknown
       preview: unknown
     }
 
     if (
       typeof chapter !== 'number' ||
-      typeof sentence !== 'number' ||
+      typeof paragraph !== 'number' ||
       chapter < 0 ||
-      sentence < 0 ||
+      paragraph < 0 ||
       !Number.isInteger(chapter) ||
-      !Number.isInteger(sentence)
+      !Number.isInteger(paragraph)
     ) {
       return NextResponse.json(
-        { error: 'chapter and sentence must be non-negative integers' },
+        { error: 'chapter and paragraph must be non-negative integers' },
         { status: 400 },
       )
     }
@@ -41,7 +41,7 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
     const bookmark = await bookmarkService.addBookmark(
       bookId,
       chapter,
-      sentence,
+      paragraph,
       typeof preview === 'string' ? preview : undefined,
     )
     return NextResponse.json(bookmark, { status: 201 })

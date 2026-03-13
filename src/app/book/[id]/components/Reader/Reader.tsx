@@ -8,15 +8,15 @@ import { ContentBlock } from './components/ContentBlock'
 import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
 import { findTitleGroupMembers } from './helpers/findTitleGroupMembers/findTitleGroupMembers'
 import { SegmentList } from './helpers/renderSegments/renderSegments'
-import { ACTIVE_SENTENCE_HIGHLIGHT } from './Reader.consts'
+import { ACTIVE_PARAGRAPH_HIGHLIGHT } from './Reader.consts'
 
 interface ReaderProps {
   chapter: ParsedChapter
   currentChapter: number
-  currentSentence: number
-  onSentenceClick?: (chapter: number, sentence: number) => void
-  onSentenceContextMenu?: (e: MouseEvent, chapter: number, sentence: number) => void
-  bookmarkedSentences?: Set<number>
+  currentParagraph: number
+  onParagraphClick?: (chapter: number, paragraph: number) => void
+  onParagraphContextMenu?: (e: MouseEvent, chapter: number, paragraph: number) => void
+  bookmarkedParagraphs?: Set<number>
 }
 
 import { isAllCaps, toTitleCase } from '@/lib/epub/helpers/normalizeTitle/normalizeTitle'
@@ -36,21 +36,21 @@ const normalizeCaps = (block: ContentBlockType): ContentBlockType => {
 export const Reader = ({
   chapter,
   currentChapter,
-  currentSentence,
-  onSentenceClick,
-  onSentenceContextMenu,
-  bookmarkedSentences,
+  currentParagraph,
+  onParagraphClick,
+  onParagraphContextMenu,
+  bookmarkedParagraphs,
 }: ReaderProps) => {
-  const currentSentenceRef = useRef<HTMLSpanElement>(null)
+  const currentParagraphRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    if (currentSentenceRef.current) {
-      currentSentenceRef.current.scrollIntoView({
+    if (currentParagraphRef.current) {
+      currentParagraphRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
       })
     }
-  }, [currentChapter, currentSentence, chapter])
+  }, [currentChapter, currentParagraph, chapter])
 
   const fontSize = useDisplayStore(s => s.fontSize)
 
@@ -97,14 +97,14 @@ export const Reader = ({
         <ContentBlock
           key={idx}
           block={isSubtitle ? normalizeCaps(block) : block}
-          currentSentence={currentSentence}
-          onSentenceClick={onSentenceClick}
-          onSentenceContextMenu={onSentenceContextMenu}
+          currentParagraph={currentParagraph}
+          onParagraphClick={onParagraphClick}
+          onParagraphContextMenu={onParagraphContextMenu}
           currentChapter={currentChapter}
-          sentenceRef={currentSentenceRef}
+          paragraphRef={currentParagraphRef}
           isInTitleGroup={titleGroupMember.has(idx)}
           isSubtitle={isSubtitle}
-          bookmarkedSentences={bookmarkedSentences}
+          bookmarkedParagraphs={bookmarkedParagraphs}
         />
       )
     }
@@ -145,12 +145,12 @@ export const Reader = ({
           {duplicateBlock?.segments ? (
             <SegmentList
               segments={duplicateBlock.segments}
-              currentSentence={currentSentence}
-              onSentenceClick={onSentenceClick}
-              onSentenceContextMenu={onSentenceContextMenu}
+              currentParagraph={currentParagraph}
+              onParagraphClick={onParagraphClick}
+              onParagraphContextMenu={onParagraphContextMenu}
               currentChapter={currentChapter}
-              sentenceRef={currentSentenceRef}
-              bookmarkedSentences={bookmarkedSentences}
+              paragraphRef={currentParagraphRef}
+              bookmarkedParagraphs={bookmarkedParagraphs}
             />
           ) : (
             chapter.title
@@ -161,23 +161,23 @@ export const Reader = ({
     )
   }
 
-  // Fallback to plain sentence rendering
+  // Fallback to plain paragraph rendering
   return (
     <div className={proseClasses}>
       <h2 className="text-xl font-semibold mb-6">{chapter.title}</h2>
       <div className="leading-relaxed">
-        {chapter.sentences.map((sentence, idx) => {
-          const isActive = idx === currentSentence
+        {chapter.paragraphs.map((paragraph, idx) => {
+          const isActive = idx === currentParagraph
           return (
             <span
               key={idx}
-              ref={isActive ? currentSentenceRef : undefined}
-              onClick={() => onSentenceClick?.(currentChapter, idx)}
+              ref={isActive ? currentParagraphRef : undefined}
+              onClick={() => onParagraphClick?.(currentChapter, idx)}
               className={`cursor-pointer transition-colors ${
-                isActive ? `${ACTIVE_SENTENCE_HIGHLIGHT} px-1 -mx-1` : 'hover:bg-accent'
+                isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} px-1 -mx-1` : 'hover:bg-accent'
               }`}
             >
-              {sentence}{' '}
+              {paragraph}{' '}
             </span>
           )
         })}

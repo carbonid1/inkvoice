@@ -1,12 +1,12 @@
 type ChapterProgressInput = {
-  sentence: number
-  sentencesInChapter: number
+  paragraph: number
+  paragraphsInChapter: number
 }
 
 export const computeChapterProgressPercent = ({
-  sentence,
-  sentencesInChapter,
+  paragraph,
+  paragraphsInChapter,
 }: ChapterProgressInput): number | null => {
-  if (sentencesInChapter === 0) return null
-  return (sentence / sentencesInChapter) * 100
+  if (paragraphsInChapter === 0) return null
+  return (paragraph / paragraphsInChapter) * 100
 }

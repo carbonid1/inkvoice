@@ -4,7 +4,7 @@ import { buildFlatResultList } from './buildFlatResultList'
 
 const match = (overrides: Partial<SearchMatch> = {}): SearchMatch => ({
   chapter: 0,
-  sentence: 0,
+  paragraph: 0,
   chapterTitle: 'Chapter 1',
   textSnippet: 'some text',
   matchPositions: [0],
@@ -18,8 +18,8 @@ describe('buildFlatResultList', () => {
 
   it('groups consecutive matches under same chapter', () => {
     const results = [
-      match({ chapter: 0, sentence: 0, chapterTitle: 'Chapter 1' }),
-      match({ chapter: 0, sentence: 3, chapterTitle: 'Chapter 1' }),
+      match({ chapter: 0, paragraph: 0, chapterTitle: 'Chapter 1' }),
+      match({ chapter: 0, paragraph: 3, chapterTitle: 'Chapter 1' }),
     ]
 
     const flat = buildFlatResultList(results)

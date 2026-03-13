@@ -8,7 +8,7 @@ vi.mock('@/store/useHydrated', () => ({
   useHydrated: vi.fn(() => true),
 }))
 
-const mockGetProgress = vi.fn(() => ({ chapter: 0, sentence: 0 }))
+const mockGetProgress = vi.fn(() => ({ chapter: 0, paragraph: 0 }))
 const mockSetBookMetadata = vi.fn()
 
 vi.mock('@/store/useProgressStore', () => ({
@@ -28,18 +28,18 @@ vi.mock('@/store/useLibraryStore', () => ({
     }),
 }))
 
-const makeChapters = (sentenceCounts: number[]): ChapterInfo[] =>
-  sentenceCounts.map((n, i) => ({
+const makeChapters = (paragraphCounts: number[]): ChapterInfo[] =>
+  paragraphCounts.map((n, i) => ({
     title: `Chapter ${i}`,
-    sentenceCount: n,
+    paragraphCount: n,
     wordCount: n * 10,
   }))
 
-const makeOverview = (sentenceCounts: number[] = [5, 3]): BookOverview => ({
+const makeOverview = (paragraphCounts: number[] = [5, 3]): BookOverview => ({
   id: 'book-1',
   title: 'Test Book',
   author: 'Author',
-  chapters: makeChapters(sentenceCounts),
+  chapters: makeChapters(paragraphCounts),
 })
 
 const wrapper = ({ children }: { children: ReactNode }) => <StrictMode>{children}</StrictMode>
@@ -47,7 +47,7 @@ const wrapper = ({ children }: { children: ReactNode }) => <StrictMode>{children
 describe('useBookOverview', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
-    mockGetProgress.mockReturnValue({ chapter: 0, sentence: 0 })
+    mockGetProgress.mockReturnValue({ chapter: 0, paragraph: 0 })
   })
 
   afterEach(() => {
@@ -77,11 +77,11 @@ describe('useBookOverview', () => {
     expect(result.current.overview).toEqual(overview)
     expect(result.current.error).toBeNull()
     expect(mockSetCurrentBook).toHaveBeenCalledWith('book-1')
-    expect(mockSetBookMetadata).toHaveBeenCalledWith('book-1', 2, [5, 3], [50, 30])
+    expect(mockSetBookMetadata).toHaveBeenCalledWith('book-1', [5, 3], [50, 30])
   })
 
   it('restores valid position from progress store', async () => {
-    mockGetProgress.mockReturnValue({ chapter: 1, sentence: 2 })
+    mockGetProgress.mockReturnValue({ chapter: 1, paragraph: 2 })
     const overview = makeOverview()
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
@@ -93,11 +93,11 @@ describe('useBookOverview', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     expect(result.current.initialChapter).toBe(1)
-    expect(result.current.initialSentence).toBe(2)
+    expect(result.current.initialParagraph).toBe(2)
   })
 
   it('clamps out-of-bounds chapter position', async () => {
-    mockGetProgress.mockReturnValue({ chapter: 10, sentence: 0 })
+    mockGetProgress.mockReturnValue({ chapter: 10, paragraph: 0 })
     const overview = makeOverview()
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
@@ -110,11 +110,11 @@ describe('useBookOverview', () => {
 
     // Chapter 10 >= chapters.length (2), so initial values stay at defaults
     expect(result.current.initialChapter).toBe(0)
-    expect(result.current.initialSentence).toBe(0)
+    expect(result.current.initialParagraph).toBe(0)
   })
 
-  it('clamps out-of-bounds sentence position', async () => {
-    mockGetProgress.mockReturnValue({ chapter: 0, sentence: 99 })
+  it('clamps out-of-bounds paragraph position', async () => {
+    mockGetProgress.mockReturnValue({ chapter: 0, paragraph: 99 })
     const overview = makeOverview()
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
@@ -126,8 +126,8 @@ describe('useBookOverview', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     expect(result.current.initialChapter).toBe(0)
-    // Sentence 99 >= sentenceCount (5), so sentence stays at default
-    expect(result.current.initialSentence).toBe(0)
+    // Paragraph 99 >= paragraphCount (5), so paragraph stays at default
+    expect(result.current.initialParagraph).toBe(0)
   })
 
   it('returns error on fetch failure', async () => {

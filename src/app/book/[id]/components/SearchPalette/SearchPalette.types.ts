@@ -10,6 +10,6 @@ export type SearchPaletteProps = {
   onHighlightNext: () => void
   onHighlightPrevious: () => void
   onHighlight: (index: number) => void
-  onSelect: (chapter: number, sentence: number) => void
+  onSelect: (chapter: number, paragraph: number) => void
   onClose: () => void
 }

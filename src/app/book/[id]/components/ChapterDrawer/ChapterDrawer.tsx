@@ -124,7 +124,7 @@ export const ChapterDrawer = ({
           </Tooltip>
         </div>
 
-        {/* Chapter list — only rendered when open to avoid re-rendering on every sentence advance */}
+        {/* Chapter list — only rendered when open to avoid re-rendering on every paragraph advance */}
         <div className="overflow-y-auto h-[calc(100%-57px)]">
           {isOpen &&
             (tocTree ? (

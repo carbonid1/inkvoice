@@ -62,7 +62,7 @@ export const BookmarkDrawer = ({
 
   const sorted = [...bookmarks].sort((a, b) => {
     if (a.chapter !== b.chapter) return a.chapter - b.chapter
-    return a.sentence - b.sentence
+    return a.paragraph - b.paragraph
   })
 
   return (
@@ -111,7 +111,7 @@ export const BookmarkDrawer = ({
                 <li key={bookmark.id} data-bookmark-id={bookmark.id}>
                   <button
                     onClick={() => {
-                      onNavigate(bookmark.chapter, bookmark.sentence)
+                      onNavigate(bookmark.chapter, bookmark.paragraph)
                       onClose()
                     }}
                     className="w-full text-left px-4 py-3 hover:bg-accent transition-colors flex items-center justify-between group"
@@ -121,7 +121,7 @@ export const BookmarkDrawer = ({
                         {chapterNames[bookmark.chapter] ?? `Chapter ${bookmark.chapter + 1}`}
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">
-                        {bookmark.preview ?? `Paragraph ${bookmark.sentence + 1}`}
+                        {bookmark.preview ?? `Paragraph ${bookmark.paragraph + 1}`}
                       </p>
                       <span className="text-xs text-muted-foreground">
                         {formatTimeAgo(bookmark.createdAt)}

@@ -1,7 +1,7 @@
 export type UseBookmarkToggleArgs = {
   bookId: string
   chapter: number
-  sentence: number
+  paragraph: number
   preview?: string
 }
 

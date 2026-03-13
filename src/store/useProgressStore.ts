@@ -9,18 +9,17 @@ type ProgressState = {
   progress: Record<string, Progress>
   loaded: boolean
   loadAllProgress: () => Promise<void>
-  setProgress: (bookId: string, chapter: number, sentence: number) => void
+  setProgress: (bookId: string, chapter: number, paragraph: number) => void
   setBookMetadata: (
     bookId: string,
-    totalChapters: number,
-    sentencesPerChapter: number[],
+    paragraphsPerChapter: number[],
     wordsPerChapter: number[],
   ) => void
   getProgress: (bookId: string) => Progress
   removeProgress: (bookId: string) => void
 }
 
-const DEFAULT_PROGRESS: Progress = { chapter: 0, sentence: 0 }
+const DEFAULT_PROGRESS: Progress = { chapter: 0, paragraph: 0 }
 
 const DEBOUNCE_MS = 2000
 
@@ -85,7 +84,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     }
   },
 
-  setProgress: (bookId, chapter, sentence) => {
+  setProgress: (bookId, chapter, paragraph) => {
     set(state => {
       const existing = state.progress[bookId]
       return {
@@ -94,11 +93,11 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
           [bookId]: {
             ...existing,
             chapter,
-            sentence,
+            paragraph,
             lastReadAt: Date.now(),
             chapterPositions: {
               ...existing?.chapterPositions,
-              [chapter]: sentence,
+              [chapter]: paragraph,
             },
           },
         },
@@ -107,14 +106,13 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     debouncedSave(bookId, () => get().progress[bookId])
   },
 
-  setBookMetadata: (bookId, totalChapters, sentencesPerChapter, wordsPerChapter) => {
+  setBookMetadata: (bookId, paragraphsPerChapter, wordsPerChapter) => {
     set(state => ({
       progress: {
         ...state.progress,
         [bookId]: {
           ...(state.progress[bookId] || DEFAULT_PROGRESS),
-          totalChapters,
-          sentencesPerChapter,
+          paragraphsPerChapter,
           wordsPerChapter,
         },
       },

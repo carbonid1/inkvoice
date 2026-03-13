@@ -14,7 +14,7 @@ beforeEach(() => {
 describe('useBookmarkToggle', () => {
   it('toggle is stable across re-renders with same args', () => {
     const { result, rerender } = renderHook(() =>
-      useBookmarkToggle({ bookId: 'book-1', chapter: 0, sentence: 0 }),
+      useBookmarkToggle({ bookId: 'book-1', chapter: 0, paragraph: 0 }),
     )
     const first = result.current.toggle
     rerender()
@@ -24,7 +24,7 @@ describe('useBookmarkToggle', () => {
   it('toggle is stable when preview changes', () => {
     let preview = 'First sentence'
     const { result, rerender } = renderHook(() =>
-      useBookmarkToggle({ bookId: 'book-1', chapter: 0, sentence: 0, preview }),
+      useBookmarkToggle({ bookId: 'book-1', chapter: 0, paragraph: 0, preview }),
     )
     const first = result.current.toggle
     preview = 'Second sentence'
@@ -35,13 +35,13 @@ describe('useBookmarkToggle', () => {
   it('removes bookmark when already bookmarked', async () => {
     useBookmarkStore.setState({
       bookmarks: {
-        'book-1': [{ id: 'bm-1', chapter: 2, sentence: 5, createdAt: 1000 }],
+        'book-1': [{ id: 'bm-1', chapter: 2, paragraph: 5, createdAt: 1000 }],
       },
     })
     mockFetch.mockResolvedValueOnce({ ok: true })
 
     const { result } = renderHook(() =>
-      useBookmarkToggle({ bookId: 'book-1', chapter: 2, sentence: 5 }),
+      useBookmarkToggle({ bookId: 'book-1', chapter: 2, paragraph: 5 }),
     )
 
     expect(result.current.isBookmarked).toBe(true)
@@ -57,14 +57,14 @@ describe('useBookmarkToggle', () => {
   })
 
   it('adds bookmark when not bookmarked', async () => {
-    const bookmark = { id: 'bm-1', chapter: 2, sentence: 5, createdAt: Date.now() }
+    const bookmark = { id: 'bm-1', chapter: 2, paragraph: 5, createdAt: Date.now() }
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(bookmark),
     })
 
     const { result } = renderHook(() =>
-      useBookmarkToggle({ bookId: 'book-1', chapter: 2, sentence: 5 }),
+      useBookmarkToggle({ bookId: 'book-1', chapter: 2, paragraph: 5 }),
     )
 
     expect(result.current.isBookmarked).toBe(false)
@@ -75,7 +75,7 @@ describe('useBookmarkToggle', () => {
     expect(mockFetch).toHaveBeenCalledWith('/api/bookmarks/book-1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chapter: 2, sentence: 5 }),
+      body: JSON.stringify({ chapter: 2, paragraph: 5 }),
     })
   })
 
@@ -83,7 +83,7 @@ describe('useBookmarkToggle', () => {
     const bookmark = {
       id: 'bm-1',
       chapter: 0,
-      sentence: 0,
+      paragraph: 0,
       createdAt: Date.now(),
       preview: 'Hello world',
     }
@@ -93,7 +93,7 @@ describe('useBookmarkToggle', () => {
     })
 
     const { result } = renderHook(() =>
-      useBookmarkToggle({ bookId: 'book-1', chapter: 0, sentence: 0, preview: 'Hello world' }),
+      useBookmarkToggle({ bookId: 'book-1', chapter: 0, paragraph: 0, preview: 'Hello world' }),
     )
 
     await act(() => result.current.toggle())
@@ -101,7 +101,7 @@ describe('useBookmarkToggle', () => {
     expect(mockFetch).toHaveBeenCalledWith('/api/bookmarks/book-1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chapter: 0, sentence: 0, preview: 'Hello world' }),
+      body: JSON.stringify({ chapter: 0, paragraph: 0, preview: 'Hello world' }),
     })
   })
 })

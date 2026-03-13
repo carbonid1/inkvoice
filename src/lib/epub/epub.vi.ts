@@ -3,17 +3,17 @@ import { describe, expect, it } from 'vitest'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
 // Helper to verify sentence index integrity
-function verifySentenceIndexIntegrity(content: ContentBlock[], sentences: string[]): void {
+function verifySentenceIndexIntegrity(content: ContentBlock[], paragraphs: string[]): void {
   content.forEach(block => {
     if (block.segments) {
       block.segments.forEach(segment => {
-        expect(sentences[segment.sentenceIndex]).toBeDefined()
+        expect(paragraphs[segment.paragraphIndex]).toBeDefined()
       })
     }
     if (block.items) {
       block.items.forEach(itemSegments => {
         itemSegments.forEach(segment => {
-          expect(sentences[segment.sentenceIndex]).toBeDefined()
+          expect(paragraphs[segment.paragraphIndex]).toBeDefined()
         })
       })
     }
@@ -40,20 +40,20 @@ function getAllSegments(content: ContentBlock[]): TextSegment[] {
 const noopGetImage = async () => null
 
 describe('parseHtmlContent sentence indexing', () => {
-  it('should have sentenceIndex match array position for simple paragraphs', async () => {
+  it('should have paragraphIndex match array position for simple paragraphs', async () => {
     const html = `
       <body>
         <p>First sentence. Second sentence.</p>
         <p>Third sentence.</p>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     // Each sentence index should be unique and sequential
     const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.sentenceIndex).sort((a, b) => a - b)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
@@ -69,12 +69,12 @@ describe('parseHtmlContent sentence indexing', () => {
         <p>Sentence after div.</p>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.sentenceIndex).sort((a, b) => a - b)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
@@ -91,16 +91,16 @@ describe('parseHtmlContent sentence indexing', () => {
         <p>Final paragraph.</p>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     // Verify sentence count matches segment count
     const allSegments = getAllSegments(content)
-    expect(allSegments.length).toBe(sentences.length)
+    expect(allSegments.length).toBe(paragraphs.length)
 
     // Verify indices are sequential
-    const indices = allSegments.map(s => s.sentenceIndex).sort((a, b) => a - b)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
@@ -110,13 +110,13 @@ describe('parseHtmlContent sentence indexing', () => {
         <p>First sentence here. Second sentence follows. Third one too.</p>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     // Paragraph mode: entire paragraph is one chunk
-    expect(sentences).toHaveLength(1)
-    expect(sentences[0]).toBe('First sentence here. Second sentence follows. Third one too.')
+    expect(paragraphs).toHaveLength(1)
+    expect(paragraphs[0]).toBe('First sentence here. Second sentence follows. Third one too.')
   })
 
   it('should handle headings at different levels', async () => {
@@ -129,12 +129,12 @@ describe('parseHtmlContent sentence indexing', () => {
         <h3>Sub-subtitle</h3>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     const allSegments = getAllSegments(content)
-    expect(allSegments.length).toBe(sentences.length)
+    expect(allSegments.length).toBe(paragraphs.length)
   })
 
   it('should maintain index alignment with inline formatting', async () => {
@@ -144,12 +144,12 @@ describe('parseHtmlContent sentence indexing', () => {
         <p>Another <i>italic</i> paragraph.</p>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.sentenceIndex).sort((a, b) => a - b)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
@@ -162,12 +162,12 @@ describe('parseHtmlContent sentence indexing', () => {
         <p>Another valid sentence.</p>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     // Only non-empty paragraphs should create segments
-    expect(sentences.length).toBe(2)
+    expect(paragraphs.length).toBe(2)
   })
 
   it('should handle deeply nested structure', async () => {
@@ -185,13 +185,13 @@ describe('parseHtmlContent sentence indexing', () => {
         </div>
       </body>
     `
-    const { content, sentences } = await parseHtmlContent(html, noopGetImage)
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    verifySentenceIndexIntegrity(content, sentences)
+    verifySentenceIndexIntegrity(content, paragraphs)
 
     const allSegments = getAllSegments(content)
-    expect(allSegments.length).toBe(sentences.length)
-    expect(sentences.length).toBe(2)
+    expect(allSegments.length).toBe(paragraphs.length)
+    expect(paragraphs.length).toBe(2)
   })
 })
 
@@ -202,11 +202,11 @@ describe('paragraph chunking', () => {
         <p>Dr. Smith went to St. Mary's hospital.</p>
       </body>
     `
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    expect(sentences).toHaveLength(1)
-    expect(sentences[0]).toContain('Dr.')
-    expect(sentences[0]).toContain('St.')
+    expect(paragraphs).toHaveLength(1)
+    expect(paragraphs[0]).toContain('Dr.')
+    expect(paragraphs[0]).toContain('St.')
   })
 
   it('should not split on e.g. and i.e.', async () => {
@@ -215,9 +215,9 @@ describe('paragraph chunking', () => {
         <p>E.g. this is an example.</p>
       </body>
     `
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    expect(sentences).toHaveLength(1)
+    expect(paragraphs).toHaveLength(1)
   })
 
   it('should not split on decimal numbers', async () => {
@@ -226,10 +226,10 @@ describe('paragraph chunking', () => {
         <p>The value is 3.14 approximately.</p>
       </body>
     `
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    expect(sentences).toHaveLength(1)
-    expect(sentences[0]).toContain('3.14')
+    expect(paragraphs).toHaveLength(1)
+    expect(paragraphs[0]).toContain('3.14')
   })
 
   it('should not split on version numbers', async () => {
@@ -238,10 +238,10 @@ describe('paragraph chunking', () => {
         <p>Install version 2.0.1 now.</p>
       </body>
     `
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    expect(sentences).toHaveLength(1)
-    expect(sentences[0]).toContain('2.0.1')
+    expect(paragraphs).toHaveLength(1)
+    expect(paragraphs[0]).toContain('2.0.1')
   })
 
   it('should keep paragraph as single chunk', async () => {
@@ -250,10 +250,10 @@ describe('paragraph chunking', () => {
         <p>Hello world. How are you?</p>
       </body>
     `
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    expect(sentences).toHaveLength(1)
-    expect(sentences[0]).toBe('Hello world. How are you?')
+    expect(paragraphs).toHaveLength(1)
+    expect(paragraphs[0]).toBe('Hello world. How are you?')
   })
 
   it('should keep punctuation variants as single chunk', async () => {
@@ -262,10 +262,10 @@ describe('paragraph chunking', () => {
         <p>Wait! What happened?</p>
       </body>
     `
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    expect(sentences).toHaveLength(1)
-    expect(sentences[0]).toBe('Wait! What happened?')
+    expect(paragraphs).toHaveLength(1)
+    expect(paragraphs[0]).toBe('Wait! What happened?')
   })
 
   it('should preserve abbreviations in single chunk', async () => {
@@ -274,9 +274,9 @@ describe('paragraph chunking', () => {
         <p>Dr. Johnson is here. She arrived early.</p>
       </body>
     `
-    const { sentences } = await parseHtmlContent(html, noopGetImage)
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    expect(sentences).toHaveLength(1)
-    expect(sentences[0]).toBe('Dr. Johnson is here. She arrived early.')
+    expect(paragraphs).toHaveLength(1)
+    expect(paragraphs[0]).toBe('Dr. Johnson is here. She arrived early.')
   })
 })

@@ -38,7 +38,7 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
           Cache: {metrics.cacheUsedMB ?? 0}MB / {metrics.cacheMaxMB ?? 800}MB ({cachePercent}%)
         </div>
         <div>
-          Paragraph: {metrics.currentSentence + 1}/{metrics.totalSentences}
+          Paragraph: {metrics.currentParagraph + 1}/{metrics.totalParagraphs}
           {metrics.totalChapters > 1 && (
             <span>
               {' '}

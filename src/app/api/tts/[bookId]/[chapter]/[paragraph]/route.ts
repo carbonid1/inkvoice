@@ -7,7 +7,7 @@ import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import { voiceService } from '@/lib/services/voice/voice.service'
 import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = { params: Promise<{ bookId: string; chapter: string; sentence: string }> }
+type RouteParams = { params: Promise<{ bookId: string; chapter: string; paragraph: string }> }
 
 type RequestContext = {
   bookId: string
@@ -20,7 +20,7 @@ const parseRequest = async (
   request: NextRequest,
   params: RouteParams['params'],
 ): Promise<RequestContext | NextResponse> => {
-  const { bookId, chapter, sentence } = await params
+  const { bookId, chapter, paragraph } = await params
   const requestedVoice = request.nextUrl.searchParams.get('voice') || DEFAULT_VOICE
   const { voice, fellBack } = await resolveValidVoice(
     requestedVoice,
@@ -28,16 +28,16 @@ const parseRequest = async (
     voiceService.listVoices,
   )
   const chapterIdx = parseInt(chapter, 10)
-  const sentenceIdx = parseInt(sentence, 10)
+  const paragraphIdx = parseInt(paragraph, 10)
 
-  if (isNaN(chapterIdx) || isNaN(sentenceIdx)) {
-    return NextResponse.json({ error: 'Invalid chapter or sentence index' }, { status: 400 })
+  if (isNaN(chapterIdx) || isNaN(paragraphIdx)) {
+    return NextResponse.json({ error: 'Invalid chapter or paragraph index' }, { status: 400 })
   }
 
   const bookService = getBookService()
-  const text = await bookService.getSentence(bookId, chapterIdx, sentenceIdx)
+  const text = await bookService.getParagraph(bookId, chapterIdx, paragraphIdx)
   if (!text) {
-    return NextResponse.json({ error: 'Sentence not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Paragraph not found' }, { status: 404 })
   }
 
   return { bookId, voice, fellBack, text }

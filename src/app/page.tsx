@@ -110,7 +110,7 @@ export default function Library() {
     // Restore snapshotted progress and voice assignment
     if (undoState.previousProgress) {
       const p = undoState.previousProgress
-      setProgress(undoState.book.id, p.chapter, p.sentence)
+      setProgress(undoState.book.id, p.chapter, p.paragraph)
     }
     if (undoState.previousBookVoice) {
       setBookVoice(undoState.book.id, undoState.previousBookVoice)

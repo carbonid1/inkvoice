@@ -11,7 +11,7 @@ type UseBookOverviewResult = {
   loading: boolean
   error: string | null
   initialChapter: number
-  initialSentence: number
+  initialParagraph: number
 }
 
 export const useBookOverview = (bookId: string): UseBookOverviewResult => {
@@ -25,7 +25,7 @@ export const useBookOverview = (bookId: string): UseBookOverviewResult => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [initialChapter, setInitialChapter] = useState(savedProgress.chapter)
-  const [initialSentence, setInitialSentence] = useState(savedProgress.sentence)
+  const [initialParagraph, setInitialParagraph] = useState(savedProgress.paragraph)
 
   useEffect(() => {
     if (!hydrated) return
@@ -45,22 +45,22 @@ export const useBookOverview = (bookId: string): UseBookOverviewResult => {
         setOverview(data)
         setCurrentBook(bookId)
 
-        const sentencesPerChapter = data.chapters.map(ch => ch.sentenceCount)
+        const paragraphsPerChapter = data.chapters.map(ch => ch.paragraphCount)
         const wordsPerChapter = data.chapters.map(ch => ch.wordCount)
-        setBookMetadata(bookId, data.chapters.length, sentencesPerChapter, wordsPerChapter)
+        setBookMetadata(bookId, paragraphsPerChapter, wordsPerChapter)
 
         const progress = getProgress(bookId)
         if (progress.chapter < data.chapters.length) {
           setInitialChapter(progress.chapter)
           const chapterInfo = data.chapters[progress.chapter]
-          if (chapterInfo && progress.sentence < chapterInfo.sentenceCount) {
-            setInitialSentence(progress.sentence)
+          if (chapterInfo && progress.paragraph < chapterInfo.paragraphCount) {
+            setInitialParagraph(progress.paragraph)
           } else {
-            setInitialSentence(0)
+            setInitialParagraph(0)
           }
         } else {
           setInitialChapter(0)
-          setInitialSentence(0)
+          setInitialParagraph(0)
         }
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return
@@ -77,7 +77,7 @@ export const useBookOverview = (bookId: string): UseBookOverviewResult => {
   }, [bookId, hydrated, getProgress, setCurrentBook, setBookMetadata])
 
   return useMemo(
-    () => ({ overview, loading, error, initialChapter, initialSentence }),
-    [overview, loading, error, initialChapter, initialSentence],
+    () => ({ overview, loading, error, initialChapter, initialParagraph }),
+    [overview, loading, error, initialChapter, initialParagraph],
   )
 }

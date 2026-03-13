@@ -18,8 +18,8 @@ interface PlayerContainerProps {
   bookId: string
   chapters: ChapterInfo[]
   currentChapter: number
-  currentSentence: number
-  onProgressChange: (chapter: number, sentence: number) => void
+  currentParagraph: number
+  onProgressChange: (chapter: number, paragraph: number) => void
   onDebugUpdate?: (updater: (prev: PlaybackMetrics) => PlaybackMetrics) => void
   isCurrentBookmarked?: boolean
   onBookmarkToggle?: () => void
@@ -31,7 +31,7 @@ export const PlayerContainer = ({
   bookId,
   chapters,
   currentChapter,
-  currentSentence,
+  currentParagraph,
   onProgressChange,
   onDebugUpdate,
   isCurrentBookmarked,
@@ -43,7 +43,7 @@ export const PlayerContainer = ({
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
   const { effectiveVoice: voice } = useBookVoice(bookId, voiceNames)
   const prefetchEnabled = usePrefetchStore(s => s.enabled)
-  const playingPositionRef = useRef<{ ch: number; sent: number } | null>(null)
+  const playingPositionRef = useRef<{ ch: number; para: number } | null>(null)
   const pendingChapterAdvanceRef = useRef(false)
   const prevReplayKeyRef = useRef(replayKey)
   const onChapterEndRef = useRef(onChapterEnd)
@@ -55,7 +55,7 @@ export const PlayerContainer = ({
   const position = useBookPosition({
     chapters,
     currentChapter,
-    currentSentence,
+    currentParagraph,
     onProgressChange,
   })
 
@@ -63,7 +63,7 @@ export const PlayerContainer = ({
     onEnded: () => {
       const next = position.getNextPosition(
         position.currentChapterRef.current,
-        position.currentSentenceRef.current,
+        position.currentParagraphRef.current,
       )
 
       if (!next) {
@@ -81,7 +81,7 @@ export const PlayerContainer = ({
         return
       }
 
-      position.onProgressChangeRef.current(next.ch, next.sent)
+      position.onProgressChangeRef.current(next.ch, next.para)
     },
   })
 
@@ -90,7 +90,7 @@ export const PlayerContainer = ({
     voice,
     chaptersRef: position.chaptersRef,
     currentChapterRef: position.currentChapterRef,
-    currentSentenceRef: position.currentSentenceRef,
+    currentParagraphRef: position.currentParagraphRef,
     onDebugUpdate,
     prefetchEnabled,
   })
@@ -100,13 +100,13 @@ export const PlayerContainer = ({
   const { fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, clearPrefetched } =
     prefetch
 
-  // Counter to detect when a newer playCurrentSentence call has superseded this one
+  // Counter to detect when a newer playCurrentParagraph call has superseded this one
   const playIdRef = useRef(0)
 
-  const playCurrentSentence = useCallback(async () => {
+  const playCurrentParagraph = useCallback(async () => {
     const myId = ++playIdRef.current
     const targetChapter = currentChapter
-    const targetSentence = currentSentence
+    const targetParagraph = currentParagraph
 
     // Stop old audio immediately so its onEnded won't fire during fetch
     stop()
@@ -114,7 +114,7 @@ export const PlayerContainer = ({
     setError(null)
 
     try {
-      const url = await fetchAudio(targetChapter, targetSentence)
+      const url = await fetchAudio(targetChapter, targetParagraph)
 
       // Bail if a newer call has started
       if (playIdRef.current !== myId) return
@@ -127,7 +127,7 @@ export const PlayerContainer = ({
       // Check if position changed while fetching
       if (
         position.currentChapterRef.current !== targetChapter ||
-        position.currentSentenceRef.current !== targetSentence
+        position.currentParagraphRef.current !== targetParagraph
       ) {
         setLoading(false)
         return
@@ -139,7 +139,7 @@ export const PlayerContainer = ({
         return
       }
 
-      playingPositionRef.current = { ch: targetChapter, sent: targetSentence }
+      playingPositionRef.current = { ch: targetChapter, para: targetParagraph }
       await play(url)
 
       // Bail if superseded during play
@@ -165,7 +165,7 @@ export const PlayerContainer = ({
     }
   }, [
     currentChapter,
-    currentSentence,
+    currentParagraph,
     setLoading,
     setError,
     fetchAudio,
@@ -175,7 +175,7 @@ export const PlayerContainer = ({
     continuePrefetching,
     setPlaying,
     position.currentChapterRef,
-    position.currentSentenceRef,
+    position.currentParagraphRef,
   ])
 
   const debouncedLoading = useDebouncedLoading(audioPlayer.isLoading)
@@ -192,7 +192,7 @@ export const PlayerContainer = ({
     updateDebugMetrics()
     resetFailures()
     continuePrefetching()
-  }, [currentChapter, currentSentence, updateDebugMetrics, continuePrefetching, resetFailures])
+  }, [currentChapter, currentParagraph, updateDebugMetrics, continuePrefetching, resetFailures])
 
   // Clear pending chapter advance when chapter changes (user continued or navigated)
   useEffect(() => {
@@ -214,19 +214,20 @@ export const PlayerContainer = ({
     }
 
     const pos = playingPositionRef.current
-    const isSameSentence = pos !== null && pos.ch === currentChapter && pos.sent === currentSentence
+    const isSameParagraph =
+      pos !== null && pos.ch === currentChapter && pos.para === currentParagraph
 
-    if (isSameSentence) {
+    if (isSameParagraph) {
       resume()
     } else {
-      playCurrentSentence()
+      playCurrentParagraph()
     }
   }, [
     isPlaying,
     currentChapter,
-    currentSentence,
+    currentParagraph,
     replayKey,
-    playCurrentSentence,
+    playCurrentParagraph,
     resume,
     setPlaying,
   ])
@@ -236,19 +237,19 @@ export const PlayerContainer = ({
     if (replayKey === prevReplayKeyRef.current) return
     prevReplayKeyRef.current = replayKey
     playingPositionRef.current = null
-    clearPrefetched(currentChapter, currentSentence)
+    clearPrefetched(currentChapter, currentParagraph)
     if (isPlaying) {
-      playCurrentSentence()
+      playCurrentParagraph()
     } else {
       setPlaying(true)
     }
   }, [
     replayKey,
     currentChapter,
-    currentSentence,
+    currentParagraph,
     isPlaying,
     setPlaying,
-    playCurrentSentence,
+    playCurrentParagraph,
     clearPrefetched,
   ])
 

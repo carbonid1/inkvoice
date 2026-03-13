@@ -19,21 +19,21 @@ const mockSearchResponse = (overrides: Partial<SearchResponse> = {}): SearchResp
   matches: [
     {
       chapter: 0,
-      sentence: 2,
+      paragraph: 2,
       chapterTitle: 'Chapter 1',
       textSnippet: 'a test here',
       matchPositions: [2],
     },
     {
       chapter: 1,
-      sentence: 5,
+      paragraph: 5,
       chapterTitle: 'Chapter 2',
       textSnippet: 'another test',
       matchPositions: [8],
     },
     {
       chapter: 1,
-      sentence: 10,
+      paragraph: 10,
       chapterTitle: 'Chapter 2',
       textSnippet: 'test again',
       matchPositions: [0],

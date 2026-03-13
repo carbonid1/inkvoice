@@ -25,30 +25,30 @@ const isLinkListParagraph = (el: Element): boolean => {
 export const parseHtmlContent = (
   html: string,
   getImage: (id: string) => Promise<string | null>,
-): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
+): Promise<{ content: ContentBlock[]; paragraphs: string[] }> => {
   return parseHtmlContentSync(html, getImage)
 }
 
 const parseHtmlContentSync = async (
   html: string,
   getImage: (id: string) => Promise<string | null>,
-): Promise<{ content: ContentBlock[]; sentences: string[] }> => {
+): Promise<{ content: ContentBlock[]; paragraphs: string[] }> => {
   const dom = new JSDOM(html)
   const doc = dom.window.document
   const body = doc.body
 
   const content: ContentBlock[] = []
-  const sentences: string[] = []
+  const paragraphs: string[] = []
 
   // Convert an element's text into chunk-aligned segments, registering each
-  // chunk in the shared sentences array. Returns null if the element is empty.
+  // chunk in the shared paragraphs array. Returns null if the element is empty.
   const toSegments = (node: Element): TextSegment[] | null => {
     const mappings = splitNodeIntoChunks(node)
     if (mappings.length === 0) return null
     return mappings.map(m => {
-      const idx = sentences.length
-      sentences.push(m.plainText)
-      return { sentenceIndex: idx, html: m.html }
+      const idx = paragraphs.length
+      paragraphs.push(m.plainText)
+      return { paragraphIndex: idx, html: m.html }
     })
   }
 
@@ -168,15 +168,15 @@ const parseHtmlContentSync = async (
     content.forEach(block => {
       const segments = block.segments || (block.items?.flat() ?? [])
       segments.forEach(seg => {
-        if (sentences[seg.sentenceIndex] === undefined) {
+        if (paragraphs[seg.paragraphIndex] === undefined) {
           console.error(
-            `[epub] Index mismatch: sentenceIndex ${seg.sentenceIndex} out of bounds (sentences.length: ${sentences.length})`,
+            `[epub] Index mismatch: paragraphIndex ${seg.paragraphIndex} out of bounds (paragraphs.length: ${paragraphs.length})`,
           )
           mismatchFound = true
         }
       })
     })
-    if (!mismatchFound && sentences.length > 0) {
+    if (!mismatchFound && paragraphs.length > 0) {
       // Verification passed
     }
   }
@@ -195,5 +195,5 @@ const parseHtmlContentSync = async (
     }
   }
 
-  return { content, sentences }
+  return { content, paragraphs }
 }

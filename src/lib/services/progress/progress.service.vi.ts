@@ -27,9 +27,8 @@ describe('progressService', () => {
       {
         bookId: 'book-1',
         chapter: 3,
-        sentence: 7,
-        totalChapters: 10,
-        sentencesPerChapter: '[5,3,8]',
+        paragraph: 7,
+        paragraphsPerChapter: '[5,3,8]',
         wordsPerChapter: '[50,30,80]',
         lastReadAt: 1000,
         chapterPositions: '{"0":2,"1":4}',
@@ -37,9 +36,8 @@ describe('progressService', () => {
       {
         bookId: 'book-2',
         chapter: 0,
-        sentence: 0,
-        totalChapters: null,
-        sentencesPerChapter: null,
+        paragraph: 0,
+        paragraphsPerChapter: null,
         wordsPerChapter: null,
         lastReadAt: null,
         chapterPositions: null,
@@ -51,16 +49,15 @@ describe('progressService', () => {
     expect(result).toEqual({
       'book-1': {
         chapter: 3,
-        sentence: 7,
-        totalChapters: 10,
-        sentencesPerChapter: [5, 3, 8],
+        paragraph: 7,
+        paragraphsPerChapter: [5, 3, 8],
         wordsPerChapter: [50, 30, 80],
         lastReadAt: 1000,
         chapterPositions: { 0: 2, 1: 4 },
       },
       'book-2': {
         chapter: 0,
-        sentence: 0,
+        paragraph: 0,
       },
     })
   })
@@ -78,9 +75,8 @@ describe('progressService', () => {
     mockPrisma.readingProgress.findUnique.mockResolvedValue({
       bookId: 'book-1',
       chapter: 2,
-      sentence: 5,
-      totalChapters: 8,
-      sentencesPerChapter: '[10,20]',
+      paragraph: 5,
+      paragraphsPerChapter: '[10,20]',
       wordsPerChapter: null,
       lastReadAt: 2000,
       chapterPositions: null,
@@ -89,9 +85,8 @@ describe('progressService', () => {
     const result = await progressService.get('book-1')
     expect(result).toEqual({
       chapter: 2,
-      sentence: 5,
-      totalChapters: 8,
-      sentencesPerChapter: [10, 20],
+      paragraph: 5,
+      paragraphsPerChapter: [10, 20],
       lastReadAt: 2000,
     })
   })
@@ -99,9 +94,8 @@ describe('progressService', () => {
   it('upserts progress with serialized JSON fields', async () => {
     await progressService.upsert('book-1', {
       chapter: 1,
-      sentence: 3,
-      totalChapters: 5,
-      sentencesPerChapter: [10, 20, 30],
+      paragraph: 3,
+      paragraphsPerChapter: [10, 20, 30],
       wordsPerChapter: [100, 200, 300],
       lastReadAt: 3000,
       chapterPositions: { 0: 5, 1: 3 },
@@ -112,18 +106,16 @@ describe('progressService', () => {
       create: {
         bookId: 'book-1',
         chapter: 1,
-        sentence: 3,
-        totalChapters: 5,
-        sentencesPerChapter: '[10,20,30]',
+        paragraph: 3,
+        paragraphsPerChapter: '[10,20,30]',
         wordsPerChapter: '[100,200,300]',
         lastReadAt: 3000,
         chapterPositions: '{"0":5,"1":3}',
       },
       update: {
         chapter: 1,
-        sentence: 3,
-        totalChapters: 5,
-        sentencesPerChapter: '[10,20,30]',
+        paragraph: 3,
+        paragraphsPerChapter: '[10,20,30]',
         wordsPerChapter: '[100,200,300]',
         lastReadAt: 3000,
         chapterPositions: '{"0":5,"1":3}',

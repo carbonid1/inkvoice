@@ -1,8 +1,7 @@
 export type Bookmark = {
   id: string
   chapter: number
-  sentence: number
+  paragraph: number
   createdAt: number
-  label?: string
   preview?: string
 }
