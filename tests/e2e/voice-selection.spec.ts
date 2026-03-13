@@ -1,10 +1,16 @@
 import { expect, test } from '@playwright/test'
+import { mockProgress } from './helpers/mockProgress'
+import { mockSettings } from './helpers/mockSettings'
 import { mockTTS } from './helpers/mockTTS'
+import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 import { navigateToBook } from './helpers/navigateToBook'
 
 test.describe('per-book voice selection', () => {
   test('click-to-select voice in settings and verify book page reflects it', async ({ page }) => {
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
 
     // 1. Go to settings, find the currently selected voice row
     await page.goto('/settings')

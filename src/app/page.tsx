@@ -37,6 +37,8 @@ export default function Library() {
   const setBooks = useLibraryStore(s => s.setBooks)
   const addBooks = useLibraryStore(s => s.addBooks)
   const progress = useProgressStore(s => s.progress)
+  const progressLoaded = useProgressStore(s => s.loaded)
+  const loadAllProgress = useProgressStore(s => s.loadAllProgress)
   const removeProgress = useProgressStore(s => s.removeProgress)
   const setProgress = useProgressStore(s => s.setProgress)
   const clearBookVoice = useVoiceStore(s => s.clearBookVoice)
@@ -60,7 +62,8 @@ export default function Library() {
 
   useEffect(() => {
     fetchBooks()
-  }, [fetchBooks])
+    loadAllProgress()
+  }, [fetchBooks, loadAllProgress])
 
   useEffect(() => {
     if (uploadError) {
@@ -225,7 +228,7 @@ export default function Library() {
       </PageHeader>
 
       <main className="max-w-6xl mx-auto px-8 py-8">
-        {loading && (
+        {(loading || !progressLoaded) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {Array.from({ length: 5 }, (_, i) => (
               <div
@@ -243,7 +246,7 @@ export default function Library() {
 
         {error && <div className="text-center py-12 text-red-600 dark:text-red-400">{error}</div>}
 
-        {!loading && !error && (
+        {!loading && progressLoaded && !error && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {sortedBooks.map(book => (
               <BookCard key={book.id} book={book} onRemove={() => handleRemove(book)} />

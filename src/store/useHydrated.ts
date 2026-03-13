@@ -8,10 +8,10 @@ import { useProgressStore } from './useProgressStore'
 import { useVoiceStore } from './useVoiceStore'
 
 const allHydrated = () =>
-  useProgressStore.persist.hasHydrated() &&
-  useVoiceStore.persist.hasHydrated() &&
-  usePrefetchStore.persist.hasHydrated() &&
-  useDisplayStore.persist.hasHydrated()
+  useProgressStore.getState().loaded &&
+  useVoiceStore.getState().loaded &&
+  usePrefetchStore.getState().loaded &&
+  useDisplayStore.getState().loaded
 
 export const useHydrated = () => {
   const [hydrated, setHydrated] = useState(allHydrated)
@@ -20,18 +20,19 @@ export const useHydrated = () => {
     const check = () => {
       if (allHydrated()) setHydrated(true)
     }
-    const unsub1 = useProgressStore.persist.onFinishHydration(check)
-    const unsub2 = useVoiceStore.persist.onFinishHydration(check)
-    const unsub3 = usePrefetchStore.persist.onFinishHydration(check)
-    const unsub4 = useDisplayStore.persist.onFinishHydration(check)
 
-    // Clean up legacy storage keys after migration
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('inkvoice-storage')
-      localStorage.removeItem('inkvoice-display')
-      localStorage.removeItem('inkvoice-playback')
-      localStorage.removeItem('inkvoice-pronunciation')
-    }
+    const unsub1 = useProgressStore.subscribe(check)
+    const unsub2 = useVoiceStore.subscribe(check)
+    const unsub3 = usePrefetchStore.subscribe(check)
+    const unsub4 = useDisplayStore.subscribe(check)
+
+    // Trigger all API loads
+    useProgressStore.getState().loadAllProgress()
+    useVoiceStore.getState().loadAll()
+    useDisplayStore.getState().loadFromApi()
+    usePrefetchStore.getState().loadFromApi()
+
+    check()
 
     return () => {
       unsub1()

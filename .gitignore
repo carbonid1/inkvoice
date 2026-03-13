@@ -34,6 +34,13 @@ build/
 # Cache
 data/cache/
 
+# Database
+data/*.db
+data/*.db-journal
+
+# Prisma generated client
+generated/
+
 # User-uploaded voices (unlicensed)
 data/voices/custom/
 

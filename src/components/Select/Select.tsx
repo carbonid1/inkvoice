@@ -131,7 +131,7 @@ export const Select = ({
             return (
               <li key={item.value} role="presentation">
                 {groupHeader && (
-                  <div className="text-xs font-medium text-gray-500 uppercase px-3 pt-2 pb-1">
+                  <div className="text-xs font-medium text-muted-foreground uppercase px-3 pt-2 pb-1">
                     {groupHeader.label}
                   </div>
                 )}

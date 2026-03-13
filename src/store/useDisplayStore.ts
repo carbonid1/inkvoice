@@ -1,38 +1,49 @@
 'use client'
 
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
-import { createDebouncedStorage } from './debouncedStorage'
 
 type FontSize = 'small' | 'medium' | 'large'
 
 type DisplayState = {
   fontSize: FontSize
+  loaded: boolean
+  loadFromApi: () => Promise<void>
   setFontSize: (size: FontSize) => void
 }
 
-type PersistedDisplayState = Pick<DisplayState, 'fontSize'>
+const SETTING_KEY = 'display.fontSize'
 
-export const useDisplayStore = create<DisplayState>()(
-  persist(
-    set => ({
-      fontSize: 'medium',
-      setFontSize: (size: FontSize) => set({ fontSize: size }),
-    }),
-    {
-      name: 'inkvoice-font',
-      version: 2,
-      storage: createJSONStorage<PersistedDisplayState>(() => createDebouncedStorage()),
-      partialize: state => ({ fontSize: state.fontSize }),
-      migrate: (persisted, version) => {
-        const state = persisted as PersistedDisplayState
-        if (version < 2 && state.fontSize === ('xlarge' as FontSize)) {
-          return { ...state, fontSize: 'large' as FontSize }
-        }
-        return state
-      },
-    },
-  ),
-)
+export const useDisplayStore = create<DisplayState>()((set, get) => ({
+  fontSize: 'medium',
+  loaded: false,
+
+  loadFromApi: async () => {
+    if (get().loaded) return
+
+    try {
+      const response = await fetch(`/api/settings/${SETTING_KEY}`)
+
+      if (response.ok) {
+        const data: { value: FontSize } = await response.json()
+        set({ fontSize: data.value, loaded: true })
+        return
+      }
+
+      set({ loaded: true })
+    } catch (error) {
+      console.error('Failed to load display settings:', error)
+      set({ loaded: true })
+    }
+  },
+
+  setFontSize: (size: FontSize) => {
+    set({ fontSize: size })
+    fetch(`/api/settings/${SETTING_KEY}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: size }),
+    }).catch(error => console.error('Failed to save font size:', error))
+  },
+}))
 
 export type { FontSize }

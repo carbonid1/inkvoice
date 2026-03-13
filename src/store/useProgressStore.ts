@@ -1,22 +1,14 @@
 'use client'
 
+import type { Progress } from '@/lib/services/progress/progress.types'
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
 
-import { createDebouncedStorage } from './debouncedStorage'
-
-export type Progress = {
-  chapter: number
-  sentence: number
-  totalChapters?: number
-  sentencesPerChapter?: number[]
-  wordsPerChapter?: number[]
-  lastReadAt?: number
-  chapterPositions?: Record<number, number>
-}
+export type { Progress } from '@/lib/services/progress/progress.types'
 
 type ProgressState = {
   progress: Record<string, Progress>
+  loaded: boolean
+  loadAllProgress: () => Promise<void>
   setProgress: (bookId: string, chapter: number, sentence: number) => void
   setBookMetadata: (
     bookId: string,
@@ -28,75 +20,127 @@ type ProgressState = {
   removeProgress: (bookId: string) => void
 }
 
-type PersistedProgressState = Pick<ProgressState, 'progress'>
-
 const DEFAULT_PROGRESS: Progress = { chapter: 0, sentence: 0 }
 
-export const useProgressStore = create<ProgressState>()(
-  persist(
-    (set, get) => ({
-      progress: {},
+const DEBOUNCE_MS = 2000
 
-      setProgress: (bookId, chapter, sentence) =>
-        set(state => {
-          const existing = state.progress[bookId]
-          return {
-            progress: {
-              ...state.progress,
-              [bookId]: {
-                ...existing,
-                chapter,
-                sentence,
-                lastReadAt: Date.now(),
-                chapterPositions: {
-                  ...existing?.chapterPositions,
-                  [chapter]: sentence,
-                },
-              },
-            },
-          }
-        }),
+const pendingWrites = new Map<string, ReturnType<typeof setTimeout>>()
 
-      setBookMetadata: (bookId, totalChapters, sentencesPerChapter, wordsPerChapter) =>
-        set(state => ({
-          progress: {
-            ...state.progress,
-            [bookId]: {
-              ...(state.progress[bookId] || DEFAULT_PROGRESS),
-              totalChapters,
-              sentencesPerChapter,
-              wordsPerChapter,
+const saveToApi = (bookId: string, data: Progress) => {
+  fetch(`/api/progress/${bookId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).catch(error => console.error('Failed to save progress:', error))
+}
+
+const debouncedSave = (bookId: string, getData: () => Progress | undefined) => {
+  const existing = pendingWrites.get(bookId)
+  if (existing) clearTimeout(existing)
+
+  pendingWrites.set(
+    bookId,
+    setTimeout(() => {
+      pendingWrites.delete(bookId)
+      const data = getData()
+      if (data) saveToApi(bookId, data)
+    }, DEBOUNCE_MS),
+  )
+}
+
+const flushPendingWrites = () => {
+  pendingWrites.forEach((timeout, bookId) => {
+    clearTimeout(timeout)
+    const data = useProgressStore.getState().progress[bookId]
+    if (data) {
+      fetch(`/api/progress/${bookId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        keepalive: true,
+      }).catch(() => {})
+    }
+  })
+  pendingWrites.clear()
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', flushPendingWrites)
+}
+
+export const useProgressStore = create<ProgressState>()((set, get) => ({
+  progress: {},
+  loaded: false,
+
+  loadAllProgress: async () => {
+    if (get().loaded) return
+
+    try {
+      const response = await fetch('/api/progress')
+      const data: Record<string, Progress> = await response.json()
+      set({ progress: data, loaded: true })
+    } catch (error) {
+      console.error('Failed to load progress:', error)
+      set({ loaded: true })
+    }
+  },
+
+  setProgress: (bookId, chapter, sentence) => {
+    set(state => {
+      const existing = state.progress[bookId]
+      return {
+        progress: {
+          ...state.progress,
+          [bookId]: {
+            ...existing,
+            chapter,
+            sentence,
+            lastReadAt: Date.now(),
+            chapterPositions: {
+              ...existing?.chapterPositions,
+              [chapter]: sentence,
             },
           },
-        })),
+        },
+      }
+    })
+    debouncedSave(bookId, () => get().progress[bookId])
+  },
 
-      getProgress: bookId => {
-        return get().progress[bookId] || DEFAULT_PROGRESS
+  setBookMetadata: (bookId, totalChapters, sentencesPerChapter, wordsPerChapter) => {
+    set(state => ({
+      progress: {
+        ...state.progress,
+        [bookId]: {
+          ...(state.progress[bookId] || DEFAULT_PROGRESS),
+          totalChapters,
+          sentencesPerChapter,
+          wordsPerChapter,
+        },
       },
+    }))
+    debouncedSave(bookId, () => get().progress[bookId])
+  },
 
-      removeProgress: bookId =>
-        set(state => {
-          const { [bookId]: _, ...rest } = state.progress
-          return { progress: rest }
-        }),
-    }),
-    {
-      name: 'inkvoice-progress',
-      version: 1,
-      storage: createJSONStorage<PersistedProgressState>(() => createDebouncedStorage()),
-      migrate: (_persisted, version) => {
-        if (version === 0) {
-          const old = localStorage.getItem('inkvoice-storage')
-          if (old) {
-            const parsed = JSON.parse(old) as {
-              state?: { progress?: Record<string, Progress> }
-            }
-            return { progress: parsed.state?.progress ?? {} }
-          }
-        }
-        return { progress: {} }
-      },
-      partialize: state => ({ progress: state.progress }),
-    },
-  ),
-)
+  getProgress: bookId => {
+    return get().progress[bookId] || DEFAULT_PROGRESS
+  },
+
+  removeProgress: bookId => {
+    // Cancel any pending debounced write
+    const pending = pendingWrites.get(bookId)
+    if (pending) {
+      clearTimeout(pending)
+      pendingWrites.delete(bookId)
+    }
+
+    set(state => {
+      const { [bookId]: _, ...rest } = state.progress
+      return { progress: rest }
+    })
+
+    fetch(`/api/progress/${bookId}`, { method: 'DELETE' }).catch(error =>
+      console.error('Failed to delete progress:', error),
+    )
+  },
+}))

@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test'
 import { mockBookmarks } from './helpers/mockBookmarks'
+import { mockProgress } from './helpers/mockProgress'
+import { mockSettings } from './helpers/mockSettings'
 import { mockTTS } from './helpers/mockTTS'
+import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 import { navigateToBook } from './helpers/navigateToBook'
 
 // Early chapters are front matter (cover, copyright, etc.)
@@ -42,6 +45,9 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
 
 const setupAndClickSentence = async (page: import('@playwright/test').Page) => {
   await mockTTS(page)
+  await mockProgress(page)
+  await mockVoicePreferences(page)
+  await mockSettings(page)
   await mockBookmarks(page)
   await navigateToBook(page)
 

@@ -6,5 +6,3 @@ export type Bookmark = {
   label?: string
   preview?: string
 }
-
-export type BookmarkMap = Record<string, Bookmark[]>
