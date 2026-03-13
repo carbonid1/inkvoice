@@ -1,6 +1,7 @@
 import { env } from '@/lib/config/env'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises'
 import path from 'path'
+import { prisma } from '../db/db.service'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
 import { normalizeTags } from './helpers/normalizeTags/normalizeTags'
 import { padWavTo40ms } from './helpers/padWavTo40ms/padWavTo40ms'
@@ -50,26 +51,51 @@ const isEnoent = (error: unknown): boolean =>
 // TODO: Replace _deleted suffix with database soft-delete flag
 const DELETED_SUFFIX = '_deleted'
 
+const readMetadataFromFile = async (dirPath: string): Promise<Partial<VoiceMetadata> | null> => {
+  const metaPath = path.join(dirPath, 'metadata.json')
+  try {
+    const raw = JSON.parse(await readFile(metaPath, 'utf-8'))
+    return {
+      displayName: typeof raw.displayName === 'string' ? raw.displayName : undefined,
+      tags: Array.isArray(raw.tags)
+        ? raw.tags.filter((t: unknown) => typeof t === 'string')
+        : undefined,
+    }
+  } catch {
+    return null
+  }
+}
+
 export const createVoiceService = (voicesDir: string) => {
   const customDir = path.join(voicesDir, 'custom')
 
-  const readMetadata = async (dirPath: string): Promise<Partial<VoiceMetadata> | null> => {
-    const metaPath = path.join(dirPath, 'metadata.json')
-    try {
-      const raw = JSON.parse(await readFile(metaPath, 'utf-8'))
-      return {
-        displayName: typeof raw.displayName === 'string' ? raw.displayName : undefined,
-        tags: Array.isArray(raw.tags)
-          ? raw.tags.filter((t: unknown) => typeof t === 'string')
-          : undefined,
-      }
-    } catch {
-      return null
+  const getMetadata = async (name: string): Promise<VoiceMetadata | null> => {
+    const row = await prisma.voiceMetadata.findUnique({ where: { name } })
+    if (!row) return null
+    return {
+      displayName: row.displayName,
+      tags: JSON.parse(row.tags) as string[],
     }
   }
 
-  const writeMetadata = async (dirPath: string, meta: VoiceMetadata): Promise<void> => {
-    await writeFile(path.join(dirPath, 'metadata.json'), JSON.stringify(meta, null, 2))
+  const upsertMetadata = async (
+    name: string,
+    type: VoiceType,
+    meta: VoiceMetadata,
+  ): Promise<void> => {
+    await prisma.voiceMetadata.upsert({
+      where: { name },
+      create: {
+        name,
+        displayName: meta.displayName,
+        type,
+        tags: JSON.stringify(meta.tags),
+      },
+      update: {
+        displayName: meta.displayName,
+        tags: JSON.stringify(meta.tags),
+      },
+    })
   }
 
   const listVoicesInDir = async (
@@ -86,17 +112,22 @@ export const createVoiceService = (voicesDir: string) => {
           const entryPath = path.join(dir, entry)
           if (!(await fileExists(path.join(entryPath, 'source.wav')))) return null
 
-          const [hasSample, meta] = await Promise.all([
+          const [hasSample, dbMeta, fileMeta] = await Promise.all([
             fileExists(path.join(entryPath, 'sample.wav')),
-            readMetadata(entryPath),
+            getMetadata(entry),
+            readMetadataFromFile(entryPath),
           ])
+
+          const displayName =
+            dbMeta?.displayName ?? fileMeta?.displayName ?? prettifyVoiceName(entry)
+          const tags = dbMeta?.tags ?? fileMeta?.tags ?? []
 
           return {
             name: entry,
-            displayName: meta?.displayName ?? prettifyVoiceName(entry),
+            displayName,
             type,
             hasSample,
-            tags: meta?.tags ?? [],
+            tags,
           } satisfies VoiceEntry
         }),
     )
@@ -160,7 +191,9 @@ export const createVoiceService = (voicesDir: string) => {
     const voiceDir = path.join(customDir, slug)
     await mkdir(voiceDir, { recursive: true })
     await writeFile(path.join(voiceDir, 'source.wav'), padResult.buffer)
-    await writeMetadata(voiceDir, { displayName, tags: [] })
+
+    // Save metadata to DB
+    await upsertMetadata(slug, 'custom', { displayName, tags: [] })
 
     return {
       ok: true,
@@ -176,6 +209,7 @@ export const createVoiceService = (voicesDir: string) => {
     try {
       await rm(customPath + DELETED_SUFFIX, { recursive: true, force: true })
       await rename(customPath, customPath + DELETED_SUFFIX)
+      await prisma.voiceMetadata.deleteMany({ where: { name } })
       return { ok: true }
     } catch (error) {
       if (!isEnoent(error)) throw error
@@ -192,6 +226,17 @@ export const createVoiceService = (voicesDir: string) => {
   const restoreVoice = async (name: string): Promise<RestoreResult> => {
     try {
       await rename(path.join(customDir, name + DELETED_SUFFIX), path.join(customDir, name))
+
+      // Restore metadata from file if it exists
+      const voiceDir = path.join(customDir, name)
+      const fileMeta = await readMetadataFromFile(voiceDir)
+      if (fileMeta) {
+        await upsertMetadata(name, 'custom', {
+          displayName: fileMeta.displayName ?? prettifyVoiceName(name),
+          tags: fileMeta.tags ?? [],
+        })
+      }
+
       return { ok: true }
     } catch (error) {
       if (!isEnoent(error)) throw error
@@ -228,10 +273,13 @@ export const createVoiceService = (voicesDir: string) => {
     const voiceDir = await resolveVoiceDir(name)
     if (!voiceDir) return { ok: false, reason: 'not_found' }
 
-    const meta = await readMetadata(voiceDir)
     const normalized = normalizeTags(tags)
-    await writeMetadata(voiceDir, {
-      displayName: meta?.displayName ?? prettifyVoiceName(name),
+    const type: VoiceType = voiceDir.includes(path.join('custom', name)) ? 'custom' : 'app'
+    const dbMeta = await getMetadata(name)
+    const fileMeta = await readMetadataFromFile(voiceDir)
+
+    await upsertMetadata(name, type, {
+      displayName: dbMeta?.displayName ?? fileMeta?.displayName ?? prettifyVoiceName(name),
       tags: normalized,
     })
 

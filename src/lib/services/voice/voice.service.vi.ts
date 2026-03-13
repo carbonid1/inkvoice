@@ -1,7 +1,20 @@
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const mockPrisma = vi.hoisted(() => ({
+  voiceMetadata: {
+    findUnique: vi.fn().mockResolvedValue(null),
+    upsert: vi.fn().mockResolvedValue({}),
+    deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+  },
+}))
+
+vi.mock('../db/db.service', () => ({
+  prisma: mockPrisma,
+}))
+
 import { createVoiceService } from './voice.service'
 
 const createWavBuffer = (sampleRate = 22050, durationSeconds = 6): Buffer => {
@@ -33,6 +46,11 @@ describe('voiceService', () => {
   let voicesDir: string
 
   beforeEach(async () => {
+    vi.clearAllMocks()
+    mockPrisma.voiceMetadata.findUnique.mockResolvedValue(null)
+    mockPrisma.voiceMetadata.upsert.mockResolvedValue({})
+    mockPrisma.voiceMetadata.deleteMany.mockResolvedValue({ count: 0 })
+
     voicesDir = await fs.mkdtemp(path.join(os.tmpdir(), 'voices-'))
 
     // Create an app voice
@@ -114,13 +132,16 @@ describe('voiceService', () => {
 
     // Verify file was saved
     const sourcePath = path.join(voicesDir, 'custom', 'new-voice', 'source.wav')
-    const stat = await fs.stat(sourcePath)
-    expect(stat.isFile()).toBe(true)
+    const fileStat = await fs.stat(sourcePath)
+    expect(fileStat.isFile()).toBe(true)
 
-    // Verify metadata was saved
-    const metaPath = path.join(voicesDir, 'custom', 'new-voice', 'metadata.json')
-    const meta = JSON.parse(await fs.readFile(metaPath, 'utf-8'))
-    expect(meta.displayName).toBe('New Voice')
+    // Verify metadata was saved to DB
+    expect(mockPrisma.voiceMetadata.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { name: 'new-voice' },
+        create: expect.objectContaining({ displayName: 'New Voice' }),
+      }),
+    )
   })
 
   it('rejects upload with too-short audio', async () => {
@@ -165,8 +186,11 @@ describe('voiceService', () => {
     // _deleted dir should exist with files intact
     const deleted = await fs.stat(path.join(voicesDir, 'custom', 'my-voice_deleted'))
     expect(deleted.isDirectory()).toBe(true)
-    const source = await fs.stat(path.join(voicesDir, 'custom', 'my-voice_deleted', 'source.wav'))
-    expect(source.isFile()).toBe(true)
+
+    // DB metadata should be deleted
+    expect(mockPrisma.voiceMetadata.deleteMany).toHaveBeenCalledWith({
+      where: { name: 'my-voice' },
+    })
   })
 
   it('clears stale _deleted dir before soft-deleting', async () => {
@@ -224,6 +248,14 @@ describe('voiceService', () => {
     // Shows up in listing again
     const voices = await service.listVoices()
     expect(voices.map(v => v.name)).toContain('my-voice')
+
+    // Metadata restored to DB from file
+    expect(mockPrisma.voiceMetadata.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { name: 'my-voice' },
+        create: expect.objectContaining({ displayName: 'My Voice' }),
+      }),
+    )
   })
 
   it('returns not_found when restoring a non-deleted voice', async () => {

@@ -127,7 +127,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
             <button
               onClick={handleUpload}
               disabled={!name.trim() || !file || uploading || isDurationInvalid}
-              className="px-3 py-2 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-2 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {uploading ? 'Uploading...' : 'Upload'}

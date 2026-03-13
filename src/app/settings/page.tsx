@@ -16,6 +16,11 @@ export default function Settings() {
   const voice = useVoiceStore(s => s.voice)
   const setVoice = useVoiceStore(s => s.setVoice)
 
+  // Load voice preferences from API on mount
+  useEffect(() => {
+    useVoiceStore.getState().loadAll()
+  }, [])
+
   // Auto-correct stale global voice when voice list loads
   useEffect(() => {
     if (loading || voices.length === 0) return

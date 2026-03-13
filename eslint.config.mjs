@@ -24,6 +24,7 @@ const eslintConfig = defineConfig([
     'venv/**',
     'api/**',
     'data/**',
+    'generated/**',
   ]),
 ])
 

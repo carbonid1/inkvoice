@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
+import { mockSettings } from './helpers/mockSettings'
 import { mockVoiceManagement } from './helpers/mockVoiceManagement'
+import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 
 const navigateToSettings = async (page: import('@playwright/test').Page) => {
   const voicesResponse = page.waitForResponse(
@@ -13,6 +15,8 @@ const navigateToSettings = async (page: import('@playwright/test').Page) => {
 test.describe('voice deletion', () => {
   test('deleting a custom voice hides it and shows undo toast', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     // Custom voice "Test Voice" should be visible
@@ -33,6 +37,8 @@ test.describe('voice deletion', () => {
 
   test('undo button restores deleted voice', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     // Delete the custom voice
@@ -51,6 +57,8 @@ test.describe('voice deletion', () => {
 
   test('Ctrl+Z restores deleted voice', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     // Delete the custom voice

@@ -1,5 +1,6 @@
 import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
 import type { Book, BookMetadata, BookOverview, ParsedBook, ParsedChapter } from '@/lib/types/book'
+import { prisma } from '../db/db.service'
 import {
   findBookFile,
   findDeletedBookFile,
@@ -45,37 +46,65 @@ class BookCache {
   }
 }
 
+const extractMetadataSafe = async (
+  filename: string,
+): Promise<{ title: string; author: string }> => {
+  try {
+    const arrayBuffer = await readBookFile(filename)
+    return await getBookMetadata(arrayBuffer)
+  } catch (e) {
+    console.error(`Failed to read metadata for ${filename}:`, e)
+    return { title: filename.replace('.epub', ''), author: 'Unknown' }
+  }
+}
+
 class BookServiceImpl implements BookService {
   private cache = new BookCache()
 
   async listBooks(): Promise<Book[]> {
     const files = await listEpubFiles()
+    const fileIds = new Set(files.map(f => getBookIdFromFilename(f)))
 
-    const books = await Promise.all(
-      files.map(async filename => {
-        const id = getBookIdFromFilename(filename)
-        try {
-          const arrayBuffer = await readBookFile(filename)
-          const metadata = await getBookMetadata(arrayBuffer)
-          return {
-            id,
-            title: metadata.title,
-            author: metadata.author,
-            filename,
-          }
-        } catch (e) {
-          console.error(`Failed to read metadata for ${filename}:`, e)
-          return {
-            id,
-            title: filename.replace('.epub', ''),
-            author: 'Unknown',
-            filename,
-          }
-        }
-      }),
-    )
+    // Get existing DB records
+    const dbBooks = await prisma.book.findMany()
+    const dbMap = new Map(dbBooks.map(b => [b.id, b]))
 
-    return books
+    // Find new files not yet in DB
+    const newFiles = files.filter(f => !dbMap.has(getBookIdFromFilename(f)))
+
+    // Insert new books into DB
+    if (newFiles.length > 0) {
+      const newBooks = await Promise.all(
+        newFiles.map(async filename => {
+          const id = getBookIdFromFilename(filename)
+          const meta = await extractMetadataSafe(filename)
+          return { id, title: meta.title, author: meta.author, filename }
+        }),
+      )
+
+      for (const book of newBooks) {
+        await prisma.book.upsert({
+          where: { id: book.id },
+          create: book,
+          update: { title: book.title, author: book.author, filename: book.filename },
+        })
+      }
+    }
+
+    // Remove DB records for deleted files
+    const staleIds = dbBooks.filter(b => !fileIds.has(b.id)).map(b => b.id)
+    if (staleIds.length > 0) {
+      await prisma.book.deleteMany({ where: { id: { in: staleIds } } })
+    }
+
+    // Return from DB (now in sync)
+    const allBooks = await prisma.book.findMany({ orderBy: { title: 'asc' } })
+    return allBooks.map(b => ({
+      id: b.id,
+      title: b.title,
+      author: b.author,
+      filename: b.filename,
+    }))
   }
 
   async getBook(bookId: string): Promise<ParsedBook | null> {
@@ -137,19 +166,25 @@ class BookServiceImpl implements BookService {
   }
 
   async getMetadata(bookId: string): Promise<BookMetadata | null> {
-    // Check if already cached (can get metadata from cached book)
+    // Check in-memory cache
     const cached = this.cache.get(bookId)
     if (cached) {
       return { title: cached.title, author: cached.author }
     }
 
+    // Check DB
+    const dbBook = await prisma.book.findUnique({ where: { id: bookId } })
+    if (dbBook) {
+      return { title: dbBook.title, author: dbBook.author }
+    }
+
+    // Fall back to parsing EPUB
     const filename = await findBookFile(bookId)
     if (!filename) {
       return null
     }
 
-    const arrayBuffer = await readBookFile(filename)
-    return getBookMetadata(arrayBuffer)
+    return extractMetadataSafe(filename)
   }
 
   async getCover(bookId: string): Promise<{ data: Buffer; mimeType: string } | null> {
@@ -170,17 +205,28 @@ class BookServiceImpl implements BookService {
     await writeBookFile(filename, buffer)
 
     const id = getBookIdFromFilename(filename)
+    const arrayBuffer = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength,
+    ) as ArrayBuffer
 
+    let title = filename.replace('.epub', '')
+    let author = 'Unknown'
     try {
-      const arrayBuffer = buffer.buffer.slice(
-        buffer.byteOffset,
-        buffer.byteOffset + buffer.byteLength,
-      ) as ArrayBuffer
       const metadata = await getBookMetadata(arrayBuffer)
-      return { id, title: metadata.title, author: metadata.author, filename }
+      title = metadata.title
+      author = metadata.author
     } catch {
-      return { id, title: filename.replace('.epub', ''), author: 'Unknown', filename }
+      // Use defaults
     }
+
+    await prisma.book.upsert({
+      where: { id },
+      create: { id, title, author, filename },
+      update: { title, author, filename },
+    })
+
+    return { id, title, author, filename }
   }
 
   async deleteBook(bookId: string): Promise<boolean> {
@@ -189,6 +235,7 @@ class BookServiceImpl implements BookService {
 
     await softDeleteBookFile(filename)
     this.cache.evict(bookId)
+    await prisma.book.deleteMany({ where: { id: bookId } })
     return true
   }
 
@@ -198,6 +245,15 @@ class BookServiceImpl implements BookService {
 
     const originalFilename = deletedFile.replace(/_deleted$/, '')
     await restoreBookFile(originalFilename)
+
+    // Re-add to DB
+    const meta = await extractMetadataSafe(originalFilename)
+    await prisma.book.upsert({
+      where: { id: bookId },
+      create: { id: bookId, title: meta.title, author: meta.author, filename: originalFilename },
+      update: { title: meta.title, author: meta.author, filename: originalFilename },
+    })
+
     return true
   }
 }

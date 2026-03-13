@@ -1,11 +1,17 @@
 import { expect, test } from '@playwright/test'
+import { mockProgress } from './helpers/mockProgress'
+import { mockSettings } from './helpers/mockSettings'
 import { mockTTS } from './helpers/mockTTS'
+import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 
 test.describe('TTS prefetching', () => {
   test('navigating to a book triggers TTS prefetch requests', async ({ page }) => {
     const ttsRequests: string[] = []
 
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
 
     // Track TTS requests before they're intercepted
     page.on('request', req => {
@@ -40,6 +46,9 @@ test.describe('TTS prefetching', () => {
 
   test('navigating away from book stops TTS requests', async ({ page }) => {
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
 
     // Navigate to first book
     await page.goto('/')

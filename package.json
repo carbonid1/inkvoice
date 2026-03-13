@@ -14,12 +14,19 @@
     "test:run": "vitest run",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@formkit/auto-animate": "^0.9.0",
+    "@prisma/adapter-better-sqlite3": "^7.5.0",
+    "@prisma/client": "^7.5.0",
     "@tanstack/react-virtual": "^3.13.21",
+    "better-sqlite3": "^12.6.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -42,6 +49,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",
@@ -57,6 +65,7 @@
     "postcss": "^8.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
+    "prisma": "^7.5.0",
     "shadcn": "^4.0.2",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.0.0",
@@ -67,5 +76,12 @@
   "lint-staged": {
     "*.{js,mjs,ts,tsx,css,json,md,mdx,yaml,yml}": "prettier --write",
     "*.{js,mjs,ts,tsx}": "eslint --fix"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "better-sqlite3",
+      "prisma"
+    ]
   }
 }

@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { mockSettings } from './helpers/mockSettings'
 import { mockVoiceManagement } from './helpers/mockVoiceManagement'
+import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 
 const uploadFixturePath = path.resolve(__dirname, '../fixtures/silence-10s.wav')
 
@@ -26,6 +28,8 @@ const setUploadFile = async (page: import('@playwright/test').Page) => {
 test.describe('voice upload', () => {
   test('Add Voice button toggles the upload form', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     // Form should be hidden initially
@@ -43,6 +47,8 @@ test.describe('voice upload', () => {
 
   test('Upload button is disabled without name or file', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -92,6 +98,8 @@ test.describe('voice upload', () => {
 
   test('shows error for duplicate voice name', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -112,6 +120,8 @@ test.describe('voice upload', () => {
 
   test('newly uploaded voice shows pulsing sample button', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -156,6 +166,8 @@ test.describe('voice upload', () => {
 
   test('Enter key triggers upload', async ({ page }) => {
     await mockVoiceManagement(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()

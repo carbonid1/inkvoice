@@ -1,11 +1,17 @@
 import { expect, test } from '@playwright/test'
 import { mockBookmarks } from './helpers/mockBookmarks'
+import { mockProgress } from './helpers/mockProgress'
+import { mockSettings } from './helpers/mockSettings'
 import { mockTTS } from './helpers/mockTTS'
+import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 import { navigateToBook } from './helpers/navigateToBook'
 
 test.describe('bookmarks', () => {
   test('drawer shows bookmarks and supports navigation', async ({ page }) => {
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await mockBookmarks(page)
     await navigateToBook(page)
 
@@ -28,6 +34,9 @@ test.describe('bookmarks', () => {
 
   test('removing bookmark from drawer shows undo toast', async ({ page }) => {
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await mockBookmarks(page)
     await navigateToBook(page)
 
@@ -51,6 +60,9 @@ test.describe('bookmarks', () => {
 
   test('undo button in toast restores the bookmark', async ({ page }) => {
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await mockBookmarks(page)
     await navigateToBook(page)
 
@@ -73,6 +85,9 @@ test.describe('bookmarks', () => {
 
   test('Ctrl+Z restores removed bookmark', async ({ page }) => {
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await mockBookmarks(page)
     await navigateToBook(page)
 
@@ -96,6 +111,9 @@ test.describe('bookmarks', () => {
 
   test('clicking bookmark button toggles bookmark state', async ({ page }) => {
     await mockTTS(page)
+    await mockProgress(page)
+    await mockVoicePreferences(page)
+    await mockSettings(page)
     await mockBookmarks(page)
     await navigateToBook(page)
 
