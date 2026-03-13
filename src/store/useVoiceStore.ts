@@ -16,57 +16,6 @@ type VoiceState = {
 
 const GLOBAL_KEY = '__global__'
 
-const migrateFromLocalStorage = async (): Promise<{
-  voice: string
-  bookVoices: Record<string, string>
-} | null> => {
-  if (typeof window === 'undefined') return null
-
-  try {
-    const raw = localStorage.getItem('inkvoice-voice')
-    if (!raw) return null
-
-    const parsed = JSON.parse(raw) as {
-      state?: { voice?: string; bookVoices?: Record<string, string> }
-    }
-    const voice = parsed.state?.voice
-    const bookVoices = parsed.state?.bookVoices
-
-    if (!voice && (!bookVoices || Object.keys(bookVoices).length === 0)) return null
-
-    const data = {
-      voice: voice ?? DEFAULT_VOICE,
-      bookVoices: bookVoices ?? {},
-    }
-
-    // Seed DB with localStorage data
-    const promises: Promise<Response>[] = []
-
-    promises.push(
-      fetch(`/api/voice-preferences/${GLOBAL_KEY}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ voiceName: data.voice }),
-      }),
-    )
-
-    for (const [bookId, voiceName] of Object.entries(data.bookVoices)) {
-      promises.push(
-        fetch(`/api/voice-preferences/${bookId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ voiceName }),
-        }),
-      )
-    }
-
-    await Promise.all(promises)
-    return data
-  } catch {
-    return null
-  }
-}
-
 export const useVoiceStore = create<VoiceState>()((set, get) => ({
   voice: DEFAULT_VOICE,
   bookVoices: {},
@@ -78,30 +27,10 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
     try {
       const response = await fetch('/api/voice-preferences')
       const data: { voice: string; bookVoices: Record<string, string> } = await response.json()
-
-      // Check if DB has data (non-default voice or any book overrides)
-      const hasData = data.voice !== DEFAULT_VOICE || Object.keys(data.bookVoices).length > 0
-
-      if (hasData) {
-        set({ voice: data.voice, bookVoices: data.bookVoices, loaded: true })
-        return
-      }
-
-      // DB empty — try migrating from localStorage
-      const migrated = await migrateFromLocalStorage()
-      if (migrated) {
-        set({ voice: migrated.voice, bookVoices: migrated.bookVoices, loaded: true })
-      } else {
-        set({ loaded: true })
-      }
+      set({ voice: data.voice, bookVoices: data.bookVoices, loaded: true })
     } catch (error) {
       console.error('Failed to load voice preferences:', error)
-      const migrated = await migrateFromLocalStorage()
-      if (migrated) {
-        set({ voice: migrated.voice, bookVoices: migrated.bookVoices, loaded: true })
-      } else {
-        set({ loaded: true })
-      }
+      set({ loaded: true })
     }
   },
 

@@ -68,36 +68,6 @@ if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', flushPendingWrites)
 }
 
-const migrateFromLocalStorage = async (): Promise<Record<string, Progress> | null> => {
-  if (typeof window === 'undefined') return null
-
-  try {
-    const raw = localStorage.getItem('inkvoice-progress')
-    if (!raw) return null
-
-    const parsed = JSON.parse(raw) as {
-      state?: { progress?: Record<string, Progress> }
-    }
-    const progress = parsed.state?.progress
-    if (!progress || Object.keys(progress).length === 0) return null
-
-    // Seed DB with localStorage data
-    await Promise.all(
-      Object.entries(progress).map(([bookId, data]) =>
-        fetch(`/api/progress/${bookId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        }),
-      ),
-    )
-
-    return progress
-  } catch {
-    return null
-  }
-}
-
 export const useProgressStore = create<ProgressState>()((set, get) => ({
   progress: {},
   loaded: false,
@@ -108,20 +78,10 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     try {
       const response = await fetch('/api/progress')
       const data: Record<string, Progress> = await response.json()
-
-      if (Object.keys(data).length > 0) {
-        set({ progress: data, loaded: true })
-        return
-      }
-
-      // DB empty — try migrating from localStorage
-      const migrated = await migrateFromLocalStorage()
-      set({ progress: migrated ?? {}, loaded: true })
+      set({ progress: data, loaded: true })
     } catch (error) {
       console.error('Failed to load progress:', error)
-      // Fall back to localStorage if API fails
-      const migrated = await migrateFromLocalStorage()
-      set({ progress: migrated ?? {}, loaded: true })
+      set({ loaded: true })
     }
   },
 

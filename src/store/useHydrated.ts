@@ -32,14 +32,6 @@ export const useHydrated = () => {
     useDisplayStore.getState().loadFromApi()
     usePrefetchStore.getState().loadFromApi()
 
-    // Clean up legacy storage keys after migration
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('inkvoice-storage')
-      localStorage.removeItem('inkvoice-display')
-      localStorage.removeItem('inkvoice-playback')
-      localStorage.removeItem('inkvoice-pronunciation')
-    }
-
     check()
 
     return () => {

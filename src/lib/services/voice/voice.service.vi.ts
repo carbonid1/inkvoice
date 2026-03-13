@@ -7,7 +7,6 @@ const mockPrisma = vi.hoisted(() => ({
   voiceMetadata: {
     findUnique: vi.fn().mockResolvedValue(null),
     upsert: vi.fn().mockResolvedValue({}),
-    deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
   },
 }))
 
@@ -49,7 +48,6 @@ describe('voiceService', () => {
     vi.clearAllMocks()
     mockPrisma.voiceMetadata.findUnique.mockResolvedValue(null)
     mockPrisma.voiceMetadata.upsert.mockResolvedValue({})
-    mockPrisma.voiceMetadata.deleteMany.mockResolvedValue({ count: 0 })
 
     voicesDir = await fs.mkdtemp(path.join(os.tmpdir(), 'voices-'))
 
@@ -186,11 +184,6 @@ describe('voiceService', () => {
     // _deleted dir should exist with files intact
     const deleted = await fs.stat(path.join(voicesDir, 'custom', 'my-voice_deleted'))
     expect(deleted.isDirectory()).toBe(true)
-
-    // DB metadata should be deleted
-    expect(mockPrisma.voiceMetadata.deleteMany).toHaveBeenCalledWith({
-      where: { name: 'my-voice' },
-    })
   })
 
   it('clears stale _deleted dir before soft-deleting', async () => {
@@ -248,14 +241,6 @@ describe('voiceService', () => {
     // Shows up in listing again
     const voices = await service.listVoices()
     expect(voices.map(v => v.name)).toContain('my-voice')
-
-    // Metadata restored to DB from file
-    expect(mockPrisma.voiceMetadata.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { name: 'my-voice' },
-        create: expect.objectContaining({ displayName: 'My Voice' }),
-      }),
-    )
   })
 
   it('returns not_found when restoring a non-deleted voice', async () => {
