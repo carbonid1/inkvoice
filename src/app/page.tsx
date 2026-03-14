@@ -43,6 +43,7 @@ export default function Library() {
   const setProgress = useProgressStore(s => s.setProgress)
   const clearBookVoice = useVoiceStore(s => s.clearBookVoice)
   const setBookVoice = useVoiceStore(s => s.setBookVoice)
+  const loadAllVoices = useVoiceStore(s => s.loadAll)
 
   const { uploading, error: uploadError, upload, reset: resetUpload } = useUploadBook()
   const { deleteBook, restoreBook } = useDeleteBook()
@@ -63,7 +64,8 @@ export default function Library() {
   useEffect(() => {
     fetchBooks()
     loadAllProgress()
-  }, [fetchBooks, loadAllProgress])
+    loadAllVoices()
+  }, [fetchBooks, loadAllProgress, loadAllVoices])
 
   useEffect(() => {
     if (uploadError) {
