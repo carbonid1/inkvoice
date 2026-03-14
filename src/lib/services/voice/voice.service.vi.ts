@@ -62,6 +62,11 @@ describe('voiceService', () => {
     await fs.mkdir(casualDir)
     await fs.writeFile(path.join(casualDir, 'source.wav'), createWavBuffer())
 
+    // Create an app voice matching APP_VOICES const (for metadata/tag tests)
+    const claraDir = path.join(voicesDir, 'clara')
+    await fs.mkdir(claraDir)
+    await fs.writeFile(path.join(claraDir, 'source.wav'), createWavBuffer())
+
     // Create custom dir with one voice
     const customDir = path.join(voicesDir, 'custom', 'my-voice')
     await fs.mkdir(customDir, { recursive: true })
@@ -104,6 +109,26 @@ describe('voiceService', () => {
     const voices = await service.listVoices()
     const narrator = voices.find(v => v.name === 'narrator')
     expect(narrator?.displayName).toBe('Narrator')
+  })
+
+  it('uses APP_VOICES metadata for known app voices', async () => {
+    const service = createVoiceService(voicesDir)
+    const voices = await service.listVoices()
+    const clara = voices.find(v => v.name === 'clara')
+
+    expect(clara).toEqual(
+      expect.objectContaining({
+        displayName: 'Clara',
+        tags: ['british', 'clear', 'female', 'warm'],
+        type: 'app',
+      }),
+    )
+    // Should not have queried DB for this voice
+    const findCalls = mockPrisma.voiceMetadata.findUnique.mock.calls
+    const claraDbCall = findCalls.find(
+      (call: unknown[]) => (call[0] as { where: { name: string } })?.where?.name === 'clara',
+    )
+    expect(claraDbCall).toBeUndefined()
   })
 
   it('sorts voices alphabetically within each type, app first', async () => {
@@ -256,6 +281,14 @@ describe('voiceService', () => {
     const names = voices.map(v => v.name)
     expect(names).not.toContain('my-voice')
     expect(names).not.toContain('my-voice_deleted')
+  })
+
+  it('rejects tag update for app voices', async () => {
+    const service = createVoiceService(voicesDir)
+    const result = await service.updateVoiceTags('clara', ['new-tag'])
+
+    expect(result).toEqual({ ok: false, reason: 'app_voice' })
+    expect(mockPrisma.voiceMetadata.upsert).not.toHaveBeenCalled()
   })
 
   it('resolves voice path for app voice', async () => {

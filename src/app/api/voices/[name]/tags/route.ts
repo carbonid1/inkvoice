@@ -32,6 +32,9 @@ export const PATCH = async (
   const result = await voiceService.updateVoiceTags(name, body.tags)
 
   if (!result.ok) {
+    if (result.reason === 'app_voice') {
+      return NextResponse.json({ error: 'Cannot modify tags for built-in voices' }, { status: 403 })
+    }
     return NextResponse.json({ error: 'Voice not found' }, { status: 404 })
   }
 

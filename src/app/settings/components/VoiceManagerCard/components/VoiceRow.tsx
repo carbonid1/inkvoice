@@ -110,18 +110,20 @@ export const VoiceRow = ({
             </Tooltip>
           )}
 
-          <Tooltip label="Edit tags">
-            <button
-              type="button"
-              onClick={onToggleTagEditor}
-              aria-label={`Edit tags for ${voice.displayName}`}
-              className={`p-2 transition-colors cursor-pointer ${
-                editingTags ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'
-              }`}
-            >
-              <Pencil className="w-4 h-4" />
-            </button>
-          </Tooltip>
+          {voice.type === 'custom' && (
+            <Tooltip label="Edit tags">
+              <button
+                type="button"
+                onClick={onToggleTagEditor}
+                aria-label={`Edit tags for ${voice.displayName}`}
+                className={`p-2 transition-colors cursor-pointer ${
+                  editingTags ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'
+                }`}
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            </Tooltip>
+          )}
 
           {onDelete && (
             <Tooltip label={`Remove "${voice.displayName}"`}>
@@ -138,7 +140,7 @@ export const VoiceRow = ({
         </div>
       </div>
 
-      {editingTags && (
+      {editingTags && voice.type === 'custom' && (
         <div className="pl-6 pb-3">
           <VoiceTagEditor
             tags={voice.tags}

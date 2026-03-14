@@ -9,6 +9,7 @@ import { prettifyVoiceName } from './helpers/prettifyVoiceName/prettifyVoiceName
 import { slugifyVoiceName } from './helpers/slugifyVoiceName/slugifyVoiceName'
 import { validateVoiceName } from './helpers/validateVoiceName/validateVoiceName'
 import { validateWav } from './helpers/validateWav/validateWav'
+import { APP_VOICES, isAppVoice } from './voice.consts'
 import type { VoiceEntry, VoiceMetadata, VoiceType } from './voice.types'
 
 type UploadSuccess = {
@@ -31,7 +32,9 @@ type DeleteResult = { ok: true } | { ok: false; reason: 'not_found' | 'app_voice
 
 type RestoreResult = { ok: true } | { ok: false; reason: 'not_found' }
 
-type UpdateTagsResult = { ok: true; tags: string[] } | { ok: false; reason: 'not_found' }
+type UpdateTagsResult =
+  | { ok: true; tags: string[] }
+  | { ok: false; reason: 'not_found' | 'app_voice' }
 
 const fileExists = async (filePath: string): Promise<boolean> =>
   stat(filePath)
@@ -97,13 +100,13 @@ export const createVoiceService = (voicesDir: string) => {
           const entryPath = path.join(dir, entry)
           if (!(await fileExists(path.join(entryPath, 'source.wav')))) return null
 
-          const [hasSample, dbMeta] = await Promise.all([
+          const [hasSample, meta] = await Promise.all([
             fileExists(path.join(entryPath, 'sample.wav')),
-            getMetadata(entry),
+            type === 'app' ? Promise.resolve(APP_VOICES[entry] ?? null) : getMetadata(entry),
           ])
 
-          const displayName = dbMeta?.displayName ?? prettifyVoiceName(entry)
-          const tags = dbMeta?.tags ?? []
+          const displayName = meta?.displayName ?? prettifyVoiceName(entry)
+          const tags = meta?.tags ?? []
 
           return {
             name: entry,
@@ -241,14 +244,15 @@ export const createVoiceService = (voicesDir: string) => {
   }
 
   const updateVoiceTags = async (name: string, tags: string[]): Promise<UpdateTagsResult> => {
+    if (isAppVoice(name)) return { ok: false, reason: 'app_voice' }
+
     const voiceDir = await resolveVoiceDir(name)
     if (!voiceDir) return { ok: false, reason: 'not_found' }
 
     const normalized = normalizeTags(tags)
-    const type: VoiceType = voiceDir.includes(path.join('custom', name)) ? 'custom' : 'app'
     const dbMeta = await getMetadata(name)
 
-    await upsertMetadata(name, type, {
+    await upsertMetadata(name, 'custom', {
       displayName: dbMeta?.displayName ?? prettifyVoiceName(name),
       tags: normalized,
     })

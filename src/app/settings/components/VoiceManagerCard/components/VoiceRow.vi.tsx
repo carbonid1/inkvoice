@@ -116,9 +116,15 @@ describe('VoiceRow', () => {
     expect(screen.queryByRole('button', { name: /Play source audio/ })).not.toBeInTheDocument()
   })
 
-  it('edit tags button calls onToggleTagEditor', () => {
+  it('hides edit tags button for app voices', () => {
+    renderRow({ voice: makeVoice({ type: 'app' }) })
+
+    expect(screen.queryByRole('button', { name: /Edit tags/ })).not.toBeInTheDocument()
+  })
+
+  it('edit tags button calls onToggleTagEditor for custom voices', () => {
     const onToggleTagEditor = vi.fn()
-    renderRow({ onToggleTagEditor })
+    renderRow({ voice: makeVoice({ type: 'custom' }), onToggleTagEditor })
 
     fireEvent.click(screen.getByRole('button', { name: /Edit tags for Clara/ }))
     expect(onToggleTagEditor).toHaveBeenCalledOnce()
