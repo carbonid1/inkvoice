@@ -48,12 +48,6 @@ const dirExists = async (dirPath: string): Promise<boolean> =>
 
 const readDirSafe = async (dirPath: string): Promise<string[]> => readdir(dirPath).catch(() => [])
 
-const isEnoent = (error: unknown): boolean =>
-  error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT'
-
-// TODO: Replace _deleted suffix with database soft-delete flag
-const DELETED_SUFFIX = '_deleted'
-
 export const createVoiceService = (voicesDir: string) => {
   const customDir = path.join(voicesDir, 'custom')
 
@@ -82,6 +76,7 @@ export const createVoiceService = (voicesDir: string) => {
       update: {
         displayName: meta.displayName,
         tags: JSON.stringify(meta.tags),
+        deletedAt: null,
       },
     })
   }
@@ -94,7 +89,6 @@ export const createVoiceService = (voicesDir: string) => {
     const entries = await readDirSafe(dir)
     const results = await Promise.all(
       entries
-        .filter(entry => !entry.endsWith(DELETED_SUFFIX))
         .filter(entry => !skip?.includes(entry))
         .map(async entry => {
           const entryPath = path.join(dir, entry)
@@ -123,10 +117,59 @@ export const createVoiceService = (voicesDir: string) => {
       .sort((a, b) => a.name.localeCompare(b.name))
   }
 
+  const markVoiceDeleted = async (name: string): Promise<void> => {
+    await prisma.voiceMetadata.upsert({
+      where: { name },
+      create: {
+        name,
+        displayName: prettifyVoiceName(name),
+        type: 'custom',
+        tags: '[]',
+        deletedAt: Date.now(),
+      },
+      update: { deletedAt: Date.now() },
+    })
+  }
+
+  let legacyCleanupPromise: Promise<void> | null = null
+
+  const cleanupLegacyDeletedDirs = (): Promise<void> => {
+    if (legacyCleanupPromise) return legacyCleanupPromise
+    legacyCleanupPromise = (async () => {
+      const entries = await readDirSafe(customDir)
+      const legacyDeleted = entries.filter(e => e.endsWith('_deleted'))
+
+      for (const entry of legacyDeleted) {
+        const originalName = entry.replace(/_deleted$/, '')
+        const deletedPath = path.join(customDir, entry)
+        const originalPath = path.join(customDir, originalName)
+
+        await markVoiceDeleted(originalName)
+
+        if (!(await dirExists(originalPath))) {
+          await rename(deletedPath, originalPath)
+        } else {
+          await rm(deletedPath, { recursive: true, force: true })
+        }
+      }
+    })()
+    return legacyCleanupPromise
+  }
+
+  const getDeletedVoiceNames = async (): Promise<string[]> => {
+    const rows = await prisma.voiceMetadata.findMany({
+      where: { deletedAt: { not: null } },
+      select: { name: true },
+    })
+    return rows.map(r => r.name)
+  }
+
   const listVoices = async (): Promise<VoiceEntry[]> => {
+    await cleanupLegacyDeletedDirs()
+    const deletedNames = await getDeletedVoiceNames()
     const [appVoices, customVoices] = await Promise.all([
       listVoicesInDir(voicesDir, 'app', ['custom']),
-      listVoicesInDir(customDir, 'custom'),
+      listVoicesInDir(customDir, 'custom', deletedNames),
     ])
     return [...appVoices, ...customVoices]
   }
@@ -141,8 +184,19 @@ export const createVoiceService = (voicesDir: string) => {
     return null
   }
 
-  const voiceNameExists = async (slug: string): Promise<boolean> =>
-    (await resolveVoiceDir(slug)) !== null
+  const isDeleted = async (name: string): Promise<boolean> => {
+    const row = await prisma.voiceMetadata.findUnique({
+      where: { name },
+      select: { deletedAt: true },
+    })
+    return row !== null && row.deletedAt !== null
+  }
+
+  const voiceNameExists = async (slug: string): Promise<boolean> => {
+    const dir = await resolveVoiceDir(slug)
+    if (!dir) return false
+    return !(await isDeleted(slug))
+  }
 
   const uploadVoice = async (
     displayName: string,
@@ -191,31 +245,30 @@ export const createVoiceService = (voicesDir: string) => {
   }
 
   const deleteVoice = async (name: string): Promise<DeleteResult> => {
+    if (isAppVoice(name)) return { ok: false, reason: 'app_voice' }
+
     const customPath = path.join(customDir, name)
-    try {
-      await rm(customPath + DELETED_SUFFIX, { recursive: true, force: true })
-      await rename(customPath, customPath + DELETED_SUFFIX)
-      return { ok: true }
-    } catch (error) {
-      if (!isEnoent(error)) throw error
-    }
+    if (!(await dirExists(customPath))) return { ok: false, reason: 'not_found' }
 
-    const appPath = path.join(voicesDir, name)
-    if (await dirExists(appPath)) {
-      return { ok: false, reason: 'app_voice' }
-    }
+    await markVoiceDeleted(name)
 
-    return { ok: false, reason: 'not_found' }
+    return { ok: true }
   }
 
   const restoreVoice = async (name: string): Promise<RestoreResult> => {
-    try {
-      await rename(path.join(customDir, name + DELETED_SUFFIX), path.join(customDir, name))
-      return { ok: true }
-    } catch (error) {
-      if (!isEnoent(error)) throw error
-      return { ok: false, reason: 'not_found' }
-    }
+    const row = await prisma.voiceMetadata.findUnique({
+      where: { name },
+      select: { deletedAt: true },
+    })
+
+    if (!row || row.deletedAt === null) return { ok: false, reason: 'not_found' }
+
+    await prisma.voiceMetadata.update({
+      where: { name },
+      data: { deletedAt: null },
+    })
+
+    return { ok: true }
   }
 
   const resolveVoicePath = async (name: string): Promise<string | null> => {

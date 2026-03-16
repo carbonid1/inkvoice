@@ -6,7 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const mockPrisma = vi.hoisted(() => ({
   voiceMetadata: {
     findUnique: vi.fn().mockResolvedValue(null),
+    findMany: vi.fn().mockResolvedValue([]),
     upsert: vi.fn().mockResolvedValue({}),
+    update: vi.fn().mockResolvedValue({}),
   },
 }))
 
@@ -47,7 +49,9 @@ describe('voiceService', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     mockPrisma.voiceMetadata.findUnique.mockResolvedValue(null)
+    mockPrisma.voiceMetadata.findMany.mockResolvedValue([])
     mockPrisma.voiceMetadata.upsert.mockResolvedValue({})
+    mockPrisma.voiceMetadata.update.mockResolvedValue({})
 
     voicesDir = await fs.mkdtemp(path.join(os.tmpdir(), 'voices-'))
 
@@ -197,47 +201,31 @@ describe('voiceService', () => {
     expect(result.code).toBe('NAME_TAKEN')
   })
 
-  it('soft-deletes a custom voice by renaming with _deleted suffix', async () => {
+  it('soft-deletes a custom voice by setting deletedAt in DB', async () => {
     const service = createVoiceService(voicesDir)
     const result = await service.deleteVoice('my-voice')
     expect(result).toEqual({ ok: true })
 
-    // Original dir should be gone
-    const original = await fs.stat(path.join(voicesDir, 'custom', 'my-voice')).catch(() => null)
-    expect(original).toBeNull()
+    // Directory should still exist (not renamed)
+    const dir = await fs.stat(path.join(voicesDir, 'custom', 'my-voice'))
+    expect(dir.isDirectory()).toBe(true)
 
-    // _deleted dir should exist with files intact
-    const deleted = await fs.stat(path.join(voicesDir, 'custom', 'my-voice_deleted'))
-    expect(deleted.isDirectory()).toBe(true)
-  })
-
-  it('clears stale _deleted dir before soft-deleting', async () => {
-    const service = createVoiceService(voicesDir)
-
-    // Create a stale _deleted dir with old content
-    const staleDir = path.join(voicesDir, 'custom', 'my-voice_deleted')
-    await fs.mkdir(staleDir, { recursive: true })
-    await fs.writeFile(path.join(staleDir, 'source.wav'), Buffer.alloc(10))
-    await fs.writeFile(path.join(staleDir, 'old-file.txt'), 'stale')
-
-    const result = await service.deleteVoice('my-voice')
-    expect(result).toEqual({ ok: true })
-
-    // _deleted dir should have current files, not stale ones
-    const deletedDir = path.join(voicesDir, 'custom', 'my-voice_deleted')
-    const files = await fs.readdir(deletedDir)
-    expect(files).toContain('source.wav')
-    expect(files).toContain('metadata.json')
-    expect(files).not.toContain('old-file.txt')
+    // DB should have been updated with deletedAt
+    expect(mockPrisma.voiceMetadata.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { name: 'my-voice' },
+        update: expect.objectContaining({ deletedAt: expect.any(Number) }),
+      }),
+    )
   })
 
   it('refuses to delete an app voice', async () => {
     const service = createVoiceService(voicesDir)
-    const result = await service.deleteVoice('narrator')
+    const result = await service.deleteVoice('clara')
     expect(result).toEqual({ ok: false, reason: 'app_voice' })
 
     // Verify not deleted
-    const fileStat = await fs.stat(path.join(voicesDir, 'narrator', 'source.wav'))
+    const fileStat = await fs.stat(path.join(voicesDir, 'clara', 'source.wav'))
     expect(fileStat.isFile()).toBe(true)
   })
 
@@ -247,40 +235,67 @@ describe('voiceService', () => {
     expect(result).toEqual({ ok: false, reason: 'not_found' })
   })
 
-  it('restores a soft-deleted voice', async () => {
+  it('restores a soft-deleted voice by clearing deletedAt', async () => {
     const service = createVoiceService(voicesDir)
-    await service.deleteVoice('my-voice')
+
+    // Mock: voice exists in DB with deletedAt set
+    mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce({ deletedAt: 1710000000000 })
+
     const result = await service.restoreVoice('my-voice')
     expect(result).toEqual({ ok: true })
 
-    // Original dir restored
-    const restored = await fs.stat(path.join(voicesDir, 'custom', 'my-voice'))
-    expect(restored.isDirectory()).toBe(true)
-
-    // _deleted dir gone
-    const deleted = await fs
-      .stat(path.join(voicesDir, 'custom', 'my-voice_deleted'))
-      .catch(() => null)
-    expect(deleted).toBeNull()
-
-    // Shows up in listing again
-    const voices = await service.listVoices()
-    expect(voices.map(v => v.name)).toContain('my-voice')
+    // DB should have been updated to clear deletedAt
+    expect(mockPrisma.voiceMetadata.update).toHaveBeenCalledWith({
+      where: { name: 'my-voice' },
+      data: { deletedAt: null },
+    })
   })
 
-  it('returns not_found when restoring a non-deleted voice', async () => {
+  it('returns not_found when restoring a voice that is not deleted', async () => {
     const service = createVoiceService(voicesDir)
-    const result = await service.restoreVoice('does-not-exist')
-    expect(result).toEqual({ ok: false, reason: 'not_found' })
+
+    // Voice exists in DB but is not deleted
+    mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce({ deletedAt: null })
+    const activeResult = await service.restoreVoice('my-voice')
+    expect(activeResult).toEqual({ ok: false, reason: 'not_found' })
+
+    // Voice doesn't exist in DB at all
+    mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce(null)
+    const missingResult = await service.restoreVoice('does-not-exist')
+    expect(missingResult).toEqual({ ok: false, reason: 'not_found' })
   })
 
   it('excludes soft-deleted voices from listing', async () => {
     const service = createVoiceService(voicesDir)
-    await service.deleteVoice('my-voice')
+
+    // Mock: my-voice is marked as deleted in DB
+    mockPrisma.voiceMetadata.findMany.mockResolvedValueOnce([{ name: 'my-voice' }])
+
     const voices = await service.listVoices()
     const names = voices.map(v => v.name)
     expect(names).not.toContain('my-voice')
-    expect(names).not.toContain('my-voice_deleted')
+  })
+
+  it('allows re-upload over a soft-deleted voice', async () => {
+    const service = createVoiceService(voicesDir)
+
+    // my-voice exists on disk (from beforeEach) and is soft-deleted in DB
+    mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce({ deletedAt: 1710000000000 })
+
+    const wav = createWavBuffer()
+    const result = await service.uploadVoice('My Voice', wav, 'recording.wav')
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.name).toBe('my-voice')
+
+    // upsert should clear deletedAt
+    expect(mockPrisma.voiceMetadata.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { name: 'my-voice' },
+        update: expect.objectContaining({ deletedAt: null }),
+      }),
+    )
   })
 
   it('rejects tag update for app voices', async () => {

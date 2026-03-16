@@ -52,6 +52,7 @@ model VoiceMetadata {
   displayName String
   type        String // 'app' | 'custom'
   tags        String @default("[]") // JSON: string[]
+  deletedAt   Int? // Unix timestamp ms, null = active
 }
 
 model UserSetting {
