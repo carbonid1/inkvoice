@@ -75,6 +75,11 @@ export default function Library() {
       const uploaded = await upload(fileArray)
       if (uploaded.length > 0) {
         addBooks(uploaded)
+        setHiddenBooks(prev => {
+          const next = new Set(prev)
+          uploaded.forEach(b => next.delete(b.id))
+          return next
+        })
       }
     },
     [upload, addBooks],

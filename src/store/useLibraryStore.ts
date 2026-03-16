@@ -16,5 +16,9 @@ export const useLibraryStore = create<LibraryState>()(set => ({
   currentBook: null,
   setBooks: books => set({ books }),
   setCurrentBook: bookId => set({ currentBook: bookId }),
-  addBooks: books => set(state => ({ books: [...state.books, ...books] })),
+  addBooks: books =>
+    set(state => {
+      const newIds = new Set(books.map(b => b.id))
+      return { books: [...state.books.filter(b => !newIds.has(b.id)), ...books] }
+    }),
 }))

@@ -69,24 +69,32 @@ class BookServiceImpl implements BookService {
     const dbBooks = await prisma.book.findMany()
     const dbMap = new Map(dbBooks.map(b => [b.id, b]))
 
-    // Find new files not yet in DB
-    const newFiles = files.filter(f => !dbMap.has(getBookIdFromFilename(f)))
+    // Find files that need DB insert or re-activation (new or soft-deleted)
+    const filesToSync = files.filter(f => {
+      const id = getBookIdFromFilename(f)
+      const existing = dbMap.get(id)
+      return !existing || existing.deletedAt !== null
+    })
 
-    // Insert new books into DB
-    if (newFiles.length > 0) {
-      const newBooks = await Promise.all(
-        newFiles.map(async filename => {
+    if (filesToSync.length > 0) {
+      const books = await Promise.all(
+        filesToSync.map(async filename => {
           const id = getBookIdFromFilename(filename)
           const meta = await extractMetadataSafe(filename)
           return { id, title: meta.title, author: meta.author, filename }
         }),
       )
 
-      for (const book of newBooks) {
+      for (const book of books) {
         await prisma.book.upsert({
           where: { id: book.id },
           create: book,
-          update: { title: book.title, author: book.author, filename: book.filename },
+          update: {
+            title: book.title,
+            author: book.author,
+            filename: book.filename,
+            deletedAt: null,
+          },
         })
       }
     }
@@ -226,7 +234,7 @@ class BookServiceImpl implements BookService {
     await prisma.book.upsert({
       where: { id },
       create: { id, title, author, filename },
-      update: { title, author, filename },
+      update: { title, author, filename, deletedAt: null },
     })
 
     return { id, title, author, filename }
