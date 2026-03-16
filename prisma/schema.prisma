@@ -8,10 +8,11 @@ datasource db {
 }
 
 model Book {
-  id       String   @id // sanitized filename (existing convention)
-  title    String
-  author   String
-  filename String
+  id        String @id // sanitized filename (existing convention)
+  title     String
+  author    String
+  filename  String
+  deletedAt Int? // Unix timestamp ms, null = active
 
   progress  ReadingProgress?
   bookmarks Bookmark[]

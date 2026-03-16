@@ -1,5 +1,4 @@
 import { getBookService } from '@/lib/services/book/book.service'
-import { bookmarkService } from '@/lib/services/bookmark/bookmark.service'
 import { NextResponse } from 'next/server'
 import { validateBookId } from './helpers/validateBookId/validateBookId'
 
@@ -17,11 +16,6 @@ export const DELETE = async (_request: Request, { params }: RouteContext) => {
   if (!deleted) {
     return NextResponse.json({ error: 'Book not found' }, { status: 404 })
   }
-
-  // Clean up bookmarks (fire-and-forget)
-  bookmarkService.removeAllBookmarks(id).catch(error => {
-    console.error(`Failed to remove bookmarks for book "${id}":`, error)
-  })
 
   return NextResponse.json({ success: true })
 }

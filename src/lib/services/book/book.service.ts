@@ -91,14 +91,17 @@ class BookServiceImpl implements BookService {
       }
     }
 
-    // Remove DB records for deleted files
-    const staleIds = dbBooks.filter(b => !fileIds.has(b.id)).map(b => b.id)
+    // Remove DB records for files that no longer exist (skip soft-deleted books)
+    const staleIds = dbBooks.filter(b => !fileIds.has(b.id) && b.deletedAt === null).map(b => b.id)
     if (staleIds.length > 0) {
       await prisma.book.deleteMany({ where: { id: { in: staleIds } } })
     }
 
-    // Return from DB (now in sync)
-    const allBooks = await prisma.book.findMany({ orderBy: { title: 'asc' } })
+    // Return active books from DB (now in sync)
+    const allBooks = await prisma.book.findMany({
+      where: { deletedAt: null },
+      orderBy: { title: 'asc' },
+    })
     return allBooks.map(b => ({
       id: b.id,
       title: b.title,
@@ -235,7 +238,7 @@ class BookServiceImpl implements BookService {
 
     await softDeleteBookFile(filename)
     this.cache.evict(bookId)
-    await prisma.book.deleteMany({ where: { id: bookId } })
+    await prisma.book.update({ where: { id: bookId }, data: { deletedAt: Date.now() } })
     return true
   }
 
@@ -245,14 +248,7 @@ class BookServiceImpl implements BookService {
 
     const originalFilename = deletedFile.replace(/_deleted$/, '')
     await restoreBookFile(originalFilename)
-
-    // Re-add to DB
-    const meta = await extractMetadataSafe(originalFilename)
-    await prisma.book.upsert({
-      where: { id: bookId },
-      create: { id: bookId, title: meta.title, author: meta.author, filename: originalFilename },
-      update: { title: meta.title, author: meta.author, filename: originalFilename },
-    })
+    await prisma.book.update({ where: { id: bookId }, data: { deletedAt: null } })
 
     return true
   }

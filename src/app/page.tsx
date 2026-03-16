@@ -6,7 +6,6 @@ import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
 import { useUploadBook } from '@/lib/hooks/useUploadBook/useUploadBook'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
-import type { Progress } from '@/store/useProgressStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { Settings, Upload } from 'lucide-react'
@@ -19,8 +18,6 @@ import { BookCard } from './components/BookCard/BookCard'
 
 type UndoState = {
   book: Book
-  previousProgress: Progress | undefined
-  previousBookVoice: string | undefined
 }
 
 export default function Library() {
@@ -39,10 +36,6 @@ export default function Library() {
   const progress = useProgressStore(s => s.progress)
   const progressLoaded = useProgressStore(s => s.loaded)
   const loadAllProgress = useProgressStore(s => s.loadAllProgress)
-  const removeProgress = useProgressStore(s => s.removeProgress)
-  const setProgress = useProgressStore(s => s.setProgress)
-  const clearBookVoice = useVoiceStore(s => s.clearBookVoice)
-  const setBookVoice = useVoiceStore(s => s.setBookVoice)
   const loadAllVoices = useVoiceStore(s => s.loadAll)
 
   const { uploading, error: uploadError, upload, reset: resetUpload } = useUploadBook()
@@ -109,17 +102,8 @@ export default function Library() {
       return
     }
 
-    // Restore snapshotted progress and voice assignment
-    if (undoState.previousProgress) {
-      const p = undoState.previousProgress
-      setProgress(undoState.book.id, p.chapter, p.paragraph)
-    }
-    if (undoState.previousBookVoice) {
-      setBookVoice(undoState.book.id, undoState.previousBookVoice)
-    }
-
     fetchBooks()
-  }, [unhideBook, restoreBook, setProgress, setBookVoice, fetchBooks])
+  }, [unhideBook, restoreBook, fetchBooks])
 
   useHotkeys('mod+z', handleUndo)
 
@@ -129,14 +113,7 @@ export default function Library() {
 
       setHiddenBooks(prev => new Set(prev).add(book.id))
 
-      // Snapshot state before destroying it
-      const previousProgress = useProgressStore.getState().progress[book.id]
-      const previousBookVoice = useVoiceStore.getState().bookVoices[book.id]
-
-      lastDeletedRef.current = { book, previousProgress, previousBookVoice }
-
-      removeProgress(book.id)
-      clearBookVoice(book.id)
+      lastDeletedRef.current = { book }
 
       toast.dismiss()
       toast('Book removed', {
@@ -158,7 +135,7 @@ export default function Library() {
         }
       })
     },
-    [removeProgress, clearBookVoice, deleteBook, handleUndo, unhideBook],
+    [deleteBook, handleUndo, unhideBook],
   )
 
   // Drag-and-drop handlers
