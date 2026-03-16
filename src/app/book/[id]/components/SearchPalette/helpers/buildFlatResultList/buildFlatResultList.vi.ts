@@ -69,4 +69,18 @@ describe('buildFlatResultList', () => {
     expect(flat[0]).toEqual({ type: 'header', chapterTitle: 'Epilogue', matchCount: 1 })
     expect(flat[1]).toMatchObject({ type: 'result', resultIndex: 0 })
   })
+
+  it('omits headers when showHeaders is false', () => {
+    const results = [
+      match({ chapter: 0, paragraph: 0, chapterTitle: 'Prologue' }),
+      match({ chapter: 1, paragraph: 2, chapterTitle: 'Chapter 1' }),
+      match({ chapter: 1, paragraph: 5, chapterTitle: 'Chapter 1' }),
+    ]
+
+    const flat = buildFlatResultList(results, { showHeaders: false })
+
+    expect(flat.every(e => e.type === 'result')).toBe(true)
+    expect(flat).toHaveLength(3)
+    expect(flat.map(e => (e as { resultIndex: number }).resultIndex)).toEqual([0, 1, 2])
+  })
 })

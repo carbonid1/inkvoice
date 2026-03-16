@@ -27,6 +27,7 @@ const MIN_QUERY_LENGTH = 2
 export const GET = async (request: NextRequest, { params }: RouteParams) => {
   const { id } = await params
   const query = request.nextUrl.searchParams.get('q')?.trim() ?? ''
+  const chapterParam = request.nextUrl.searchParams.get('chapter')
 
   if (query.length < MIN_QUERY_LENGTH) {
     return NextResponse.json(
@@ -43,10 +44,21 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 })
     }
 
+    const chapterFilter = chapterParam !== null ? parseInt(chapterParam, 10) : null
+    if (
+      chapterFilter !== null &&
+      (isNaN(chapterFilter) || chapterFilter < 0 || chapterFilter >= book.chapters.length)
+    ) {
+      return NextResponse.json({ error: 'Invalid chapter index' }, { status: 400 })
+    }
+
+    const startChapter = chapterFilter ?? 0
+    const endChapter = chapterFilter !== null ? chapterFilter + 1 : book.chapters.length
+
     const matches: SearchMatch[] = []
     let truncated = false
 
-    for (let chapterIndex = 0; chapterIndex < book.chapters.length; chapterIndex++) {
+    for (let chapterIndex = startChapter; chapterIndex < endChapter; chapterIndex++) {
       const chapter = book.chapters[chapterIndex]!
       for (let paragraphIndex = 0; paragraphIndex < chapter.paragraphs.length; paragraphIndex++) {
         const text = chapter.paragraphs[paragraphIndex]!

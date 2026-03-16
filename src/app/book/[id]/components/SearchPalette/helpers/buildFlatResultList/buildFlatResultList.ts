@@ -1,7 +1,11 @@
 import type { SearchMatch } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
-import type { FlatResultEntry } from './buildFlatResultList.types'
+import type { BuildFlatResultListOptions, FlatResultEntry } from './buildFlatResultList.types'
 
-export const buildFlatResultList = (results: SearchMatch[]): FlatResultEntry[] => {
+export const buildFlatResultList = (
+  results: SearchMatch[],
+  options: BuildFlatResultListOptions = {},
+): FlatResultEntry[] => {
+  const { showHeaders = true } = options
   const entries: FlatResultEntry[] = []
   let currentChapter: number | null = null
 
@@ -9,17 +13,19 @@ export const buildFlatResultList = (results: SearchMatch[]): FlatResultEntry[] =
     const match = results[i]!
 
     if (match.chapter !== currentChapter) {
-      // Count how many consecutive matches share this chapter
-      let count = 0
-      for (let j = i; j < results.length && results[j]!.chapter === match.chapter; j++) {
-        count++
-      }
+      if (showHeaders) {
+        // Count how many consecutive matches share this chapter
+        let count = 0
+        for (let j = i; j < results.length && results[j]!.chapter === match.chapter; j++) {
+          count++
+        }
 
-      entries.push({
-        type: 'header',
-        chapterTitle: match.chapterTitle,
-        matchCount: count,
-      })
+        entries.push({
+          type: 'header',
+          chapterTitle: match.chapterTitle,
+          matchCount: count,
+        })
+      }
 
       currentChapter = match.chapter
     }

@@ -47,11 +47,10 @@ export default function BookReader() {
 
   const { effectiveVoice } = useBookVoice(bookId)
   const { overview, loading, error, initialChapter, initialParagraph } = useBookOverview(bookId)
-  const search = useBookSearch(bookId)
-
   const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
   const [currentChapter, setCurrentChapter] = useState(initialChapter)
   const [currentParagraph, setCurrentParagraph] = useState(initialParagraph)
+  const search = useBookSearch(bookId, currentChapter)
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   const [activeDrawer, setActiveDrawer] = useState<'chapter' | 'bookmark' | null>(null)
@@ -381,7 +380,9 @@ export default function BookReader() {
           highlightedIndex={search.highlightedIndex}
           loading={search.loading}
           truncated={search.truncated}
+          scope={search.scope}
           onQueryChange={search.setQuery}
+          onScopeChange={search.setScope}
           onHighlightNext={search.highlightNext}
           onHighlightPrevious={search.highlightPrevious}
           onHighlight={search.setHighlightedIndex}

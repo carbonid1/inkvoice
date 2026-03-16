@@ -1,24 +1,36 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { SearchMatch, SearchResponse, UseBookSearchResult } from './useBookSearch.types'
+import type {
+  SearchMatch,
+  SearchResponse,
+  SearchScope,
+  UseBookSearchResult,
+} from './useBookSearch.types'
 
 const DEBOUNCE_MS = 300
 
-export const useBookSearch = (bookId: string): UseBookSearchResult => {
+export const useBookSearch = (bookId: string, currentChapter: number): UseBookSearchResult => {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQueryState] = useState('')
   const [results, setResults] = useState<SearchMatch[]>([])
   const [highlightedIndex, setHighlightedIndexState] = useState(0)
   const [loading, setLoading] = useState(false)
   const [truncated, setTruncated] = useState(false)
+  const [scope, setScopeState] = useState<SearchScope>('book')
 
   const abortControllerRef = useRef<AbortController | null>(null)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const resultsLengthRef = useRef(0)
+  const scopeRef = useRef<SearchScope>('book')
+  const currentChapterRef = useRef(currentChapter)
+  const queryRef = useRef('')
 
-  // Keep ref in sync
+  // Keep refs in sync
   resultsLengthRef.current = results.length
+  scopeRef.current = scope
+  currentChapterRef.current = currentChapter
+  queryRef.current = query
 
   const open = useCallback(() => setIsOpen(true), [])
 
@@ -29,6 +41,7 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
     setHighlightedIndexState(0)
     setLoading(false)
     setTruncated(false)
+    setScopeState('book')
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
@@ -57,10 +70,13 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
       setLoading(true)
 
       try {
-        const response = await fetch(
-          `/api/book/${bookId}/search?q=${encodeURIComponent(searchQuery)}`,
-          { signal: controller.signal },
-        )
+        const params = new URLSearchParams({ q: searchQuery })
+        if (scopeRef.current === 'chapter') {
+          params.set('chapter', String(currentChapterRef.current))
+        }
+        const response = await fetch(`/api/book/${bookId}/search?${params}`, {
+          signal: controller.signal,
+        })
 
         if (!response.ok) throw new Error('Search failed')
 
@@ -91,6 +107,21 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
       debounceTimerRef.current = setTimeout(() => {
         fetchResults(newQuery)
       }, DEBOUNCE_MS)
+    },
+    [fetchResults],
+  )
+
+  const setScope = useCallback(
+    (newScope: SearchScope) => {
+      setScopeState(newScope)
+      scopeRef.current = newScope // Eager update so fetchResults reads new scope before re-render
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+        debounceTimerRef.current = null
+      }
+      if (queryRef.current.length >= 2) {
+        fetchResults(queryRef.current)
+      }
     },
     [fetchResults],
   )
@@ -134,6 +165,8 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
       highlightNext,
       highlightPrevious,
       setHighlightedIndex,
+      scope,
+      setScope,
     }),
     [
       isOpen,
@@ -148,6 +181,8 @@ export const useBookSearch = (bookId: string): UseBookSearchResult => {
       highlightNext,
       highlightPrevious,
       setHighlightedIndex,
+      scope,
+      setScope,
     ],
   )
 }

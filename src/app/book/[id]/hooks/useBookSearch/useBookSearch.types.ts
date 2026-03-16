@@ -1,3 +1,5 @@
+export type SearchScope = 'book' | 'chapter'
+
 export type SearchMatch = {
   chapter: number
   paragraph: number
@@ -27,4 +29,6 @@ export type UseBookSearchResult = {
   highlightNext: () => void
   highlightPrevious: () => void
   setHighlightedIndex: (index: number) => void
+  scope: SearchScope
+  setScope: (scope: SearchScope) => void
 }

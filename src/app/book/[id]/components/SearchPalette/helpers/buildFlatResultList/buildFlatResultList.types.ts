@@ -13,3 +13,7 @@ export type FlatResultItem = {
 }
 
 export type FlatResultEntry = FlatResultHeader | FlatResultItem
+
+export type BuildFlatResultListOptions = {
+  showHeaders?: boolean
+}

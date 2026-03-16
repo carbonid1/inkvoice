@@ -51,7 +51,7 @@ const setupWithResults = async () => {
     json: () => Promise.resolve(response),
   })
 
-  const { result } = renderHook(() => useBookSearch('book-1'))
+  const { result } = renderHook(() => useBookSearch('book-1', 0))
 
   act(() => result.current.open())
   // Trigger query and debounce by directly calling fetchResults via setQuery
@@ -73,7 +73,7 @@ const setupWithResults = async () => {
 
 describe('useBookSearch', () => {
   it('starts closed with empty state', () => {
-    const { result } = renderHook(() => useBookSearch('book-1'))
+    const { result } = renderHook(() => useBookSearch('book-1', 0))
     expect(result.current.isOpen).toBe(false)
     expect(result.current.query).toBe('')
     expect(result.current.results).toEqual([])
@@ -83,7 +83,7 @@ describe('useBookSearch', () => {
   })
 
   it('open sets isOpen to true', () => {
-    const { result } = renderHook(() => useBookSearch('book-1'))
+    const { result } = renderHook(() => useBookSearch('book-1', 0))
     act(() => result.current.open())
     expect(result.current.isOpen).toBe(true)
   })
@@ -107,13 +107,14 @@ describe('useBookSearch', () => {
   })
 
   it('callbacks are stable across re-renders', () => {
-    const { result, rerender } = renderHook(() => useBookSearch('book-1'))
+    const { result, rerender } = renderHook(() => useBookSearch('book-1', 0))
     const firstOpen = result.current.open
     const firstClose = result.current.close
     const firstSetQuery = result.current.setQuery
     const firstHighlightNext = result.current.highlightNext
     const firstHighlightPrev = result.current.highlightPrevious
     const firstSetHighlightedIndex = result.current.setHighlightedIndex
+    const firstSetScope = result.current.setScope
     rerender()
     expect(result.current.open).toBe(firstOpen)
     expect(result.current.close).toBe(firstClose)
@@ -121,11 +122,12 @@ describe('useBookSearch', () => {
     expect(result.current.highlightNext).toBe(firstHighlightNext)
     expect(result.current.highlightPrevious).toBe(firstHighlightPrev)
     expect(result.current.setHighlightedIndex).toBe(firstSetHighlightedIndex)
+    expect(result.current.setScope).toBe(firstSetScope)
   })
 
   describe('highlightedIndex', () => {
     it('initializes to 0', () => {
-      const { result } = renderHook(() => useBookSearch('book-1'))
+      const { result } = renderHook(() => useBookSearch('book-1', 0))
       expect(result.current.highlightedIndex).toBe(0)
     })
 
@@ -190,6 +192,51 @@ describe('useBookSearch', () => {
 
       act(() => result.current.setHighlightedIndex(2))
       expect(result.current.highlightedIndex).toBe(2)
+    })
+  })
+
+  describe('scope', () => {
+    it('defaults to book', () => {
+      const { result } = renderHook(() => useBookSearch('book-1', 0))
+      expect(result.current.scope).toBe('book')
+    })
+
+    it('close resets scope to book', () => {
+      const { result } = renderHook(() => useBookSearch('book-1', 0))
+      act(() => result.current.open())
+      act(() => result.current.setScope('chapter'))
+      expect(result.current.scope).toBe('chapter')
+      act(() => result.current.close())
+      expect(result.current.scope).toBe('book')
+    })
+
+    it('setScope to chapter re-fetches with chapter param', async () => {
+      const { result } = await setupWithResults()
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockSearchResponse({ matches: [] })),
+      })
+
+      act(() => result.current.setScope('chapter'))
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledTimes(2)
+        const url = mockFetch.mock.calls[1]![0] as string
+        expect(url).toContain('&chapter=0')
+      })
+    })
+
+    it('setScope with short query does not fetch', () => {
+      const { result } = renderHook(() => useBookSearch('book-1', 0))
+      act(() => result.current.open())
+      act(() => result.current.setQuery('a'))
+
+      const fetchCountBefore = mockFetch.mock.calls.length
+
+      act(() => result.current.setScope('chapter'))
+
+      expect(mockFetch.mock.calls.length).toBe(fetchCountBefore)
     })
   })
 })

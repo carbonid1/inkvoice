@@ -15,12 +15,16 @@ export const SearchResultsPanel = ({
   query,
   highlightedIndex,
   truncated,
+  scope,
   onSelect,
   onHighlight,
 }: SearchResultsPanelProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  const flatList = useMemo(() => buildFlatResultList(results), [results])
+  const flatList = useMemo(
+    () => buildFlatResultList(results, { showHeaders: scope === 'book' }),
+    [results, scope],
+  )
 
   // Map highlightedIndex (result index) → flat list index for scroll targeting
   const highlightedFlatIndex = useMemo(() => {

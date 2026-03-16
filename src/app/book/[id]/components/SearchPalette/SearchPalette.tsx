@@ -1,9 +1,16 @@
 'use client'
 
+import type { SearchScope } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
+import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import { Loader2, Search, X } from 'lucide-react'
 import { type KeyboardEvent, useEffect, useRef } from 'react'
 import { SearchResultsPanel } from './components/SearchResultsPanel/SearchResultsPanel'
 import type { SearchPaletteProps } from './SearchPalette.types'
+
+const SCOPE_OPTIONS: { value: SearchScope; label: string }[] = [
+  { value: 'book', label: 'Book' },
+  { value: 'chapter', label: 'Chapter' },
+]
 
 export const SearchPalette = ({
   query,
@@ -11,7 +18,9 @@ export const SearchPalette = ({
   highlightedIndex,
   loading,
   truncated,
+  scope,
   onQueryChange,
+  onScopeChange,
   onHighlightNext,
   onHighlightPrevious,
   onHighlight,
@@ -57,9 +66,11 @@ export const SearchPalette = ({
     }
   }
 
+  const showSpinner = useDebouncedLoading(loading)
   const showMatchCount = query.length >= 2 && !loading
   const showNoResults = showMatchCount && results.length === 0
   const hasResults = results.length > 0 && query.length >= 2
+  const placeholder = scope === 'book' ? 'Search in book...' : 'Search in chapter...'
 
   return (
     <div className="fixed inset-0 z-50 bg-black/30" onClick={handleBackdropClick}>
@@ -75,17 +86,34 @@ export const SearchPalette = ({
             value={query}
             onChange={e => onQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search in book..."
+            placeholder={placeholder}
             className="flex-1 min-w-0 bg-transparent text-sm outline-none placeholder:text-gray-400"
-            aria-label="Search in book"
+            aria-label={placeholder}
           />
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-gray-400 flex-shrink-0" />}
-          {showNoResults && <span className="text-xs text-gray-400 flex-shrink-0">No results</span>}
-          {showMatchCount && results.length > 0 && (
-            <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums">
-              {results.length} {results.length === 1 ? 'result' : 'results'}
-            </span>
-          )}
+          <div className="flex rounded-md bg-gray-50 dark:bg-white/[0.06] p-0.5 flex-shrink-0">
+            {SCOPE_OPTIONS.map(option => (
+              <button
+                key={option.value}
+                className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                  scope === option.value
+                    ? 'bg-gray-100 dark:bg-white/[0.12] text-gray-900 dark:text-gray-100 font-medium'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                }`}
+                onClick={() => onScopeChange(option.value)}
+                aria-pressed={scope === option.value}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <span className="flex-shrink-0 min-w-[4.5rem] flex items-center justify-end">
+            {showSpinner && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+            {showMatchCount && results.length > 0 && (
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {results.length} {results.length === 1 ? 'result' : 'results'}
+              </span>
+            )}
+          </span>
           <button
             onClick={onClose}
             className="p-1 hover:bg-accent rounded transition-colors flex-shrink-0"
@@ -94,12 +122,28 @@ export const SearchPalette = ({
             <X className="w-4 h-4" />
           </button>
         </div>
+        {showNoResults && (
+          <div className="px-4 py-6 text-center">
+            <p className="text-sm text-gray-400">
+              {scope === 'chapter' ? 'No results in this chapter' : 'No results'}
+            </p>
+            {scope === 'chapter' && (
+              <button
+                className="text-xs text-blue-500 hover:text-blue-600 mt-1 transition-colors"
+                onClick={() => onScopeChange('book')}
+              >
+                Search entire book
+              </button>
+            )}
+          </div>
+        )}
         {hasResults && (
           <SearchResultsPanel
             results={results}
             query={query}
             highlightedIndex={highlightedIndex}
             truncated={truncated}
+            scope={scope}
             onSelect={handleSelectResult}
             onHighlight={onHighlight}
           />

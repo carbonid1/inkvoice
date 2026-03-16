@@ -1,4 +1,7 @@
-import type { SearchMatch } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
+import type {
+  SearchMatch,
+  SearchScope,
+} from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
 
 export type SearchPaletteProps = {
   query: string
@@ -6,7 +9,9 @@ export type SearchPaletteProps = {
   highlightedIndex: number
   loading: boolean
   truncated: boolean
+  scope: SearchScope
   onQueryChange: (query: string) => void
+  onScopeChange: (scope: SearchScope) => void
   onHighlightNext: () => void
   onHighlightPrevious: () => void
   onHighlight: (index: number) => void
