@@ -40,6 +40,9 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
   )
   await drawer.locator(`button[data-chapter-index="${index}"]`).click()
   await chapterResponse
+  // Wait for the drawer close animation to finish — the CSS transition and
+  // associated React re-renders can detach paragraph DOM nodes mid-click
+  await expect(drawer).toHaveClass(/-translate-x-full/)
   await allParagraphs(page).first().waitFor()
 }
 

@@ -31,6 +31,7 @@ import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
 import { RecoveryBanner } from './components/RecoveryBanner/RecoveryBanner'
+import { ReturnPill } from './components/ReturnPill/ReturnPill'
 import { SearchPalette } from './components/SearchPalette/SearchPalette'
 import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
 import {
@@ -40,6 +41,7 @@ import {
 import { shouldShowChapterProgress } from './helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 import { useBookSearch } from './hooks/useBookSearch/useBookSearch'
+import { useReturnPosition } from './hooks/useReturnPosition/useReturnPosition'
 
 export default function BookReader() {
   const params = useParams()
@@ -51,6 +53,7 @@ export default function BookReader() {
   const [currentChapter, setCurrentChapter] = useState(initialChapter)
   const [currentParagraph, setCurrentParagraph] = useState(initialParagraph)
   const search = useBookSearch(bookId, currentChapter)
+  const { savedPosition, savePosition, clearPosition, navigateBack } = useReturnPosition()
   const [chapterLoading, setChapterLoading] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   const [activeDrawer, setActiveDrawer] = useState<'chapter' | 'bookmark' | null>(null)
@@ -189,24 +192,37 @@ export default function BookReader() {
     undoRemoveBookmark()
     toast.dismiss()
   })
+  useHotkeys('backspace', () => navigateBack(handleProgressChange), {
+    enabled: savedPosition !== null,
+  })
 
   // Drawer callbacks
   const closeDrawer = useCallback(() => setActiveDrawer(null), [])
   const handleChapterNavigate = useCallback(
     (chapter: number) => {
+      clearPosition()
       const saved = getProgress(bookId).chapterPositions?.[chapter] ?? 0
       handleProgressChange(chapter, saved)
     },
-    [bookId, getProgress, handleProgressChange],
+    [bookId, getProgress, handleProgressChange, clearPosition],
   )
 
   const closeSearch = search.close
   const handleSearchSelect = useCallback(
     (chapter: number, paragraph: number) => {
+      savePosition(currentChapter, currentParagraph)
       handleParagraphClick(chapter, paragraph)
       closeSearch()
     },
-    [handleParagraphClick, closeSearch],
+    [savePosition, currentChapter, currentParagraph, handleParagraphClick, closeSearch],
+  )
+
+  const handleBookmarkNavigate = useCallback(
+    (chapter: number, paragraph: number) => {
+      clearPosition()
+      handleProgressChange(chapter, paragraph)
+    },
+    [clearPosition, handleProgressChange],
   )
 
   const showChapterLoading = useDebouncedLoading(chapterLoading)
@@ -373,6 +389,16 @@ export default function BookReader() {
         </div>
       </main>
 
+      {savedPosition && (
+        <ReturnPill
+          chapterName={
+            chapterNames[savedPosition.chapter] ?? `Chapter ${savedPosition.chapter + 1}`
+          }
+          onNavigate={() => navigateBack(handleProgressChange)}
+          onDismiss={clearPosition}
+        />
+      )}
+
       {search.isOpen && (
         <SearchPalette
           query={search.query}
@@ -419,7 +445,7 @@ export default function BookReader() {
         bookId={bookId}
         isOpen={activeDrawer === 'bookmark'}
         onClose={closeDrawer}
-        onNavigate={handleProgressChange}
+        onNavigate={handleBookmarkNavigate}
         chapterNames={chapterNames}
       />
 
