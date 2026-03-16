@@ -26,8 +26,8 @@ export const BookmarkDrawer = ({
   const drawerRef = useRef<HTMLDivElement>(null)
   const prevBookmarkIdsRef = useRef(new Set(bookmarks.map(b => b.id)))
 
-  const handleRemove = async (bookmark: Bookmark) => {
-    await removeBookmark(bookId, bookmark.id)
+  const handleRemove = (bookmark: Bookmark) => {
+    removeBookmark(bookId, bookmark.id)
     toast('Bookmark removed', {
       description: `${getModKey()}+Z to undo`,
       action: { label: 'Undo', onClick: () => undoRemoveBookmark() },
@@ -108,7 +108,10 @@ export const BookmarkDrawer = ({
           ) : (
             <ul ref={listParent} className="pt-1 pb-8">
               {sorted.map(bookmark => (
-                <li key={bookmark.id} data-bookmark-id={bookmark.id}>
+                <li
+                  key={`${bookmark.chapter}-${bookmark.paragraph}`}
+                  data-bookmark-id={bookmark.id}
+                >
                   <button
                     onClick={() => {
                       onNavigate(bookmark.chapter, bookmark.paragraph)

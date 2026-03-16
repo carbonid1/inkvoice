@@ -42,51 +42,89 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
   },
 
   addBookmark: async (bookId, chapter, paragraph, preview?) => {
+    const existing = (get().bookmarks[bookId] ?? []).find(
+      b => b.chapter === chapter && b.paragraph === paragraph,
+    )
+    if (existing) return existing
+
+    const optimistic: Bookmark = {
+      id: crypto.randomUUID(),
+      chapter,
+      paragraph,
+      createdAt: Date.now(),
+      ...(preview !== undefined && { preview }),
+    }
+
+    set(state => ({
+      bookmarks: {
+        ...state.bookmarks,
+        [bookId]: [...(state.bookmarks[bookId] ?? []), optimistic],
+      },
+    }))
+
     try {
       const response = await fetch(`/api/bookmarks/${bookId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chapter, paragraph, preview }),
       })
-      const bookmark: Bookmark = await response.json()
+      const serverBookmark: Bookmark = await response.json()
+
       set(state => ({
         bookmarks: {
           ...state.bookmarks,
-          [bookId]: [...(state.bookmarks[bookId] ?? []), bookmark],
+          [bookId]: (state.bookmarks[bookId] ?? []).map(b =>
+            b.id === optimistic.id ? serverBookmark : b,
+          ),
         },
       }))
-      return bookmark
+
+      return serverBookmark
     } catch (error) {
-      console.error('Failed to add bookmark:', error)
+      set(state => ({
+        bookmarks: {
+          ...state.bookmarks,
+          [bookId]: (state.bookmarks[bookId] ?? []).filter(b => b.id !== optimistic.id),
+        },
+      }))
       throw error
     }
   },
 
   removeBookmark: async (bookId, bookmarkId) => {
-    try {
-      const bookmark = (get().bookmarks[bookId] ?? []).find(b => b.id === bookmarkId)
+    const bookmark = (get().bookmarks[bookId] ?? []).find(b => b.id === bookmarkId)
+    if (!bookmark) return
 
+    const previous = get().lastDeleted
+    if (previous) clearTimeout(previous.timerId)
+
+    const timerId = setTimeout(() => get().clearLastDeleted(), UNDO_WINDOW_MS)
+
+    set(state => ({
+      bookmarks: {
+        ...state.bookmarks,
+        [bookId]: (state.bookmarks[bookId] ?? []).filter(b => b.id !== bookmarkId),
+      },
+      lastDeleted: { bookId, bookmark, timerId },
+    }))
+
+    try {
       await fetch(`/api/bookmarks/${bookId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookmarkId }),
       })
-
-      // Clear previous undo timer if exists
-      const previous = get().lastDeleted
-      if (previous) clearTimeout(previous.timerId)
-
-      const timerId = setTimeout(() => get().clearLastDeleted(), UNDO_WINDOW_MS)
+    } catch {
+      const current = get().lastDeleted
+      if (current) clearTimeout(current.timerId)
 
       set(state => ({
         bookmarks: {
           ...state.bookmarks,
-          [bookId]: (state.bookmarks[bookId] ?? []).filter(b => b.id !== bookmarkId),
+          [bookId]: [...(state.bookmarks[bookId] ?? []), bookmark],
         },
-        lastDeleted: bookmark ? { bookId, bookmark, timerId } : null,
+        lastDeleted: null,
       }))
-    } catch (error) {
-      console.error('Failed to remove bookmark:', error)
     }
   },
 
