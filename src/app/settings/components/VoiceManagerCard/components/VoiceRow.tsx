@@ -56,7 +56,9 @@ export const VoiceRow = ({
           data-voice={voice.name}
           className="flex items-center gap-3 flex-1 text-left rounded transition-colors min-w-0 cursor-pointer"
         >
-          <span className="font-medium text-sm truncate">{voice.displayName}</span>
+          <span className="font-medium text-sm shrink-0 whitespace-nowrap">
+            {voice.displayName}
+          </span>
           {voice.tags.length > 0 && <VoiceTagList tags={voice.tags} />}
         </button>
 
