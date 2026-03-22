@@ -10,7 +10,7 @@ export const selectDifferentVoice = async (page: Page): Promise<string> => {
     const btn = allVoiceButtons.nth(i)
     const isCurrent = await btn.getAttribute('aria-current')
     if (isCurrent !== 'true') {
-      const name = (await btn.locator('.font-medium.truncate').textContent()) ?? ''
+      const name = (await btn.locator('.font-medium').textContent()) ?? ''
       await btn.click()
       await expect(page.locator('button[aria-current="true"]')).toContainText(name)
       return name

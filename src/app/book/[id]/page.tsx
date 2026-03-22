@@ -50,8 +50,9 @@ export default function BookReader() {
   const { effectiveVoice } = useBookVoice(bookId)
   const { overview, loading, error, initialChapter, initialParagraph } = useBookOverview(bookId)
   const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
-  const [currentChapter, setCurrentChapter] = useState(initialChapter)
-  const [currentParagraph, setCurrentParagraph] = useState(initialParagraph)
+  const [currentChapter, setCurrentChapter] = useState(0)
+  const [currentParagraph, setCurrentParagraph] = useState(0)
+  const [positionResolved, setPositionResolved] = useState(false)
   const search = useBookSearch(bookId, currentChapter)
   const { savedPosition, savePosition, clearPosition, navigateBack } = useReturnPosition()
   const [chapterLoading, setChapterLoading] = useState(false)
@@ -73,13 +74,15 @@ export default function BookReader() {
 
   // Sync position when hook resolves initial values from overview
   useEffect(() => {
+    if (initialChapter === null || initialParagraph === null) return
     setCurrentChapter(initialChapter)
     setCurrentParagraph(initialParagraph)
+    setPositionResolved(true)
   }, [initialChapter, initialParagraph])
 
   // Fetch chapter content when currentChapter changes
   useEffect(() => {
-    if (!overview) return
+    if (!overview || !positionResolved) return
 
     const fetchChapter = async () => {
       setChapterLoading(true)
@@ -96,7 +99,7 @@ export default function BookReader() {
     }
 
     fetchChapter()
-  }, [bookId, overview, currentChapter])
+  }, [bookId, overview, currentChapter, positionResolved])
 
   const handleProgressChange = useCallback(
     (chapter: number, paragraph: number) => {
@@ -246,7 +249,7 @@ export default function BookReader() {
     [bookmarksForBook],
   )
 
-  if (loading) return <PageSkeleton />
+  if (loading || !positionResolved) return <PageSkeleton />
 
   if (error || !overview) {
     return (

@@ -10,8 +10,8 @@ type UseBookOverviewResult = {
   overview: BookOverview | null
   loading: boolean
   error: string | null
-  initialChapter: number
-  initialParagraph: number
+  initialChapter: number | null
+  initialParagraph: number | null
 }
 
 export const useBookOverview = (bookId: string): UseBookOverviewResult => {
@@ -20,12 +20,11 @@ export const useBookOverview = (bookId: string): UseBookOverviewResult => {
   const setBookMetadata = useProgressStore(s => s.setBookMetadata)
   const setCurrentBook = useLibraryStore(s => s.setCurrentBook)
 
-  const savedProgress = getProgress(bookId)
   const [overview, setOverview] = useState<BookOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [initialChapter, setInitialChapter] = useState(savedProgress.chapter)
-  const [initialParagraph, setInitialParagraph] = useState(savedProgress.paragraph)
+  const [initialChapter, setInitialChapter] = useState<number | null>(null)
+  const [initialParagraph, setInitialParagraph] = useState<number | null>(null)
 
   useEffect(() => {
     if (!hydrated) return

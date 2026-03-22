@@ -54,13 +54,15 @@ describe('useBookOverview', () => {
     vi.restoreAllMocks()
   })
 
-  it('returns loading initially', () => {
+  it('returns loading initially with null position', () => {
     vi.mocked(fetch).mockReturnValue(new Promise(() => {}))
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
 
     expect(result.current.loading).toBe(true)
     expect(result.current.overview).toBeNull()
     expect(result.current.error).toBeNull()
+    expect(result.current.initialChapter).toBeNull()
+    expect(result.current.initialParagraph).toBeNull()
   })
 
   it('fetches overview and returns data', async () => {
