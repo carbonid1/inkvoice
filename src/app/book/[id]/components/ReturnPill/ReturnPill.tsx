@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/Button/Button'
 import { Undo2, X } from 'lucide-react'
 import type { ReturnPillProps } from './ReturnPill.types'
 
@@ -18,13 +19,14 @@ export const ReturnPill = ({ chapterName, onNavigate, onDismiss }: ReturnPillPro
           <Undo2 className="w-4 h-4 flex-shrink-0" />
           <span className="text-sm truncate max-w-48">Back to {chapterName}</span>
         </button>
-        <button
+        <Button
+          size="smallIcon"
           onClick={onDismiss}
-          className="p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-accent transition-colors flex-shrink-0 cursor-pointer"
+          className="text-muted-foreground hover:text-foreground flex-shrink-0"
           aria-label="Dismiss"
         >
           <X className="w-3.5 h-3.5" />
-        </button>
+        </Button>
       </div>
     </div>
   )

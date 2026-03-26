@@ -1,6 +1,7 @@
 'use client'
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { buttonVariants } from '@/components/ui/Button/Button'
 import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
 import { useUploadBook } from '@/lib/hooks/useUploadBook/useUploadBook'
@@ -203,7 +204,7 @@ export default function Library() {
           </div>
           <Link
             href="/settings"
-            className="p-2 rounded-full hover:bg-accent transition-colors"
+            className={buttonVariants({ size: 'icon' })}
             aria-label="Settings"
           >
             <Settings />

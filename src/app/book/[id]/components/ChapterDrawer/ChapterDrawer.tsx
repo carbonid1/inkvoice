@@ -1,6 +1,7 @@
 'use client'
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { Button } from '@/components/ui/Button/Button'
 import type { TocNode } from '@/lib/types/book'
 import { ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -115,12 +116,9 @@ export const ChapterDrawer = ({
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">Table of Contents</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-accent transition-colors"
-            >
+            <Button size="icon" onClick={onClose}>
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </Tooltip>
         </div>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { buttonVariants } from '@/components/ui/Button/Button'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
 import { useVoiceStore } from '@/store/useVoiceStore'
@@ -35,7 +36,7 @@ export default function Settings() {
         <div className="max-w-2xl mx-auto px-8 py-6 flex items-center gap-4">
           <Link
             href="/"
-            className="p-2 rounded-full hover:bg-accent transition-colors"
+            className={buttonVariants({ size: 'icon' })}
             title="Back to library"
           >
             <ChevronLeft className="w-6 h-6" />

@@ -1,6 +1,7 @@
 'use client'
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { Button } from '@/components/ui/Button/Button'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
 import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
@@ -90,12 +91,9 @@ export const BookmarkDrawer = ({
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">Bookmarks</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-accent transition-colors"
-            >
+            <Button size="icon" onClick={onClose}>
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </Tooltip>
         </div>
 
@@ -130,16 +128,18 @@ export const BookmarkDrawer = ({
                         {formatTimeAgo(bookmark.createdAt)}
                       </span>
                     </div>
-                    <button
+                    <Button
+                      variant="danger"
+                      size="icon"
                       onClick={e => {
                         e.stopPropagation()
                         handleRemove(bookmark)
                       }}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
                       aria-label="Remove bookmark"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </button>
                 </li>
               ))}

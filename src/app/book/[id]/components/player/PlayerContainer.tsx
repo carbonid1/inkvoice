@@ -1,6 +1,7 @@
 'use client'
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { Button } from '@/components/ui/Button/Button'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
@@ -281,10 +282,7 @@ export const PlayerContainer = ({
         {onBookmarkToggle && (
           <div className="absolute right-0 top-1/2 -translate-y-1/2">
             <Tooltip label={isCurrentBookmarked ? 'Remove Bookmark' : 'Add Bookmark'} shortcut="B">
-              <button
-                onClick={onBookmarkToggle}
-                className="p-2 rounded-full hover:bg-accent transition-colors"
-              >
+              <Button size="icon" onClick={onBookmarkToggle}>
                 <Bookmark
                   className={`w-5 h-5 ${
                     isCurrentBookmarked
@@ -293,7 +291,7 @@ export const PlayerContainer = ({
                   }`}
                   fill={isCurrentBookmarked ? 'currentColor' : 'none'}
                 />
-              </button>
+              </Button>
             </Tooltip>
           </div>
         )}

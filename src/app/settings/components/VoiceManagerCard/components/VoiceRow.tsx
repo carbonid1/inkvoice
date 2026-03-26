@@ -1,6 +1,7 @@
 'use client'
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { Button } from '@/components/ui/Button/Button'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { Pencil, Play, Square, Volume2, X } from 'lucide-react'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
@@ -70,14 +71,14 @@ export const VoiceRow = ({
           }`}
         >
           <Tooltip label={playingSource ? 'Stop' : 'Play source audio'}>
-            <button
-              type="button"
+            <Button
+              variant="subtle"
+              size="icon"
               onClick={() => onPlay(voice.name, 'source')}
               aria-label={playingSource ? 'Stop' : `Play source audio for ${voice.displayName}`}
-              className="p-2 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
             >
               {playingSource ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </button>
+            </Button>
           </Tooltip>
 
           {showSampleButton && (
@@ -90,8 +91,9 @@ export const VoiceRow = ({
                     : 'Play voice sample'
               }
             >
-              <button
-                type="button"
+              <Button
+                variant="subtle"
+                size="icon"
                 onClick={() => onPlay(voice.name, 'sample')}
                 disabled={sampleGenerating}
                 aria-label={
@@ -101,42 +103,37 @@ export const VoiceRow = ({
                       ? 'Stop'
                       : `Play voice sample for ${voice.displayName}`
                 }
-                className={`p-2 transition-colors ${
-                  sampleGenerating
-                    ? 'opacity-40 animate-pulse cursor-not-allowed'
-                    : 'text-gray-400 hover:text-blue-500 cursor-pointer'
-                }`}
+                className={sampleGenerating ? 'opacity-40 animate-pulse' : ''}
               >
                 {playingSample ? <Square className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </button>
+              </Button>
             </Tooltip>
           )}
 
           {voice.type === 'custom' && (
             <Tooltip label="Edit tags">
-              <button
-                type="button"
+              <Button
+                variant="subtle"
+                size="icon"
                 onClick={onToggleTagEditor}
                 aria-label={`Edit tags for ${voice.displayName}`}
-                className={`p-2 transition-colors cursor-pointer ${
-                  editingTags ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'
-                }`}
+                className={editingTags ? 'text-blue-500' : ''}
               >
                 <Pencil className="w-4 h-4" />
-              </button>
+              </Button>
             </Tooltip>
           )}
 
           {onDelete && (
             <Tooltip label={`Remove "${voice.displayName}"`}>
-              <button
-                type="button"
+              <Button
+                variant="danger"
+                size="icon"
                 onClick={() => onDelete(voice.name)}
                 aria-label={`Remove ${voice.displayName}`}
-                className="p-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </Button>
             </Tooltip>
           )}
         </div>

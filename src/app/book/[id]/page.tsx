@@ -2,6 +2,8 @@
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { Button } from '@/components/ui/Button/Button'
+import { buttonVariants } from '@/components/ui/Button/Button'
 import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
@@ -301,7 +303,7 @@ export default function BookReader() {
       <PageHeader>
         <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-4">
           <Tooltip label="Back to Library" position="bottom">
-            <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-full transition-colors">
+            <Link href="/" className={buttonVariants({ size: 'icon', className: '-ml-2' })}>
               <ChevronLeft className="w-5 h-5" />
             </Link>
           </Tooltip>
@@ -310,21 +312,22 @@ export default function BookReader() {
             <p className="text-sm text-muted-foreground truncate">{overview.author}</p>
           </div>
           <Tooltip label="Search" shortcut={`${getModKey()}+F`} position="bottom">
-            <button
+            <Button
+              size="icon"
               onClick={() => (search.isOpen ? search.close() : search.open())}
-              className="p-2 hover:bg-accent rounded-full transition-colors"
               aria-label="Search in book"
             >
               <Search className="w-5 h-5" />
-            </button>
+            </Button>
           </Tooltip>
           <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
-            <button
+            <Button
+              size="icon"
               onClick={() => setActiveDrawer('bookmark')}
-              className="p-2 -mr-2 hover:bg-accent rounded-full transition-colors"
+              className="-mr-2"
             >
               <BookMarked className="w-5 h-5" />
-            </button>
+            </Button>
           </Tooltip>
         </div>
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/Button/Button'
 import { X } from 'lucide-react'
 import { useState } from 'react'
 
@@ -24,13 +25,14 @@ export const RecoveryBanner = ({ chapterName, onNavigate }: RecoveryBannerProps)
           Go there
         </button>
       </p>
-      <button
+      <Button
+        size="icon"
         onClick={() => setDismissed(true)}
-        className="p-2 text-amber-400 hover:text-amber-600 transition-colors flex-shrink-0 ml-2"
+        className="flex-shrink-0 ml-2 text-amber-400 hover:text-amber-600"
         aria-label="Dismiss"
       >
         <X className="w-4 h-4" />
-      </button>
+      </Button>
     </div>
   )
 }

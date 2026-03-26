@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/Button/Button'
 import { Copy, RefreshCw } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
@@ -73,23 +74,15 @@ export const ParagraphContextMenu = ({
       className="fixed z-50 min-w-[180px] bg-background rounded-lg shadow-lg border border-border py-1"
       role="menu"
     >
-      <button
-        role="menuitem"
-        onClick={handleCopy}
-        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-accent transition-colors"
-      >
+      <Button role="menuitem" size="small" fullWidth onClick={handleCopy}>
         <Copy className="w-4 h-4" />
         Copy Text
-      </button>
+      </Button>
       <div className="border-t border-border" />
-      <button
-        role="menuitem"
-        onClick={handleRegenerate}
-        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-accent transition-colors"
-      >
+      <Button role="menuitem" size="small" fullWidth onClick={handleRegenerate}>
         <RefreshCw className="w-4 h-4" />
         Regenerate Audio
-      </button>
+      </Button>
     </div>
   )
 }

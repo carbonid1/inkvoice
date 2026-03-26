@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/Button/Button'
 import { useHotkeys } from 'react-hotkeys-hook'
 import type { ChapterEndModalProps } from './ChapterEndModal.types'
 
@@ -58,13 +59,16 @@ export const ChapterEndModal = ({
           </p>
 
           {/* Continue button */}
-          <button
+          <Button
+            variant="primary"
+            size="large"
+            fullWidth
             onClick={onContinue}
             autoFocus
-            className="mt-6 w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background"
+            className="mt-6"
           >
             Continue to Next Chapter
-          </button>
+          </Button>
         </div>
       </div>
     </>

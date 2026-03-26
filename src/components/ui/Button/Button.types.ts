@@ -4,6 +4,7 @@ import type { buttonVariants } from './Button'
 
 type ButtonProps = ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & {
+    fullWidth?: boolean
     loading?: boolean
   }
 

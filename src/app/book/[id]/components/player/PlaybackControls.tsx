@@ -1,6 +1,7 @@
 'use client'
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { Button } from '@/components/ui/Button/Button'
 import { ChevronLeft, ChevronRight, Loader2, Pause, Play } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
@@ -26,15 +27,17 @@ export const PlaybackControls = ({
   return (
     <div className="flex items-center justify-center gap-4">
       <Tooltip label="Previous Sentence" shortcut="←">
-        <button onClick={onSkipBack} className="p-2 rounded-full hover:bg-accent transition-colors">
+        <Button size="icon" onClick={onSkipBack}>
           <ChevronLeft className="w-6 h-6" />
-        </button>
+        </Button>
       </Tooltip>
 
       <Tooltip label={isPlaying ? 'Pause' : 'Play'} shortcut="Space">
-        <button
+        <Button
+          variant="solid"
+          size="largeIcon"
           onClick={onPlayPause}
-          className="p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors relative"
+          className="relative"
         >
           {isLoading && <Loader2 className="w-6 h-6 animate-spin absolute inset-0 m-auto" />}
           {isPlaying ? (
@@ -42,16 +45,13 @@ export const PlaybackControls = ({
           ) : (
             <Play className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
           )}
-        </button>
+        </Button>
       </Tooltip>
 
       <Tooltip label="Next Sentence" shortcut="→">
-        <button
-          onClick={onSkipForward}
-          className="p-2 rounded-full hover:bg-accent transition-colors"
-        >
+        <Button size="icon" onClick={onSkipForward}>
           <ChevronRight className="w-6 h-6" />
-        </button>
+        </Button>
       </Tooltip>
     </div>
   )

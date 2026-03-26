@@ -1,7 +1,8 @@
 'use client'
 
+import { Button } from '@/components/ui/Button/Button'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
-import { Loader2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
@@ -124,14 +125,15 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
             </p>
           )}
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="solid"
+              size="small"
               onClick={handleUpload}
-              disabled={!name.trim() || !file || uploading || isDurationInvalid}
-              className="px-3 py-2 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              disabled={!name.trim() || !file || isDurationInvalid}
+              loading={uploading}
             >
-              {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {uploading ? 'Uploading...' : 'Upload'}
-            </button>
+            </Button>
             {displayError && (
               <p className="text-sm text-red-500 dark:text-red-400">{displayError}</p>
             )}
