@@ -25,6 +25,7 @@ const eslintConfig = defineConfig([
     'api/**',
     'data/**',
     'generated/**',
+    'storybook-static/**',
   ]),
 ])
 

@@ -47,6 +47,9 @@ data/voices/custom/
 # Skills CLI
 .agents/
 
+# Storybook
+storybook-static/
+
 # Playwright
 test-results/
 playwright-report/
