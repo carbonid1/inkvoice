@@ -202,11 +202,7 @@ export default function Library() {
             <h1 className="text-3xl font-bold">InkVoice</h1>
             <p className="text-muted-foreground mt-1">Read and listen to your books</p>
           </div>
-          <Link
-            href="/settings"
-            className={buttonVariants({ size: 'icon' })}
-            aria-label="Settings"
-          >
+          <Link href="/settings" className={buttonVariants({ size: 'icon' })} aria-label="Settings">
             <Settings />
           </Link>
         </div>

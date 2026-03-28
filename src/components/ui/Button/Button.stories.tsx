@@ -92,7 +92,12 @@ export const LargeSize = meta.story({
 // --- FullWidth ---
 
 export const FullWidthPrimary = meta.story({
-  args: { children: 'Continue to Next Chapter', variant: 'primary', size: 'large', fullWidth: true },
+  args: {
+    children: 'Continue to Next Chapter',
+    variant: 'primary',
+    size: 'large',
+    fullWidth: true,
+  },
 })
 
 export const FullWidthMenuItem = meta.story({

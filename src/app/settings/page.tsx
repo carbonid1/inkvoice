@@ -34,11 +34,7 @@ export default function Settings() {
     <div className="min-h-screen">
       <PageHeader>
         <div className="max-w-2xl mx-auto px-8 py-6 flex items-center gap-4">
-          <Link
-            href="/"
-            className={buttonVariants({ size: 'icon' })}
-            title="Back to library"
-          >
+          <Link href="/" className={buttonVariants({ size: 'icon' })} title="Back to library">
             <ChevronLeft className="w-6 h-6" />
           </Link>
           <h1 className="text-3xl font-bold">Settings</h1>

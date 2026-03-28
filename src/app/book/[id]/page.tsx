@@ -2,8 +2,7 @@
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
-import { Button } from '@/components/ui/Button/Button'
-import { buttonVariants } from '@/components/ui/Button/Button'
+import { Button, buttonVariants } from '@/components/ui/Button/Button'
 import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
@@ -321,11 +320,7 @@ export default function BookReader() {
             </Button>
           </Tooltip>
           <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
-            <Button
-              size="icon"
-              onClick={() => setActiveDrawer('bookmark')}
-              className="-mr-2"
-            >
+            <Button size="icon" onClick={() => setActiveDrawer('bookmark')} className="-mr-2">
               <BookMarked className="w-5 h-5" />
             </Button>
           </Tooltip>
