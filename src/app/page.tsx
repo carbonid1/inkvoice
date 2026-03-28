@@ -1,6 +1,7 @@
 'use client'
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { buttonVariants } from '@/components/ui/Button/Button'
 import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
@@ -202,9 +203,15 @@ export default function Library() {
             <h1 className="text-3xl font-bold">InkVoice</h1>
             <p className="text-muted-foreground mt-1">Read and listen to your books</p>
           </div>
-          <Link href="/settings" className={buttonVariants({ size: 'icon' })} aria-label="Settings">
-            <Settings />
-          </Link>
+          <Tooltip label="Settings" position="bottom">
+            <Link
+              href="/settings"
+              className={buttonVariants({ size: 'icon' })}
+              aria-label="Settings"
+            >
+              <Settings />
+            </Link>
+          </Tooltip>
         </div>
       </PageHeader>
 
