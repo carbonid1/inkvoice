@@ -25,7 +25,7 @@
     "test:run:storybook": "vitest run --project=storybook",
     "electron:dev": "pnpm run build:electron && electron dist-electron/main.js",
     "electron:build": "./scripts/build-electron.sh",
-    "build:electron": "tsup electron/main.ts electron/preload.ts --outDir dist-electron --format cjs --clean",
+    "build:electron": "tsup electron/main.ts electron/preload.ts --outDir dist-electron --format cjs --clean --external electron",
     "electron:reinstall": "rm -rf /Applications/InkVoice.app && open dist/InkVoice-1.0.0-arm64.dmg"
   },
   "main": "dist-electron/main.js",

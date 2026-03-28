@@ -65,7 +65,7 @@ mac:
       arch:
         - arm64
   category: public.app-category.books
-  icon: public/icons/icon-512.png
+  icon: build/icon.icns
   # Don't sign for now (friends use right-click > Open)
   identity: null
 

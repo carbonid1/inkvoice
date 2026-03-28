@@ -28,7 +28,8 @@ npm-debug.log*
 
 # Build
 dist/
-build/
+build/*
+!build/icon.icns
 *.tsbuildinfo
 dist-electron/
 dist-nextjs/
