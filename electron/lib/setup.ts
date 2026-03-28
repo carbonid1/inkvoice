@@ -21,6 +21,29 @@ const copyDirRecursive = (src: string, dest: string): void => {
   }
 }
 
+const copyStarterBooks = (): void => {
+  const src = paths.bundledStarterBooks
+  if (!fs.existsSync(src)) return
+
+  const files = fs.readdirSync(src).filter(f => f.endsWith('.epub'))
+  let copied = 0
+
+  for (const file of files) {
+    const destPath = path.join(paths.booksDir, file)
+    const deletedPath = `${destPath}_deleted`
+
+    // Skip if already present or user previously deleted it
+    if (fs.existsSync(destPath) || fs.existsSync(deletedPath)) continue
+
+    fs.copyFileSync(path.join(src, file), destPath)
+    copied++
+  }
+
+  if (copied > 0) {
+    console.log(`[setup] Copied ${copied} starter book(s).`)
+  }
+}
+
 export const runFirstLaunchSetup = (): void => {
   // Create data directories
   ensureDirectories()
@@ -31,4 +54,7 @@ export const runFirstLaunchSetup = (): void => {
     copyDirRecursive(paths.bundledVoices, paths.voicesDir)
     console.log('[setup] Voices copied.')
   }
+
+  // Copy starter books (skips existing and previously deleted)
+  copyStarterBooks()
 }

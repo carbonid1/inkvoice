@@ -46,6 +46,9 @@ data/*.db-journal
 # Prisma generated client
 generated/
 
+# User books (starter books are in data/starter-books/)
+data/books/
+
 # User-uploaded voices (unlicensed)
 data/voices/custom/
 

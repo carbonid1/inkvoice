@@ -53,6 +53,10 @@ extraResources:
       - '**/*'
       - '!custom/**'
 
+  # Starter books (public domain, copied to user data on first launch)
+  - from: data/starter-books
+    to: starter-books
+
   # Migration runner script (Python — uses stdlib sqlite3)
   - from: scripts/migrate.py
     to: migrate.py

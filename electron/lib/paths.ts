@@ -23,6 +23,7 @@ export const paths = {
   bundledPython: getResourcePath('python', 'bin', 'python3.11'),
   bundledApi: getResourcePath('api'),
   bundledVoices: getResourcePath('voices'),
+  bundledStarterBooks: getResourcePath('starter-books'),
   bundledMigrations: getResourcePath('migrations'),
   bundledMigrateScript: getResourcePath('migrate.py'),
   nextJsServer: getResourcePath('nextjs', 'server.js'),
