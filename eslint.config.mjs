@@ -26,6 +26,11 @@ const eslintConfig = defineConfig([
     'data/**',
     'generated/**',
     'storybook-static/**',
+    'electron/**',
+    'dist-electron/**',
+    'scripts/after-pack.js',
+    'dist/**',
+    'dist-*/**',
   ]),
 ])
 

@@ -30,6 +30,10 @@ npm-debug.log*
 dist/
 build/
 *.tsbuildinfo
+dist-electron/
+dist-nextjs/
+dist-python/
+dist-node/
 
 # Cache
 data/cache/

@@ -1,0 +1,80 @@
+appId: com.inkvoice.app
+productName: InkVoice
+copyright: Copyright © 2026 InkVoice
+
+directories:
+  output: dist
+  buildResources: build
+
+npmRebuild: false
+
+files:
+  - dist-electron/main.js
+  - dist-electron/preload.js
+  - electron/loading.html
+
+extraResources:
+  # Node.js binary for running the standalone server
+  - from: dist-node/bin
+    to: bin
+    filter:
+      - node
+
+  # Next.js standalone output (pre-assembled in dist-nextjs/ by build script)
+  # Explicit filter needed to include node_modules (excluded by default)
+  - from: dist-nextjs
+    to: nextjs
+    filter:
+      - '**/*'
+      - '**/.next/**'
+
+  # Python runtime with TTS dependencies
+  - from: dist-python
+    to: python
+
+  # Python API source code
+  - from: api
+    to: api
+    filter:
+      - '**/*'
+      - '!__pycache__/**'
+      - '!*.pyc'
+
+  # Prisma migrations (for the migration runner)
+  - from: prisma/migrations
+    to: migrations
+    filter:
+      - '**/*.sql'
+
+  # App voice files
+  - from: data/voices
+    to: voices
+    filter:
+      - '**/*'
+      - '!custom/**'
+
+  # Migration runner script (Python — uses stdlib sqlite3)
+  - from: scripts/migrate.py
+    to: migrate.py
+
+afterPack: ./scripts/after-pack.js
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  category: public.app-category.books
+  icon: public/icons/icon-512.png
+  # Don't sign for now (friends use right-click > Open)
+  identity: null
+
+dmg:
+  title: InkVoice
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
