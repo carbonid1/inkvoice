@@ -40,6 +40,11 @@ const config: Config = {
         destructive: {
           DEFAULT: 'var(--destructive)',
         },
+        highlight: {
+          DEFAULT: 'var(--highlight)',
+          foreground: 'var(--highlight-foreground)',
+          muted: 'var(--highlight-muted)',
+        },
         border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',

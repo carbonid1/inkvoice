@@ -24,6 +24,11 @@ body {
   @apply bg-blue-200 dark:bg-blue-700 text-blue-900 dark:text-white;
 }
 
+::highlight(active-word) {
+  background-color: var(--highlight);
+  color: var(--highlight-foreground);
+}
+
 @layer base {
   :root {
     --background: oklch(1 0 0);
@@ -45,6 +50,9 @@ body {
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
     --radius: 0.625rem;
+    --highlight: oklch(0.901 0.082 85.84);
+    --highlight-foreground: oklch(0.344 0.06 58.6);
+    --highlight-muted: oklch(0.962 0.042 95.28);
   }
   .dark {
     --background: oklch(0.21 0.032 265);
@@ -65,5 +73,8 @@ body {
     --border: oklch(0.373 0.031 260 / 50%);
     --input: oklch(0.373 0.031 260 / 60%);
     --ring: oklch(0.551 0.023 264);
+    --highlight: oklch(0.553 0.135 66.44 / 30%);
+    --highlight-foreground: oklch(0.901 0.082 85.84);
+    --highlight-muted: oklch(0.553 0.135 66.44 / 10%);
   }
 }

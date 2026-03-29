@@ -1,3 +1,5 @@
+import json
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 
@@ -16,18 +18,23 @@ def text_to_speech(request: TTSRequest) -> Response:
 
     try:
         service = get_tts_service()
-        audio_bytes, gen_time_ms = service.generate(
+        audio_bytes, gen_time_ms, timestamps = service.generate(
             text=text,
             voice=request.voice,
         )
 
+        headers = {
+            "Content-Disposition": "attachment; filename=speech.wav",
+            "X-Generation-Time-Ms": str(gen_time_ms),
+        }
+
+        if timestamps is not None:
+            headers["X-Word-Timestamps"] = json.dumps(timestamps, separators=(',', ':'))
+
         return Response(
             content=audio_bytes,
             media_type="audio/wav",
-            headers={
-                "Content-Disposition": "attachment; filename=speech.wav",
-                "X-Generation-Time-Ms": str(gen_time_ms),
-            },
+            headers=headers,
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e))

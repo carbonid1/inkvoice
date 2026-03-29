@@ -1,4 +1,5 @@
 import type { CacheStats } from '@/lib/types/api'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 
 export interface CacheService {
   /** Get cached audio for a text/voice combination */
@@ -9,6 +10,12 @@ export interface CacheService {
 
   /** Get cache statistics */
   getStats(): Promise<CacheStats>
+
+  /** Get cached word timestamps for a text/voice combination */
+  getTimestamps(text: string, voice: string): Promise<WordTimestamp[] | null>
+
+  /** Store word timestamps sidecar */
+  setTimestamps(text: string, voice: string, timestamps: WordTimestamp[]): Promise<void>
 
   /** Delete a single cached entry */
   delete(text: string, voice: string): Promise<boolean>

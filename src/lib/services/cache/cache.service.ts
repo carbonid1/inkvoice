@@ -1,6 +1,7 @@
 import { env } from '@/lib/config/env'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { CacheStats } from '@/lib/types/api'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { createHash } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
@@ -142,6 +143,33 @@ class TTSCacheService implements CacheService {
     }
   }
 
+  async getTimestamps(text: string, voice: string): Promise<WordTimestamp[] | null> {
+    await this.ensureInitialized()
+
+    const hash = getCacheHash(text, voice)
+    const filePath = path.join(this.cacheDir, `${hash}.json`)
+
+    try {
+      const data = await fs.readFile(filePath, 'utf-8')
+      return JSON.parse(data) as WordTimestamp[]
+    } catch {
+      return null
+    }
+  }
+
+  async setTimestamps(text: string, voice: string, timestamps: WordTimestamp[]): Promise<void> {
+    await this.ensureInitialized()
+
+    const hash = getCacheHash(text, voice)
+    const filePath = path.join(this.cacheDir, `${hash}.json`)
+
+    try {
+      await fs.writeFile(filePath, JSON.stringify(timestamps))
+    } catch (error) {
+      console.error('Failed to write timestamps sidecar:', error)
+    }
+  }
+
   async delete(text: string, voice: string): Promise<boolean> {
     await this.ensureInitialized()
 
@@ -149,12 +177,7 @@ class TTSCacheService implements CacheService {
     const entry = this.metadata.entries[hash]
     if (!entry) return false
 
-    const filePath = path.join(this.cacheDir, `${hash}.wav`)
-    try {
-      await fs.unlink(filePath)
-    } catch {
-      // File already gone
-    }
+    await this.deleteFiles(hash)
 
     this.metadata.totalSize -= entry.size
     delete this.metadata.entries[hash]
@@ -162,17 +185,27 @@ class TTSCacheService implements CacheService {
     return true
   }
 
+  private async deleteFiles(hash: string): Promise<void> {
+    const wavPath = path.join(this.cacheDir, `${hash}.wav`)
+    const jsonPath = path.join(this.cacheDir, `${hash}.json`)
+    try {
+      await fs.unlink(wavPath)
+    } catch {
+      // File already gone
+    }
+    try {
+      await fs.unlink(jsonPath)
+    } catch {
+      // Sidecar may not exist
+    }
+  }
+
   async clear(): Promise<void> {
     await this.ensureInitialized()
 
-    // Delete all cached files
+    // Delete all cached files (wav + json sidecars)
     for (const hash of Object.keys(this.metadata.entries)) {
-      const filePath = path.join(this.cacheDir, `${hash}.wav`)
-      try {
-        await fs.unlink(filePath)
-      } catch {
-        // Ignore errors for missing files
-      }
+      await this.deleteFiles(hash)
     }
 
     this.metadata = { totalSize: 0, entries: {} }
@@ -201,16 +234,9 @@ class TTSCacheService implements CacheService {
     for (const [hash, entry] of evictionOrder) {
       if (freed >= bytesNeeded) break
 
-      const filePath = path.join(this.cacheDir, `${hash}.wav`)
-      try {
-        await fs.unlink(filePath)
-        delete this.metadata.entries[hash]
-        freed += entry.size
-      } catch {
-        // File already gone, just clean up metadata
-        delete this.metadata.entries[hash]
-        freed += entry.size
-      }
+      await this.deleteFiles(hash)
+      delete this.metadata.entries[hash]
+      freed += entry.size
     }
 
     this.metadata.totalSize -= freed

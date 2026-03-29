@@ -2,6 +2,7 @@
 
 import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
 import { useDisplayStore } from '@/store/useDisplayStore'
+import type { RefObject } from 'react'
 import { type MouseEvent, type ReactNode, useEffect, useRef } from 'react'
 import { FONT_SIZE_CLASS } from '../FontSizePopover/FontSizePopover.consts'
 import { ContentBlock } from './components/ContentBlock'
@@ -17,6 +18,7 @@ interface ReaderProps {
   onParagraphClick?: (chapter: number, paragraph: number) => void
   onParagraphContextMenu?: (e: MouseEvent, chapter: number, paragraph: number) => void
   bookmarkedParagraphs?: Set<number>
+  activeParagraphRef?: RefObject<HTMLSpanElement | null>
 }
 
 import { isAllCaps, toTitleCase } from '@/lib/epub/helpers/normalizeTitle/normalizeTitle'
@@ -40,8 +42,10 @@ export const Reader = ({
   onParagraphClick,
   onParagraphContextMenu,
   bookmarkedParagraphs,
+  activeParagraphRef: externalParagraphRef,
 }: ReaderProps) => {
-  const currentParagraphRef = useRef<HTMLSpanElement>(null)
+  const internalParagraphRef = useRef<HTMLSpanElement>(null)
+  const currentParagraphRef = externalParagraphRef ?? internalParagraphRef
 
   useEffect(() => {
     if (currentParagraphRef.current) {
@@ -171,7 +175,7 @@ export const Reader = ({
           return (
             <span
               key={idx}
-              ref={isActive ? currentParagraphRef : undefined}
+              ref={isActive ? (currentParagraphRef as React.RefObject<HTMLSpanElement>) : undefined}
               onClick={() => onParagraphClick?.(currentChapter, idx)}
               className={`cursor-pointer transition-colors ${
                 isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} px-1 -mx-1` : 'hover:bg-accent'

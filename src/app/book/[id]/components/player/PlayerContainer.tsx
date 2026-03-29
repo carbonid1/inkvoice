@@ -8,11 +8,14 @@ import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
+import { useWordHighlight } from '@/lib/hooks/useWordHighlight/useWordHighlight'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { PlaybackMetrics } from '@/lib/types/debug'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { Bookmark } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import type { RefObject } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -26,6 +29,7 @@ interface PlayerContainerProps {
   onBookmarkToggle?: () => void
   onChapterEnd?: () => void
   replayKey?: number
+  activeParagraphRef?: RefObject<HTMLSpanElement | null>
 }
 
 export const PlayerContainer = ({
@@ -39,6 +43,7 @@ export const PlayerContainer = ({
   onBookmarkToggle,
   onChapterEnd,
   replayKey = 0,
+  activeParagraphRef,
 }: PlayerContainerProps) => {
   const { voices } = useVoices()
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
@@ -60,6 +65,8 @@ export const PlayerContainer = ({
     onProgressChange,
   })
 
+  const [wordTimestamps, setWordTimestamps] = useState<WordTimestamp[] | null>(null)
+
   const audioPlayer = useAudioPlayer({
     onEnded: () => {
       const next = position.getNextPosition(
@@ -70,6 +77,7 @@ export const PlayerContainer = ({
       if (!next) {
         // End of book
         playingPositionRef.current = null
+        setWordTimestamps(null)
         audioPlayer.setPlaying(false)
         return
       }
@@ -77,6 +85,7 @@ export const PlayerContainer = ({
       // Check for chapter boundary
       if (next.ch !== position.currentChapterRef.current) {
         pendingChapterAdvanceRef.current = true
+        setWordTimestamps(null)
         audioPlayer.setPlaying(false)
         onChapterEndRef.current?.()
         return
@@ -115,12 +124,12 @@ export const PlayerContainer = ({
     setError(null)
 
     try {
-      const url = await fetchAudio(targetChapter, targetParagraph)
+      const result = await fetchAudio(targetChapter, targetParagraph)
 
       // Bail if a newer call has started
       if (playIdRef.current !== myId) return
 
-      if (!url) {
+      if (!result) {
         setLoading(false)
         return
       }
@@ -141,7 +150,8 @@ export const PlayerContainer = ({
       }
 
       playingPositionRef.current = { ch: targetChapter, para: targetParagraph }
-      await play(url)
+      setWordTimestamps(result.timestamps)
+      await play(result.url)
 
       // Bail if superseded during play
       if (playIdRef.current !== myId) return
@@ -253,6 +263,13 @@ export const PlayerContainer = ({
     playCurrentParagraph,
     clearPrefetched,
   ])
+
+  useWordHighlight({
+    audioRef: audioPlayer.audioRef,
+    timestamps: wordTimestamps,
+    paragraphRef: activeParagraphRef ?? { current: null },
+    isPlaying,
+  })
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {

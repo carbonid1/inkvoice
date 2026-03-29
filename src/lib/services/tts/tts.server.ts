@@ -1,14 +1,12 @@
 import { env } from '@/lib/config/env'
+import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parseTimestampsHeader'
 import type { TTSService } from './tts.types'
 import { TTSError } from './tts.types'
 
 const TTS_TIMEOUT_MS = 90_000
 
 class ChatterboxTTSService implements TTSService {
-  async generate(
-    text: string,
-    voice: string,
-  ): Promise<{ audio: Buffer; generationTimeMs: number }> {
+  async generate(text: string, voice: string) {
     const response = await fetch(env.ttsApiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -25,9 +23,10 @@ class ChatterboxTTSService implements TTSService {
     }
 
     const generationTimeMs = parseInt(response.headers.get('X-Generation-Time-Ms') || '0', 10)
+    const timestamps = parseTimestampsHeader(response)
     const audioBuffer = await response.arrayBuffer()
 
-    return { audio: Buffer.from(audioBuffer), generationTimeMs }
+    return { audio: Buffer.from(audioBuffer), generationTimeMs, timestamps }
   }
 }
 

@@ -144,6 +144,7 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
       setLoading,
       setError,
       shouldPlay,
+      audioRef,
     }),
     [state, play, resume, pause, stop, setPlaying, setLoading, setError, shouldPlay],
   )

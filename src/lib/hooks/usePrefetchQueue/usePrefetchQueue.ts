@@ -1,11 +1,18 @@
 'use client'
 
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
+import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parseTimestampsHeader'
 import { useFetchLifecycle } from '@/lib/hooks/useFetchLifecycle/useFetchLifecycle'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { PlaybackMetrics } from '@/lib/types/debug'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { useCallback, useMemo, useRef } from 'react'
+
+export type FetchAudioResult = {
+  url: string
+  timestamps: WordTimestamp[] | null
+}
 
 interface UsePrefetchQueueOptions {
   bookId: string
@@ -185,7 +192,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   )
 
   const fetchAudio = useCallback(
-    async (ch: number, para: number): Promise<string | null> => {
+    async (ch: number, para: number): Promise<FetchAudioResult | null> => {
       const chapterData = chaptersRef.current[ch]
       if (!chapterData || para >= chapterData.paragraphCount) {
         return null
@@ -212,9 +219,10 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
 
         updateCacheStats(response)
 
+        const timestamps = parseTimestampsHeader(response)
         const blob = await response.blob()
         prefetchedRef.current.add(key)
-        return URL.createObjectURL(blob)
+        return { url: URL.createObjectURL(blob), timestamps }
       } finally {
         inFlightRef.current.delete(key)
         updateDebugMetrics()

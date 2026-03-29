@@ -61,6 +61,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const ttsService = getTTSService()
 
   try {
+    const encodeTimestamps = (ts: unknown) => Buffer.from(JSON.stringify(ts)).toString('base64')
+
     const makeHeaders = (xCache: string, stats: { usedBytes: number; maxBytes: number }) => {
       const headers: Record<string, string> = {
         'Content-Type': 'audio/wav',
@@ -77,23 +79,37 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const cached = await cacheService.get(text, voice)
     if (cached) {
       const stats = await cacheService.getStats()
-      return new NextResponse(new Uint8Array(cached), {
-        headers: makeHeaders('HIT', stats),
-      })
+      const headers = makeHeaders('HIT', stats)
+
+      // Read cached timestamps sidecar
+      const timestamps = await cacheService.getTimestamps(text, voice)
+      if (timestamps) {
+        headers['X-Word-Timestamps'] = encodeTimestamps(timestamps)
+      }
+
+      return new NextResponse(new Uint8Array(cached), { headers })
     }
 
     // Generate via TTS service
-    const { audio } = await ttsService.generate(text, voice)
+    const { audio, timestamps } = await ttsService.generate(text, voice)
 
-    // Cache the result
-    await cacheService.set(text, voice, audio, bookId).catch(err => {
+    // Cache the result (fire-and-forget)
+    cacheService.set(text, voice, audio, bookId).catch(err => {
       console.error('Failed to cache TTS audio:', err)
     })
-    const stats = await cacheService.getStats()
+    if (timestamps) {
+      cacheService.setTimestamps(text, voice, timestamps).catch(err => {
+        console.error('Failed to cache timestamps:', err)
+      })
+    }
 
-    return new NextResponse(new Uint8Array(audio), {
-      headers: makeHeaders('MISS', stats),
-    })
+    const stats = await cacheService.getStats()
+    const headers = makeHeaders('MISS', stats)
+    if (timestamps) {
+      headers['X-Word-Timestamps'] = encodeTimestamps(timestamps)
+    }
+
+    return new NextResponse(new Uint8Array(audio), { headers })
   } catch (error) {
     if (error instanceof TTSError && error.code === 'VOICE_NOT_FOUND') {
       return NextResponse.json({ error: error.message, code: 'VOICE_NOT_FOUND' }, { status: 404 })

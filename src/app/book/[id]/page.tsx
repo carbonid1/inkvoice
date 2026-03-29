@@ -15,7 +15,7 @@ import { BookMarked, ChevronLeft, List, Loader2, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import type { MouseEvent } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
@@ -62,6 +62,7 @@ export default function BookReader() {
   const [contextMenuTarget, setContextMenuTarget] = useState<ContextMenuTarget | null>(null)
   const [showChapterEndModal, setShowChapterEndModal] = useState(false)
   const [replayKey, setReplayKey] = useState(0)
+  const activeParagraphRef = useRef<HTMLSpanElement>(null)
 
   const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
     isGenerating: false,
@@ -381,6 +382,7 @@ export default function BookReader() {
               onParagraphClick={handleParagraphClick}
               onParagraphContextMenu={handleParagraphContextMenu}
               bookmarkedParagraphs={bookmarkedParagraphs}
+              activeParagraphRef={activeParagraphRef}
             />
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-500">
@@ -429,6 +431,7 @@ export default function BookReader() {
         onBookmarkToggle={toggleBookmark}
         onChapterEnd={handleChapterEnd}
         replayKey={replayKey}
+        activeParagraphRef={activeParagraphRef}
       />
 
       <DebugPanel metrics={debugMetrics} visible={showDebug} />

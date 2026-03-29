@@ -11,7 +11,7 @@ interface ContentBlockProps {
   onParagraphClick?: (chapter: number, paragraph: number) => void
   onParagraphContextMenu?: (e: MouseEvent, chapter: number, paragraph: number) => void
   currentChapter: number
-  paragraphRef: RefObject<HTMLSpanElement>
+  paragraphRef: RefObject<HTMLSpanElement | null>
   isInTitleGroup?: boolean
   isSubtitle?: boolean
   bookmarkedParagraphs?: Set<number>

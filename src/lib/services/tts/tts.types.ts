@@ -1,5 +1,10 @@
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
+
 export interface TTSService {
-  generate(text: string, voice: string): Promise<{ audio: Buffer; generationTimeMs: number }>
+  generate(
+    text: string,
+    voice: string,
+  ): Promise<{ audio: Buffer; generationTimeMs: number; timestamps: WordTimestamp[] | null }>
 }
 
 export type TTSErrorCode = 'VOICE_NOT_FOUND' | 'TTS_FAILED'

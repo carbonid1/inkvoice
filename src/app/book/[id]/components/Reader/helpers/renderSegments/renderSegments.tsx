@@ -10,7 +10,7 @@ export type RenderSegmentsParams = {
   onParagraphClick: ((chapter: number, paragraph: number) => void) | undefined
   onParagraphContextMenu?: (e: MouseEvent, chapter: number, paragraph: number) => void
   currentChapter: number
-  paragraphRef: RefObject<HTMLSpanElement>
+  paragraphRef: RefObject<HTMLSpanElement | null>
   bookmarkedParagraphs?: Set<number>
 }
 
@@ -33,7 +33,7 @@ export const renderSegments = ({
     return (
       <span key={idx}>
         <span
-          ref={isActive ? paragraphRef : undefined}
+          ref={isActive ? (paragraphRef as React.RefObject<HTMLSpanElement>) : undefined}
           onClick={() => onParagraphClick?.(currentChapter, segment.paragraphIndex)}
           onContextMenu={
             onParagraphContextMenu

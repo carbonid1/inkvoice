@@ -1,12 +1,13 @@
 import io
 import time
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import torch
 import torchaudio
 
 from api.app.config import settings
+from api.services.alignment_service import get_alignment_service
 
 
 class TTSService:
@@ -41,12 +42,12 @@ class TTSService:
         self,
         text: str,
         voice: str | None = None,
-    ) -> Tuple[bytes, int]:
+    ) -> Tuple[bytes, int, Optional[list[dict]]]:
         """
-        Generate speech audio from text.
+        Generate speech audio from text with optional word-level timestamps.
 
         Returns:
-            Tuple of (audio_bytes, generation_time_ms)
+            Tuple of (audio_bytes, generation_time_ms, word_timestamps_or_none)
         """
         voice_name = voice or settings.default_voice
         voice_path = self.get_voice_path(voice_name)
@@ -61,12 +62,16 @@ class TTSService:
             )
         gen_time_ms = int((time.time() - start) * 1000)
 
+        # Run forced alignment to get word-level timestamps
+        alignment = get_alignment_service()
+        timestamps = alignment.align(wav, tts_model.sr, text)
+
         # Convert to bytes
         buffer = io.BytesIO()
         torchaudio.save(buffer, wav, tts_model.sr, format="wav")
         buffer.seek(0)
 
-        return buffer.read(), gen_time_ms
+        return buffer.read(), gen_time_ms, timestamps
 
     def warmup(self) -> None:
         """Pre-load model and run a test generation to warm up JIT compilation."""
