@@ -73,8 +73,8 @@ body {
     --border: oklch(0.373 0.031 260 / 50%);
     --input: oklch(0.373 0.031 260 / 60%);
     --ring: oklch(0.551 0.023 264);
-    --highlight: oklch(0.553 0.135 66.44 / 30%);
-    --highlight-foreground: oklch(0.901 0.082 85.84);
-    --highlight-muted: oklch(0.553 0.135 66.44 / 10%);
+    --highlight: oklch(0.55 0.07 268);
+    --highlight-foreground: oklch(0.95 0.02 265);
+    --highlight-muted: oklch(0.3 0.04 265);
   }
 }

@@ -101,14 +101,17 @@ export const buildWordRanges = (
  * and potential match candidates.
  */
 const findWordInText = (text: string, word: string, from: number): number => {
-  // Try exact match first
-  const exactIdx = text.indexOf(word, from)
+  const textLower = text.toLowerCase()
+  const wordLower = word.toLowerCase()
+
+  // Try exact match first (case-insensitive)
+  const exactIdx = textLower.indexOf(wordLower, from)
   if (exactIdx !== -1) return exactIdx
 
   // Strip leading/trailing punctuation for fuzzy match
-  const stripped = word.replace(/^[^\w]+|[^\w]+$/g, '')
-  if (stripped && stripped !== word) {
-    const fuzzyIdx = text.indexOf(stripped, from)
+  const stripped = wordLower.replace(/^[^\w]+|[^\w]+$/g, '')
+  if (stripped && stripped !== wordLower) {
+    const fuzzyIdx = textLower.indexOf(stripped, from)
     if (fuzzyIdx !== -1) {
       // Expand to include surrounding punctuation if adjacent
       let start = fuzzyIdx

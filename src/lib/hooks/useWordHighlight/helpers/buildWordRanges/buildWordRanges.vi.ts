@@ -172,6 +172,15 @@ describe('buildWordRanges', () => {
     expect(ranges2[0]?.startContainer).not.toBe(ranges1[0]?.startContainer)
   })
 
+  it('matches words case-insensitively (normalizeCaps title)', () => {
+    const el = makeElement('Chapter Sixteen')
+    const ranges = buildWordRanges(el, [ts('CHAPTER', 0, 0.5), ts('SIXTEEN', 0.6, 1.0)])
+
+    expect(ranges).toHaveLength(2)
+    expect(ranges[0]?.toString()).toBe('Chapter')
+    expect(ranges[1]?.toString()).toBe('Sixteen')
+  })
+
   it('sets null for words not found in text, preserving indices', () => {
     const el = makeElement('Hello world')
     const ranges = buildWordRanges(el, [
