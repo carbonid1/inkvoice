@@ -35,7 +35,8 @@ export const useWordHighlight = ({
   useEffect(() => {
     if (!supportsHighlightAPI()) return
 
-    if (!isPlaying || !timestamps || timestamps.length === 0) {
+    // No timestamps → clear everything
+    if (!timestamps || timestamps.length === 0) {
       if (!timestamps) {
         CSS.highlights.delete(HIGHLIGHT_ACTIVE_WORD)
         wordRangesRef.current = []
@@ -66,9 +67,11 @@ export const useWordHighlight = ({
     // Build initial ranges
     rebuildRanges()
 
-    // MutationObserver: when React re-renders the span (className change,
-    // dangerouslySetInnerHTML re-apply, parent re-render), rebuild ranges
-    // and re-apply the current highlight immediately.
+    // MutationObserver: active whenever timestamps exist (both playing and paused).
+    // When React re-renders the span (className change, dangerouslySetInnerHTML
+    // re-apply, parent re-render), rebuild ranges and re-apply the highlight.
+    // Without this during pause, DOM mutations invalidate Range objects and the
+    // highlight disappears with no way to recover.
     const observer = new MutationObserver(() => {
       rebuildRanges()
       reapplyHighlight()
@@ -82,50 +85,55 @@ export const useWordHighlight = ({
       })
     }
 
-    const tick = () => {
+    // Reapply highlight after rebuilding ranges — covers pause with stale ranges
+    reapplyHighlight()
+
+    if (isPlaying) {
+      const tick = () => {
+        const audio = audioRef.current
+        if (!audio || audio.paused) {
+          rafIdRef.current = requestAnimationFrame(tick)
+          return
+        }
+
+        const currentTime = audio.currentTime
+        const ts = timestampsRef.current
+        if (!ts) {
+          rafIdRef.current = requestAnimationFrame(tick)
+          return
+        }
+
+        const newIndex = findActiveWord(currentTime, ts)
+
+        if (newIndex !== activeIndexRef.current && newIndex >= 0) {
+          activeIndexRef.current = newIndex
+          const range = wordRangesRef.current[newIndex]
+          if (range) {
+            CSS.highlights.set(HIGHLIGHT_ACTIVE_WORD, new Highlight(range))
+          }
+        }
+
+        rafIdRef.current = requestAnimationFrame(tick)
+      }
+
+      // Set initial word
       const audio = audioRef.current
-      if (!audio || audio.paused) {
-        rafIdRef.current = requestAnimationFrame(tick)
-        return
-      }
-
-      const currentTime = audio.currentTime
-      const ts = timestampsRef.current
-      if (!ts) {
-        rafIdRef.current = requestAnimationFrame(tick)
-        return
-      }
-
-      const newIndex = findActiveWord(currentTime, ts)
-
-      if (newIndex !== activeIndexRef.current && newIndex >= 0) {
-        activeIndexRef.current = newIndex
-        const range = wordRangesRef.current[newIndex]
-        if (range) {
-          CSS.highlights.set(HIGHLIGHT_ACTIVE_WORD, new Highlight(range))
+      if (audio) {
+        const initialIndex = findActiveWord(audio.currentTime, timestamps)
+        if (initialIndex >= 0) {
+          activeIndexRef.current = initialIndex
+          reapplyHighlight()
         }
       }
 
       rafIdRef.current = requestAnimationFrame(tick)
     }
 
-    // Set initial word
-    const audio = audioRef.current
-    if (audio) {
-      const initialIndex = findActiveWord(audio.currentTime, timestamps)
-      if (initialIndex >= 0) {
-        activeIndexRef.current = initialIndex
-        reapplyHighlight()
-      }
-    }
-
-    rafIdRef.current = requestAnimationFrame(tick)
-
     return () => {
       cancelAnimationFrame(rafIdRef.current)
       observer.disconnect()
       // Don't clear highlight here — preserves last word on pause.
-      // Highlight is cleared when timestamps become null (line 41).
+      // Highlight is cleared when timestamps become null.
     }
   }, [audioRef, timestamps, paragraphRef, isPlaying])
 }
