@@ -148,9 +148,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
             onDelete={handleDelete}
           />
 
-          {previewError && (
-            <p className="text-sm text-amber-600 dark:text-amber-400">{previewError}</p>
-          )}
+          {previewError && <p className="text-sm text-attention-foreground">{previewError}</p>}
 
           <VoiceUploadSection onVoicesChanged={onVoicesChanged} />
         </div>

@@ -45,6 +45,10 @@ const config: Config = {
           foreground: 'var(--highlight-foreground)',
           muted: 'var(--highlight-muted)',
         },
+        attention: {
+          DEFAULT: 'var(--attention)',
+          foreground: 'var(--attention-foreground)',
+        },
         border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',

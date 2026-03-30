@@ -302,9 +302,7 @@ export const PlayerContainer = ({
               <Button size="icon" onClick={onBookmarkToggle}>
                 <Bookmark
                   className={`w-5 h-5 ${
-                    isCurrentBookmarked
-                      ? 'text-amber-500 dark:text-amber-400'
-                      : 'text-muted-foreground'
+                    isCurrentBookmarked ? 'text-attention-foreground' : 'text-muted-foreground'
                   }`}
                   fill={isCurrentBookmarked ? 'currentColor' : 'none'}
                 />

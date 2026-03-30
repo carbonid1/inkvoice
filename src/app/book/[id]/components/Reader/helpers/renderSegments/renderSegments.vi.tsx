@@ -90,8 +90,8 @@ describe('SegmentList', () => {
       />,
     )
 
-    expect(screen.getByText('Marked').className).toContain('border-amber-400')
-    expect(screen.getByText('Unmarked').className).not.toContain('border-amber-400')
+    expect(screen.getByText('Marked').className).toContain('border-attention')
+    expect(screen.getByText('Unmarked').className).not.toContain('border-attention')
   })
 
   it('renders nothing for undefined segments', () => {

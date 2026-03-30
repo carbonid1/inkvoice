@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
-const HIGHLIGHT_CLASS = 'bg-orange-200 dark:bg-amber-500/25 dark:text-amber-200 rounded-sm'
+const HIGHLIGHT_CLASS =
+  'bg-[color-mix(in_oklch,var(--attention)_20%,transparent)] text-attention-foreground rounded-sm'
 
 export const highlightSnippet = (
   text: string,

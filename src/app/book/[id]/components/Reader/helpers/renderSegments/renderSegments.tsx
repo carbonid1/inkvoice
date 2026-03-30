@@ -42,7 +42,7 @@ export const renderSegments = ({
           }
           className={`cursor-pointer transition-colors ${
             isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} px-0.5 -mx-0.5` : 'hover:bg-accent'
-          } ${isBookmarked ? 'border-l-2 border-amber-400 dark:border-amber-500 pl-1 -ml-1' : ''}`}
+          } ${isBookmarked ? 'border-l-2 border-attention pl-1 -ml-1' : ''}`}
           dangerouslySetInnerHTML={{ __html: segment.html }}
         />{' '}
       </span>

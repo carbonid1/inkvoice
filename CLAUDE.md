@@ -13,6 +13,8 @@ The goal is zero raw HTML in feature code. Every UI element — interactive (but
 - `src/components/ui/` — Design system (Button, Select, Tooltip, etc.). Reusable across any app with just a theme swap.
 - `src/components/` — App-level components (VoiceSelect, PageHeader). Built on `ui/` primitives, tied to InkVoice's domain.
 
+Colors use semantic CSS tokens defined in `globals.css`, not hardcoded Tailwind color classes. See the design system skill's `references/theming.md` for the full token inventory and rules.
+
 This is aspirational — not everything is migrated yet. Each new component or refactor should move closer to this goal.
 
 ## Tech Stack

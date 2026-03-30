@@ -50,7 +50,7 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
         />
       </Tooltip>
       {isStale && (
-        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+        <p className="text-xs text-attention-foreground mt-1">
           Voice not found — using {effectiveVoice}
         </p>
       )}

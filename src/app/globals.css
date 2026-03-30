@@ -53,6 +53,8 @@ body {
     --highlight: oklch(0.901 0.082 85.84);
     --highlight-foreground: oklch(0.344 0.06 58.6);
     --highlight-muted: oklch(0.962 0.042 95.28);
+    --attention: oklch(0.75 0.16 75);
+    --attention-foreground: oklch(0.55 0.17 65);
   }
   .dark {
     --background: oklch(0.21 0.032 265);
@@ -76,5 +78,7 @@ body {
     --highlight: oklch(0.55 0.07 268);
     --highlight-foreground: oklch(0.95 0.02 265);
     --highlight-muted: oklch(0.3 0.04 265);
+    --attention: oklch(0.8 0.15 70);
+    --attention-foreground: oklch(0.96 0.03 70);
   }
 }
