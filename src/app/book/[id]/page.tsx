@@ -304,7 +304,7 @@ export default function BookReader() {
         <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-2">
           <Tooltip label="Back to Library" position="bottom">
             <Link href="/" className={buttonVariants({ size: 'icon', className: '-ml-2' })}>
-              <ChevronLeft className="size-5" />
+              <ChevronLeft />
             </Link>
           </Tooltip>
           <div className="min-w-0 flex-1">
@@ -317,12 +317,12 @@ export default function BookReader() {
               onClick={() => (search.isOpen ? search.close() : search.open())}
               aria-label="Search in book"
             >
-              <Search className="size-5" />
+              <Search />
             </Button>
           </Tooltip>
           <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
             <Button size="icon" onClick={() => setActiveDrawer('bookmark')} className="-mr-2">
-              <BookMarked className="size-5" />
+              <BookMarked />
             </Button>
           </Tooltip>
         </div>

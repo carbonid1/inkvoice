@@ -92,7 +92,7 @@ export const BookmarkDrawer = ({
           <h2 className="text-lg font-semibold">Bookmarks</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
             <Button size="icon" onClick={onClose}>
-              <X className="size-5" />
+              <X />
             </Button>
           </Tooltip>
         </div>
@@ -138,7 +138,7 @@ export const BookmarkDrawer = ({
                       className="opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
                       aria-label="Remove bookmark"
                     >
-                      <X className="size-4" />
+                      <X />
                     </Button>
                   </button>
                 </li>

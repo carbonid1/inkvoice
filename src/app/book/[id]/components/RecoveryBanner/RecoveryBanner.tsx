@@ -32,7 +32,7 @@ export const RecoveryBanner = ({ chapterName, onNavigate }: RecoveryBannerProps)
         className="ml-2 shrink-0"
         aria-label="Dismiss"
       >
-        <X className="size-4" />
+        <X />
       </Button>
     </div>
   )

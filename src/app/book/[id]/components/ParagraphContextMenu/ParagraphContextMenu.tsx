@@ -71,16 +71,16 @@ export const ParagraphContextMenu = ({
     <div
       ref={menuRef}
       style={{ left: position.left, top: position.top }}
-      className="border-border bg-background fixed z-50 min-w-[180px] rounded-lg border py-1 shadow-lg"
+      className="border-border bg-background fixed z-50 min-w-45 rounded-lg border py-1 shadow-lg"
       role="menu"
     >
       <Button role="menuitem" size="small" fullWidth onClick={handleCopy}>
-        <Copy className="size-4" />
+        <Copy />
         Copy Text
       </Button>
       <div className="border-border border-t" />
       <Button role="menuitem" size="small" fullWidth onClick={handleRegenerate}>
-        <RefreshCw className="size-4" />
+        <RefreshCw />
         Regenerate Audio
       </Button>
     </div>

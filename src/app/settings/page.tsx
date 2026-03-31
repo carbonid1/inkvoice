@@ -35,7 +35,7 @@ export default function Settings() {
       <PageHeader>
         <div className="mx-auto flex max-w-2xl items-center gap-4 px-8 py-6">
           <Link href="/" className={buttonVariants({ size: 'icon' })} title="Back to library">
-            <ChevronLeft className="size-6" />
+            <ChevronLeft />
           </Link>
           <h1 className="text-3xl font-bold">Settings</h1>
         </div>

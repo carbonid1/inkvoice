@@ -301,9 +301,9 @@ export const PlayerContainer = ({
             <Tooltip label={isCurrentBookmarked ? 'Remove Bookmark' : 'Add Bookmark'} shortcut="B">
               <Button size="icon" onClick={onBookmarkToggle}>
                 <Bookmark
-                  className={`size-5 ${
+                  className={
                     isCurrentBookmarked ? 'text-attention-foreground' : 'text-muted-foreground'
-                  }`}
+                  }
                   fill={isCurrentBookmarked ? 'currentColor' : 'none'}
                 />
               </Button>

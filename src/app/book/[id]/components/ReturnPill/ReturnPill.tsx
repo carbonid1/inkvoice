@@ -25,7 +25,7 @@ export const ReturnPill = ({ chapterName, onNavigate, onDismiss }: ReturnPillPro
           className="text-muted-foreground hover:text-foreground shrink-0"
           aria-label="Dismiss"
         >
-          <X className="size-3.5" />
+          <X />
         </Button>
       </div>
     </div>

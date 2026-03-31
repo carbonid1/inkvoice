@@ -115,7 +115,7 @@ export const ChapterDrawer = ({
           <h2 className="text-lg font-semibold">Table of Contents</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
             <Button size="icon" onClick={onClose}>
-              <X className="size-5" />
+              <X />
             </Button>
           </Tooltip>
         </div>

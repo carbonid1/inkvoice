@@ -77,7 +77,7 @@ export const VoiceRow = ({
               onClick={() => onPlay(voice.name, 'source')}
               aria-label={playingSource ? 'Stop' : `Play source audio for ${voice.displayName}`}
             >
-              {playingSource ? <Square className="size-4" /> : <Play className="size-4" />}
+              {playingSource ? <Square /> : <Play />}
             </Button>
           </Tooltip>
 
@@ -105,7 +105,7 @@ export const VoiceRow = ({
                 }
                 className={sampleGenerating ? 'animate-pulse opacity-40' : ''}
               >
-                {playingSample ? <Square className="size-4" /> : <Volume2 className="size-4" />}
+                {playingSample ? <Square /> : <Volume2 />}
               </Button>
             </Tooltip>
           )}
@@ -119,7 +119,7 @@ export const VoiceRow = ({
                 aria-label={`Edit tags for ${voice.displayName}`}
                 className={editingTags ? 'text-blue-500' : ''}
               >
-                <Pencil className="size-4" />
+                <Pencil />
               </Button>
             </Tooltip>
           )}
@@ -132,7 +132,7 @@ export const VoiceRow = ({
                 onClick={() => onDelete(voice.name)}
                 aria-label={`Remove ${voice.displayName}`}
               >
-                <X className="size-4" />
+                <X />
               </Button>
             </Tooltip>
           )}
