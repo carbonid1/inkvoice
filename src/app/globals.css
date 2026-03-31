@@ -122,7 +122,11 @@ body {
 }
 
 ::selection {
-  @apply bg-blue-200 text-blue-900 dark:bg-blue-700 dark:text-white;
+  @apply bg-blue-200 text-blue-900;
+}
+
+.dark ::selection {
+  @apply bg-blue-700 text-white;
 }
 
 ::highlight(active-word) {
