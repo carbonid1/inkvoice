@@ -3,7 +3,7 @@ import { ReaderSkeleton } from '../ReaderSkeleton/ReaderSkeleton'
 
 export const PageSkeleton = () => (
   <div className="flex h-dvh flex-col" role="status" aria-label="Loading book">
-    <PageHeader>
+    <PageHeader noBorder>
       <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-2">
         <div className="bg-muted -ml-2 size-9 animate-pulse rounded-full" />
         <div className="min-w-0 flex-1 space-y-2">

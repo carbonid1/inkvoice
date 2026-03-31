@@ -1,7 +1,11 @@
 import type { PageHeaderProps } from './PageHeader.types'
 
-const BASE_CLASSES = 'sticky top-0 z-10 shrink-0 bg-background border-b border-border'
+const BASE_CLASSES = 'sticky top-0 z-10 shrink-0 bg-background'
+const BORDER_CLASSES = 'border-b border-border'
 
-export const PageHeader = ({ children, className }: PageHeaderProps) => (
-  <header className={className ? `${BASE_CLASSES} ${className}` : BASE_CLASSES}>{children}</header>
-)
+export const PageHeader = ({ children, className, noBorder }: PageHeaderProps) => {
+  const classes = [BASE_CLASSES, noBorder ? '' : BORDER_CLASSES, className]
+    .filter(Boolean)
+    .join(' ')
+  return <header className={classes}>{children}</header>
+}

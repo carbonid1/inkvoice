@@ -301,7 +301,7 @@ export default function BookReader() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <PageHeader>
+      <PageHeader noBorder>
         <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-2">
           <Tooltip label="Back to Library" position="bottom">
             <Link href="/" className={buttonVariants({ size: 'icon', className: '-ml-2' })}>

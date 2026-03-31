@@ -15,7 +15,7 @@ describe('PageHeader', () => {
     expect(screen.getByText('Test Title')).toBeInTheDocument()
   })
 
-  it('applies base visual classes', () => {
+  it('applies base visual classes with border by default', () => {
     render(
       <PageHeader>
         <span>Content</span>
@@ -26,6 +26,18 @@ describe('PageHeader', () => {
     expect(header.className).toContain('bg-background')
     expect(header.className).toContain('border-b')
     expect(header.className).toContain('shrink-0')
+  })
+
+  it('omits border when noBorder is set', () => {
+    render(
+      <PageHeader noBorder>
+        <span>Content</span>
+      </PageHeader>,
+    )
+
+    const header = screen.getByRole('banner')
+    expect(header.className).not.toContain('border-b')
+    expect(header.className).toContain('bg-background')
   })
 
   it('appends custom className to base classes', () => {
