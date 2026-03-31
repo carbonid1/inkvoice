@@ -22,7 +22,7 @@ const renderThemeOption = (option: SelectOption, state: SelectOptionState) => {
   const Icon = (option as ThemeOption).icon
   return (
     <span className="flex items-center gap-2">
-      <Icon className="w-4 h-4" />
+      <Icon className="size-4" />
       <span className={state.selected ? 'font-medium' : ''}>{option.label}</span>
     </span>
   )
@@ -33,23 +33,23 @@ export const AppearanceCard = () => {
   const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot)
 
   return (
-    <section className="bg-background rounded-lg p-6 shadow-sm border border-border">
-      <h2 className="text-lg font-semibold mb-4">Appearance</h2>
+    <section className="border-border bg-background rounded-lg border p-6 shadow-xs">
+      <h2 className="mb-4 text-lg font-semibold">Appearance</h2>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">Theme</span>
+        <span className="text-muted-foreground text-sm">Theme</span>
         {mounted ? (
           <Select
             value={theme ?? 'system'}
             onChange={setTheme}
             options={THEME_OPTIONS}
             renderOption={renderThemeOption}
-            className="text-sm bg-muted rounded px-3 py-1.5"
+            className="bg-muted rounded-sm px-3 py-1.5 text-sm"
             aria-label="Theme"
           />
         ) : (
-          <div className="text-sm bg-muted rounded px-3 py-1.5 flex items-center justify-between gap-2">
-            <span className="h-4 w-12 rounded bg-muted-foreground/20" />
-            <span className="w-4 h-4 shrink-0" />
+          <div className="bg-muted flex items-center justify-between gap-2 rounded-sm px-3 py-1.5 text-sm">
+            <span className="bg-muted-foreground/20 h-4 w-12 rounded-sm" />
+            <span className="size-4 shrink-0" />
           </div>
         )}
       </div>

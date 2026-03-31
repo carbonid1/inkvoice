@@ -121,9 +121,9 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   )
 
   return (
-    <div className="bg-background rounded-lg p-6 shadow-sm border border-border">
-      <h2 className="text-lg font-semibold mb-2">Voices</h2>
-      <p className="text-sm text-muted-foreground mb-4">
+    <div className="border-border bg-background rounded-lg border p-6 shadow-xs">
+      <h2 className="mb-2 text-lg font-semibold">Voices</h2>
+      <p className="text-muted-foreground mb-4 text-sm">
         Choose a voice for your narration. Changing voices will re-generate any unheard audio.
       </p>
 
@@ -132,9 +132,9 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
       ) : visibleVoices.length === 0 ? (
         <div className="text-gray-500">
           <p>No voices found.</p>
-          <p className="text-sm mt-2">
+          <p className="mt-2 text-sm">
             Add voices to{' '}
-            <code className="bg-muted px-1 rounded">data/voices/&lt;name&gt;/source.wav</code>
+            <code className="bg-muted rounded-sm px-1">data/voices/&lt;name&gt;/source.wav</code>
           </p>
         </div>
       ) : (
@@ -148,7 +148,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
             onDelete={handleDelete}
           />
 
-          {previewError && <p className="text-sm text-attention-foreground">{previewError}</p>}
+          {previewError && <p className="text-attention-foreground text-sm">{previewError}</p>}
 
           <VoiceUploadSection onVoicesChanged={onVoicesChanged} />
         </div>

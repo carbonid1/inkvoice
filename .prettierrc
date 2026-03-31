@@ -5,6 +5,6 @@
   "trailingComma": "all",
   "jsxSingleQuote": false,
   "semi": false,
-  "plugins": ["prettier-plugin-organize-imports"],
+  "plugins": ["prettier-plugin-organize-imports", "prettier-plugin-tailwindcss"],
   "organizeImportsSkipDestructiveCodeActions": true
 }

@@ -76,10 +76,10 @@ export const SearchPalette = ({
     <div className="fixed inset-0 z-50 bg-black/30" onClick={handleBackdropClick}>
       <div
         ref={panelRef}
-        className="mx-auto mt-[15vh] max-w-2xl w-[calc(100%-2rem)] rounded-xl shadow-2xl border border-border bg-background overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-150"
+        className="animate-in fade-in-0 slide-in-from-top-2 border-border bg-background mx-auto mt-[15vh] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-xl border shadow-2xl duration-150"
       >
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <div className="border-border flex items-center gap-2 border-b px-4 py-3">
+          <Search className="size-4 shrink-0 text-gray-400" />
           <input
             ref={inputRef}
             type="text"
@@ -87,17 +87,17 @@ export const SearchPalette = ({
             onChange={e => onQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="flex-1 min-w-0 bg-transparent text-sm outline-none placeholder:text-gray-400"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-hidden placeholder:text-gray-400"
             aria-label={placeholder}
           />
-          <div className="flex rounded-md bg-gray-50 dark:bg-white/[0.06] p-0.5 flex-shrink-0">
+          <div className="flex shrink-0 rounded-md bg-gray-50 p-0.5 dark:bg-white/[0.06]">
             {SCOPE_OPTIONS.map(option => (
               <button
                 key={option.value}
-                className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                className={`rounded px-2 py-0.5 text-xs transition-colors ${
                   scope === option.value
-                    ? 'bg-gray-100 dark:bg-white/[0.12] text-gray-900 dark:text-gray-100 font-medium'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                    ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.12] dark:text-gray-100'
+                    : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'
                 }`}
                 onClick={() => onScopeChange(option.value)}
                 aria-pressed={scope === option.value}
@@ -106,20 +106,20 @@ export const SearchPalette = ({
               </button>
             ))}
           </div>
-          <span className="flex-shrink-0 min-w-[4.5rem] flex items-center justify-end">
-            {showSpinner && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+          <span className="flex min-w-[4.5rem] shrink-0 items-center justify-end">
+            {showSpinner && <Loader2 className="size-4 animate-spin text-gray-400" />}
             {showMatchCount && results.length > 0 && (
-              <span className="text-xs text-muted-foreground tabular-nums">
+              <span className="text-muted-foreground text-xs tabular-nums">
                 {results.length} {results.length === 1 ? 'result' : 'results'}
               </span>
             )}
           </span>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-accent rounded transition-colors flex-shrink-0"
+            className="hover:bg-accent shrink-0 rounded-sm p-1 transition-colors"
             aria-label="Close search"
           >
-            <X className="w-4 h-4" />
+            <X className="size-4" />
           </button>
         </div>
         {showNoResults && (
@@ -129,7 +129,7 @@ export const SearchPalette = ({
             </p>
             {scope === 'chapter' && (
               <button
-                className="text-xs text-blue-500 hover:text-blue-600 mt-1 transition-colors"
+                className="mt-1 text-xs text-blue-500 transition-colors hover:text-blue-600"
                 onClick={() => onScopeChange('book')}
               >
                 Search entire book

@@ -33,15 +33,15 @@ export default function Settings() {
   return (
     <div className="min-h-screen">
       <PageHeader>
-        <div className="max-w-2xl mx-auto px-8 py-6 flex items-center gap-4">
+        <div className="mx-auto flex max-w-2xl items-center gap-4 px-8 py-6">
           <Link href="/" className={buttonVariants({ size: 'icon' })} title="Back to library">
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="size-6" />
           </Link>
           <h1 className="text-3xl font-bold">Settings</h1>
         </div>
       </PageHeader>
 
-      <main className="max-w-2xl mx-auto px-8 py-8 space-y-6">
+      <main className="mx-auto max-w-2xl space-y-6 px-8 py-8">
         <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
         <AppearanceCard />
         <CreditsCard />

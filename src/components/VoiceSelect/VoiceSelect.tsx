@@ -63,7 +63,7 @@ export const VoiceSelect = ({
         <>
           <span>{voice.displayName}</span>
           {voice.tags.length > 0 && (
-            <span className="block text-xs text-muted-foreground mt-0.5">
+            <span className="text-muted-foreground mt-0.5 block text-xs">
               {voice.tags.join(', ')}
             </span>
           )}

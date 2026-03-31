@@ -8,24 +8,24 @@ export const ReturnPill = ({ chapterName, onNavigate, onDismiss }: ReturnPillPro
   return (
     <div
       role="status"
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-30 animate-in fade-in slide-in-from-bottom-4 duration-200"
+      className="animate-in fade-in slide-in-from-bottom-4 fixed bottom-20 left-1/2 z-30 -translate-x-1/2 duration-200"
     >
-      <div className="flex items-center gap-2 rounded-full bg-background border border-border shadow-lg pl-4 pr-2 py-2">
+      <div className="border-border bg-background flex items-center gap-2 rounded-full border py-2 pr-2 pl-4 shadow-lg">
         <button
           onClick={onNavigate}
-          className="flex items-center gap-2 hover:text-foreground transition-colors cursor-pointer"
+          className="hover:text-foreground flex items-center gap-2 transition-colors"
           aria-label={`Return to ${chapterName}`}
         >
-          <Undo2 className="w-4 h-4 flex-shrink-0" />
-          <span className="text-sm truncate max-w-48">Back to {chapterName}</span>
+          <Undo2 className="size-4 shrink-0" />
+          <span className="max-w-48 truncate text-sm">Back to {chapterName}</span>
         </button>
         <Button
           size="smallIcon"
           onClick={onDismiss}
-          className="text-muted-foreground hover:text-foreground flex-shrink-0"
+          className="text-muted-foreground hover:text-foreground shrink-0"
           aria-label="Dismiss"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="size-3.5" />
         </Button>
       </div>
     </div>

@@ -60,7 +60,7 @@ export const Reader = ({
 
   if (!chapter) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex h-full items-center justify-center text-gray-500">
         No content available
       </div>
     )
@@ -126,7 +126,7 @@ export const Reader = ({
           elements.push(
             <div
               key={`epigraph-${epigraphGroupStartIndex}`}
-              className="mt-4 pb-6 mb-6 border-border"
+              className="border-border mt-4 mb-6 pb-6"
             >
               {content
                 .slice(epigraphGroupStartIndex, idx + 1)
@@ -145,7 +145,7 @@ export const Reader = ({
 
     return (
       <div className={proseClasses}>
-        <h2 className="text-xl font-semibold mb-6">
+        <h2 className="mb-6 text-xl font-semibold">
           {duplicateBlock?.segments ? (
             <SegmentList
               segments={duplicateBlock.segments}
@@ -168,7 +168,7 @@ export const Reader = ({
   // Fallback to plain paragraph rendering
   return (
     <div className={proseClasses}>
-      <h2 className="text-xl font-semibold mb-6">{chapter.title}</h2>
+      <h2 className="mb-6 text-xl font-semibold">{chapter.title}</h2>
       <div className="leading-relaxed">
         {chapter.paragraphs.map((paragraph, idx) => {
           const isActive = idx === currentParagraph
@@ -178,7 +178,7 @@ export const Reader = ({
               ref={isActive ? (currentParagraphRef as React.RefObject<HTMLSpanElement>) : undefined}
               onClick={() => onParagraphClick?.(currentChapter, idx)}
               className={`cursor-pointer transition-colors ${
-                isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} px-1 -mx-1` : 'hover:bg-accent'
+                isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} -mx-1 px-1` : 'hover:bg-accent'
               }`}
             >
               {paragraph}{' '}

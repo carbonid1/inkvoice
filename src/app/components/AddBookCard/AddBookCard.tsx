@@ -37,18 +37,18 @@ export const AddBookCard = ({ onUpload, uploading }: AddBookCardProps) => {
           handleClick()
         }
       }}
-      className="h-full flex flex-col p-4 border-2 border-dashed border-border rounded-lg hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-background"
+      className="border-border bg-background flex h-full cursor-pointer flex-col rounded-lg border-2 border-dashed p-4 transition-colors hover:border-blue-400 dark:hover:border-blue-500"
     >
-      <div className="w-full aspect-[2/3] rounded mb-3 flex flex-col items-center justify-center gap-2">
+      <div className="mb-3 flex aspect-[2/3] w-full flex-col items-center justify-center gap-2 rounded-sm">
         {uploading ? (
           <>
-            <Loader2 className="w-10 h-10 text-muted-foreground animate-spin" />
-            <span className="text-sm text-muted-foreground">Uploading...</span>
+            <Loader2 className="text-muted-foreground size-10 animate-spin" />
+            <span className="text-muted-foreground text-sm">Uploading...</span>
           </>
         ) : (
           <>
-            <Plus className="w-10 h-10 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Add Book</span>
+            <Plus className="text-muted-foreground size-10" />
+            <span className="text-muted-foreground text-sm">Add Book</span>
           </>
         )}
       </div>

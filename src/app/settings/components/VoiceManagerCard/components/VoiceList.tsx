@@ -60,7 +60,7 @@ export const VoiceList = ({
     <div className="space-y-4">
       {customVoices.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+          <h3 className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
             Your Voices
             <span className="text-muted-foreground"> &middot; {customVoices.length}</span>
           </h3>
@@ -86,7 +86,7 @@ export const VoiceList = ({
 
       {appVoices.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+          <h3 className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
             Included Voices
             <span className="text-muted-foreground"> &middot; {appVoices.length}</span>
           </h3>

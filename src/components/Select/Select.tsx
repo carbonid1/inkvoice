@@ -116,14 +116,14 @@ export const Select = ({
       >
         <span className="truncate">{displayText}</span>
         <ChevronDown
-          className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`size-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
       {open && (
         <ul
           role="listbox"
-          className={`absolute z-50 mt-1 min-w-full w-max bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto ${menuClassName ?? ''}`}
+          className={`border-border bg-background absolute z-50 mt-1 max-h-60 w-max min-w-full overflow-y-auto rounded-lg border shadow-lg ${menuClassName ?? ''}`}
         >
           {items.map((item, index) => {
             const groupHeader = groupStartIndices.find(g => g.index === index)
@@ -131,7 +131,7 @@ export const Select = ({
             return (
               <li key={item.value} role="presentation">
                 {groupHeader && (
-                  <div className="text-xs font-medium text-muted-foreground uppercase px-3 pt-2 pb-1">
+                  <div className="text-muted-foreground px-3 pt-2 pb-1 text-xs font-medium uppercase">
                     {groupHeader.label}
                   </div>
                 )}

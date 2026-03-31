@@ -70,8 +70,8 @@ export const BookmarkDrawer = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/30 z-30 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-30 bg-black/30 transition-opacity duration-200 ${
+          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
         aria-hidden="true"
@@ -83,24 +83,24 @@ export const BookmarkDrawer = ({
         role="dialog"
         aria-label="Bookmarks"
         tabIndex={-1}
-        className={`fixed inset-y-0 right-0 w-96 max-w-[85vw] z-40 bg-background border-l border-border shadow-xl transition-transform duration-200 ease-out outline-none ${
+        className={`border-border bg-background fixed inset-y-0 right-0 z-40 w-96 max-w-[85vw] border-l shadow-xl outline-hidden transition-transform duration-200 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="border-border flex items-center justify-between border-b p-4">
           <h2 className="text-lg font-semibold">Bookmarks</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
             <Button size="icon" onClick={onClose}>
-              <X className="w-5 h-5" />
+              <X className="size-5" />
             </Button>
           </Tooltip>
         </div>
 
         {/* List */}
-        <div className="overflow-y-auto h-[calc(100%-57px)]">
+        <div className="h-[calc(100%-57px)] overflow-y-auto">
           {sorted.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex h-full items-center justify-center">
               <p className="text-gray-400">No bookmarks yet</p>
             </div>
           ) : (
@@ -115,16 +115,16 @@ export const BookmarkDrawer = ({
                       onNavigate(bookmark.chapter, bookmark.paragraph)
                       onClose()
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-accent transition-colors flex items-center justify-between group"
+                    className="group hover:bg-accent flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-medium">
                         {chapterNames[bookmark.chapter] ?? `Chapter ${bookmark.chapter + 1}`}
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-muted-foreground line-clamp-2 text-sm">
                         {bookmark.preview ?? `Paragraph ${bookmark.paragraph + 1}`}
                       </p>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {formatTimeAgo(bookmark.createdAt)}
                       </span>
                     </div>
@@ -135,10 +135,10 @@ export const BookmarkDrawer = ({
                         e.stopPropagation()
                         handleRemove(bookmark)
                       }}
-                      className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                      className="opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
                       aria-label="Remove bookmark"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="size-4" />
                     </Button>
                   </button>
                 </li>

@@ -25,7 +25,7 @@ describe('PageHeader', () => {
     const header = screen.getByRole('banner')
     expect(header.className).toContain('bg-background')
     expect(header.className).toContain('border-b')
-    expect(header.className).toContain('flex-shrink-0')
+    expect(header.className).toContain('shrink-0')
   })
 
   it('appends custom className to base classes', () => {

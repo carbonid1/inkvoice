@@ -45,6 +45,6 @@ describe('highlightSnippet', () => {
   it('applies highlight classes to mark elements', () => {
     const { container } = render(<span>{highlightSnippet('test text', 'test', [0])}</span>)
     const mark = container.querySelector('mark')
-    expect(mark!.className).toContain('bg-[color-mix')
+    expect(mark!.className).toContain('bg-attention/20')
   })
 })

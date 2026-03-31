@@ -17,18 +17,18 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
     metrics.cacheMaxMB > 0 ? Math.round((metrics.cacheUsedMB / metrics.cacheMaxMB) * 100) : 0
 
   return (
-    <div className="fixed top-4 right-4 bg-black/80 text-green-400 font-mono text-xs p-3 rounded-lg shadow-lg z-50 min-w-[140px]">
-      <div className="text-gray-400 mb-1 text-[10px] uppercase tracking-wider">Debug Panel (D)</div>
+    <div className="fixed top-4 right-4 z-50 min-w-[140px] rounded-lg bg-black/80 p-3 font-mono text-xs text-green-400 shadow-lg">
+      <div className="mb-1 text-[10px] tracking-wider text-gray-400 uppercase">Debug Panel (D)</div>
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           {metrics.isGenerating ? (
             <>
-              <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+              <span className="inline-block size-2 animate-pulse rounded-full bg-yellow-400" />
               <span>Generating...</span>
             </>
           ) : (
             <>
-              <span className="inline-block w-2 h-2 bg-green-400 rounded-full" />
+              <span className="inline-block size-2 rounded-full bg-green-400" />
               <span>Ready</span>
             </>
           )}
@@ -49,7 +49,7 @@ export const DebugPanel = ({ metrics, visible }: DebugPanelProps) => {
         <button
           onClick={togglePrefetch}
           aria-pressed={prefetchEnabled}
-          className="w-full text-left hover:text-green-300 transition-colors cursor-pointer"
+          className="w-full text-left transition-colors hover:text-green-300"
         >
           Prefetch: {prefetchEnabled ? 'ON' : 'OFF'}
         </button>

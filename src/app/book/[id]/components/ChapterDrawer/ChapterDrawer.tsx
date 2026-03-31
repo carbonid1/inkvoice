@@ -52,22 +52,20 @@ export const ChapterDrawer = ({
         data-chapter-index={chapterIndex}
         title={title}
         onClick={() => handleNavigate(chapterIndex)}
-        className={`w-full text-left px-4 py-2.5 transition-colors flex items-center gap-2 min-w-0 ${
+        className={`flex w-full min-w-0 items-center gap-2 px-4 py-2.5 text-left transition-colors ${
           isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-accent'
         }`}
         style={indent > 0 ? { paddingLeft: `${16 + indent * 20}px` } : undefined}
       >
         <span
-          className={`text-sm truncate flex-1 ${
+          className={`flex-1 truncate text-sm ${
             isCurrent ? 'font-medium text-blue-700 dark:text-blue-300' : ''
           }`}
         >
           {title}
         </span>
         {startPage !== undefined && (
-          <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums">
-            {startPage}
-          </span>
+          <span className="text-muted-foreground shrink-0 text-xs tabular-nums">{startPage}</span>
         )}
       </button>
     )
@@ -95,8 +93,8 @@ export const ChapterDrawer = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/30 z-30 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-30 bg-black/30 transition-opacity duration-200 ${
+          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
         aria-hidden="true"
@@ -108,22 +106,22 @@ export const ChapterDrawer = ({
         role="dialog"
         aria-label="Table of Contents"
         tabIndex={-1}
-        className={`fixed inset-y-0 left-0 w-96 max-w-[85vw] z-40 bg-background border-r border-border shadow-xl transition-transform duration-200 ease-out outline-none ${
+        className={`border-border bg-background fixed inset-y-0 left-0 z-40 w-96 max-w-[85vw] border-r shadow-xl outline-hidden transition-transform duration-200 ease-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="border-border flex items-center justify-between border-b p-4">
           <h2 className="text-lg font-semibold">Table of Contents</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
             <Button size="icon" onClick={onClose}>
-              <X className="w-5 h-5" />
+              <X className="size-5" />
             </Button>
           </Tooltip>
         </div>
 
         {/* Chapter list — only rendered when open to avoid re-rendering on every paragraph advance */}
-        <div className="overflow-y-auto h-[calc(100%-57px)]">
+        <div className="h-[calc(100%-57px)] overflow-y-auto">
           {isOpen &&
             (tocTree ? (
               <div className="pt-1 pb-8">{tocTree.map(node => renderTocGroup(node))}</div>
@@ -167,19 +165,19 @@ const TocGroupCollapsible = ({
       >
         <button
           onClick={() => setIsExpanded(prev => !prev)}
-          className="p-2.5 hover:bg-accent rounded transition-colors"
+          className="hover:bg-accent rounded-sm p-2.5 transition-colors"
           style={indent > 0 ? { marginLeft: `${indent * 20}px` } : undefined}
           aria-label={isExpanded ? 'Collapse' : 'Expand'}
         >
           <ChevronDown
-            className={`w-4 h-4 text-gray-400 transition-transform ${
+            className={`size-4 text-gray-400 transition-transform ${
               isExpanded ? '' : '-rotate-90'
             }`}
           />
         </button>
         <button
           onClick={() => onNavigate(node.chapterIndex)}
-          className={`flex-1 text-left text-sm py-2.5 pr-4 transition-colors ${
+          className={`flex-1 py-2.5 pr-4 text-left text-sm transition-colors ${
             isCurrent
               ? 'font-medium text-blue-700 dark:text-blue-300'
               : 'hover:text-blue-600 dark:hover:text-blue-400'
@@ -188,7 +186,7 @@ const TocGroupCollapsible = ({
           {node.title}
         </button>
         {startPage !== undefined && (
-          <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums pr-4">
+          <span className="text-muted-foreground shrink-0 pr-4 text-xs tabular-nums">
             {startPage}
           </span>
         )}

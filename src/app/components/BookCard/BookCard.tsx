@@ -22,7 +22,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="group h-full flex flex-col p-4 border border-border rounded-lg hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all bg-background relative">
+      <div className="group border-border bg-background relative flex h-full flex-col rounded-lg border p-4 transition-all hover:border-blue-300 hover:shadow-md dark:hover:border-blue-500">
         {onRemove && (
           <button
             onClick={e => {
@@ -30,23 +30,23 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
               e.stopPropagation()
               onRemove()
             }}
-            className="absolute top-2 right-2 z-10 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity hover:bg-black/80"
+            className="absolute top-2 right-2 z-10 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-black/80"
             aria-label={`Remove ${book.title}`}
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="size-3.5" />
           </button>
         )}
-        <div className="w-full aspect-[2/3] bg-muted rounded mb-3 flex items-center justify-center overflow-hidden relative">
+        <div className="bg-muted relative mb-3 flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-sm">
           {!coverError ? (
             <>
               {!coverLoaded && (
-                <div className="absolute inset-0 bg-muted animate-pulse" aria-hidden="true" />
+                <div className="bg-muted absolute inset-0 animate-pulse" aria-hidden="true" />
               )}
               <img
                 src={`/api/book/${book.id}/cover`}
                 alt={`Cover of ${book.title}`}
                 loading="lazy"
-                className={`w-full h-full object-cover ${coverLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`h-full w-full object-cover ${coverLoaded ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={e => {
                   const img = e.target as HTMLImageElement
                   if (img.naturalWidth === 0) {
@@ -59,11 +59,11 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
               />
             </>
           ) : (
-            <BookOpen className="w-12 h-12 text-muted-foreground" />
+            <BookOpen className="text-muted-foreground size-12" />
           )}
           {/* Progress bar at bottom of cover */}
           {progressPercent !== null && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black/20" aria-hidden="true">
+            <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-black/20" aria-hidden="true">
               <div
                 className={`h-full ${isFinished ? 'bg-green-500' : 'bg-blue-500'}`}
                 style={{ width: `${Math.min(progressPercent, 100)}%` }}
@@ -72,9 +72,9 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
             </div>
           )}
         </div>
-        <h3 className="font-medium text-foreground line-clamp-2 mb-1">{book.title}</h3>
-        <p className="text-sm text-muted-foreground line-clamp-1">{book.author}</p>
-        <div className="min-h-[1.25rem] mt-1">
+        <h3 className="text-foreground mb-1 line-clamp-2 font-medium">{book.title}</h3>
+        <p className="text-muted-foreground line-clamp-1 text-sm">{book.author}</p>
+        <div className="mt-1 min-h-[1.25rem]">
           {isFinished ? (
             <p className="text-xs text-green-500">Finished</p>
           ) : progress?.lastReadAt ? (

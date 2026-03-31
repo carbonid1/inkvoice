@@ -255,9 +255,9 @@ export default function BookReader() {
 
   if (error || !overview) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <div className="text-red-600 dark:text-red-400">{error || 'Book not found'}</div>
-        <Link href="/" className="text-blue-500 hover:text-blue-600 underline">
+        <Link href="/" className="text-blue-500 underline hover:text-blue-600">
           Return to library
         </Link>
       </div>
@@ -299,17 +299,17 @@ export default function BookReader() {
   }
 
   return (
-    <div className="h-dvh flex flex-col">
+    <div className="flex h-dvh flex-col">
       <PageHeader>
-        <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-2">
           <Tooltip label="Back to Library" position="bottom">
             <Link href="/" className={buttonVariants({ size: 'icon', className: '-ml-2' })}>
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="size-5" />
             </Link>
           </Tooltip>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-semibold truncate">{overview.title}</h1>
-            <p className="text-sm text-muted-foreground truncate">{overview.author}</p>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-semibold">{overview.title}</h1>
+            <p className="text-muted-foreground truncate text-sm">{overview.author}</p>
           </div>
           <Tooltip label="Search" shortcut={`${getModKey()}+F`} position="bottom">
             <Button
@@ -317,33 +317,33 @@ export default function BookReader() {
               onClick={() => (search.isOpen ? search.close() : search.open())}
               aria-label="Search in book"
             >
-              <Search className="w-5 h-5" />
+              <Search className="size-5" />
             </Button>
           </Tooltip>
           <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
             <Button size="icon" onClick={() => setActiveDrawer('bookmark')} className="-mr-2">
-              <BookMarked className="w-5 h-5" />
+              <BookMarked className="size-5" />
             </Button>
           </Tooltip>
         </div>
 
-        <div className="max-w-3xl mx-auto px-4 pb-1.5">
+        <div className="mx-auto max-w-3xl px-4 pb-1.5">
           <div className="flex items-center gap-2">
             {overview.chapters.length > 1 && (
               <Tooltip label="Table of Contents" shortcut="T" position="bottom">
                 <button
                   onClick={() => setActiveDrawer('chapter')}
-                  className="flex items-center gap-1.5 text-sm bg-muted rounded px-2 py-1 hover:bg-accent transition-colors min-w-0"
+                  className="bg-muted hover:bg-accent flex min-w-0 items-center gap-1.5 rounded-sm px-2 py-1 text-sm transition-colors"
                   aria-label="Table of Contents"
                 >
-                  <List className="w-4 h-4 flex-shrink-0" />
+                  <List className="size-4 shrink-0" />
                   <span className="truncate">{currentChapterInfo.title}</span>
                 </button>
               </Tooltip>
             )}
             {showChapterLoading && (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-gray-400" aria-hidden="true" />
+                <Loader2 className="size-4 animate-spin text-gray-400" aria-hidden="true" />
                 <span className="sr-only">Loading chapter</span>
               </>
             )}
@@ -351,7 +351,7 @@ export default function BookReader() {
             <FontSizePopover />
             {pagePosition && (
               <Tooltip label="Based on 350 words per page" position="bottom" className="ml-auto">
-                <p className="text-xs text-gray-400 cursor-default whitespace-nowrap">
+                <p className="cursor-default text-xs whitespace-nowrap text-gray-400">
                   Page {pagePosition.currentPage} of {pagePosition.totalPages}
                 </p>
               </Tooltip>
@@ -362,8 +362,8 @@ export default function BookReader() {
         <ProgressIndicator paragraph={currentParagraph} chapterInfo={currentChapterInfo} />
       </PageHeader>
 
-      <main className="flex-1 min-h-0 overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/40">
-        <div className="max-w-3xl mx-auto">
+      <main className="min-h-0 flex-1 overflow-y-auto focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-hidden focus-visible:ring-inset">
+        <div className="mx-auto max-w-3xl">
           {showRecoveryBanner && recoveryBookmark && (
             <RecoveryBanner
               chapterName={
@@ -385,7 +385,7 @@ export default function BookReader() {
               activeParagraphRef={activeParagraphRef}
             />
           ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="flex h-64 items-center justify-center text-gray-500">
               Loading chapter...
             </div>
           )}

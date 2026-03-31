@@ -35,11 +35,11 @@ export const ProgressIndicator = ({ paragraph, chapterInfo }: ProgressIndicatorP
           }
           position="bottom"
           delay={600}
-          className="w-full [display:flex] -mt-3"
+          className="-mt-3 [display:flex] w-full"
         >
-          <div className="w-full pt-3 cursor-default group/bar">
+          <div className="group/bar w-full cursor-default pt-3">
             <div
-              className="h-0.5 bg-muted transition-shadow duration-200 group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.25)] dark:group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.4)] motion-reduce:transition-none"
+              className="bg-muted h-0.5 transition-shadow duration-200 group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.25)] motion-reduce:transition-none dark:group-hover/bar:shadow-[0_-3px_10px_rgba(59,130,246,0.4)]"
               aria-hidden="true"
             >
               <div

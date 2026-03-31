@@ -22,7 +22,7 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
   )
 
   if (loading || voices.length === 0) {
-    return <div className="w-28 h-7 bg-muted rounded animate-pulse" />
+    return <div className="bg-muted h-7 w-28 animate-pulse rounded-sm" />
   }
 
   const globalDisplayName = voices.find(v => v.name === globalVoice)?.displayName ?? globalVoice
@@ -44,13 +44,13 @@ export const VoiceSelector = ({ bookId }: VoiceSelectorProps) => {
           onChange={handleChange}
           onOpenChange={setDropdownOpen}
           aria-label="Voice"
-          className="text-sm bg-muted border-none rounded px-2 py-1 text-left"
+          className="bg-muted rounded-sm border-none px-2 py-1 text-left text-sm"
           menuClassName="right-0"
           extraOptions={[{ value: DEFAULT_SENTINEL, label: `Default (${globalDisplayName})` }]}
         />
       </Tooltip>
       {isStale && (
-        <p className="text-xs text-attention-foreground mt-1">
+        <p className="text-attention-foreground mt-1 text-xs">
           Voice not found — using {effectiveVoice}
         </p>
       )}

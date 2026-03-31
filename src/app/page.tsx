@@ -198,7 +198,7 @@ export default function Library() {
       onDrop={handleDrop}
     >
       <PageHeader>
-        <div className="max-w-6xl mx-auto px-8 py-6 flex items-center justify-between">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-6">
           <div>
             <h1 className="text-3xl font-bold">InkVoice</h1>
             <p className="text-muted-foreground mt-1">Read and listen to your books</p>
@@ -215,27 +215,27 @@ export default function Library() {
         </div>
       </PageHeader>
 
-      <main className="max-w-6xl mx-auto px-8 py-8">
+      <main className="mx-auto max-w-6xl px-8 py-8">
         {(loading || !progressLoaded) && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {Array.from({ length: 5 }, (_, i) => (
               <div
                 key={i}
-                className="flex flex-col p-4 border border-border rounded-lg bg-background"
+                className="border-border bg-background flex flex-col rounded-lg border p-4"
               >
-                <div className="w-full aspect-[2/3] bg-muted animate-pulse rounded mb-3" />
-                <div className="h-4 bg-muted animate-pulse rounded w-3/4 mb-2" />
-                <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-                <div className="h-3 bg-muted animate-pulse rounded w-2/5 mt-1" />
+                <div className="bg-muted mb-3 aspect-[2/3] w-full animate-pulse rounded-sm" />
+                <div className="bg-muted mb-2 h-4 w-3/4 animate-pulse rounded-sm" />
+                <div className="bg-muted h-3 w-1/2 animate-pulse rounded-sm" />
+                <div className="bg-muted mt-1 h-3 w-2/5 animate-pulse rounded-sm" />
               </div>
             ))}
           </div>
         )}
 
-        {error && <div className="text-center py-12 text-red-600 dark:text-red-400">{error}</div>}
+        {error && <div className="py-12 text-center text-red-600 dark:text-red-400">{error}</div>}
 
         {!loading && progressLoaded && !error && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {sortedBooks.map(book => (
               <BookCard key={book.id} book={book} onRemove={() => handleRemove(book)} />
             ))}
@@ -245,9 +245,9 @@ export default function Library() {
       </main>
 
       {isDragging && (
-        <div className="fixed inset-0 z-50 bg-blue-500/10 border-2 border-dashed border-blue-400 flex items-center justify-center pointer-events-none">
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center border-2 border-dashed border-blue-400 bg-blue-500/10">
           <div className="flex flex-col items-center gap-3 text-blue-500 dark:text-blue-400">
-            <Upload className="w-16 h-16" />
+            <Upload className="size-16" />
             <span className="text-lg font-medium">Drop .epub files here</span>
           </div>
         </div>

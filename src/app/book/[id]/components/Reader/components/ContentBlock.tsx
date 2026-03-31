@@ -76,14 +76,14 @@ export const ContentBlock = ({
 
     case 'blockquote':
       return (
-        <blockquote className="border-l-2 border-border pl-5 my-1 italic text-muted-foreground text-[0.95rem] leading-relaxed">
+        <blockquote className="border-border text-muted-foreground my-1 border-l-2 pl-5 text-[0.95rem] leading-relaxed italic">
           {segments(block.segments)}
         </blockquote>
       )
 
     case 'attribution':
       return (
-        <p className="pl-5 my-1 text-sm text-muted-foreground text-right">
+        <p className="text-muted-foreground my-1 pl-5 text-right text-sm">
           {'\u2014 '}
           {segments(block.segments)}
         </p>
@@ -92,7 +92,7 @@ export const ContentBlock = ({
     case 'list': {
       const depthPadding = ['', 'pl-6', 'pl-12', 'pl-16'][block.level ?? 0] ?? 'pl-16'
       return (
-        <ul className={`list-none mb-1 space-y-1 ${depthPadding}`}>
+        <ul className={`mb-1 list-none space-y-1 ${depthPadding}`}>
           {block.items?.map((itemSegments, idx) => (
             <li key={idx}>{segments(itemSegments)}</li>
           ))}
@@ -108,10 +108,10 @@ export const ContentBlock = ({
           <img
             src={block.src}
             alt={block.alt || ''}
-            className="max-w-full h-auto mx-auto rounded"
+            className="mx-auto h-auto max-w-full rounded-sm"
           />
           {caption && (
-            <figcaption className="text-center text-sm text-muted-foreground mt-2">
+            <figcaption className="text-muted-foreground mt-2 text-center text-sm">
               {caption}
             </figcaption>
           )}

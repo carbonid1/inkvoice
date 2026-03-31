@@ -84,13 +84,13 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
-        className={`w-full rounded-lg border py-2.5 px-3 text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+        className={`flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
           open
-            ? 'border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-            : 'border-border text-muted-foreground hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400'
+            ? 'border-blue-300 bg-blue-50/50 text-blue-600 dark:border-blue-700 dark:bg-blue-900/10 dark:text-blue-400'
+            : 'border-border text-muted-foreground hover:border-blue-300 hover:text-blue-600 dark:hover:border-blue-700 dark:hover:text-blue-400'
         }`}
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="size-4" />
         {open ? 'Hide Upload' : 'Add Voice'}
       </button>
 
@@ -107,14 +107,14 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               onKeyDown={handleKeyDown}
               placeholder="Voice name"
               aria-label="Voice name"
-              className="flex-1 p-2 text-sm border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border-border bg-background text-foreground flex-1 rounded-lg border p-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
             />
             <input
               ref={fileInputRef}
               type="file"
               accept={ACCEPTED_FORMATS}
               onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
-              className="flex-1 p-2 text-sm border border-border rounded-lg bg-background text-foreground file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-600 dark:file:bg-blue-900/20 dark:file:text-blue-400"
+              className="border-border bg-background text-foreground flex-1 rounded-lg border p-2 text-sm file:mr-2 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:text-blue-600 dark:file:bg-blue-900/20 dark:file:text-blue-400"
             />
           </div>
           {durationText && (
@@ -138,7 +138,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               <p className="text-sm text-red-500 dark:text-red-400">{displayError}</p>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Upload a WAV, MP3, M4A, OGG, or FLAC file (5–30 seconds). A TTS sample will be generated
             automatically.
           </p>

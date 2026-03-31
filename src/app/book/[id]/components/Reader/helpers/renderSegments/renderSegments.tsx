@@ -41,8 +41,8 @@ export const renderSegments = ({
               : undefined
           }
           className={`cursor-pointer transition-colors ${
-            isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} px-0.5 -mx-0.5` : 'hover:bg-accent'
-          } ${isBookmarked ? 'border-l-2 border-attention pl-1 -ml-1' : ''}`}
+            isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} -mx-0.5 px-0.5` : 'hover:bg-accent'
+          } ${isBookmarked ? 'border-attention -ml-1 border-l-2 pl-1' : ''}`}
           dangerouslySetInnerHTML={{ __html: segment.html }}
         />{' '}
       </span>

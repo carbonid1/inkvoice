@@ -1,9 +1,9 @@
 const LINK_CLASSES = 'text-blue-600 dark:text-blue-400 hover:underline'
 
 export const CreditsCard = () => (
-  <section className="bg-background rounded-lg p-6 shadow-sm border border-border">
-    <h2 className="text-lg font-semibold mb-4">Voice Credits</h2>
-    <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+  <section className="border-border bg-background rounded-lg border p-6 shadow-xs">
+    <h2 className="mb-4 text-lg font-semibold">Voice Credits</h2>
+    <div className="text-muted-foreground space-y-4 text-sm leading-relaxed">
       <p>
         Bundled voice references derived from the Hi-Fi Multi-Speaker English TTS Dataset
         (Bakhturina et al., 2021), available at{' '}

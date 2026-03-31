@@ -28,24 +28,24 @@ export const PlaybackControls = ({
     <div className="flex items-center justify-center gap-4">
       <Tooltip label="Previous Sentence" shortcut="←">
         <Button size="icon" onClick={onSkipBack}>
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="size-6" />
         </Button>
       </Tooltip>
 
       <Tooltip label={isPlaying ? 'Pause' : 'Play'} shortcut="Space">
         <Button variant="solid" size="largeIcon" onClick={onPlayPause} className="relative">
-          {isLoading && <Loader2 className="w-6 h-6 animate-spin absolute inset-0 m-auto" />}
+          {isLoading && <Loader2 className="absolute inset-0 m-auto size-6 animate-spin" />}
           {isPlaying ? (
-            <Pause className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
+            <Pause className={`size-6 ${isLoading ? 'opacity-30' : ''}`} />
           ) : (
-            <Play className={`w-6 h-6 ${isLoading ? 'opacity-30' : ''}`} />
+            <Play className={`size-6 ${isLoading ? 'opacity-30' : ''}`} />
           )}
         </Button>
       </Tooltip>
 
       <Tooltip label="Next Sentence" shortcut="→">
         <Button size="icon" onClick={onSkipForward}>
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="size-6" />
         </Button>
       </Tooltip>
     </div>

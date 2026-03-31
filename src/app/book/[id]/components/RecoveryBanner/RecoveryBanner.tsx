@@ -15,12 +15,12 @@ export const RecoveryBanner = ({ chapterName, onNavigate }: RecoveryBannerProps)
   if (dismissed) return null
 
   return (
-    <div className="bg-[color-mix(in_oklch,var(--attention)_15%,transparent)] border border-[color-mix(in_oklch,var(--attention)_30%,transparent)] rounded-lg p-3 mx-6 mt-4 mb-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
-      <p className="text-sm text-attention-foreground">
+    <div className="animate-in fade-in slide-in-from-top-2 border-attention/30 bg-attention/15 mx-6 mt-4 mb-4 flex items-center justify-between rounded-lg border p-3">
+      <p className="text-attention-foreground text-sm">
         You have a bookmark at {chapterName}.{' '}
         <button
           onClick={onNavigate}
-          className="text-attention-foreground underline hover:text-foreground font-medium"
+          className="text-attention-foreground hover:text-foreground font-medium underline"
         >
           Go there
         </button>
@@ -29,10 +29,10 @@ export const RecoveryBanner = ({ chapterName, onNavigate }: RecoveryBannerProps)
         variant="attention"
         size="icon"
         onClick={() => setDismissed(true)}
-        className="flex-shrink-0 ml-2"
+        className="ml-2 shrink-0"
         aria-label="Dismiss"
       >
-        <X className="w-4 h-4" />
+        <X className="size-4" />
       </Button>
     </div>
   )

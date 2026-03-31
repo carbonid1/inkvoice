@@ -1,39 +1,39 @@
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 
 export const PageSkeleton = () => (
-  <div className="h-dvh flex flex-col" role="status" aria-label="Loading book">
+  <div className="flex h-dvh flex-col" role="status" aria-label="Loading book">
     <PageHeader>
-      <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-4">
-        <div className="w-9 h-9 -ml-2 rounded-full bg-muted animate-pulse" />
-        <div className="flex-1 min-w-0 space-y-2">
-          <div className="h-5 w-48 bg-muted rounded animate-pulse" />
-          <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+      <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-2">
+        <div className="bg-muted -ml-2 size-9 animate-pulse rounded-full" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="bg-muted h-5 w-48 animate-pulse rounded-sm" />
+          <div className="bg-muted h-4 w-32 animate-pulse rounded-sm" />
         </div>
-        <div className="w-9 h-9 -mr-2 rounded-full bg-muted animate-pulse" />
+        <div className="bg-muted -mr-2 size-9 animate-pulse rounded-full" />
       </div>
-      <div className="max-w-3xl mx-auto px-4 pb-1.5 flex items-center gap-2">
-        <div className="flex-1 h-7 bg-muted rounded animate-pulse" />
-        <div className="w-32 h-7 bg-muted rounded animate-pulse" />
+      <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 pb-1.5">
+        <div className="bg-muted h-7 flex-1 animate-pulse rounded-sm" />
+        <div className="bg-muted h-7 w-32 animate-pulse rounded-sm" />
       </div>
-      <div className="max-w-3xl mx-auto px-4 pb-1 flex justify-end">
-        <div className="h-4 w-28 bg-muted rounded animate-pulse" />
+      <div className="mx-auto flex max-w-3xl justify-end px-4 pb-1">
+        <div className="bg-muted h-4 w-28 animate-pulse rounded-sm" />
       </div>
-      <div className="h-0.5 bg-muted" />
+      <div className="bg-muted h-0.5" />
     </PageHeader>
-    <div className="flex-1 min-h-0 overflow-y-auto">
-      <div className="max-w-3xl mx-auto px-6 py-8 space-y-4">
-        <div className="h-4 w-full bg-muted rounded animate-pulse" />
-        <div className="h-4 w-5/6 bg-muted rounded animate-pulse" />
-        <div className="h-4 w-4/5 bg-muted rounded animate-pulse" />
-        <div className="h-4 w-full bg-muted rounded animate-pulse" />
-        <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-3xl space-y-4 px-6 py-8">
+        <div className="bg-muted h-4 w-full animate-pulse rounded-sm" />
+        <div className="bg-muted h-4 w-5/6 animate-pulse rounded-sm" />
+        <div className="bg-muted h-4 w-4/5 animate-pulse rounded-sm" />
+        <div className="bg-muted h-4 w-full animate-pulse rounded-sm" />
+        <div className="bg-muted h-4 w-3/4 animate-pulse rounded-sm" />
       </div>
     </div>
-    <div className="flex-shrink-0 bg-background border-t border-border px-4 py-2">
-      <div className="max-w-2xl mx-auto flex items-center justify-center gap-4">
-        <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
-        <div className="w-14 h-14 rounded-full bg-muted animate-pulse" />
-        <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
+    <div className="border-border bg-background shrink-0 border-t px-4 py-2">
+      <div className="mx-auto flex max-w-2xl items-center justify-center gap-4">
+        <div className="bg-muted size-10 animate-pulse rounded-full" />
+        <div className="bg-muted size-14 animate-pulse rounded-full" />
+        <div className="bg-muted size-10 animate-pulse rounded-full" />
       </div>
     </div>
   </div>

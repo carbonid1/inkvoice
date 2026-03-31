@@ -58,16 +58,16 @@ export const SearchResultsPanel = ({
               return (
                 <div
                   key={`header-${virtualRow.index}`}
-                  className="absolute top-0 left-0 w-full flex items-center gap-2 px-3 pt-3 pb-1"
+                  className="absolute top-0 left-0 flex w-full items-center gap-2 px-3 pt-3 pb-1"
                   style={{
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >
-                  <span className="text-xs font-medium text-muted-foreground uppercase truncate">
+                  <span className="text-muted-foreground truncate text-xs font-medium uppercase">
                     {entry.chapterTitle}
                   </span>
-                  <span className="text-[10px] text-muted-foreground tabular-nums flex-shrink-0">
+                  <span className="text-muted-foreground shrink-0 text-[10px] tabular-nums">
                     {entry.matchCount}
                   </span>
                 </div>
@@ -80,7 +80,7 @@ export const SearchResultsPanel = ({
             return (
               <div
                 key={`result-${virtualRow.index}`}
-                className={`absolute top-0 left-0 w-full px-3 py-2 cursor-pointer transition-colors ${
+                className={`absolute top-0 left-0 w-full cursor-pointer px-3 py-2 transition-colors ${
                   isHighlighted ? 'bg-blue-50 dark:bg-white/[0.08]' : ''
                 }`}
                 style={{
@@ -90,7 +90,7 @@ export const SearchResultsPanel = ({
                 onClick={() => onSelect(resultEntry.resultIndex)}
                 onMouseEnter={() => onHighlight(resultEntry.resultIndex)}
               >
-                <p className="text-sm text-foreground line-clamp-2 leading-snug">
+                <p className="text-foreground line-clamp-2 text-sm leading-snug">
                   {highlightSnippet(
                     resultEntry.match.textSnippet,
                     query,
@@ -103,7 +103,7 @@ export const SearchResultsPanel = ({
         </div>
       </div>
       {truncated && (
-        <div className="text-xs text-muted-foreground text-center py-2 border-t border-border">
+        <div className="border-border text-muted-foreground border-t py-2 text-center text-xs">
           Results limited to 500 matches
         </div>
       )}

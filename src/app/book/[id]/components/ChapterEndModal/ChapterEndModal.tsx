@@ -23,7 +23,7 @@ export const ChapterEndModal = ({
       {/* Backdrop */}
       <div
         data-testid="chapter-end-backdrop"
-        className="fixed inset-0 bg-black/20 z-30 transition-opacity duration-200 ease-out"
+        className="fixed inset-0 z-30 bg-black/20 transition-opacity duration-200 ease-out"
         onClick={onDismiss}
         aria-hidden="true"
       />
@@ -32,29 +32,29 @@ export const ChapterEndModal = ({
       <div
         role="dialog"
         aria-labelledby="chapter-end-title"
-        className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none"
+        className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center"
       >
-        <div className="pointer-events-auto bg-background rounded-xl shadow-xl max-w-sm w-full mx-4 p-8 text-center motion-safe:animate-[fadeScaleIn_200ms_ease-out]">
+        <div className="bg-background pointer-events-auto mx-4 w-full max-w-sm rounded-xl p-8 text-center shadow-xl motion-safe:animate-[fade-scale-in_200ms_ease-out]">
           {/* Section break ornament */}
-          <div className="text-muted-foreground text-lg tracking-[0.5em] mb-6">* * *</div>
+          <div className="text-muted-foreground mb-6 text-lg tracking-[0.5em]">* * *</div>
 
           {/* Completed chapter */}
-          <h2 id="chapter-end-title" className="font-medium text-foreground">
+          <h2 id="chapter-end-title" className="text-foreground font-medium">
             {completedChapterTitle}
           </h2>
 
           {/* Divider */}
-          <div className="my-5 border-t border-border" />
+          <div className="border-border my-5 border-t" />
 
           {/* Next chapter */}
-          <p className="text-sm text-muted-foreground mb-1">Up next</p>
-          <p className="font-medium text-foreground">{nextChapterTitle}</p>
+          <p className="text-muted-foreground mb-1 text-sm">Up next</p>
+          <p className="text-foreground font-medium">{nextChapterTitle}</p>
           {nextChapterPageCount !== null && (
-            <p className="text-sm text-muted-foreground mt-1">~{nextChapterPageCount} pages</p>
+            <p className="text-muted-foreground mt-1 text-sm">~{nextChapterPageCount} pages</p>
           )}
 
           {/* Progress */}
-          <p className="text-sm text-muted-foreground mt-4">
+          <p className="text-muted-foreground mt-4 text-sm">
             Chapter {chaptersCompleted} of {totalChapters}
           </p>
 
