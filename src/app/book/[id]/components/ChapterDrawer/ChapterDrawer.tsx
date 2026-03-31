@@ -53,15 +53,11 @@ export const ChapterDrawer = ({
         title={title}
         onClick={() => handleNavigate(chapterIndex)}
         className={`flex w-full min-w-0 items-center gap-2 px-4 py-2.5 text-left transition-colors ${
-          isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-accent'
+          isCurrent ? 'bg-primary-muted' : 'hover:bg-accent'
         }`}
         style={indent > 0 ? { paddingLeft: `${16 + indent * 20}px` } : undefined}
       >
-        <span
-          className={`flex-1 truncate text-sm ${
-            isCurrent ? 'font-medium text-blue-700 dark:text-blue-300' : ''
-          }`}
-        >
+        <span className={`flex-1 truncate text-sm ${isCurrent ? 'text-primary font-medium' : ''}`}>
           {title}
         </span>
         {startPage !== undefined && (
@@ -161,7 +157,7 @@ const TocGroupCollapsible = ({
     <div>
       <div
         data-active={isCurrent || undefined}
-        className={`flex items-center gap-1 ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+        className={`flex items-center gap-1 ${isCurrent ? 'bg-primary-muted' : ''}`}
       >
         <button
           onClick={() => setIsExpanded(prev => !prev)}
@@ -178,9 +174,7 @@ const TocGroupCollapsible = ({
         <button
           onClick={() => onNavigate(node.chapterIndex)}
           className={`flex-1 py-2.5 pr-4 text-left text-sm transition-colors ${
-            isCurrent
-              ? 'font-medium text-blue-700 dark:text-blue-300'
-              : 'hover:text-blue-600 dark:hover:text-blue-400'
+            isCurrent ? 'text-primary font-medium' : 'hover:text-primary'
           }`}
         >
           {node.title}

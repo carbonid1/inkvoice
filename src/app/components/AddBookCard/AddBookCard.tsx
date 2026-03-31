@@ -37,7 +37,7 @@ export const AddBookCard = ({ onUpload, uploading }: AddBookCardProps) => {
           handleClick()
         }
       }}
-      className="border-border bg-background flex h-full cursor-pointer flex-col rounded-lg border-2 border-dashed p-4 transition-colors hover:border-blue-400 dark:hover:border-blue-500"
+      className="border-border bg-background hover:border-primary-border flex h-full cursor-pointer flex-col rounded-lg border-2 border-dashed p-4 transition-colors"
     >
       <div className="mb-3 flex aspect-[2/3] w-full flex-col items-center justify-center gap-2 rounded-sm">
         {uploading ? (

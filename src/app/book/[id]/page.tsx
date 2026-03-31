@@ -258,7 +258,7 @@ export default function BookReader() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <div className="text-red-600 dark:text-red-400">{error || 'Book not found'}</div>
-        <Link href="/" className="text-blue-500 underline hover:text-blue-600">
+        <Link href="/" className="text-primary hover:text-primary/80 underline">
           Return to library
         </Link>
       </div>
@@ -363,7 +363,7 @@ export default function BookReader() {
         <ProgressIndicator paragraph={currentParagraph} chapterInfo={currentChapterInfo} />
       </PageHeader>
 
-      <main className="min-h-0 flex-1 overflow-y-auto focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-hidden focus-visible:ring-inset">
+      <main className="focus-visible:ring-primary/40 min-h-0 flex-1 overflow-y-auto focus-visible:ring-2 focus-visible:outline-hidden focus-visible:ring-inset">
         <div className="mx-auto max-w-3xl">
           {showRecoveryBanner && recoveryBookmark && (
             <RecoveryBanner

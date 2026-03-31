@@ -95,10 +95,7 @@ export const Select = ({
 
   const itemClassName = (index: number, itemValue: string) => {
     const base = 'px-3 py-2.5 cursor-pointer'
-    const highlight =
-      index === highlightedIndex
-        ? 'bg-blue-50 dark:bg-blue-900/20'
-        : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'
+    const highlight = index === highlightedIndex ? 'bg-primary-muted' : 'hover:bg-primary-muted'
     const selected = itemValue === value ? 'font-medium' : ''
     return `${base} ${highlight} ${selected}`
   }

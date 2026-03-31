@@ -129,7 +129,7 @@ export const SearchPalette = ({
             </p>
             {scope === 'chapter' && (
               <button
-                className="mt-1 text-xs text-blue-500 transition-colors hover:text-blue-600"
+                className="text-primary hover:text-primary/80 mt-1 text-xs transition-colors"
                 onClick={() => onScopeChange('book')}
               >
                 Search entire book

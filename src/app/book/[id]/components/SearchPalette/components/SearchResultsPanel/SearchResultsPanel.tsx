@@ -81,7 +81,7 @@ export const SearchResultsPanel = ({
               <div
                 key={`result-${virtualRow.index}`}
                 className={`absolute top-0 left-0 w-full cursor-pointer px-3 py-2 transition-colors ${
-                  isHighlighted ? 'bg-blue-50 dark:bg-white/[0.08]' : ''
+                  isHighlighted ? 'bg-primary-muted' : ''
                 }`}
                 style={{
                   height: `${virtualRow.size}px`,

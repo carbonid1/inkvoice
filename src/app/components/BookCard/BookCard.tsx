@@ -22,7 +22,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="group border-border bg-background relative flex h-full flex-col rounded-lg border p-4 transition-all hover:border-blue-300 hover:shadow-md dark:hover:border-blue-500">
+      <div className="group border-border bg-background hover:border-primary-border relative flex h-full flex-col rounded-lg border p-4 transition-all hover:shadow-md">
         {onRemove && (
           <button
             onClick={e => {
@@ -65,7 +65,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
           {progressPercent !== null && (
             <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-black/20" aria-hidden="true">
               <div
-                className={`h-full ${isFinished ? 'bg-green-500' : 'bg-blue-500'}`}
+                className={`h-full ${isFinished ? 'bg-success' : 'bg-primary'}`}
                 style={{ width: `${Math.min(progressPercent, 100)}%` }}
               />
               <span className="sr-only">{progressPercent}% complete</span>
@@ -76,7 +76,7 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
         <p className="text-muted-foreground line-clamp-1 text-sm">{book.author}</p>
         <div className="mt-1 min-h-[1.25rem]">
           {isFinished ? (
-            <p className="text-xs text-green-500">Finished</p>
+            <p className="text-success-foreground text-xs">Finished</p>
           ) : progress?.lastReadAt ? (
             <p className="text-xs text-gray-400">Last read {formatTimeAgo(progress.lastReadAt)}</p>
           ) : null}

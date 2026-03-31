@@ -43,7 +43,7 @@ export const ProgressIndicator = ({ paragraph, chapterInfo }: ProgressIndicatorP
               aria-hidden="true"
             >
               <div
-                className="h-full bg-blue-500 transition-[width] duration-300"
+                className="bg-primary h-full transition-[width] duration-300"
                 style={{ width: `${chapterPercent}%` }}
               />
             </div>

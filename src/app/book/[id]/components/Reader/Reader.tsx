@@ -67,7 +67,7 @@ export const Reader = ({
   }
 
   const hasContent = chapter.content && chapter.content.length > 0
-  const proseClasses = `font-serif prose prose-lg dark:prose-invert max-w-none p-6 ${FONT_SIZE_CLASS[fontSize]} [&_a]:text-blue-600 [&_a]:dark:text-blue-400 [&_a]:underline [&_a]:decoration-blue-300 [&_a]:dark:decoration-blue-600 [&_a]:underline-offset-2 [&_a]:hover:text-blue-800 [&_a]:dark:hover:text-blue-300 [&_a]:hover:decoration-blue-500 [&_a]:transition-colors`
+  const proseClasses = `font-serif prose prose-lg dark:prose-invert max-w-none p-6 ${FONT_SIZE_CLASS[fontSize]} [&_a]:text-primary [&_a]:underline [&_a]:decoration-primary/40 [&_a]:underline-offset-2 [&_a]:hover:decoration-primary [&_a]:transition-colors`
 
   if (hasContent) {
     const content = chapter.content!

@@ -44,9 +44,7 @@ export const VoiceRow = ({
   return (
     <div
       className={`group rounded-lg transition-colors ${
-        selected
-          ? 'bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:ring-blue-800'
-          : 'hover:bg-accent'
+        selected || editingTags ? 'bg-primary-muted ring-primary-border ring-1' : 'hover:bg-accent'
       }`}
     >
       <div className="flex items-center gap-2 px-3 py-2.5">
@@ -117,7 +115,7 @@ export const VoiceRow = ({
                 size="icon"
                 onClick={onToggleTagEditor}
                 aria-label={`Edit tags for ${voice.displayName}`}
-                className={editingTags ? 'text-blue-500' : ''}
+                className={editingTags ? 'text-primary' : ''}
               >
                 <Pencil />
               </Button>

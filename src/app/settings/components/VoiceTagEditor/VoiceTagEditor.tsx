@@ -30,7 +30,7 @@ export const VoiceTagEditor = ({ tags, onTagsChanged, saving }: VoiceTagEditorPr
   }
 
   return (
-    <div className="space-y-3 pt-2">
+    <div className="space-y-3 px-3 pt-2 pb-2.5">
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {tags.map(tag => (
@@ -47,7 +47,7 @@ export const VoiceTagEditor = ({ tags, onTagsChanged, saving }: VoiceTagEditorPr
         placeholder="Add tag..."
         aria-label="Add tag"
         disabled={saving}
-        className="border-border bg-background text-foreground w-full rounded-sm border p-1.5 text-xs focus:border-transparent focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+        className="border-border bg-background text-foreground focus:ring-primary w-full rounded-sm border p-1.5 text-xs focus:border-transparent focus:ring-1 disabled:opacity-50"
       />
     </div>
   )

@@ -245,8 +245,8 @@ export default function Library() {
       </main>
 
       {isDragging && (
-        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center border-2 border-dashed border-blue-400 bg-blue-500/10">
-          <div className="flex flex-col items-center gap-3 text-blue-500 dark:text-blue-400">
+        <div className="border-primary-border bg-primary-muted pointer-events-none fixed inset-0 z-50 flex items-center justify-center border-2 border-dashed">
+          <div className="text-primary flex flex-col items-center gap-3">
             <Upload className="size-16" />
             <span className="text-lg font-medium">Drop .epub files here</span>
           </div>

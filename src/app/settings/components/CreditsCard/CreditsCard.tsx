@@ -1,4 +1,4 @@
-const LINK_CLASSES = 'text-blue-600 dark:text-blue-400 hover:underline'
+const LINK_CLASSES = 'text-primary hover:underline'
 
 export const CreditsCard = () => (
   <section className="border-border bg-background rounded-lg border p-6 shadow-xs">

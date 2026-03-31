@@ -86,8 +86,8 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
         onClick={() => setOpen(prev => !prev)}
         className={`flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
           open
-            ? 'border-blue-300 bg-blue-50/50 text-blue-600 dark:border-blue-700 dark:bg-blue-900/10 dark:text-blue-400'
-            : 'border-border text-muted-foreground hover:border-blue-300 hover:text-blue-600 dark:hover:border-blue-700 dark:hover:text-blue-400'
+            ? 'border-primary-border bg-primary-muted text-primary'
+            : 'border-border text-muted-foreground hover:border-primary-border hover:text-primary'
         }`}
       >
         <Plus className="size-4" />
@@ -107,14 +107,14 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               onKeyDown={handleKeyDown}
               placeholder="Voice name"
               aria-label="Voice name"
-              className="border-border bg-background text-foreground flex-1 rounded-lg border p-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
+              className="border-border bg-background text-foreground focus:ring-primary flex-1 rounded-lg border p-2 text-sm focus:border-transparent focus:ring-2"
             />
             <input
               ref={fileInputRef}
               type="file"
               accept={ACCEPTED_FORMATS}
               onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
-              className="border-border bg-background text-foreground flex-1 rounded-lg border p-2 text-sm file:mr-2 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:text-blue-600 dark:file:bg-blue-900/20 dark:file:text-blue-400"
+              className="border-border bg-background text-foreground file:bg-primary-muted file:text-primary flex-1 rounded-lg border p-2 text-sm file:mr-2 file:rounded file:border-0 file:px-2 file:py-1 file:text-xs"
             />
           </div>
           {durationText && (
