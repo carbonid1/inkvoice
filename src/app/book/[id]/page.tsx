@@ -344,7 +344,7 @@ export default function BookReader() {
             )}
             {showChapterLoading && (
               <>
-                <Loader2 className="size-4 animate-spin text-gray-400" aria-hidden="true" />
+                <Loader2 className="text-muted-foreground size-4 animate-spin" aria-hidden="true" />
                 <span className="sr-only">Loading chapter</span>
               </>
             )}
@@ -352,7 +352,7 @@ export default function BookReader() {
             <FontSizePopover />
             {pagePosition && (
               <Tooltip label="Based on 350 words per page" position="bottom" className="ml-auto">
-                <p className="cursor-default text-xs whitespace-nowrap text-gray-400">
+                <p className="text-muted-foreground cursor-default text-xs whitespace-nowrap">
                   Page {pagePosition.currentPage} of {pagePosition.totalPages}
                 </p>
               </Tooltip>

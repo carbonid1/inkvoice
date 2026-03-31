@@ -60,7 +60,7 @@ export const Reader = ({
 
   if (!chapter) {
     return (
-      <div className="flex h-full items-center justify-center text-gray-500">
+      <div className="text-muted-foreground flex h-full items-center justify-center">
         No content available
       </div>
     )

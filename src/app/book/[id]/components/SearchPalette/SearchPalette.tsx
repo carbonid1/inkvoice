@@ -79,7 +79,7 @@ export const SearchPalette = ({
         className="animate-in fade-in-0 slide-in-from-top-2 border-border bg-background mx-auto mt-[15vh] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-xl border shadow-2xl duration-150"
       >
         <div className="border-border flex items-center gap-2 border-b px-4 py-3">
-          <Search className="size-4 shrink-0 text-gray-400" />
+          <Search className="text-muted-foreground size-4 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -87,17 +87,17 @@ export const SearchPalette = ({
             onChange={e => onQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="min-w-0 flex-1 bg-transparent text-sm outline-hidden placeholder:text-gray-400"
+            className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-hidden"
             aria-label={placeholder}
           />
-          <div className="flex shrink-0 rounded-md bg-gray-50 p-0.5 dark:bg-white/[0.06]">
+          <div className="bg-muted flex shrink-0 rounded-md p-0.5">
             {SCOPE_OPTIONS.map(option => (
               <button
                 key={option.value}
                 className={`rounded px-2 py-0.5 text-xs transition-colors ${
                   scope === option.value
-                    ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.12] dark:text-gray-100'
-                    : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'
+                    ? 'bg-accent text-foreground font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
                 onClick={() => onScopeChange(option.value)}
                 aria-pressed={scope === option.value}
@@ -107,7 +107,7 @@ export const SearchPalette = ({
             ))}
           </div>
           <span className="flex min-w-[4.5rem] shrink-0 items-center justify-end">
-            {showSpinner && <Loader2 className="size-4 animate-spin text-gray-400" />}
+            {showSpinner && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
             {showMatchCount && results.length > 0 && (
               <span className="text-muted-foreground text-xs tabular-nums">
                 {results.length} {results.length === 1 ? 'result' : 'results'}
@@ -124,7 +124,7 @@ export const SearchPalette = ({
         </div>
         {showNoResults && (
           <div className="px-4 py-6 text-center">
-            <p className="text-sm text-gray-400">
+            <p className="text-muted-foreground text-sm">
               {scope === 'chapter' ? 'No results in this chapter' : 'No results'}
             </p>
             {scope === 'chapter' && (

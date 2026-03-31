@@ -166,7 +166,7 @@ const TocGroupCollapsible = ({
           aria-label={isExpanded ? 'Collapse' : 'Expand'}
         >
           <ChevronDown
-            className={`size-4 text-gray-400 transition-transform ${
+            className={`text-muted-foreground size-4 transition-transform ${
               isExpanded ? '' : '-rotate-90'
             }`}
           />

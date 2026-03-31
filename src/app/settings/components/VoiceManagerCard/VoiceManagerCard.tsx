@@ -130,7 +130,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
       {loading ? (
         <VoiceListSkeleton />
       ) : visibleVoices.length === 0 ? (
-        <div className="text-gray-500">
+        <div className="text-muted-foreground">
           <p>No voices found.</p>
           <p className="mt-2 text-sm">
             Add voices to{' '}

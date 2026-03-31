@@ -93,11 +93,11 @@ export const Tooltip = ({
         <div
           role="tooltip"
           style={maxWidth ? { maxWidth } : undefined}
-          className={`absolute left-1/2 z-50 -translate-x-1/2 ${maxWidth ? 'whitespace-normal' : 'whitespace-nowrap'} pointer-events-none flex items-center gap-1.5 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-gray-100 dark:text-gray-900 ${positionClasses}`}
+          className={`absolute left-1/2 z-50 -translate-x-1/2 ${maxWidth ? 'whitespace-normal' : 'whitespace-nowrap'} bg-foreground text-background pointer-events-none flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs shadow-lg ${positionClasses}`}
         >
           {label}
           {shortcut && (
-            <kbd className="rounded-sm bg-gray-700 px-1 py-0.5 font-mono text-[10px] leading-none dark:bg-gray-300">
+            <kbd className="bg-background/15 rounded-sm px-1 py-0.5 font-mono text-[10px] leading-none">
               {shortcut}
             </kbd>
           )}

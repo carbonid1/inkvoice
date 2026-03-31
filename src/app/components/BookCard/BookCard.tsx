@@ -78,7 +78,9 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
           {isFinished ? (
             <p className="text-success-foreground text-xs">Finished</p>
           ) : progress?.lastReadAt ? (
-            <p className="text-xs text-gray-400">Last read {formatTimeAgo(progress.lastReadAt)}</p>
+            <p className="text-muted-foreground text-xs">
+              Last read {formatTimeAgo(progress.lastReadAt)}
+            </p>
           ) : null}
         </div>
       </div>

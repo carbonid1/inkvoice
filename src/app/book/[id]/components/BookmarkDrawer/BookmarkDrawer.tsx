@@ -101,7 +101,7 @@ export const BookmarkDrawer = ({
         <div className="h-[calc(100%-57px)] overflow-y-auto">
           {sorted.length === 0 ? (
             <div className="flex h-full items-center justify-center">
-              <p className="text-gray-400">No bookmarks yet</p>
+              <p className="text-muted-foreground">No bookmarks yet</p>
             </div>
           ) : (
             <ul ref={listParent} className="pt-1 pb-8">
