@@ -31,6 +31,7 @@ import {
 import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
+import { ReaderSkeleton } from './components/ReaderSkeleton/ReaderSkeleton'
 import { RecoveryBanner } from './components/RecoveryBanner/RecoveryBanner'
 import { ReturnPill } from './components/ReturnPill/ReturnPill'
 import { SearchPalette } from './components/SearchPalette/SearchPalette'
@@ -385,9 +386,7 @@ export default function BookReader() {
               activeParagraphRef={activeParagraphRef}
             />
           ) : (
-            <div className="flex h-64 items-center justify-center text-gray-500">
-              Loading chapter...
-            </div>
+            <ReaderSkeleton />
           )}
         </div>
       </main>

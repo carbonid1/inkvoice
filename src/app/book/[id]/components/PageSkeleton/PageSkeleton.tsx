@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { ReaderSkeleton } from '../ReaderSkeleton/ReaderSkeleton'
 
 export const PageSkeleton = () => (
   <div className="flex h-dvh flex-col" role="status" aria-label="Loading book">
@@ -21,19 +22,15 @@ export const PageSkeleton = () => (
       <div className="bg-muted h-0.5" />
     </PageHeader>
     <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto max-w-3xl space-y-4 px-6 py-8">
-        <div className="bg-muted h-4 w-full animate-pulse rounded-sm" />
-        <div className="bg-muted h-4 w-5/6 animate-pulse rounded-sm" />
-        <div className="bg-muted h-4 w-4/5 animate-pulse rounded-sm" />
-        <div className="bg-muted h-4 w-full animate-pulse rounded-sm" />
-        <div className="bg-muted h-4 w-3/4 animate-pulse rounded-sm" />
+      <div className="mx-auto max-w-3xl">
+        <ReaderSkeleton />
       </div>
     </div>
     <div className="border-border bg-background shrink-0 border-t px-4 py-2">
       <div className="mx-auto flex max-w-2xl items-center justify-center gap-4">
-        <div className="bg-muted size-10 animate-pulse rounded-full" />
-        <div className="bg-muted size-14 animate-pulse rounded-full" />
-        <div className="bg-muted size-10 animate-pulse rounded-full" />
+        <div className="bg-muted size-8 animate-pulse rounded-full" />
+        <div className="bg-muted size-12 animate-pulse rounded-full" />
+        <div className="bg-muted size-8 animate-pulse rounded-full" />
       </div>
     </div>
   </div>
