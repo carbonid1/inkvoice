@@ -15,7 +15,7 @@ export const RecoveryBanner = ({ chapterName, onNavigate }: RecoveryBannerProps)
   if (dismissed) return null
 
   return (
-    <div className="animate-in fade-in slide-in-from-top-2 border-attention/30 bg-attention/15 mx-6 mt-4 mb-4 flex items-center justify-between rounded-lg border p-3">
+    <div className="animate-in fade-in slide-in-from-top-2 border-attention-border bg-attention-muted mx-6 mt-4 mb-4 flex items-center justify-between rounded-lg border p-3">
       <p className="text-attention-foreground text-sm">
         You have a bookmark at {chapterName}.{' '}
         <button

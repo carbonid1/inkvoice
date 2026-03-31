@@ -26,6 +26,8 @@
   --color-highlight-muted: var(--highlight-muted);
   --color-attention: var(--attention);
   --color-attention-foreground: var(--attention-foreground);
+  --color-attention-muted: var(--attention-muted);
+  --color-attention-border: var(--attention-border);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -56,8 +58,10 @@
   --highlight: oklch(0.901 0.082 85.84);
   --highlight-foreground: oklch(0.344 0.06 58.6);
   --highlight-muted: oklch(0.962 0.042 95.28);
-  --attention: oklch(0.75 0.16 75);
-  --attention-foreground: oklch(0.55 0.17 65);
+  --attention: oklch(0.769 0.188 70.08);
+  --attention-foreground: oklch(0.473 0.137 46.2);
+  --attention-muted: oklch(0.987 0.022 95.28);
+  --attention-border: oklch(0.913 0.076 95.97);
 }
 
 /* --- Dark mode tokens (outside @layer) --- */
@@ -83,8 +87,10 @@
   --highlight: oklch(0.55 0.07 268);
   --highlight-foreground: oklch(0.95 0.02 265);
   --highlight-muted: oklch(0.3 0.04 265);
-  --attention: oklch(0.8 0.15 70);
-  --attention-foreground: oklch(0.96 0.03 70);
+  --attention: oklch(0.769 0.188 70.08);
+  --attention-foreground: oklch(0.913 0.076 95.97);
+  --attention-muted: oklch(0.414 0.112 45.9 / 0.2);
+  --attention-border: oklch(0.555 0.163 49);
 }
 
 /* --- Keyframes (moved from tailwind.config.ts) --- */

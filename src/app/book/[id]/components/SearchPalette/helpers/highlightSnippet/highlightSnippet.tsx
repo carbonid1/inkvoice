@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-const HIGHLIGHT_CLASS = 'bg-attention/20 text-attention-foreground rounded-xs'
+const HIGHLIGHT_CLASS = 'bg-attention-muted text-attention-foreground rounded-xs'
 
 export const highlightSnippet = (
   text: string,
