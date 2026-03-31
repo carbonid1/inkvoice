@@ -126,7 +126,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
           )}
           <div className="flex items-center gap-2">
             <Button
-              variant="solid"
+              variant="primary"
               size="small"
               onClick={handleUpload}
               disabled={!name.trim() || !file || isDurationInvalid}

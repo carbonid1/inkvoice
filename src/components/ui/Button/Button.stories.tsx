@@ -16,7 +16,7 @@ const meta = preview.type<{ args: ButtonProps }>().meta({
   argTypes: {
     variant: {
       control: 'select',
-      options: ['ghost', 'primary', 'solid', 'outline', 'destructive', 'subtle', 'danger', 'link'],
+      options: ['ghost', 'primary', 'outline', 'destructive', 'subtle', 'danger', 'link'],
     },
     size: {
       control: 'select',
@@ -41,10 +41,6 @@ Primary.test('fires onClick when clicked', async ({ canvas, userEvent, args }) =
   const button = await canvas.findByRole('button')
   await userEvent.click(button)
   await expect(args.onClick).toHaveBeenCalledOnce()
-})
-
-export const Solid = meta.story({
-  args: { children: 'Upload', variant: 'solid' },
 })
 
 export const Outline = meta.story({
@@ -78,7 +74,7 @@ export const SmallIconSize = meta.story({
 })
 
 export const LargeIconSize = meta.story({
-  args: { children: '▶', size: 'largeIcon', variant: 'solid', 'aria-label': 'Play' },
+  args: { children: '▶', size: 'largeIcon', variant: 'primary', 'aria-label': 'Play' },
 })
 
 export const SmallSize = meta.story({
@@ -107,7 +103,7 @@ export const FullWidthMenuItem = meta.story({
 // --- States ---
 
 export const Loading = meta.story({
-  args: { children: 'Generating...', variant: 'solid', loading: true },
+  args: { children: 'Generating...', variant: 'primary', loading: true },
 })
 Loading.test('shows spinner and disables button', async ({ canvas }) => {
   const button = await canvas.findByRole('button')

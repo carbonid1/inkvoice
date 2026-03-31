@@ -33,7 +33,7 @@ export const PlaybackControls = ({
       </Tooltip>
 
       <Tooltip label={isPlaying ? 'Pause' : 'Play'} shortcut="Space">
-        <Button variant="solid" size="largeIcon" onClick={onPlayPause} className="relative">
+        <Button variant="primary" size="largeIcon" onClick={onPlayPause} className="relative">
           {isLoading && <Loader2 className="absolute inset-0 m-auto animate-spin" />}
           {isPlaying ? (
             <Pause className={isLoading ? 'opacity-30' : ''} />

@@ -28,6 +28,8 @@
   --color-attention-foreground: var(--attention-foreground);
   --color-attention-muted: var(--attention-muted);
   --color-attention-border: var(--attention-border);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -43,8 +45,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.623 0.214 259.815);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -62,6 +64,8 @@
   --attention-foreground: oklch(0.473 0.137 46.2);
   --attention-muted: oklch(0.987 0.022 95.28);
   --attention-border: oklch(0.913 0.076 95.97);
+  --success: oklch(0.62 0.19 149);
+  --success-foreground: oklch(0.42 0.12 149);
 }
 
 /* --- Dark mode tokens (outside @layer) --- */
@@ -72,8 +76,8 @@
   --card-foreground: oklch(0.967 0.003 265);
   --popover: oklch(0.278 0.03 257);
   --popover-foreground: oklch(0.967 0.003 265);
-  --primary: oklch(0.872 0.009 258);
-  --primary-foreground: oklch(0.278 0.03 257);
+  --primary: oklch(0.65 0.2 259);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.373 0.031 260);
   --secondary-foreground: oklch(0.967 0.003 265);
   --muted: oklch(0.373 0.031 260);
@@ -91,6 +95,8 @@
   --attention-foreground: oklch(0.913 0.076 95.97);
   --attention-muted: oklch(0.414 0.112 45.9 / 0.2);
   --attention-border: oklch(0.555 0.163 49);
+  --success: oklch(0.62 0.19 149);
+  --success-foreground: oklch(0.82 0.1 149);
 }
 
 /* --- Keyframes (moved from tailwind.config.ts) --- */
