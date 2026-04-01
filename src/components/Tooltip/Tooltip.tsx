@@ -10,7 +10,7 @@ type TooltipProps = {
   maxWidth?: number
   disabled?: boolean
   className?: string
-  children: ReactElement
+  children: ReactElement<{ 'aria-label'?: string }>
 }
 
 const DEFAULT_DELAY = 200

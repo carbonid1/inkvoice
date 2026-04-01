@@ -110,12 +110,21 @@ export const BookmarkDrawer = ({
                   key={`${bookmark.chapter}-${bookmark.paragraph}`}
                   data-bookmark-id={bookmark.id}
                 >
-                  <button
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       onNavigate(bookmark.chapter, bookmark.paragraph)
                       onClose()
                     }}
-                    className="group hover:bg-accent flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
+                    onKeyDown={e => {
+                      if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+                        e.preventDefault()
+                        onNavigate(bookmark.chapter, bookmark.paragraph)
+                        onClose()
+                      }
+                    }}
+                    className="group hover:bg-accent flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors"
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-medium">
@@ -140,7 +149,7 @@ export const BookmarkDrawer = ({
                     >
                       <X />
                     </Button>
-                  </button>
+                  </div>
                 </li>
               ))}
             </ul>

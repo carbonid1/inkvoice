@@ -87,7 +87,7 @@ describe('usePrefetchQueue', () => {
       }
 
       fetchMock.mockResolvedValue(
-        new Response(new Blob(), {
+        new Response('', {
           status: 200,
           headers: new Headers({
             'X-Cache-Used': '1000000',
@@ -129,7 +129,7 @@ describe('usePrefetchQueue', () => {
           return Promise.reject(abortError)
         }
         return Promise.resolve(
-          new Response(new Blob(), {
+          new Response('', {
             status: 200,
             headers: new Headers({
               'X-Cache-Used': '1000000',
@@ -204,7 +204,7 @@ describe('usePrefetchQueue', () => {
             setTimeout(
               () =>
                 resolve(
-                  new Response(new Blob(), {
+                  new Response('', {
                     status: 200,
                     headers: new Headers({
                       'X-Cache-Used': '1000000',
@@ -242,7 +242,7 @@ describe('usePrefetchQueue', () => {
       }
 
       fetchMock.mockResolvedValue(
-        new Response(new Blob(), {
+        new Response('', {
           status: 200,
           headers: new Headers({
             'X-Cache-Used': '1000000',
@@ -306,7 +306,7 @@ describe('usePrefetchQueue', () => {
 
     it('passes abort signal to fetchAudio', async () => {
       fetchMock.mockResolvedValue(
-        new Response(new Blob(), {
+        new Response('', {
           status: 200,
           headers: new Headers({
             'X-Cache-Used': '1000000',

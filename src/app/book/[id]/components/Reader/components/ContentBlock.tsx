@@ -41,7 +41,7 @@ export const ContentBlock = ({
 
   switch (block.type) {
     case 'heading': {
-      const HeadingTag = `h${block.level || 2}` as keyof JSX.IntrinsicElements
+      const HeadingTag = `h${block.level || 2}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
       if (isInTitleGroup) {
         const titleClasses = isSubtitle
