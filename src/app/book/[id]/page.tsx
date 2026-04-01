@@ -7,6 +7,7 @@ import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
+import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import type { ParsedChapter } from '@/lib/types/book'
 import type { DebugMetrics, PlaybackMetrics } from '@/lib/types/debug'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
@@ -43,7 +44,10 @@ import {
 import { shouldShowChapterProgress } from './helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 import { useBookSearch } from './hooks/useBookSearch/useBookSearch'
+import { useRecoveryBanner } from './hooks/useRecoveryBanner/useRecoveryBanner'
 import { useReturnPosition } from './hooks/useReturnPosition/useReturnPosition'
+
+const EMPTY_BOOKMARKS: Bookmark[] = []
 
 export default function BookReader() {
   const params = useParams()
@@ -162,7 +166,7 @@ export default function BookReader() {
 
   // Bookmarks
   const fetchBookmarks = useBookmarkStore(s => s.fetchBookmarks)
-  const bookmarksForBook = useBookmarkStore(s => s.bookmarks[bookId] ?? [])
+  const bookmarksForBook = useBookmarkStore(s => s.bookmarks[bookId] ?? EMPTY_BOOKMARKS)
   const { isBookmarked: isCurrentBookmarked, toggle: toggleBookmark } = useBookmarkToggle({
     bookId,
     chapter: currentChapter,
@@ -239,18 +243,15 @@ export default function BookReader() {
     [overview?.chapters],
   )
 
-  const recoveryBookmark = useMemo(
-    () =>
-      bookmarksForBook.length > 0
-        ? bookmarksForBook.reduce((furthest, b) =>
-            b.chapter > furthest.chapter ||
-            (b.chapter === furthest.chapter && b.paragraph > furthest.paragraph)
-              ? b
-              : furthest,
-          )
-        : undefined,
-    [bookmarksForBook],
-  )
+  const {
+    recoveryBookmark,
+    showBanner: showRecoveryBanner,
+    dismissBanner,
+  } = useRecoveryBanner({
+    bookmarks: bookmarksForBook,
+    currentChapter,
+    currentParagraph,
+  })
 
   if (loading || !positionResolved) return <PageSkeleton />
 
@@ -264,10 +265,6 @@ export default function BookReader() {
       </div>
     )
   }
-
-  const showRecoveryBanner =
-    recoveryBookmark !== undefined &&
-    (recoveryBookmark.chapter !== currentChapter || recoveryBookmark.paragraph !== currentParagraph)
 
   const currentChapterInfo = overview.chapters[currentChapter] ?? {
     title: '',
@@ -370,9 +367,11 @@ export default function BookReader() {
               chapterName={
                 chapterNames[recoveryBookmark.chapter] ?? `Chapter ${recoveryBookmark.chapter + 1}`
               }
-              onNavigate={() =>
+              onNavigate={() => {
+                dismissBanner()
                 handleProgressChange(recoveryBookmark.chapter, recoveryBookmark.paragraph)
-              }
+              }}
+              onDismiss={dismissBanner}
             />
           )}
           {chapterData ? (

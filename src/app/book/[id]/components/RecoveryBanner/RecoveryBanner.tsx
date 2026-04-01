@@ -1,19 +1,13 @@
-'use client'
-
 import { Button } from '@/components/ui/Button/Button'
 import { X } from 'lucide-react'
-import { useState } from 'react'
 
 type RecoveryBannerProps = {
   chapterName: string
   onNavigate: () => void
+  onDismiss: () => void
 }
 
-export const RecoveryBanner = ({ chapterName, onNavigate }: RecoveryBannerProps) => {
-  const [dismissed, setDismissed] = useState(false)
-
-  if (dismissed) return null
-
+export const RecoveryBanner = ({ chapterName, onNavigate, onDismiss }: RecoveryBannerProps) => {
   return (
     <div className="animate-in fade-in slide-in-from-top-2 border-attention-border bg-attention-muted mx-6 mt-4 mb-4 flex items-center justify-between rounded-lg border p-3">
       <p className="text-attention-foreground text-sm">
@@ -28,7 +22,7 @@ export const RecoveryBanner = ({ chapterName, onNavigate }: RecoveryBannerProps)
       <Button
         variant="attention"
         size="icon"
-        onClick={() => setDismissed(true)}
+        onClick={onDismiss}
         className="ml-2 shrink-0"
         aria-label="Dismiss"
       >
