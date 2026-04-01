@@ -13,7 +13,7 @@ const CHAPTER_B = 13
 const PARAGRAPH_INDEX = 1
 
 const activeParagraph = (page: import('@playwright/test').Page) =>
-  page.locator('main span.bg-amber-200\\/70')
+  page.locator('main span[data-active-paragraph]')
 
 const allParagraphs = (page: import('@playwright/test').Page) =>
   page.locator('main span.cursor-pointer')

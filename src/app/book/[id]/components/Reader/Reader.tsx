@@ -176,6 +176,7 @@ export const Reader = ({
             <span
               key={idx}
               ref={isActive ? (currentParagraphRef as React.RefObject<HTMLSpanElement>) : undefined}
+              data-active-paragraph={isActive || undefined}
               onClick={() => onParagraphClick?.(currentChapter, idx)}
               className={`cursor-pointer transition-colors ${
                 isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} -mx-1 px-1` : 'hover:bg-accent'

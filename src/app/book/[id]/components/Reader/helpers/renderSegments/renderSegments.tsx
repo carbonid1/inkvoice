@@ -34,6 +34,7 @@ export const renderSegments = ({
       <span key={idx}>
         <span
           ref={isActive ? (paragraphRef as React.RefObject<HTMLSpanElement>) : undefined}
+          data-active-paragraph={isActive || undefined}
           onClick={() => onParagraphClick?.(currentChapter, segment.paragraphIndex)}
           onContextMenu={
             onParagraphContextMenu
