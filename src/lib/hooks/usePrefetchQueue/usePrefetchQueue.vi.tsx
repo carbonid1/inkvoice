@@ -22,7 +22,6 @@ const stableOptions = () => {
     currentChapterRef: { current: 0 },
     currentParagraphRef: { current: 0 },
     onDebugUpdate: vi.fn(),
-    prefetchEnabled: true,
   }
 }
 
@@ -43,14 +42,6 @@ describe('usePrefetchQueue', () => {
         rerender()
         expect(result.current[name]).toBe(first)
       })
-    })
-
-    it('cacheStatsRef is stable across re-renders', () => {
-      const opts = stableOptions()
-      const { result, rerender } = renderHook(() => usePrefetchQueue(opts))
-      const first = result.current.cacheStatsRef
-      rerender()
-      expect(result.current.cacheStatsRef).toBe(first)
     })
   })
 

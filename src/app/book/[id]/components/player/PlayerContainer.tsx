@@ -6,16 +6,16 @@ import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
+import type { PlaybackMetrics } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { useWordHighlight } from '@/lib/hooks/useWordHighlight/useWordHighlight'
 import type { ChapterInfo } from '@/lib/types/book'
-import type { PlaybackMetrics } from '@/lib/types/debug'
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
-import { usePrefetchStore } from '@/store/usePrefetchStore'
 import { Bookmark } from 'lucide-react'
 import type { RefObject } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { BufferRing } from './BufferRing/BufferRing'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -24,7 +24,6 @@ interface PlayerContainerProps {
   currentChapter: number
   currentParagraph: number
   onProgressChange: (chapter: number, paragraph: number) => void
-  onDebugUpdate?: (updater: (prev: PlaybackMetrics) => PlaybackMetrics) => void
   isCurrentBookmarked?: boolean
   onBookmarkToggle?: () => void
   onChapterEnd?: () => void
@@ -38,7 +37,6 @@ export const PlayerContainer = ({
   currentChapter,
   currentParagraph,
   onProgressChange,
-  onDebugUpdate,
   isCurrentBookmarked,
   onBookmarkToggle,
   onChapterEnd,
@@ -48,7 +46,6 @@ export const PlayerContainer = ({
   const { voices } = useVoices()
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
   const { effectiveVoice: voice } = useBookVoice(bookId, voiceNames)
-  const prefetchEnabled = usePrefetchStore(s => s.enabled)
   const playingPositionRef = useRef<{ ch: number; para: number } | null>(null)
   const pendingChapterAdvanceRef = useRef(false)
   const prevReplayKeyRef = useRef(replayKey)
@@ -66,6 +63,10 @@ export const PlayerContainer = ({
   })
 
   const [wordTimestamps, setWordTimestamps] = useState<WordTimestamp[] | null>(null)
+  const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
+    isGenerating: false,
+    ahead: 0,
+  })
 
   const audioPlayer = useAudioPlayer({
     onEnded: () => {
@@ -101,8 +102,7 @@ export const PlayerContainer = ({
     chaptersRef: position.chaptersRef,
     currentChapterRef: position.currentChapterRef,
     currentParagraphRef: position.currentParagraphRef,
-    onDebugUpdate,
-    prefetchEnabled,
+    onDebugUpdate: setPlaybackMetrics,
   })
 
   const { setLoading, setError, play, resume, shouldPlay, pause, stop, setPlaying, isPlaying } =
@@ -287,6 +287,10 @@ export const PlayerContainer = ({
             {audioPlayer.error}
           </div>
         )}
+
+        <div className="absolute top-1/2 left-0 -translate-y-1/2">
+          <BufferRing ahead={playbackMetrics.ahead} isGenerating={playbackMetrics.isGenerating} />
+        </div>
 
         <PlaybackControls
           isPlaying={isPlaying}

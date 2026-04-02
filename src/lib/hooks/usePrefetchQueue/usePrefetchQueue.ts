@@ -5,9 +5,13 @@ import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parse
 import { useFetchLifecycle } from '@/lib/hooks/useFetchLifecycle/useFetchLifecycle'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { ChapterInfo } from '@/lib/types/book'
-import type { PlaybackMetrics } from '@/lib/types/debug'
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { useCallback, useMemo, useRef } from 'react'
+
+export type PlaybackMetrics = {
+  isGenerating: boolean
+  ahead: number
+}
 
 export type FetchAudioResult = {
   url: string
@@ -21,44 +25,19 @@ interface UsePrefetchQueueOptions {
   currentChapterRef: React.MutableRefObject<number>
   currentParagraphRef: React.MutableRefObject<number>
   onDebugUpdate?: (updater: (prev: PlaybackMetrics) => PlaybackMetrics) => void
-  prefetchEnabled: boolean
 }
 
 const MAX_CONCURRENT_PREFETCH = 1
-const MAX_PREFETCH_AHEAD = 120
+export const MAX_PREFETCH_AHEAD = 120
 const FETCH_TIMEOUT_MS = 90_000
 
 export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
-  const {
-    bookId,
-    voice,
-    chaptersRef,
-    currentChapterRef,
-    currentParagraphRef,
-    onDebugUpdate,
-    prefetchEnabled,
-  } = options
+  const { bookId, voice, chaptersRef, currentChapterRef, currentParagraphRef, onDebugUpdate } =
+    options
 
   const { mountedRef, abortControllerRef, inFlightRef } = useFetchLifecycle()
-  const prefetchEnabledRef = useRef(prefetchEnabled)
-  prefetchEnabledRef.current = prefetchEnabled
   const consecutiveFailuresRef = useRef(0)
   const prefetchedRef = useRef<Set<string>>(new Set())
-  const cacheStatsRef = useRef<{ usedMB: number; maxMB: number }>({
-    usedMB: 0,
-    maxMB: 800,
-  })
-
-  const updateCacheStats = (response: Response) => {
-    const usedBytes = response.headers.get('X-Cache-Used')
-    const maxBytes = response.headers.get('X-Cache-Max')
-    if (usedBytes && maxBytes) {
-      cacheStatsRef.current = {
-        usedMB: Math.round(parseInt(usedBytes, 10) / (1024 * 1024)),
-        maxMB: Math.round(parseInt(maxBytes, 10) / (1024 * 1024)),
-      }
-    }
-  }
 
   const getCacheKey = useCallback(
     (ch: number, para: number) => `${ch}_${para}_${voice ?? DEFAULT_VOICE}`,
@@ -94,13 +73,12 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
   }, [getCacheKey, chaptersRef, currentChapterRef, currentParagraphRef])
 
   const updateDebugMetrics = useCallback(() => {
-    onDebugUpdate?.(prev => ({
-      ...prev,
-      isGenerating: inFlightRef.current.size > 0,
-      ahead: countAhead(),
-      cacheUsedMB: cacheStatsRef.current.usedMB,
-      cacheMaxMB: cacheStatsRef.current.maxMB,
-    }))
+    onDebugUpdate?.(prev => {
+      const isGenerating = inFlightRef.current.size > 0
+      const ahead = countAhead()
+      if (prev.isGenerating === isGenerating && prev.ahead === ahead) return prev
+      return { isGenerating, ahead }
+    })
   }, [onDebugUpdate, countAhead])
 
   const getNextPosition = useCallback(
@@ -135,7 +113,6 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
     if (consecutiveFailuresRef.current >= 3) return
 
     const ahead = countAhead()
-    if (!prefetchEnabledRef.current && ahead >= 5) return
     if (ahead >= MAX_PREFETCH_AHEAD) return
 
     const next = findNextToPrefetch()
@@ -165,7 +142,6 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
         }
         consecutiveFailuresRef.current = 0
         prefetchedRef.current.add(key)
-        updateCacheStats(response)
       })
       .catch(err => {
         if (err.name !== 'AbortError') {
@@ -217,8 +193,6 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
           throw new Error(errData.error || 'Failed to generate audio')
         }
 
-        updateCacheStats(response)
-
         const timestamps = parseTimestampsHeader(response)
         const blob = await response.blob()
         prefetchedRef.current.add(key)
@@ -238,15 +212,7 @@ export const usePrefetchQueue = (options: UsePrefetchQueueOptions) => {
       updateDebugMetrics,
       resetFailures,
       clearPrefetched,
-      cacheStatsRef,
     }),
-    [
-      fetchAudio,
-      continuePrefetching,
-      updateDebugMetrics,
-      resetFailures,
-      clearPrefetched,
-      cacheStatsRef,
-    ],
+    [fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, clearPrefetched],
   )
 }

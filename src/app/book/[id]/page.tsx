@@ -9,7 +9,6 @@ import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import type { ParsedChapter } from '@/lib/types/book'
-import type { DebugMetrics, PlaybackMetrics } from '@/lib/types/debug'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { BookMarked, ChevronLeft, List, Loader2, Search } from 'lucide-react'
@@ -22,7 +21,6 @@ import { toast } from 'sonner'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
 import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
-import { DebugPanel } from './components/DebugPanel/DebugPanel'
 import { FontSizePopover } from './components/FontSizePopover/FontSizePopover'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
 import {
@@ -62,19 +60,11 @@ export default function BookReader() {
   const search = useBookSearch(bookId, currentChapter)
   const { savedPosition, savePosition, clearPosition, navigateBack } = useReturnPosition()
   const [chapterLoading, setChapterLoading] = useState(false)
-  const [showDebug, setShowDebug] = useState(false)
   const [activeDrawer, setActiveDrawer] = useState<'chapter' | 'bookmark' | null>(null)
   const [contextMenuTarget, setContextMenuTarget] = useState<ContextMenuTarget | null>(null)
   const [showChapterEndModal, setShowChapterEndModal] = useState(false)
   const [replayKey, setReplayKey] = useState(0)
   const activeParagraphRef = useRef<HTMLSpanElement>(null)
-
-  const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
-    isGenerating: false,
-    ahead: 0,
-    cacheUsedMB: 0,
-    cacheMaxMB: 800,
-  })
 
   const setProgress = useProgressStore(s => s.setProgress)
   const getProgress = useProgressStore(s => s.getProgress)
@@ -183,7 +173,6 @@ export default function BookReader() {
   }, [bookId, fetchBookmarks])
 
   // Keyboard shortcuts
-  useHotkeys('d', () => setShowDebug(prev => !prev))
   useHotkeys('b', toggleBookmark)
   useHotkeys('shift+b', () => setActiveDrawer(prev => (prev === 'bookmark' ? null : 'bookmark')))
   useHotkeys('t', () => setActiveDrawer(prev => (prev === 'chapter' ? null : 'chapter')))
@@ -287,14 +276,6 @@ export default function BookReader() {
     nextChapter && shouldShowChapterProgress({ wordsInChapter: nextChapter.wordCount })
       ? Math.ceil(nextChapter.wordCount / WORDS_PER_PAGE)
       : null
-
-  const debugMetrics: DebugMetrics = {
-    ...playbackMetrics,
-    currentParagraph,
-    totalParagraphs: currentChapterInfo.paragraphCount,
-    currentChapter,
-    totalChapters: overview.chapters.length,
-  }
 
   return (
     <div className="flex h-dvh flex-col">
@@ -424,15 +405,12 @@ export default function BookReader() {
         currentChapter={currentChapter}
         currentParagraph={currentParagraph}
         onProgressChange={handleProgressChange}
-        onDebugUpdate={setPlaybackMetrics}
         isCurrentBookmarked={isCurrentBookmarked}
         onBookmarkToggle={toggleBookmark}
         onChapterEnd={handleChapterEnd}
         replayKey={replayKey}
         activeParagraphRef={activeParagraphRef}
       />
-
-      <DebugPanel metrics={debugMetrics} visible={showDebug} />
 
       <ChapterDrawer
         isOpen={activeDrawer === 'chapter'}

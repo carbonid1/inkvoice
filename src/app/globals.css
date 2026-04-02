@@ -37,6 +37,7 @@
   --color-ring: var(--ring);
   --font-serif: var(--font-literata), Georgia, Cambria, 'Times New Roman', Times, serif;
   --radius: 0.625rem;
+  --animate-buffer-pulse: buffer-pulse 4s ease-in-out infinite;
 }
 
 /* --- Light mode tokens (outside @layer) --- */
@@ -114,6 +115,16 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes buffer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
   }
 }
 

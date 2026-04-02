@@ -3,14 +3,12 @@
 import { useEffect, useState } from 'react'
 
 import { useDisplayStore } from './useDisplayStore'
-import { usePrefetchStore } from './usePrefetchStore'
 import { useProgressStore } from './useProgressStore'
 import { useVoiceStore } from './useVoiceStore'
 
 const allHydrated = () =>
   useProgressStore.getState().loaded &&
   useVoiceStore.getState().loaded &&
-  usePrefetchStore.getState().loaded &&
   useDisplayStore.getState().loaded
 
 export const useHydrated = () => {
@@ -23,14 +21,12 @@ export const useHydrated = () => {
 
     const unsub1 = useProgressStore.subscribe(check)
     const unsub2 = useVoiceStore.subscribe(check)
-    const unsub3 = usePrefetchStore.subscribe(check)
-    const unsub4 = useDisplayStore.subscribe(check)
+    const unsub3 = useDisplayStore.subscribe(check)
 
     // Trigger all API loads
     useProgressStore.getState().loadAllProgress()
     useVoiceStore.getState().loadAll()
     useDisplayStore.getState().loadFromApi()
-    usePrefetchStore.getState().loadFromApi()
 
     check()
 
@@ -38,7 +34,6 @@ export const useHydrated = () => {
       unsub1()
       unsub2()
       unsub3()
-      unsub4()
     }
   }, [])
 
