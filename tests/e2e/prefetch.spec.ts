@@ -67,7 +67,7 @@ test.describe('TTS prefetching', () => {
 
     // Navigate back to library
     await page.locator('a[href="/"]').first().click()
-    await page.waitForSelector('text=InkVoice')
+    await page.waitForSelector('text=Library')
 
     // Track requests after navigating away
     const requestsAfterLeave: string[] = []

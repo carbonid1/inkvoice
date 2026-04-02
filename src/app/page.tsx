@@ -198,11 +198,8 @@ export default function Library() {
       onDrop={handleDrop}
     >
       <PageHeader>
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-6">
-          <div>
-            <h1 className="text-3xl font-bold">InkVoice</h1>
-            <p className="text-muted-foreground mt-1">Read and listen to your books</p>
-          </div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
+          <h1 className="font-semibold">Library</h1>
           <Tooltip label="Settings" position="bottom">
             <Link
               href="/settings"
@@ -215,7 +212,7 @@ export default function Library() {
         </div>
       </PageHeader>
 
-      <main className="mx-auto max-w-6xl px-8 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         {(loading || !progressLoaded) && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {Array.from({ length: 5 }, (_, i) => (

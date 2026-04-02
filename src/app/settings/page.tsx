@@ -1,6 +1,7 @@
 'use client'
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { buttonVariants } from '@/components/ui/Button/Button'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
@@ -33,15 +34,21 @@ export default function Settings() {
   return (
     <div className="min-h-screen">
       <PageHeader>
-        <div className="mx-auto flex max-w-2xl items-center gap-4 px-8 py-6">
-          <Link href="/" className={buttonVariants({ size: 'icon' })} title="Back to library">
-            <ChevronLeft />
-          </Link>
-          <h1 className="text-3xl font-bold">Settings</h1>
+        <div className="mx-auto flex max-w-2xl items-center gap-4 px-4 py-2">
+          <Tooltip label="Back to Library" position="bottom">
+            <Link
+              href="/"
+              className={buttonVariants({ size: 'icon' })}
+              aria-label="Back to Library"
+            >
+              <ChevronLeft />
+            </Link>
+          </Tooltip>
+          <h1 className="font-semibold">Settings</h1>
         </div>
       </PageHeader>
 
-      <main className="mx-auto max-w-2xl space-y-6 px-8 py-8">
+      <main className="mx-auto max-w-2xl space-y-6 px-4 py-8">
         <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
         <AppearanceCard />
         <CreditsCard />
