@@ -3,6 +3,7 @@
 import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoiceTags'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
 import { VoiceRow } from './VoiceRow'
@@ -14,6 +15,7 @@ type VoiceListProps = {
   playing: PlayingState
   onPlay: (name: string, type: AudioType) => void
   onDelete: (name: string) => void
+  uploadSection?: ReactNode
 }
 
 export const VoiceList = ({
@@ -23,6 +25,7 @@ export const VoiceList = ({
   playing,
   onPlay,
   onDelete,
+  uploadSection,
 }: VoiceListProps) => {
   const [customParent] = useAutoAnimate()
   const [appParent] = useAutoAnimate()
@@ -58,12 +61,14 @@ export const VoiceList = ({
 
   return (
     <div className="space-y-4">
-      {customVoices.length > 0 && (
-        <div>
-          <h3 className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
-            Your Voices
+      <div>
+        <h3 className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
+          Your Voices
+          {customVoices.length > 0 && (
             <span className="text-muted-foreground"> &middot; {customVoices.length}</span>
-          </h3>
+          )}
+        </h3>
+        {customVoices.length > 0 && (
           <div ref={customParent} className="space-y-1">
             {customVoices.map(voice => (
               <VoiceRow
@@ -81,8 +86,9 @@ export const VoiceList = ({
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+        {uploadSection}
+      </div>
 
       {appVoices.length > 0 && (
         <div>

@@ -51,12 +51,21 @@ describe('VoiceList', () => {
     expect(headings[1]).toHaveTextContent(/Included Voices/)
   })
 
-  it('hides "Your Voices" heading when no custom voices', () => {
+  it('shows "Your Voices" heading even when no custom voices', () => {
     renderList({ voices: [appVoice] })
 
     const headings = screen.getAllByRole('heading', { level: 3 })
-    expect(headings).toHaveLength(1)
-    expect(headings[0]).toHaveTextContent(/Included Voices/)
+    expect(headings).toHaveLength(2)
+    expect(headings[0]).toHaveTextContent(/Your Voices/)
+    expect(headings[1]).toHaveTextContent(/Included Voices/)
+  })
+
+  it('hides count badge when no custom voices', () => {
+    renderList({ voices: [appVoice] })
+
+    const heading = screen.getAllByRole('heading', { level: 3 })[0]
+    expect(heading).toHaveTextContent('Your Voices')
+    expect(heading).not.toHaveTextContent('·')
   })
 
   it('selected voice row has aria-current', () => {
