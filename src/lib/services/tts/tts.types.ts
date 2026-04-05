@@ -4,7 +4,12 @@ export interface TTSService {
   generate(
     text: string,
     voice: string,
-  ): Promise<{ audio: Buffer; generationTimeMs: number; timestamps: WordTimestamp[] | null }>
+  ): Promise<{
+    audio: Buffer
+    generationTimeMs: number
+    timestamps: WordTimestamp[] | null
+    durationMs: number
+  }>
 }
 
 export type TTSErrorCode = 'VOICE_NOT_FOUND' | 'TTS_FAILED'

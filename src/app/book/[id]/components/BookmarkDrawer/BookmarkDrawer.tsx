@@ -13,6 +13,8 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'
 import type { BookmarkDrawerProps } from './BookmarkDrawer.types'
 
+const EMPTY_BOOKMARKS: Bookmark[] = []
+
 export const BookmarkDrawer = ({
   bookId,
   isOpen,
@@ -20,7 +22,7 @@ export const BookmarkDrawer = ({
   onNavigate,
   chapterNames,
 }: BookmarkDrawerProps) => {
-  const bookmarks = useBookmarkStore(s => s.bookmarks[bookId] ?? [])
+  const bookmarks = useBookmarkStore(s => s.bookmarks[bookId]) ?? EMPTY_BOOKMARKS
   const removeBookmark = useBookmarkStore(s => s.removeBookmark)
   const undoRemoveBookmark = useBookmarkStore(s => s.undoRemoveBookmark)
   const [listParent] = useAutoAnimate()

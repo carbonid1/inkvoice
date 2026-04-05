@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockSettings } from './helpers/mockSettings'
 import { mockVoiceManagement } from './helpers/mockVoiceManagement'
-import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 
 const navigateToSettings = async (page: import('@playwright/test').Page) => {
   const voicesResponse = page.waitForResponse(
@@ -12,11 +10,14 @@ const navigateToSettings = async (page: import('@playwright/test').Page) => {
   await page.waitForSelector('[data-voice]')
 }
 
+/**
+ * Custom voices can be removed from the settings page. Deletion is soft —
+ * an undo toast (or Ctrl+Z) lets the reader recover immediately.
+ */
 test.describe('voice deletion', () => {
+  /** Hovering a voice row reveals a remove button; clicking it hides the voice and shows an undo toast. */
   test('deleting a custom voice hides it and shows undo toast', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     // Custom voice "Test Voice" should be visible
@@ -35,10 +36,9 @@ test.describe('voice deletion', () => {
     await expect(page.locator('[data-voice="test-voice"]')).not.toBeVisible()
   })
 
+  /** Clicking "Undo" in the toast brings the voice back into the list. */
   test('undo button restores deleted voice', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     // Delete the custom voice
@@ -55,10 +55,9 @@ test.describe('voice deletion', () => {
     await expect(page.getByText('Test Voice')).toBeVisible()
   })
 
+  /** Ctrl+Z restores the voice, same as clicking the toast button. */
   test('Ctrl+Z restores deleted voice', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     // Delete the custom voice

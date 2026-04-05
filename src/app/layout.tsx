@@ -1,3 +1,4 @@
+import { PregenSSEProvider } from '@/components/PregenSSEProvider/PregenSSEProvider'
 import { ThemeProvider } from '@/components/ThemeProvider/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import type { Metadata } from 'next'
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={literata.variable} suppressHydrationWarning>
       <body className="min-h-screen">
         <ThemeProvider>
-          {children}
+          <PregenSSEProvider>{children}</PregenSSEProvider>
           <Toaster />
         </ThemeProvider>
       </body>

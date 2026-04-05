@@ -63,3 +63,6 @@ storybook-static/
 test-results/
 playwright-report/
 .playwright/
+
+# E2E test data
+.e2e-data/

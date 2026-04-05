@@ -68,6 +68,7 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chapter, paragraph, preview }),
       })
+      if (!response.ok) throw new Error(`Bookmark creation failed: ${response.status}`)
       const serverBookmark: Bookmark = await response.json()
 
       set(state => ({

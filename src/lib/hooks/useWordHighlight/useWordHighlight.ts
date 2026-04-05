@@ -17,6 +17,22 @@ const HIGHLIGHT_ACTIVE_WORD = 'active-word'
 
 const supportsHighlightAPI = (): boolean => typeof CSS !== 'undefined' && 'highlights' in CSS
 
+// Inject ::highlight() style at runtime — PostCSS can't parse it statically
+let styleInjected = false
+const injectHighlightStyle = () => {
+  if (styleInjected || typeof CSSStyleSheet === 'undefined') return
+  styleInjected = true
+  try {
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(
+      '::highlight(active-word) { background-color: var(--highlight); color: var(--highlight-foreground); }',
+    )
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+  } catch {
+    // adoptedStyleSheets not supported (e.g., jsdom)
+  }
+}
+
 export const useWordHighlight = ({
   audioRef,
   timestamps,
@@ -34,6 +50,7 @@ export const useWordHighlight = ({
 
   useEffect(() => {
     if (!supportsHighlightAPI()) return
+    injectHighlightStyle()
 
     // No timestamps → clear everything
     if (!timestamps || timestamps.length === 0) {

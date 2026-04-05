@@ -47,7 +47,7 @@ export const ChapterDrawer = ({
 
     return (
       <button
-        key={chapterIndex}
+        key={`${chapterIndex}-${title}`}
         data-active={isCurrent || undefined}
         data-chapter-index={chapterIndex}
         title={title}
@@ -74,7 +74,7 @@ export const ChapterDrawer = ({
 
     return (
       <TocGroupCollapsible
-        key={`group-${node.chapterIndex}`}
+        key={`group-${node.chapterIndex}-${node.title}`}
         node={node}
         indent={indent}
         currentChapter={currentChapter}

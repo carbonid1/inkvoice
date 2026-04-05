@@ -134,8 +134,14 @@ class BookServiceImpl implements BookService {
     const arrayBuffer = await readBookFile(filename)
     const book = await parseEpub(arrayBuffer, bookId)
 
-    // Cache for future requests
     this.cache.set(bookId, book)
+
+    // Ensure DB row exists so foreign-key-constrained tables (bookmarks, progress) work
+    await prisma.book.upsert({
+      where: { id: bookId },
+      create: { id: bookId, title: book.title, author: book.author, filename },
+      update: {},
+    })
 
     return book
   }

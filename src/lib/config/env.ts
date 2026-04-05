@@ -6,7 +6,7 @@ const envSchema = z.object({
   VOICES_DIR: z.string().default(join(process.cwd(), 'data', 'voices')),
   CACHE_DIR: z.string().default(join(process.cwd(), 'data', 'cache', 'tts')),
   DB_PATH: z.string().default(join(process.cwd(), 'data', 'inkvoice-dev.db')),
-  MAX_CACHE_SIZE_MB: z.coerce.number().default(800),
+  MAX_CACHE_SIZE_MB: z.coerce.number().default(10240),
   TTS_API_URL: z.string().url().default('http://localhost:8000/tts'),
 })
 

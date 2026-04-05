@@ -33,6 +33,7 @@ export const SearchResultsPanel = ({
     )
   }, [flatList, highlightedIndex])
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual returns unstable functions; nothing actionable
   const virtualizer = useVirtualizer({
     count: flatList.length,
     getScrollElement: () => scrollContainerRef.current,

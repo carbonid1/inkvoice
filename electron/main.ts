@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, powerSaveBlocker } from 'electron'
 import path from 'path'
 import { paths } from './lib/paths'
 import { allocatePorts } from './lib/ports'
@@ -13,6 +13,7 @@ if (!gotLock) {
 
 const isDev = paths.isDev
 let mainWindow: BrowserWindow | null = null
+let sleepBlockerId: number | null = null
 
 const createWindow = (): BrowserWindow => {
   const win = new BrowserWindow({
@@ -72,7 +73,7 @@ const startProduction = async (): Promise<void> => {
       sendStatus('Allocating ports...')
       const ports = await allocatePorts()
 
-      sendStatus('Starting servers (first launch downloads a 3GB model)...')
+      sendStatus('Warming up the narrator...')
       const result = await startServers(ports)
 
       if (result.ok) {
@@ -104,6 +105,21 @@ const startProduction = async (): Promise<void> => {
 }
 
 app.whenReady().then(async () => {
+  ipcMain.on('sleep-block-start', () => {
+    if (sleepBlockerId !== null) return
+    sleepBlockerId = powerSaveBlocker.start('prevent-app-suspension')
+    console.log(`[main] Sleep prevention started (id: ${sleepBlockerId})`)
+  })
+
+  ipcMain.on('sleep-block-stop', () => {
+    if (sleepBlockerId === null) return
+    if (powerSaveBlocker.isStarted(sleepBlockerId)) {
+      powerSaveBlocker.stop(sleepBlockerId)
+      console.log(`[main] Sleep prevention stopped (id: ${sleepBlockerId})`)
+    }
+    sleepBlockerId = null
+  })
+
   if (isDev) {
     await startDev()
   } else {

@@ -8,10 +8,11 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     rules: {
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['error', { allow: ['warn', 'error'] }],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': 'off',
-      'import/newline-after-import': 'warn',
+      'import/newline-after-import': 'error',
+      'react-hooks/exhaustive-deps': 'error',
       '@next/next/no-img-element': 'off',
     },
   },

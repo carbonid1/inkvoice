@@ -1,0 +1,380 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const makeJobResult = vi.hoisted(() => (overrides: Record<string, unknown> = {}) => ({
+  id: 'job-1',
+  bookId: 'book-1',
+  voice: 'narrator',
+  status: 'in_progress',
+  totalParagraphs: 2,
+  completedParagraphs: 0,
+  generatedDurationMs: 0,
+  currentChapter: 0,
+  currentParagraph: 0,
+  errorMessage: null,
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+  ...overrides,
+}))
+
+const mockPregenQueue = vi.hoisted(() => ({
+  getNext: vi.fn().mockResolvedValue(null),
+  getJob: vi.fn().mockResolvedValue(makeJobResult({ status: 'in_progress' })),
+  start: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve(makeJobResult({ status: 'in_progress' }))),
+  updateProgress: vi.fn().mockImplementation(() => Promise.resolve(makeJobResult())),
+  complete: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve(makeJobResult({ status: 'completed' }))),
+  pause: vi.fn().mockImplementation(() => Promise.resolve(makeJobResult({ status: 'paused' }))),
+  resume: vi.fn().mockImplementation(() => Promise.resolve(makeJobResult({ status: 'queued' }))),
+  getAll: vi.fn().mockResolvedValue([]),
+}))
+
+const mockBookService = vi.hoisted(() => ({
+  getBookOverview: vi.fn(),
+  getParagraph: vi.fn(),
+}))
+
+const mockTtsService = vi.hoisted(() => ({
+  generate: vi.fn(),
+}))
+
+const mockCacheService = vi.hoisted(() => ({
+  has: vi.fn(),
+  set: vi.fn().mockResolvedValue(undefined),
+  setTimestamps: vi.fn().mockResolvedValue(undefined),
+}))
+
+const mockDiskSpace = vi.hoisted(() => ({
+  getAvailableSpace: vi
+    .fn()
+    .mockResolvedValue({ available: 100_000_000_000, total: 500_000_000_000, percentFree: 20 }),
+}))
+
+vi.mock('@/lib/services/pregenQueue/pregenQueue.service', () => ({
+  pregenQueueService: mockPregenQueue,
+}))
+vi.mock('@/lib/services/book/book.service', () => ({
+  getBookService: () => mockBookService,
+}))
+vi.mock('@/lib/services/tts/tts.server', () => ({
+  getTTSService: () => mockTtsService,
+}))
+vi.mock('@/lib/services/cache/cache.service', () => ({
+  getCacheService: () => mockCacheService,
+}))
+vi.mock('@/lib/services/platform/diskSpace', () => ({
+  diskSpaceService: mockDiskSpace,
+}))
+vi.mock('@/lib/config/env', () => ({
+  env: { cacheDir: '/tmp/test-cache', ttsApiUrl: 'http://localhost:8000/tts' },
+}))
+vi.mock('@/lib/services/pregenEvents/pregenEvents.service', () => ({
+  pregenEvents: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
+}))
+
+import { pregenWorker, resetPregenWorker, signalStop } from './pregeneration.service'
+
+const mockFetch = vi
+  .fn()
+  .mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) })
+vi.stubGlobal('fetch', mockFetch)
+
+describe('pregenWorker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockFetch.mockResolvedValue({
+      ok: true,
+      arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+    })
+    resetPregenWorker()
+    // Default: getJob returns in_progress (inner loop DB check)
+    mockPregenQueue.getJob.mockResolvedValue(makeJobResult({ status: 'in_progress' }))
+  })
+
+  it('processes a queued job to completion', async () => {
+    const job = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 2,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+
+    // Return job once, then null (no more jobs)
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 2, wordCount: 100 }],
+    })
+
+    mockBookService.getParagraph
+      .mockResolvedValueOnce('Hello world')
+      .mockResolvedValueOnce('Goodbye world')
+
+    mockCacheService.has.mockResolvedValue(false)
+
+    mockTtsService.generate.mockResolvedValue({
+      audio: Buffer.alloc(100),
+      generationTimeMs: 5000,
+      timestamps: [{ word: 'Hello', start: 0, end: 500 }],
+      durationMs: 3000,
+    })
+
+    pregenWorker.start()
+
+    // Wait for processing to complete
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    expect(mockPregenQueue.start).toHaveBeenCalledWith('job-1')
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(2)
+    expect(mockCacheService.set).toHaveBeenCalledTimes(2)
+    expect(mockPregenQueue.complete).toHaveBeenCalledWith('job-1')
+    expect(mockPregenQueue.updateProgress).toHaveBeenCalledTimes(2)
+  })
+
+  it('skips already-cached paragraphs', async () => {
+    const job = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 2,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 2, wordCount: 100 }],
+    })
+
+    mockBookService.getParagraph
+      .mockResolvedValueOnce('Cached text')
+      .mockResolvedValueOnce('New text')
+
+    // First paragraph cached, second not
+    mockCacheService.has.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
+
+    mockTtsService.generate.mockResolvedValue({
+      audio: Buffer.alloc(100),
+      generationTimeMs: 5000,
+      timestamps: null,
+      durationMs: 3000,
+    })
+
+    pregenWorker.start()
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    // Only 1 TTS call (second paragraph), first was skipped
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(1)
+    expect(mockPregenQueue.complete).toHaveBeenCalledWith('job-1')
+  })
+
+  it('retries with backoff then pauses after exhausting retries', async () => {
+    vi.useFakeTimers()
+
+    const job = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 5,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 5, wordCount: 250 }],
+    })
+
+    mockBookService.getParagraph.mockResolvedValue('Some text')
+    mockCacheService.has.mockResolvedValue(false)
+    mockTtsService.generate.mockRejectedValue(new Error('TTS failed'))
+
+    pregenWorker.start()
+
+    // Advance through all backoff sleeps (2s + 4s + 8s + 16s + 30s)
+    for (let i = 0; i < 10; i++) {
+      await vi.advanceTimersByTimeAsync(35_000)
+    }
+
+    pregenWorker.stop()
+
+    // 1 initial attempt + 5 retries = 6 total
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(6)
+    expect(mockPregenQueue.pause).toHaveBeenCalledWith(
+      'job-1',
+      expect.stringContaining('5 retries'),
+    )
+
+    vi.useRealTimers()
+  })
+
+  it('succeeds after transient TTS failures', async () => {
+    vi.useFakeTimers()
+
+    const job = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 1,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 1, wordCount: 50 }],
+    })
+
+    mockBookService.getParagraph.mockResolvedValue('Hello world')
+    mockCacheService.has.mockResolvedValue(false)
+
+    // Fail twice, succeed on third attempt
+    mockTtsService.generate
+      .mockRejectedValueOnce(new Error('timeout'))
+      .mockRejectedValueOnce(new Error('timeout'))
+      .mockResolvedValueOnce({
+        audio: Buffer.alloc(100),
+        generationTimeMs: 5000,
+        timestamps: null,
+      })
+
+    pregenWorker.start()
+
+    for (let i = 0; i < 5; i++) {
+      await vi.advanceTimersByTimeAsync(10_000)
+    }
+
+    pregenWorker.stop()
+
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(3)
+    expect(mockPregenQueue.complete).toHaveBeenCalledWith('job-1')
+    expect(mockPregenQueue.pause).not.toHaveBeenCalled()
+
+    vi.useRealTimers()
+  })
+
+  it('stops when job is paused externally', async () => {
+    const job = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 10,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 10, wordCount: 500 }],
+    })
+
+    mockBookService.getParagraph.mockResolvedValue('Some text')
+    mockCacheService.has.mockResolvedValue(false)
+
+    // After first TTS call, signal external pause via in-memory flag
+    mockTtsService.generate.mockImplementation(async () => {
+      signalStop(job.id)
+      return {
+        audio: Buffer.alloc(100),
+        generationTimeMs: 5000,
+        timestamps: null,
+        durationMs: 3000,
+      }
+    })
+
+    pregenWorker.start()
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    // Should have generated only 1 paragraph before detecting pause
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(1)
+    // Worker should NOT requeue — job is already paused in DB
+    expect(mockPregenQueue.resume).not.toHaveBeenCalled()
+  })
+
+  it('stops when job is deleted mid-processing', async () => {
+    const job = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 10,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 10, wordCount: 500 }],
+    })
+
+    mockBookService.getParagraph.mockResolvedValue('Some text')
+    mockCacheService.has.mockResolvedValue(false)
+
+    // After first TTS call, signal deletion via in-memory flag
+    mockTtsService.generate.mockImplementation(async () => {
+      signalStop(job.id)
+      return {
+        audio: Buffer.alloc(100),
+        generationTimeMs: 5000,
+        timestamps: null,
+        durationMs: 3000,
+      }
+    })
+
+    pregenWorker.start()
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(1)
+    // Worker exits cleanly — no resume, no complete, no errors
+    expect(mockPregenQueue.resume).not.toHaveBeenCalled()
+    expect(mockPregenQueue.complete).not.toHaveBeenCalled()
+  })
+})

@@ -41,6 +41,8 @@
     "generated",
     "prisma.config.ts",
     "electron",
-    "dist-electron"
+    "dist-electron",
+    "**/*.vi.ts",
+    "**/*.vi.tsx"
   ]
 }
