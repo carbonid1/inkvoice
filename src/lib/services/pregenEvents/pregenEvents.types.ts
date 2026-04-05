@@ -3,6 +3,7 @@ import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 export type PregenUpdateEvent = {
   type: 'update'
   job: PregenJob
+  samplingRate?: number
 }
 
 export type PregenDeletedEvent = {

@@ -107,6 +107,12 @@ class TTSCacheService implements CacheService {
     return hash in this.metadata.entries
   }
 
+  async getDurationMs(text: string, voice: string): Promise<number> {
+    await this.ensureInitialized()
+    const hash = getCacheHash(text, voice)
+    return this.metadata.entries[hash]?.durationMs ?? 0
+  }
+
   async get(text: string, voice: string): Promise<Buffer | null> {
     await this.ensureInitialized()
 

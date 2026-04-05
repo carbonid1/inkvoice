@@ -24,6 +24,7 @@ const STATUS_LABELS: Record<PregenJobStatus, { label: string; className: string 
 export const DebugPanel = () => {
   const [open, setOpen] = useState(false)
   const jobs = usePregenStore(s => s.jobs)
+  const samplingRates = usePregenStore(s => s.samplingRates)
   const books = useLibraryStore(s => s.books)
 
   const toggle = useCallback(() => setOpen(prev => !prev), [])
@@ -81,6 +82,9 @@ export const DebugPanel = () => {
                       {job.completedParagraphs} / {job.totalParagraphs}
                       {job.generatedDurationMs > 0 &&
                         ` · ${formatDuration(job.generatedDurationMs)}`}
+                      {job.status === 'in_progress' &&
+                        samplingRates[job.bookId] != null &&
+                        ` · ${samplingRates[job.bookId]?.toFixed(1)} it/s`}
                     </span>
                     {job.errorMessage && (
                       <span className="truncate text-red-600 dark:text-red-400">

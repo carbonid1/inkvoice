@@ -5,6 +5,9 @@ export interface CacheService {
   /** Check if audio exists in cache (metadata-only, no disk read) */
   has(text: string, voice: string): Promise<boolean>
 
+  /** Get cached audio duration in ms (0 if not found) */
+  getDurationMs(text: string, voice: string): Promise<number>
+
   /** Get cached audio for a text/voice combination */
   get(text: string, voice: string): Promise<Buffer | null>
 

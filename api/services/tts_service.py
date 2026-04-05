@@ -1,3 +1,4 @@
+import gc
 import io
 import time
 from pathlib import Path
@@ -9,6 +10,10 @@ import torchaudio
 from api.app.config import settings
 from api.services.alignment_service import get_alignment_service
 from api.services.opus_encoder import encode_wav_to_opus
+from api.services.tqdm_capture import get_sampling_rate
+
+
+CLEANUP_INTERVAL = 20
 
 
 class TTSService:
@@ -16,6 +21,7 @@ class TTSService:
 
     def __init__(self):
         self._model = None
+        self._generation_count = 0
 
     def _get_model(self):
         """Lazy load the Chatterbox model."""
@@ -49,39 +55,52 @@ class TTSService:
         self,
         text: str,
         voice: str | None = None,
-    ) -> Tuple[bytes, int, Optional[list[dict]], int]:
+    ) -> Tuple[bytes, int, Optional[list[dict]], int, Optional[float]]:
         """
         Generate speech audio from text with optional word-level timestamps.
 
         Returns:
-            Tuple of (audio_bytes, generation_time_ms, word_timestamps_or_none, duration_ms)
+            Tuple of (audio_bytes, generation_time_ms, word_timestamps_or_none, duration_ms, sampling_rate)
         """
         voice_name = voice or settings.default_voice
         voice_path = self.get_voice_path(voice_name)
 
         tts_model = self._get_model()
+        wav = None
+        buffer = None
 
-        start = time.time()
-        with torch.inference_mode():
-            wav = tts_model.generate(
-                text,
-                audio_prompt_path=str(voice_path),
-            )
-        gen_time_ms = int((time.time() - start) * 1000)
+        try:
+            start = time.time()
+            with torch.inference_mode():
+                wav = tts_model.generate(
+                    text,
+                    audio_prompt_path=str(voice_path),
+                )
+            gen_time_ms = int((time.time() - start) * 1000)
+            sampling_rate = get_sampling_rate()
 
-        # Run forced alignment to get word-level timestamps
-        alignment = get_alignment_service()
-        timestamps = alignment.align(wav, tts_model.sr, text)
+            # Run forced alignment to get word-level timestamps
+            alignment = get_alignment_service()
+            timestamps = alignment.align(wav, tts_model.sr, text)
 
-        duration_ms = int(wav.shape[1] / tts_model.sr * 1000)
+            duration_ms = int(wav.shape[1] / tts_model.sr * 1000)
 
-        # Convert tensor to WAV bytes, then encode to Opus
-        buffer = io.BytesIO()
-        torchaudio.save(buffer, wav, tts_model.sr, format="wav")
-        buffer.seek(0)
-        opus_bytes = encode_wav_to_opus(buffer.read())
+            # Convert tensor to WAV bytes, then encode to Opus
+            buffer = io.BytesIO()
+            torchaudio.save(buffer, wav, tts_model.sr, format="wav")
+            buffer.seek(0)
+            opus_bytes = encode_wav_to_opus(buffer.read())
 
-        return opus_bytes, gen_time_ms, timestamps, duration_ms
+            return opus_bytes, gen_time_ms, timestamps, duration_ms, sampling_rate
+        finally:
+            del wav, buffer
+            self._generation_count += 1
+            if self._generation_count % CLEANUP_INTERVAL == 0:
+                gc.collect()
+                if settings.device == "mps":
+                    torch.mps.empty_cache()
+                elif settings.device == "cuda":
+                    torch.cuda.empty_cache()
 
 
 # Singleton instance

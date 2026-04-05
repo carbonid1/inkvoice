@@ -67,8 +67,8 @@ const signalStop = (jobId: string): void => {
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
-const emitJob = (job: PregenJob): void => {
-  pregenEvents.emit({ type: 'update', job })
+const emitJob = (job: PregenJob, samplingRate?: number): void => {
+  pregenEvents.emit({ type: 'update', job, samplingRate })
 }
 
 const warmUpTTS = async (): Promise<void> => {
@@ -171,12 +171,14 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       const isCached = await cacheService.has(text, job.voice)
       if (isCached) {
         completedParagraphs++
+        cumulativeDurationMs += await cacheService.getDurationMs(text, job.voice)
         cachedSkipsSinceEmit++
         const updated = await pregenQueueService.updateProgress(
           job.id,
           ch,
           para,
           completedParagraphs,
+          cumulativeDurationMs,
         )
         if (cachedSkipsSinceEmit >= CACHED_SKIP_EMIT_INTERVAL) {
           emitJob(updated)
@@ -209,7 +211,10 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
 
         try {
           const ttsService = getTTSService()
-          const { audio, timestamps, durationMs } = await ttsService.generate(text, job.voice)
+          const { audio, timestamps, durationMs, samplingRate } = await ttsService.generate(
+            text,
+            job.voice,
+          )
 
           cacheService.set(text, job.voice, audio, job.bookId, durationMs).catch(() => {})
           if (timestamps) {
@@ -225,7 +230,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
             completedParagraphs,
             cumulativeDurationMs,
           )
-          emitJob(updated)
+          emitJob(updated, samplingRate ?? undefined)
           generated = true
           break
         } catch (error) {

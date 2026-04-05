@@ -9,6 +9,7 @@ export interface TTSService {
     generationTimeMs: number
     timestamps: WordTimestamp[] | null
     durationMs: number
+    samplingRate: number | null
   }>
 }
 

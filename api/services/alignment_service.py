@@ -69,6 +69,7 @@ class AlignmentService:
             emissions = torch.log_softmax(emissions, dim=-1)
 
         emission = emissions[0].cpu()
+        del emissions
 
         # Tokenize: uppercase, replace whitespace with |, keep only vocab chars
         # Exclude '-' (label index 0) as it conflicts with the CTC blank token

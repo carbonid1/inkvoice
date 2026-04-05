@@ -31,10 +31,18 @@ class ChatterboxTTSService implements TTSService {
 
     const generationTimeMs = parseInt(response.headers.get('X-Generation-Time-Ms') ?? '0', 10) || 0
     const durationMs = parseInt(response.headers.get('X-Audio-Duration-Ms') ?? '0', 10) || 0
+    const samplingRateRaw = response.headers.get('X-Sampling-Rate')
+    const samplingRate = samplingRateRaw ? parseFloat(samplingRateRaw) : null
     const timestamps = parseTimestampsHeader(response)
     const audioBuffer = await response.arrayBuffer()
 
-    return { audio: Buffer.from(audioBuffer), generationTimeMs, timestamps, durationMs }
+    return {
+      audio: Buffer.from(audioBuffer),
+      generationTimeMs,
+      timestamps,
+      durationMs,
+      samplingRate,
+    }
   }
 }
 

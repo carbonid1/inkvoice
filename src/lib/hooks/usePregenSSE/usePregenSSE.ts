@@ -24,6 +24,7 @@ export const usePregenSSE = () => {
   const setJobs = usePregenStore(s => s.setJobs)
   const updateJob = usePregenStore(s => s.updateJob)
   const removeJob = usePregenStore(s => s.removeJob)
+  const setSamplingRate = usePregenStore(s => s.setSamplingRate)
 
   useEffect(() => {
     const eventSource = new EventSource('/api/pregenerate/events')
@@ -34,8 +35,11 @@ export const usePregenSSE = () => {
     })
 
     eventSource.addEventListener('update', (e: MessageEvent) => {
-      const data: { type: 'update'; job: PregenJob } = JSON.parse(e.data)
+      const data: { type: 'update'; job: PregenJob; samplingRate?: number } = JSON.parse(e.data)
       updateJob(data.job)
+      if (data.samplingRate !== undefined) {
+        setSamplingRate(data.job.bookId, data.samplingRate)
+      }
     })
 
     eventSource.addEventListener('deleted', (e: MessageEvent) => {
@@ -53,5 +57,5 @@ export const usePregenSSE = () => {
     return () => {
       eventSource.close()
     }
-  }, [setJobs, updateJob, removeJob])
+  }, [setJobs, updateJob, removeJob, setSamplingRate])
 }

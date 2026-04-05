@@ -11,17 +11,20 @@ export type Estimate = {
 type PregenState = {
   jobs: Record<string, PregenJob>
   estimates: Record<string, Estimate>
+  samplingRates: Record<string, number>
   loaded: boolean
   setJobs: (jobs: PregenJob[]) => void
   updateJob: (job: PregenJob) => void
   removeJob: (bookId: string) => void
   setEstimates: (estimates: Record<string, Estimate>) => void
   updateEstimate: (bookId: string, estimate: Estimate) => void
+  setSamplingRate: (bookId: string, rate: number) => void
 }
 
 export const usePregenStore = create<PregenState>(set => ({
   jobs: {},
   estimates: {},
+  samplingRates: {},
   loaded: false,
 
   setJobs: jobs => {
@@ -48,5 +51,10 @@ export const usePregenStore = create<PregenState>(set => ({
   updateEstimate: (bookId, estimate) =>
     set(state => ({
       estimates: { ...state.estimates, [bookId]: estimate },
+    })),
+
+  setSamplingRate: (bookId, rate) =>
+    set(state => ({
+      samplingRates: { ...state.samplingRates, [bookId]: rate },
     })),
 }))

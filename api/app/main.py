@@ -11,6 +11,8 @@ warnings.filterwarnings("ignore", message="pkg_resources is deprecated")
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 
+import api.services.tqdm_capture  # noqa: F401 — must load before Chatterbox to patch tqdm
+
 from api.models.requests import TTSRequest, HealthResponse
 from api.services.text_preprocessing import normalize_ellipsis
 from api.services.tts_service import get_tts_service
@@ -28,7 +30,7 @@ def text_to_speech(request: TTSRequest) -> Response:
 
     try:
         service = get_tts_service()
-        audio_bytes, gen_time_ms, timestamps, duration_ms = service.generate(
+        audio_bytes, gen_time_ms, timestamps, duration_ms, sampling_rate = service.generate(
             text=text,
             voice=request.voice,
         )
@@ -38,6 +40,9 @@ def text_to_speech(request: TTSRequest) -> Response:
             "X-Generation-Time-Ms": str(gen_time_ms),
             "X-Audio-Duration-Ms": str(duration_ms),
         }
+
+        if sampling_rate is not None:
+            headers["X-Sampling-Rate"] = f"{sampling_rate:.1f}"
 
         if timestamps is not None:
             headers["X-Word-Timestamps"] = json.dumps(timestamps, separators=(',', ':'))
