@@ -107,7 +107,7 @@ const startProduction = async (): Promise<void> => {
 app.whenReady().then(async () => {
   ipcMain.on('sleep-block-start', () => {
     if (sleepBlockerId !== null) return
-    sleepBlockerId = powerSaveBlocker.start('prevent-app-suspension')
+    sleepBlockerId = powerSaveBlocker.start('prevent-display-sleep')
     console.log(`[main] Sleep prevention started (id: ${sleepBlockerId})`)
   })
 
