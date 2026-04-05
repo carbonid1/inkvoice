@@ -1,41 +1,64 @@
 'use client'
 
+import { Tooltip } from '@/components/Tooltip/Tooltip'
+import { ProgressRing } from '@/components/ui/ProgressRing/ProgressRing'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
+import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
+import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import type { Book } from '@/lib/types/book'
+import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
-import { BookOpen, X } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import type { MouseEvent } from 'react'
 import { useState } from 'react'
 
 type BookCardProps = {
   book: Book
-  onRemove?: () => void
+  onContextMenu: (e: MouseEvent, bookId: string) => void
 }
 
-export const BookCard = ({ book, onRemove }: BookCardProps) => {
+const getPregenRingColor = (job: PregenJob): string => {
+  if (job.status === 'completed') return 'text-success'
+  if (job.status === 'in_progress') return 'text-primary'
+  return 'text-muted-foreground'
+}
+
+const getPregenRingLabel = (job: PregenJob): string => {
+  if (job.status === 'queued') return 'Queued'
+
+  const duration = formatDuration(job.generatedDurationMs)
+  const paragraphs =
+    job.status === 'completed'
+      ? `${job.totalParagraphs} paragraphs`
+      : `${job.completedParagraphs} of ${job.totalParagraphs} paragraphs`
+
+  return duration ? `${paragraphs} · ${duration}` : paragraphs
+}
+
+export const BookCard = ({ book, onContextMenu }: BookCardProps) => {
   const [coverLoaded, setCoverLoaded] = useState(false)
   const [coverError, setCoverError] = useState(false)
   const progress = useProgressStore(state => state.progress[book.id])
   const progressPercent = computeProgressPercent(progress)
   const isFinished = progressPercent !== null && progressPercent >= 99
+  const job = usePregenStore(s => s.jobs[book.id])
+
+  const ringLabel = job ? getPregenRingLabel(job) : ''
+
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onContextMenu(e, book.id)
+  }
 
   return (
     <Link href={`/book/${book.id}`}>
-      <div className="group border-border bg-background hover:border-primary-border relative flex h-full flex-col rounded-lg border p-4 transition-all hover:shadow-md">
-        {onRemove && (
-          <button
-            onClick={e => {
-              e.preventDefault()
-              e.stopPropagation()
-              onRemove()
-            }}
-            className="absolute top-2 right-2 z-10 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-black/80"
-            aria-label={`Remove ${book.title}`}
-          >
-            <X className="size-3.5" />
-          </button>
-        )}
+      <div
+        className="group border-border bg-background hover:border-primary-border relative flex h-full flex-col rounded-lg border p-4 transition-all hover:shadow-md"
+        onContextMenu={handleContextMenu}
+      >
         <div className="bg-muted relative mb-3 flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-sm">
           {!coverError ? (
             <>
@@ -74,7 +97,24 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
         </div>
         <h3 className="text-foreground mb-1 line-clamp-2 font-medium">{book.title}</h3>
         <p className="text-muted-foreground line-clamp-1 text-sm">{book.author}</p>
-        <div className="mt-1 min-h-[1.25rem]">
+        <div className="mt-1 flex min-h-[1.25rem] items-center gap-1.5">
+          {job && (
+            <Tooltip label={ringLabel} delay={600}>
+              <div className="flex shrink-0 items-center">
+                <ProgressRing
+                  progress={
+                    job.totalParagraphs > 0 ? job.completedParagraphs / job.totalParagraphs : 0
+                  }
+                  colorClass={getPregenRingColor(job)}
+                  label={ringLabel}
+                  animate={job.status === 'in_progress'}
+                  pendingStyle={
+                    job.status !== 'in_progress' && job.status !== 'completed' ? 'dashed' : 'none'
+                  }
+                />
+              </div>
+            </Tooltip>
+          )}
           {isFinished ? (
             <p className="text-success-foreground text-xs">Finished</p>
           ) : progress?.lastReadAt ? (

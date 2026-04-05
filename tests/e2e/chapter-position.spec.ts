@@ -1,15 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { mockBookmarks } from './helpers/mockBookmarks'
-import { mockProgress } from './helpers/mockProgress'
-import { mockSettings } from './helpers/mockSettings'
 import { mockTTS } from './helpers/mockTTS'
-import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 import { navigateToBook } from './helpers/navigateToBook'
+import { TEST_BOOK_ID } from './helpers/testBook'
 
-// Early chapters are front matter (cover, copyright, etc.)
-// Chapters 12+ are actual novel text with many paragraphs
-const CHAPTER_A = 12
-const CHAPTER_B = 13
+const CHAPTER_A = 0
+const CHAPTER_B = 1
 const PARAGRAPH_INDEX = 1
 
 const activeParagraph = (page: import('@playwright/test').Page) =>
@@ -48,14 +43,10 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
 
 const setupAndClickParagraph = async (page: import('@playwright/test').Page) => {
   await mockTTS(page)
-  await mockProgress(page)
-  await mockVoicePreferences(page)
-  await mockSettings(page)
-  await mockBookmarks(page)
-  await navigateToBook(page)
+  await navigateToBook(page, TEST_BOOK_ID)
 
-  // Navigate to a text chapter (Cover is image-only)
-  await selectChapter(page, CHAPTER_A)
+  // Wait for chapter content to render (starts on CHAPTER_A by default)
+  await allParagraphs(page).first().waitFor()
 
   const target = allParagraphs(page).nth(PARAGRAPH_INDEX)
   await target.click()
@@ -65,7 +56,13 @@ const setupAndClickParagraph = async (page: import('@playwright/test').Page) => 
   return text!
 }
 
+/**
+ * Reading position is remembered per chapter. When a reader selects a paragraph,
+ * navigates to a different chapter via the TOC, and returns, the previously
+ * selected paragraph is still highlighted.
+ */
 test.describe('chapter position preservation', () => {
+  /** Clicking a paragraph, switching chapters, and switching back restores the highlighted paragraph. */
   test('preserves paragraph position when switching chapters and returning', async ({ page }) => {
     const expectedText = await setupAndClickParagraph(page)
 

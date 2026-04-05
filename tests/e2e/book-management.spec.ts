@@ -10,7 +10,13 @@ const waitForLibrary = async (page: import('@playwright/test').Page) => {
   await page.waitForSelector('a[href^="/book/"]')
 }
 
+/**
+ * The library is the reader's home screen. Books can be added by uploading
+ * an EPUB file and removed via right-click context menu. Removal is undoable
+ * through the toast or Ctrl+Z.
+ */
 test.describe('book management', () => {
+  /** The library grid includes an "Add Book" card for uploading new books. */
   test('Add Book card is visible in the library grid', async ({ page }) => {
     await mockBookManagement(page)
     await waitForLibrary(page)
@@ -18,6 +24,7 @@ test.describe('book management', () => {
     await expect(page.getByText('Add Book')).toBeVisible()
   })
 
+  /** Selecting an EPUB file through the Add Book card adds it to the library immediately. */
   test('uploading a book adds it to the grid', async ({ page }) => {
     const { getUploadedBooks } = await mockBookManagement(page)
     await waitForLibrary(page)
@@ -39,13 +46,14 @@ test.describe('book management', () => {
     expect(getUploadedBooks().map(b => b.filename)).toContain('Test Book.epub')
   })
 
+  /** Right-click → "Remove Book" hides the book from the grid and shows an undo toast. */
   test('removing a book hides it and shows undo toast', async ({ page }) => {
     await mockBookManagement(page)
     await waitForLibrary(page)
 
-    // Hover the first book card to reveal the remove button
-    await page.locator('a[href^="/book/"]').first().hover()
-    await page.getByRole('button', { name: 'Remove Mock Book One' }).click()
+    // Right-click the first book to open context menu
+    await page.locator('a[href^="/book/"]').first().click({ button: 'right' })
+    await page.locator('[role="menuitem"]', { hasText: 'Remove Book' }).click()
 
     // Book should disappear and toast should show
     await expect(page.getByText('Book removed')).toBeVisible()
@@ -59,13 +67,14 @@ test.describe('book management', () => {
     await expect(page.getByText('Mock Book Two')).toBeVisible()
   })
 
+  /** Clicking "Undo" in the toast brings the book back. */
   test('undo button restores the removed book', async ({ page }) => {
     await mockBookManagement(page)
     await waitForLibrary(page)
 
-    // Remove the first book
-    await page.locator('a[href^="/book/"]').first().hover()
-    await page.getByRole('button', { name: 'Remove Mock Book One' }).click()
+    // Remove the first book via context menu
+    await page.locator('a[href^="/book/"]').first().click({ button: 'right' })
+    await page.locator('[role="menuitem"]', { hasText: 'Remove Book' }).click()
     await expect(page.getByText('Book removed')).toBeVisible()
 
     // Click Undo
@@ -77,13 +86,14 @@ test.describe('book management', () => {
     ).toBeVisible()
   })
 
+  /** Ctrl+Z restores the book, same as the toast button. */
   test('Ctrl+Z restores the removed book', async ({ page }) => {
     await mockBookManagement(page)
     await waitForLibrary(page)
 
-    // Remove the first book
-    await page.locator('a[href^="/book/"]').first().hover()
-    await page.getByRole('button', { name: 'Remove Mock Book One' }).click()
+    // Remove the first book via context menu
+    await page.locator('a[href^="/book/"]').first().click({ button: 'right' })
+    await page.locator('[role="menuitem"]', { hasText: 'Remove Book' }).click()
     await expect(page.getByText('Book removed')).toBeVisible()
 
     // Press Ctrl+Z

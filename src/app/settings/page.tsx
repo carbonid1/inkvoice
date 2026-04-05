@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import { AppearanceCard } from './components/AppearanceCard/AppearanceCard'
 import { CreditsCard } from './components/CreditsCard/CreditsCard'
+import { StorageCard } from './components/StorageCard/StorageCard'
 import { VoiceManagerCard } from './components/VoiceManagerCard/VoiceManagerCard'
 
 export default function Settings() {
@@ -50,6 +51,7 @@ export default function Settings() {
 
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-8">
         <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
+        <StorageCard />
         <AppearanceCard />
         <CreditsCard />
       </main>

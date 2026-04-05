@@ -13,6 +13,12 @@ export interface CacheStats {
   maxBytes: number
 }
 
+export interface BookCacheStats {
+  bookId: string
+  usedBytes: number
+  entryCount: number
+}
+
 export interface VoiceInfo {
   name: string
   hasSource: boolean

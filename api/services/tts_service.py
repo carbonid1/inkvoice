@@ -8,6 +8,7 @@ import torchaudio
 
 from api.app.config import settings
 from api.services.alignment_service import get_alignment_service
+from api.services.opus_encoder import encode_wav_to_opus
 
 
 class TTSService:
@@ -19,6 +20,12 @@ class TTSService:
     def _get_model(self):
         """Lazy load the Chatterbox model."""
         if self._model is None:
+            import logging
+            import os
+            # Suppress transformers/torch warnings during model load
+            # (they reconfigure their own loggers during import, so setLevel alone doesn't work)
+            os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+            logging.getLogger("transformers").setLevel(logging.ERROR)
             from chatterbox.tts import ChatterboxTTS
             self._model = ChatterboxTTS.from_pretrained(device=settings.device)
         return self._model
@@ -42,12 +49,12 @@ class TTSService:
         self,
         text: str,
         voice: str | None = None,
-    ) -> Tuple[bytes, int, Optional[list[dict]]]:
+    ) -> Tuple[bytes, int, Optional[list[dict]], int]:
         """
         Generate speech audio from text with optional word-level timestamps.
 
         Returns:
-            Tuple of (audio_bytes, generation_time_ms, word_timestamps_or_none)
+            Tuple of (audio_bytes, generation_time_ms, word_timestamps_or_none, duration_ms)
         """
         voice_name = voice or settings.default_voice
         voice_path = self.get_voice_path(voice_name)
@@ -66,28 +73,15 @@ class TTSService:
         alignment = get_alignment_service()
         timestamps = alignment.align(wav, tts_model.sr, text)
 
-        # Convert to bytes
+        duration_ms = int(wav.shape[1] / tts_model.sr * 1000)
+
+        # Convert tensor to WAV bytes, then encode to Opus
         buffer = io.BytesIO()
         torchaudio.save(buffer, wav, tts_model.sr, format="wav")
         buffer.seek(0)
+        opus_bytes = encode_wav_to_opus(buffer.read())
 
-        return buffer.read(), gen_time_ms, timestamps
-
-    def warmup(self) -> None:
-        """Pre-load model and run a test generation to warm up JIT compilation."""
-        voice_files = list(settings.voices_dir.glob("*/source.wav")) + \
-            list((settings.voices_dir / "custom").glob("*/source.wav"))
-        if not voice_files:
-            print("Warning: No voice files found, skipping warmup")
-            return
-
-        print("Warming up Chatterbox model...")
-        start = time.time()
-
-        with torch.inference_mode():
-            self._get_model().generate("Hello.", audio_prompt_path=str(voice_files[0]))
-
-        print(f"Chatterbox model ready in {time.time() - start:.1f}s")
+        return opus_bytes, gen_time_ms, timestamps, duration_ms
 
 
 # Singleton instance

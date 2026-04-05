@@ -1,7 +1,5 @@
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
-import { getTTSService } from '@/lib/services/tts/tts.server'
-import { TTSError } from '@/lib/services/tts/tts.types'
 import { resolveValidVoice } from '@/lib/services/voice/helpers/resolveValidVoice/resolveValidVoice'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import { voiceService } from '@/lib/services/voice/voice.service'
@@ -10,7 +8,6 @@ import { NextRequest, NextResponse } from 'next/server'
 type RouteParams = { params: Promise<{ bookId: string; chapter: string; paragraph: string }> }
 
 type RequestContext = {
-  bookId: string
   voice: string
   fellBack: boolean
   text: string
@@ -40,7 +37,7 @@ const parseRequest = async (
     return NextResponse.json({ error: 'Paragraph not found' }, { status: 404 })
   }
 
-  return { bookId, voice, fellBack, text }
+  return { voice, fellBack, text }
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
@@ -56,79 +53,27 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const result = await parseRequest(request, params)
   if (result instanceof NextResponse) return result
 
-  const { voice, fellBack, text, bookId } = result
+  const { voice, fellBack, text } = result
   const cacheService = getCacheService()
-  const ttsService = getTTSService()
 
-  try {
-    const encodeTimestamps = (ts: unknown) => Buffer.from(JSON.stringify(ts)).toString('base64')
-
-    const makeHeaders = (xCache: string, stats: { usedBytes: number; maxBytes: number }) => {
-      const headers: Record<string, string> = {
-        'Content-Type': 'audio/wav',
-        'Cache-Control': 'no-store',
-        'X-Cache': xCache,
-        'X-Cache-Used': stats.usedBytes.toString(),
-        'X-Cache-Max': stats.maxBytes.toString(),
-      }
-      if (fellBack) headers['X-Voice-Fallback'] = 'true'
-      return headers
-    }
-
-    // Check disk cache
-    const cached = await cacheService.get(text, voice)
-    if (cached) {
-      const stats = await cacheService.getStats()
-      const headers = makeHeaders('HIT', stats)
-
-      // Read cached timestamps sidecar
-      const timestamps = await cacheService.getTimestamps(text, voice)
-      if (timestamps) {
-        headers['X-Word-Timestamps'] = encodeTimestamps(timestamps)
-      }
-
-      return new NextResponse(new Uint8Array(cached), { headers })
-    }
-
-    // Generate via TTS service
-    const { audio, timestamps } = await ttsService.generate(text, voice)
-
-    // Cache the result (fire-and-forget)
-    cacheService.set(text, voice, audio, bookId).catch(err => {
-      console.error('Failed to cache TTS audio:', err)
-    })
-    if (timestamps) {
-      cacheService.setTimestamps(text, voice, timestamps).catch(err => {
-        console.error('Failed to cache timestamps:', err)
-      })
-    }
-
-    const stats = await cacheService.getStats()
-    const headers = makeHeaders('MISS', stats)
-    if (timestamps) {
-      headers['X-Word-Timestamps'] = encodeTimestamps(timestamps)
-    }
-
-    return new NextResponse(new Uint8Array(audio), { headers })
-  } catch (error) {
-    if (error instanceof TTSError && error.code === 'VOICE_NOT_FOUND') {
-      return NextResponse.json({ error: error.message, code: 'VOICE_NOT_FOUND' }, { status: 404 })
-    }
-
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.warn('TTS API unreachable')
-      return NextResponse.json(
-        { error: 'TTS API is not running. Please start the Python server.' },
-        { status: 503 },
-      )
-    }
-
-    if (error instanceof DOMException && error.name === 'TimeoutError') {
-      console.warn('TTS generation timed out')
-      return NextResponse.json({ error: 'TTS generation timed out' }, { status: 504 })
-    }
-
-    console.error('TTS error:', error)
-    return NextResponse.json({ error: 'Failed to generate speech' }, { status: 500 })
+  const cached = await cacheService.get(text, voice)
+  if (!cached) {
+    return NextResponse.json({ error: 'Audio not generated' }, { status: 404 })
   }
+
+  const stats = await cacheService.getStats()
+  const headers: Record<string, string> = {
+    'Content-Type': 'audio/ogg',
+    'Cache-Control': 'no-store',
+    'X-Cache-Used': stats.usedBytes.toString(),
+    'X-Cache-Max': stats.maxBytes.toString(),
+  }
+  if (fellBack) headers['X-Voice-Fallback'] = 'true'
+
+  const timestamps = await cacheService.getTimestamps(text, voice)
+  if (timestamps) {
+    headers['X-Word-Timestamps'] = Buffer.from(JSON.stringify(timestamps)).toString('base64')
+  }
+
+  return new NextResponse(new Uint8Array(cached), { headers })
 }

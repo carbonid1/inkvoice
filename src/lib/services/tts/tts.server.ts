@@ -3,15 +3,22 @@ import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parse
 import type { TTSService } from './tts.types'
 import { TTSError } from './tts.types'
 
-const TTS_TIMEOUT_MS = 90_000
+const TTS_TIMEOUT_MS = 180_000
+const TTS_COLD_TIMEOUT_MS = 300_000
+const COLD_GENERATION_COUNT = 3
+
+let generationCount = 0
 
 class ChatterboxTTSService implements TTSService {
   async generate(text: string, voice: string) {
+    const timeout = generationCount < COLD_GENERATION_COUNT ? TTS_COLD_TIMEOUT_MS : TTS_TIMEOUT_MS
+    generationCount++
+
     const response = await fetch(env.ttsApiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, voice }),
-      signal: AbortSignal.timeout(TTS_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeout),
     })
 
     if (!response.ok) {
@@ -22,11 +29,12 @@ class ChatterboxTTSService implements TTSService {
       throw new TTSError('TTS_FAILED', errorText, response.status)
     }
 
-    const generationTimeMs = parseInt(response.headers.get('X-Generation-Time-Ms') || '0', 10)
+    const generationTimeMs = parseInt(response.headers.get('X-Generation-Time-Ms') ?? '0', 10) || 0
+    const durationMs = parseInt(response.headers.get('X-Audio-Duration-Ms') ?? '0', 10) || 0
     const timestamps = parseTimestampsHeader(response)
     const audioBuffer = await response.arrayBuffer()
 
-    return { audio: Buffer.from(audioBuffer), generationTimeMs, timestamps }
+    return { audio: Buffer.from(audioBuffer), generationTimeMs, timestamps, durationMs }
   }
 }
 

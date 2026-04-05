@@ -54,7 +54,7 @@ export const Reader = ({
         block: 'center',
       })
     }
-  }, [currentChapter, currentParagraph, chapter])
+  }, [currentChapter, currentParagraph, chapter, currentParagraphRef])
 
   const fontSize = useDisplayStore(s => s.fontSize)
 

@@ -21,18 +21,25 @@ export const GET = async (_request: NextRequest, { params }: RouteParams) => {
 export const PUT = async (request: NextRequest, { params }: RouteParams) => {
   const { key } = await params
 
+  let body: { value: unknown }
   try {
-    const body = await request.json()
-    const { value } = body as { value: unknown }
-
-    if (value === undefined) {
-      return NextResponse.json({ error: 'value is required' }, { status: 400 })
-    }
-
-    await settingsService.set(key, value)
-    return NextResponse.json({ success: true })
+    body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const { value } = body
+
+  if (value === undefined) {
+    return NextResponse.json({ error: 'value is required' }, { status: 400 })
+  }
+
+  try {
+    await settingsService.set(key, value)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to save setting:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 

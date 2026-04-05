@@ -2,20 +2,19 @@
 
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { Button } from '@/components/ui/Button/Button'
+import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parseTimestampsHeader'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
-import type { PlaybackMetrics } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
-import { usePrefetchQueue } from '@/lib/hooks/usePrefetchQueue/usePrefetchQueue'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { useWordHighlight } from '@/lib/hooks/useWordHighlight/useWordHighlight'
+import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { Bookmark } from 'lucide-react'
 import type { RefObject } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BufferRing } from './BufferRing/BufferRing'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -63,10 +62,6 @@ export const PlayerContainer = ({
   })
 
   const [wordTimestamps, setWordTimestamps] = useState<WordTimestamp[] | null>(null)
-  const [playbackMetrics, setPlaybackMetrics] = useState<PlaybackMetrics>({
-    isGenerating: false,
-    ahead: 0,
-  })
 
   const audioPlayer = useAudioPlayer({
     onEnded: () => {
@@ -96,19 +91,34 @@ export const PlayerContainer = ({
     },
   })
 
-  const prefetch = usePrefetchQueue({
-    bookId,
-    voice,
-    chaptersRef: position.chaptersRef,
-    currentChapterRef: position.currentChapterRef,
-    currentParagraphRef: position.currentParagraphRef,
-    onDebugUpdate: setPlaybackMetrics,
-  })
-
   const { setLoading, setError, play, resume, shouldPlay, pause, stop, setPlaying, isPlaying } =
     audioPlayer
-  const { fetchAudio, continuePrefetching, updateDebugMetrics, resetFailures, clearPrefetched } =
-    prefetch
+
+  const abortRef = useRef<AbortController | null>(null)
+  const blobUrlRef = useRef<string | null>(null)
+
+  // Abort in-flight fetches on unmount
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort()
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+    }
+  }, [])
+
+  const fetchAudio = useCallback(
+    async (ch: number, para: number, signal: AbortSignal) => {
+      const url = `/api/tts/${bookId}/${ch}/${para}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}`
+      const response = await fetch(url, { cache: 'no-store', signal })
+      if (!response.ok) return null
+      const timestamps = parseTimestampsHeader(response)
+      const blob = await response.blob()
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+      const blobUrl = URL.createObjectURL(blob)
+      blobUrlRef.current = blobUrl
+      return { url: blobUrl, timestamps }
+    },
+    [bookId, voice],
+  )
 
   // Counter to detect when a newer playCurrentParagraph call has superseded this one
   const playIdRef = useRef(0)
@@ -118,13 +128,18 @@ export const PlayerContainer = ({
     const targetChapter = currentChapter
     const targetParagraph = currentParagraph
 
+    // Abort previous fetch if still in flight
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     // Stop old audio immediately so its onEnded won't fire during fetch
     stop()
     setLoading(true)
     setError(null)
 
     try {
-      const result = await fetchAudio(targetChapter, targetParagraph)
+      const result = await fetchAudio(targetChapter, targetParagraph, controller.signal)
 
       // Bail if a newer call has started
       if (playIdRef.current !== myId) return
@@ -152,21 +167,10 @@ export const PlayerContainer = ({
       playingPositionRef.current = { ch: targetChapter, para: targetParagraph }
       setWordTimestamps(result.timestamps)
       await play(result.url)
-
-      // Bail if superseded during play
-      if (playIdRef.current !== myId) return
-
-      continuePrefetching()
     } catch (e) {
       if (playIdRef.current !== myId) return
       if (e instanceof Error && e.name === 'AbortError') return
-      const message =
-        e instanceof DOMException && e.name === 'TimeoutError'
-          ? 'TTS generation timed out — try skipping to the next paragraph'
-          : e instanceof Error
-            ? e.message
-            : 'Failed to play audio'
-      setError(message)
+      setError(e instanceof Error ? e.message : 'Failed to play audio')
       setPlaying(false)
     } finally {
       // Only the latest call controls loading state
@@ -183,27 +187,12 @@ export const PlayerContainer = ({
     shouldPlay,
     play,
     stop,
-    continuePrefetching,
     setPlaying,
     position.currentChapterRef,
     position.currentParagraphRef,
   ])
 
   const debouncedLoading = useDebouncedLoading(audioPlayer.isLoading)
-
-  // Start prefetching on mount
-  useEffect(() => {
-    prefetch.updateDebugMetrics()
-    prefetch.continuePrefetching()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount for initial prefetch
-  }, [])
-
-  // Update metrics and continue prefetching on position change
-  useEffect(() => {
-    updateDebugMetrics()
-    resetFailures()
-    continuePrefetching()
-  }, [currentChapter, currentParagraph, updateDebugMetrics, continuePrefetching, resetFailures])
 
   // Clear pending chapter advance when chapter changes (user continued or navigated)
   useEffect(() => {
@@ -248,21 +237,12 @@ export const PlayerContainer = ({
     if (replayKey === prevReplayKeyRef.current) return
     prevReplayKeyRef.current = replayKey
     playingPositionRef.current = null
-    clearPrefetched(currentChapter, currentParagraph)
     if (isPlaying) {
       playCurrentParagraph()
     } else {
       setPlaying(true)
     }
-  }, [
-    replayKey,
-    currentChapter,
-    currentParagraph,
-    isPlaying,
-    setPlaying,
-    playCurrentParagraph,
-    clearPrefetched,
-  ])
+  }, [replayKey, currentChapter, currentParagraph, isPlaying, setPlaying, playCurrentParagraph])
 
   useWordHighlight({
     audioRef: audioPlayer.audioRef,
@@ -287,10 +267,6 @@ export const PlayerContainer = ({
             {audioPlayer.error}
           </div>
         )}
-
-        <div className="absolute top-1/2 left-0 -translate-y-1/2">
-          <BufferRing ahead={playbackMetrics.ahead} isGenerating={playbackMetrics.isGenerating} />
-        </div>
 
         <PlaybackControls
           isPlaying={isPlaying}

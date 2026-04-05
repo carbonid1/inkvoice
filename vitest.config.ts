@@ -21,7 +21,6 @@ export default defineConfig({
           include: ['**/*.vi.{ts,tsx}'],
           environment: 'jsdom',
           setupFiles: ['./src/test/setup.ts'],
-          globals: true,
         },
       },
       {

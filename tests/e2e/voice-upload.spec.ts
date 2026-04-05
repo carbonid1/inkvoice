@@ -1,9 +1,7 @@
 import { expect, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
-import { mockSettings } from './helpers/mockSettings'
 import { mockVoiceManagement } from './helpers/mockVoiceManagement'
-import { mockVoicePreferences } from './helpers/mockVoicePreferences'
 
 const uploadFixturePath = path.resolve(__dirname, '../fixtures/silence-10s.wav')
 
@@ -25,11 +23,15 @@ const setUploadFile = async (page: import('@playwright/test').Page) => {
   })
 }
 
+/**
+ * Readers can add custom TTS voices by uploading a WAV recording in settings.
+ * The upload form validates inputs, shows progress, and the new voice appears
+ * in the list with a generating sample indicator that becomes playable once ready.
+ */
 test.describe('voice upload', () => {
+  /** The upload form toggles open and closed via the "Add Voice" / "Hide Upload" button. */
   test('Add Voice button toggles the upload form', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     // Form should be hidden initially
@@ -45,10 +47,9 @@ test.describe('voice upload', () => {
     await expect(page.getByLabel('Voice name')).not.toBeVisible()
   })
 
+  /** Upload requires both a name and a file — the button stays disabled until both are provided. */
   test('Upload button is disabled without name or file', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -71,6 +72,7 @@ test.describe('voice upload', () => {
     await expect(uploadButton).toBeEnabled()
   })
 
+  /** A successful upload shows a confirmation toast, collapses the form, and adds the voice to the list. */
   test('uploading a voice shows success toast and collapses form', async ({ page }) => {
     const { getUploadedVoices } = await mockVoiceManagement(page)
     await navigateToSettings(page)
@@ -96,10 +98,9 @@ test.describe('voice upload', () => {
     expect(getUploadedVoices().map(v => v.displayName)).toContain('New Voice')
   })
 
+  /** Uploading with a name that already exists shows an inline error and keeps the form open. */
   test('shows error for duplicate voice name', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -118,10 +119,9 @@ test.describe('voice upload', () => {
     await expect(page.getByLabel('Voice name')).toBeVisible()
   })
 
+  /** A freshly uploaded voice shows a pulsing disabled sample button while the sample is being generated. */
   test('newly uploaded voice shows pulsing sample button', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -138,6 +138,7 @@ test.describe('voice upload', () => {
     await expect(sampleButton).toBeDisabled()
   })
 
+  /** Once the server finishes generating the sample, the button becomes playable. */
   test('sample button becomes interactive when sample is ready', async ({ page }) => {
     const { markSampleReady } = await mockVoiceManagement(page)
     await navigateToSettings(page)
@@ -164,10 +165,9 @@ test.describe('voice upload', () => {
     await expect(playButton).toBeEnabled()
   })
 
+  /** Pressing Enter in the name field submits the upload, same as clicking the Upload button. */
   test('Enter key triggers upload', async ({ page }) => {
     await mockVoiceManagement(page)
-    await mockVoicePreferences(page)
-    await mockSettings(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()

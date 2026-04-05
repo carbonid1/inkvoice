@@ -10,18 +10,25 @@ type RouteParams = {
 export const PUT = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
+  let body: { voiceName: unknown }
   try {
-    const body = await request.json()
-    const { voiceName } = body as { voiceName: unknown }
-
-    if (typeof voiceName !== 'string' || voiceName.length === 0) {
-      return NextResponse.json({ error: 'voiceName must be a non-empty string' }, { status: 400 })
-    }
-
-    await voicePreferenceService.set(bookId, voiceName)
-    return NextResponse.json({ success: true })
+    body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const { voiceName } = body
+
+  if (typeof voiceName !== 'string' || voiceName.length === 0) {
+    return NextResponse.json({ error: 'voiceName must be a non-empty string' }, { status: 400 })
+  }
+
+  try {
+    await voicePreferenceService.set(bookId, voiceName)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to set voice preference:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 

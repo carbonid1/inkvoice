@@ -8,15 +8,21 @@ import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
 import { useUploadBook } from '@/lib/hooks/useUploadBook/useUploadBook'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
+import { type Estimate, usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { Settings, Upload } from 'lucide-react'
 import Link from 'next/link'
+import type { MouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'
 import { AddBookCard } from './components/AddBookCard/AddBookCard'
 import { BookCard } from './components/BookCard/BookCard'
+import {
+  BookCardContextMenu,
+  type BookCardMenuTarget,
+} from './components/BookCard/BookCardContextMenu'
 
 type UndoState = {
   book: Book
@@ -31,6 +37,7 @@ export default function Library() {
   const [isDragging, setIsDragging] = useState(false)
   const dragCounterRef = useRef(0)
   const lastDeletedRef = useRef<UndoState | null>(null)
+  const [menuTarget, setMenuTarget] = useState<BookCardMenuTarget | null>(null)
 
   const books = useLibraryStore(s => s.books)
   const setBooks = useLibraryStore(s => s.setBooks)
@@ -39,6 +46,8 @@ export default function Library() {
   const progressLoaded = useProgressStore(s => s.loaded)
   const loadAllProgress = useProgressStore(s => s.loadAllProgress)
   const loadAllVoices = useVoiceStore(s => s.loadAll)
+  const pregenLoaded = usePregenStore(s => s.loaded)
+  const setEstimates = usePregenStore(s => s.setEstimates)
 
   const { uploading, error: uploadError, upload, reset: resetUpload } = useUploadBook()
   const { deleteBook, restoreBook } = useDeleteBook()
@@ -61,6 +70,43 @@ export default function Library() {
     loadAllProgress()
     loadAllVoices()
   }, [fetchBooks, loadAllProgress, loadAllVoices])
+
+  // Fetch estimates for all books once library is loaded
+  useEffect(() => {
+    if (books.length === 0) return
+
+    let cancelled = false
+    const fetchEstimates = async () => {
+      const results = await Promise.all(
+        books.map(async book => {
+          const response = await fetch(`/api/pregenerate/estimate/${book.id}`)
+          if (!response.ok) return null
+          const data = await response.json()
+          return {
+            bookId: book.id,
+            estimate: {
+              totalParagraphs: data.totalParagraphs,
+              cachedParagraphs: data.cachedParagraphs,
+              estimatedSizeBytes: data.estimatedSizeBytes,
+              estimatedGenerationMinutes: data.estimatedGenerationMinutes,
+            },
+          }
+        }),
+      )
+
+      if (cancelled) return
+      const map: Record<string, Estimate> = {}
+      for (const result of results) {
+        if (result) map[result.bookId] = result.estimate
+      }
+      setEstimates(map)
+    }
+
+    fetchEstimates().catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [books, setEstimates])
 
   useEffect(() => {
     if (uploadError) {
@@ -115,10 +161,11 @@ export default function Library() {
   useHotkeys('mod+z', handleUndo)
 
   const handleRemove = useCallback(
-    (book: Book) => {
-      if (hiddenBooksRef.current.has(book.id)) return
+    (bookId: string) => {
+      const book = books.find(b => b.id === bookId)
+      if (!book || hiddenBooksRef.current.has(bookId)) return
 
-      setHiddenBooks(prev => new Set(prev).add(book.id))
+      setHiddenBooks(prev => new Set(prev).add(bookId))
 
       lastDeletedRef.current = { book }
 
@@ -134,16 +181,24 @@ export default function Library() {
         duration: 5000,
       })
 
-      deleteBook(book.id).then(deleted => {
+      deleteBook(bookId).then(deleted => {
         if (!deleted) {
-          unhideBook(book.id)
+          unhideBook(bookId)
           lastDeletedRef.current = null
           toast.error('Failed to delete book')
         }
       })
     },
-    [deleteBook, handleUndo, unhideBook],
+    [books, deleteBook, handleUndo, unhideBook],
   )
+
+  const handleContextMenu = useCallback((e: MouseEvent, bookId: string) => {
+    setMenuTarget({ x: e.clientX, y: e.clientY, bookId })
+  }, [])
+
+  const handleCloseMenu = useCallback(() => {
+    setMenuTarget(null)
+  }, [])
 
   // Drag-and-drop handlers
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -213,7 +268,7 @@ export default function Library() {
       </PageHeader>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
-        {(loading || !progressLoaded) && (
+        {(loading || !progressLoaded || !pregenLoaded) && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {Array.from({ length: 5 }, (_, i) => (
               <div
@@ -231,15 +286,17 @@ export default function Library() {
 
         {error && <div className="py-12 text-center text-red-600 dark:text-red-400">{error}</div>}
 
-        {!loading && progressLoaded && !error && (
+        {!loading && progressLoaded && pregenLoaded && !error && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {sortedBooks.map(book => (
-              <BookCard key={book.id} book={book} onRemove={() => handleRemove(book)} />
+              <BookCard key={book.id} book={book} onContextMenu={handleContextMenu} />
             ))}
             <AddBookCard onUpload={handleUpload} uploading={uploading} />
           </div>
         )}
       </main>
+
+      <BookCardContextMenu target={menuTarget} onRemove={handleRemove} onClose={handleCloseMenu} />
 
       {isDragging && (
         <div className="border-primary-border bg-primary-muted pointer-events-none fixed inset-0 z-50 flex items-center justify-center border-2 border-dashed">
