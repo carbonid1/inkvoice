@@ -1,9 +1,10 @@
-import { app, BrowserWindow, ipcMain, powerSaveBlocker } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 import { paths } from './lib/paths'
 import { allocatePorts } from './lib/ports'
 import { startServers, stopServers } from './lib/servers'
 import { runFirstLaunchSetup } from './lib/setup'
+import { createSleepBlocker } from './lib/sleepBlocker'
 
 // Prevent multiple instances
 const gotLock = app.requestSingleInstanceLock()
@@ -13,7 +14,7 @@ if (!gotLock) {
 
 const isDev = paths.isDev
 let mainWindow: BrowserWindow | null = null
-let sleepBlockerId: number | null = null
+const sleepBlocker = createSleepBlocker()
 
 const createWindow = (): BrowserWindow => {
   const win = new BrowserWindow({
@@ -105,20 +106,8 @@ const startProduction = async (): Promise<void> => {
 }
 
 app.whenReady().then(async () => {
-  ipcMain.on('sleep-block-start', () => {
-    if (sleepBlockerId !== null) return
-    sleepBlockerId = powerSaveBlocker.start('prevent-display-sleep')
-    console.log(`[main] Sleep prevention started (id: ${sleepBlockerId})`)
-  })
-
-  ipcMain.on('sleep-block-stop', () => {
-    if (sleepBlockerId === null) return
-    if (powerSaveBlocker.isStarted(sleepBlockerId)) {
-      powerSaveBlocker.stop(sleepBlockerId)
-      console.log(`[main] Sleep prevention stopped (id: ${sleepBlockerId})`)
-    }
-    sleepBlockerId = null
-  })
+  ipcMain.on('sleep-block-start', () => sleepBlocker.start())
+  ipcMain.on('sleep-block-stop', () => sleepBlocker.stop())
 
   if (isDev) {
     await startDev()
