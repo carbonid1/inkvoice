@@ -41,7 +41,11 @@
     "generated",
     "prisma.config.ts",
     "electron",
+    "dist",
     "dist-electron",
+    "dist-nextjs",
+    "dist-node",
+    "dist-python",
     "**/*.vi.ts",
     "**/*.vi.tsx"
   ]
