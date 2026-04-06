@@ -11,7 +11,7 @@ const activeParagraph = (page: import('@playwright/test').Page) =>
   page.locator('main span[data-active-paragraph]')
 
 const allParagraphs = (page: import('@playwright/test').Page) =>
-  page.locator('main span.cursor-pointer')
+  page.locator('main span[data-paragraph]')
 
 const tocButton = (page: import('@playwright/test').Page) =>
   page.locator('button[aria-label="Table of Contents"]')
@@ -35,9 +35,9 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
   )
   await drawer.locator(`button[data-chapter-index="${index}"]`).click()
   await chapterResponse
-  // Wait for the drawer close animation to finish — the CSS transition and
-  // associated React re-renders can detach paragraph DOM nodes mid-click
-  await expect(drawer).toHaveClass(/-translate-x-full/)
+  // Wait for the drawer to close — the transition and React re-renders
+  // can detach paragraph DOM nodes mid-click
+  await expect(drawer).not.toBeInViewport()
   await allParagraphs(page).first().waitFor()
 }
 
@@ -53,7 +53,7 @@ const setupAndClickParagraph = async (page: import('@playwright/test').Page) => 
   await expect(activeParagraph(page)).toBeVisible()
 
   const text = await activeParagraph(page).textContent()
-  return text!
+  return text ?? ''
 }
 
 /**

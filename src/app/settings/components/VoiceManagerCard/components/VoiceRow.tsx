@@ -55,7 +55,7 @@ export const VoiceRow = ({
           data-voice={voice.name}
           className="flex min-w-0 flex-1 items-center gap-3 rounded-sm text-left transition-colors"
         >
-          <span className="shrink-0 text-sm font-medium whitespace-nowrap">
+          <span data-voice-name className="shrink-0 text-sm font-medium whitespace-nowrap">
             {voice.displayName}
           </span>
           {voice.tags.length > 0 && <VoiceTagList tags={voice.tags} />}

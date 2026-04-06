@@ -2,17 +2,9 @@ import { expect, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 import { mockVoiceManagement } from './helpers/mockVoiceManagement'
+import { navigateToSettings } from './helpers/navigateToSettings'
 
 const uploadFixturePath = path.resolve(__dirname, '../fixtures/silence-10s.wav')
-
-const navigateToSettings = async (page: import('@playwright/test').Page) => {
-  const voicesResponse = page.waitForResponse(
-    resp => resp.url().includes('/api/voices') && resp.status() === 200,
-  )
-  await page.goto('/settings')
-  await voicesResponse
-  await page.waitForSelector('[data-voice]')
-}
 
 const setUploadFile = async (page: import('@playwright/test').Page) => {
   const fileInput = page.locator('input[type="file"]')

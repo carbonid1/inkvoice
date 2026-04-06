@@ -10,7 +10,7 @@ export const selectDifferentVoice = async (page: Page): Promise<string> => {
     const btn = allVoiceButtons.nth(i)
     const isCurrent = await btn.getAttribute('aria-current')
     if (isCurrent !== 'true') {
-      const name = (await btn.locator('.font-medium').textContent()) ?? ''
+      const name = (await btn.locator('[data-voice-name]').textContent()) ?? ''
       // Fire-and-forget PUT can lose to the next navigation, causing a stale read on the book page
       const prefResponse = page.waitForResponse(
         resp => resp.url().includes('/api/voice-preferences/') && resp.request().method() === 'PUT',

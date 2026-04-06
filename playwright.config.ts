@@ -23,13 +23,13 @@ export default defineConfig({
     {
       command: 'npx tsx tests/e2e/mock-tts-server.ts',
       port: 8000,
-      stdout: 'pipe',
+      stdout: 'ignore',
       stderr: 'pipe',
     },
     {
       command: 'npx next dev',
       port: 3000,
-      stdout: 'pipe',
+      stdout: 'ignore',
       stderr: 'pipe',
       env: {
         INKVOICE_BOOKS_DIR: resolve(E2E_DATA_DIR, 'books'),

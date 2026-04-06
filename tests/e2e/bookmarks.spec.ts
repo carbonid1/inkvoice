@@ -8,7 +8,7 @@ import { TEST_BOOK_ID } from './helpers/testBook'
 const BOOKMARK_TEXT = 'The morning sun cast long shadows across the quiet village square.'
 
 const clickFirstBodyParagraph = async (page: import('@playwright/test').Page) => {
-  await page.locator('main span.cursor-pointer').nth(1).click()
+  await page.locator('main span[data-paragraph]').nth(1).click()
 }
 
 /**
@@ -35,12 +35,11 @@ test.describe('bookmarks', () => {
 
     // Drawer should slide in and show the bookmark
     const drawer = page.getByRole('dialog', { name: 'Bookmarks' })
-    await expect(drawer).toHaveClass(/translate-x-0/)
     await expect(drawer.getByText(BOOKMARK_TEXT)).toBeVisible()
 
-    // Close with Escape — slides out
+    // Close with Escape — drawer should slide off-screen
     await page.keyboard.press('Escape')
-    await expect(drawer).toHaveClass(/translate-x-full/)
+    await expect(drawer).not.toBeInViewport()
   })
 
   /** Removing a bookmark from the drawer hides it and offers an undo action. */

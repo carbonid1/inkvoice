@@ -5,6 +5,9 @@ import { TEST_BOOK_ID } from './helpers/testBook'
 /**
  * Pre-generation lets readers generate TTS audio for an entire book ahead of time,
  * so playback works from cache without on-demand synthesis.
+ *
+ * This spec intentionally hits the real TTS API (no mockTTS) — it tests the actual
+ * generation pipeline end-to-end, including server communication and progress tracking.
  */
 test.describe('pre-generation', () => {
   test.setTimeout(60_000)

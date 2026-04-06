@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test'
 export const navigateToBook = async (page: Page, bookId?: string) => {
   if (bookId) {
     await page.goto(`/book/${bookId}`)
-    await page.waitForSelector('header h1')
+    await page.locator('header h1').waitFor()
     return
   }
 
@@ -12,7 +12,7 @@ export const navigateToBook = async (page: Page, bookId?: string) => {
   )
   await page.goto('/')
   await booksResponse
-  await page.waitForSelector('a[href^="/book/"]')
+  await page.locator('a[href^="/book/"]').first().waitFor()
   await page.locator('a[href^="/book/"]').first().click()
-  await page.waitForSelector('header h1')
+  await page.locator('header h1').waitFor()
 }

@@ -176,6 +176,7 @@ export const Reader = ({
             <span
               key={idx}
               ref={isActive ? (currentParagraphRef as React.RefObject<HTMLSpanElement>) : undefined}
+              data-paragraph
               data-active-paragraph={isActive || undefined}
               onClick={() => onParagraphClick?.(currentChapter, idx)}
               className={`cursor-pointer transition-colors ${
