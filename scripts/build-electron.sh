@@ -97,8 +97,13 @@ pnpm run build:electron
 # Step 5: Package with electron-builder
 echo -e "\n${YELLOW}[5/5] Packaging with electron-builder...${NC}"
 rm -rf dist
-npx electron-builder --mac --arm64
+
+if [ "$1" = "--no-dmg" ]; then
+  npx electron-builder --mac --arm64 --dir
+else
+  npx electron-builder --mac --arm64
+fi
 
 echo -e "\n${GREEN}Build complete!${NC}"
-echo -e "Output: ${YELLOW}dist/${NC}"
-ls -lh dist/*.dmg 2>/dev/null || echo "No .dmg found — check dist/ for output"
+echo -e "App: ${YELLOW}dist/mac-arm64/InkVoice.app${NC}"
+ls -lh dist/*.dmg 2>/dev/null || true

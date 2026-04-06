@@ -1,4 +1,7 @@
 import json
+import os
+import sys
+import threading
 import warnings
 
 # Suppress non-actionable library warnings:
@@ -16,6 +19,21 @@ import api.services.tqdm_capture  # noqa: F401 — must load before Chatterbox t
 from api.models.requests import TTSRequest, HealthResponse
 from api.services.text_preprocessing import normalize_ellipsis
 from api.services.tts_service import get_tts_service
+
+
+def _watch_parent():
+    """Exit when the parent process (Electron) dies.
+
+    Detects parent death via stdin EOF — when the parent is killed for any
+    reason, the OS closes the pipe and stdin.read() returns empty.
+    """
+    sys.stdin.read()
+    os._exit(0)
+
+
+if os.environ.get("INKVOICE_PARENT_PID"):
+    thread = threading.Thread(target=_watch_parent, daemon=True)
+    thread.start()
 
 app = FastAPI(title="InkVoice TTS API")
 

@@ -26,7 +26,7 @@ const createWindow = (): BrowserWindow => {
     webPreferences: {
       preload: isDev
         ? path.join(__dirname, 'preload.js')
-        : path.join(app.getAppPath(), 'preload.js'),
+        : path.join(app.getAppPath(), 'dist-electron', 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },

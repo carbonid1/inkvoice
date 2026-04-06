@@ -15,8 +15,13 @@ type ServerProcesses = {
 
 let processes: ServerProcesses | null = null
 
+// macOS GUI apps get a minimal PATH that excludes Homebrew.
+// Prepend common paths so spawned servers can find ffmpeg, etc.
+const extendedPath = ['/opt/homebrew/bin', '/usr/local/bin', process.env.PATH].join(':')
+
 const buildEnv = (ports: Ports): NodeJS.ProcessEnv => ({
   ...process.env,
+  PATH: extendedPath,
   INKVOICE_BOOKS_DIR: paths.booksDir,
   INKVOICE_VOICES_DIR: paths.voicesDir,
   INKVOICE_CACHE_DIR: paths.cacheDir,
@@ -57,9 +62,9 @@ const spawnPython = (env: NodeJS.ProcessEnv, port: number): ChildProcess => {
     paths.bundledPython,
     ['-m', 'uvicorn', 'api.app.main:app', '--host', LOCALHOST, '--port', port.toString()],
     {
-      env,
+      env: { ...env, INKVOICE_PARENT_PID: process.pid.toString() },
       cwd: path.dirname(paths.bundledApi),
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
     },
   )
 
@@ -72,7 +77,7 @@ const spawnNextJs = (env: NodeJS.ProcessEnv, port: number): ChildProcess => {
 
   const proc = spawn(paths.bundledNode, [paths.nextJsServer], {
     env: { ...env, PORT: port.toString(), HOSTNAME: LOCALHOST },
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio: ['pipe', 'pipe', 'pipe'],
   })
 
   pipeProcessLogs(proc, 'nextjs')

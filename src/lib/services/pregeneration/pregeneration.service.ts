@@ -155,6 +155,11 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
         try {
           const diskInfo = await diskSpaceService.getAvailableSpace(env.cacheDir)
           if (diskInfo.percentFree < MIN_DISK_PERCENT_FREE) {
+            const availGB = (diskInfo.available / 1024 / 1024 / 1024).toFixed(2)
+            const totalGB = (diskInfo.total / 1024 / 1024 / 1024).toFixed(2)
+            console.error(
+              `[pregen] Disk space low — ${diskInfo.percentFree}% free (${availGB} GB / ${totalGB} GB), threshold: ${MIN_DISK_PERCENT_FREE}%, path: ${env.cacheDir}`,
+            )
             const paused = await pregenQueueService.pause(job.id, 'Disk space low')
             emitJob(paused)
             return
