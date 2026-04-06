@@ -11,7 +11,7 @@ import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 
 const WARMUP_TIMEOUT_MS = 180_000
 const POLL_INTERVAL_MS = 5000
-const MIN_DISK_PERCENT_FREE = 10
+const MIN_DISK_FREE_BYTES = 2 * 1024 * 1024 * 1024 // 2 GB
 const CACHED_SKIP_EMIT_INTERVAL = 10
 const DISK_CHECK_INTERVAL = 50
 const MAX_RETRIES_PER_PARAGRAPH = 5
@@ -154,11 +154,11 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       if (completedParagraphs % DISK_CHECK_INTERVAL === 0) {
         try {
           const diskInfo = await diskSpaceService.getAvailableSpace(env.cacheDir)
-          if (diskInfo.percentFree < MIN_DISK_PERCENT_FREE) {
+          if (diskInfo.available < MIN_DISK_FREE_BYTES) {
             const availGB = (diskInfo.available / 1024 / 1024 / 1024).toFixed(2)
-            const totalGB = (diskInfo.total / 1024 / 1024 / 1024).toFixed(2)
+            const minGB = (MIN_DISK_FREE_BYTES / 1024 / 1024 / 1024).toFixed(0)
             console.error(
-              `[pregen] Disk space low — ${diskInfo.percentFree}% free (${availGB} GB / ${totalGB} GB), threshold: ${MIN_DISK_PERCENT_FREE}%, path: ${env.cacheDir}`,
+              `[pregen] Disk space low — ${availGB} GB free (${diskInfo.percentFree}%), minimum: ${minGB} GB, path: ${env.cacheDir}`,
             )
             const paused = await pregenQueueService.pause(job.id, 'Disk space low')
             emitJob(paused)
