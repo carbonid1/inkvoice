@@ -3,7 +3,6 @@
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { Button, buttonVariants } from '@/components/ui/Button/Button'
-import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
@@ -290,7 +289,7 @@ export default function BookReader() {
             <h1 className="truncate font-semibold">{overview.title}</h1>
             <p className="text-muted-foreground truncate text-sm">{overview.author}</p>
           </div>
-          <Tooltip label="Search" shortcut={`${getModKey()}+F`} position="bottom">
+          <Tooltip label="Search" shortcut={['mod', 'F']} position="bottom">
             <Button
               size="icon"
               onClick={() => (search.isOpen ? search.close() : search.open())}
@@ -299,7 +298,7 @@ export default function BookReader() {
               <Search />
             </Button>
           </Tooltip>
-          <Tooltip label="Bookmarks" shortcut="Shift+B" position="bottom">
+          <Tooltip label="Bookmarks" shortcut={['shift', 'B']} position="bottom">
             <Button size="icon" onClick={() => setActiveDrawer('bookmark')} className="-mr-2">
               <BookMarked />
             </Button>

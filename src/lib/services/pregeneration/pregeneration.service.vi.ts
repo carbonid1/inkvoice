@@ -44,6 +44,7 @@ const mockCacheService = vi.hoisted(() => ({
   has: vi.fn(),
   set: vi.fn().mockResolvedValue(undefined),
   setTimestamps: vi.fn().mockResolvedValue(undefined),
+  getDurationMs: vi.fn().mockResolvedValue(0),
 }))
 
 const mockDiskSpace = vi.hoisted(() => ({

@@ -1,10 +1,11 @@
 'use client'
 
+import { Kbd } from '@/components/ui/Kbd/Kbd'
 import { type ReactElement, cloneElement, useCallback, useEffect, useRef, useState } from 'react'
 
 type TooltipProps = {
   label: string
-  shortcut?: string
+  shortcut?: string | string[]
   position?: 'top' | 'bottom'
   delay?: number
   maxWidth?: number
@@ -97,9 +98,7 @@ export const Tooltip = ({
         >
           {label}
           {shortcut && (
-            <kbd className="bg-background/15 rounded-sm px-1 py-0.5 font-mono text-[10px] leading-none">
-              {shortcut}
-            </kbd>
+            <Kbd keys={shortcut} size="sm" className="bg-background/15 border-transparent" />
           )}
         </div>
       )}

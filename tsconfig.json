@@ -47,6 +47,8 @@
     "dist-node",
     "dist-python",
     "**/*.vi.ts",
-    "**/*.vi.tsx"
+    "**/*.vi.tsx",
+    "**/*.stories.ts",
+    "**/*.stories.tsx"
   ]
 }

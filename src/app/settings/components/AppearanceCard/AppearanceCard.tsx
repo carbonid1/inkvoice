@@ -2,6 +2,7 @@
 
 import { Select } from '@/components/Select/Select'
 import type { SelectOption, SelectOptionState } from '@/components/Select/Select.types'
+import { Kbd } from '@/components/ui/Kbd/Kbd'
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useSyncExternalStore } from 'react'
@@ -36,7 +37,10 @@ export const AppearanceCard = () => {
     <section className="border-border bg-background rounded-lg border p-6 shadow-xs">
       <h2 className="mb-4 text-lg font-semibold">Appearance</h2>
       <div className="flex items-center justify-between">
-        <span className="text-muted-foreground text-sm">Theme</span>
+        <span className="text-muted-foreground flex items-center gap-2 text-sm">
+          Theme
+          <Kbd keys={['shift', 'T']} size="sm" />
+        </span>
         {mounted ? (
           <Select
             value={theme ?? 'system'}

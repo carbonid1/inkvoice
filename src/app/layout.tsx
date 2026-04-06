@@ -1,4 +1,6 @@
+import { BuildInfo } from '@/components/BuildInfo/BuildInfo'
 import { PregenSSEProvider } from '@/components/PregenSSEProvider/PregenSSEProvider'
+import { ThemeCycler } from '@/components/ThemeCycler/ThemeCycler'
 import { ThemeProvider } from '@/components/ThemeProvider/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import type { Metadata } from 'next'
@@ -22,6 +24,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen">
         <ThemeProvider>
           <PregenSSEProvider>{children}</PregenSSEProvider>
+          <BuildInfo />
+          <ThemeCycler />
           <Toaster />
         </ThemeProvider>
       </body>
