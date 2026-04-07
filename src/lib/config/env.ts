@@ -52,4 +52,8 @@ export const env = {
   get ttsApiUrl() {
     return getEnv().TTS_API_URL
   },
+  get ttsApiBaseUrl() {
+    const url = new URL(getEnv().TTS_API_URL)
+    return `${url.protocol}//${url.host}`
+  },
 }

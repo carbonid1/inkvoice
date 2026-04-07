@@ -5,7 +5,7 @@ const createWavBuffer = ({
   sampleRate = 22050,
   channels = 1,
   bitsPerSample = 16,
-  durationSeconds = 6,
+  durationSeconds = 12,
 }: {
   sampleRate?: number
   channels?: number
@@ -46,7 +46,6 @@ describe('validateWav', () => {
       sampleRate: 22050,
       channels: 1,
       bitsPerSample: 16,
-      durationSeconds: 6,
     })
     const result = validateWav(buffer)
     expect(result).toEqual({
@@ -54,7 +53,7 @@ describe('validateWav', () => {
       sampleRate: 22050,
       channels: 1,
       bitsPerSample: 16,
-      durationSeconds: expect.closeTo(6, 1),
+      durationSeconds: expect.closeTo(12, 1),
     })
   })
 
@@ -70,26 +69,26 @@ describe('validateWav', () => {
     expect(result).toEqual({ ok: false, code: 'INVALID_FORMAT', message: expect.any(String) })
   })
 
-  it('rejects WAV shorter than 5 seconds', () => {
-    const buffer = createWavBuffer({ durationSeconds: 3 })
+  it('rejects WAV shorter than 10 seconds', () => {
+    const buffer = createWavBuffer({ durationSeconds: 7 })
     const result = validateWav(buffer)
     expect(result).toEqual({ ok: false, code: 'TOO_SHORT', message: expect.any(String) })
   })
 
-  it('accepts exactly 5 seconds', () => {
-    const buffer = createWavBuffer({ durationSeconds: 5 })
+  it('accepts exactly 10 seconds', () => {
+    const buffer = createWavBuffer({ durationSeconds: 10 })
     const result = validateWav(buffer)
-    expect(result).toMatchObject({ ok: true, durationSeconds: expect.closeTo(5, 1) })
+    expect(result).toMatchObject({ ok: true, durationSeconds: expect.closeTo(10, 1) })
   })
 
   it('handles stereo WAV', () => {
-    const buffer = createWavBuffer({ channels: 2, durationSeconds: 6 })
+    const buffer = createWavBuffer({ channels: 2 })
     const result = validateWav(buffer)
     expect(result).toMatchObject({ ok: true, channels: 2 })
   })
 
   it('handles 24-bit WAV', () => {
-    const buffer = createWavBuffer({ bitsPerSample: 24, durationSeconds: 6 })
+    const buffer = createWavBuffer({ bitsPerSample: 24 })
     const result = validateWav(buffer)
     expect(result).toMatchObject({ ok: true, bitsPerSample: 24 })
   })

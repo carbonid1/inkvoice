@@ -6,15 +6,13 @@ import warnings
 
 # Suppress non-actionable library warnings:
 # - FutureWarning from torch/diffusers about deprecated internal APIs
-# - UserWarning from pkg_resources (used by perth/Chatterbox dependency)
+# - UserWarning from pkg_resources
 # - transformers logger: suppressed in tts_service._get_model() (must run after library import)
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated")
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response
-
-import api.services.tqdm_capture  # noqa: F401 — must load before Chatterbox to patch tqdm
 
 from api.models.requests import TTSRequest, HealthResponse
 from api.services.text_preprocessing import normalize_ellipsis
@@ -47,11 +45,14 @@ def text_to_speech(request: TTSRequest) -> Response:
         raise HTTPException(status_code=400, detail="Text cannot be empty")
 
     try:
+        preview = text[:80] + ("..." if len(text) > 80 else "")
+        print(f"[tts] Generating: \"{preview}\"")
         service = get_tts_service()
         audio_bytes, gen_time_ms, timestamps, duration_ms, sampling_rate = service.generate(
             text=text,
             voice=request.voice,
         )
+        print(f"[tts] Done in {gen_time_ms}ms ({duration_ms}ms audio)")
 
         headers = {
             "Content-Disposition": "attachment; filename=speech.ogg",
@@ -72,6 +73,27 @@ def text_to_speech(request: TTSRequest) -> Response:
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/transcribe")
+async def transcribe_audio(request: Request):
+    """Transcribe audio using Whisper for voice reference text."""
+    import tempfile
+    body = await request.body()
+    if not body:
+        raise HTTPException(status_code=400, detail="No audio data provided")
+
+    try:
+        import whisper
+        model = whisper.load_model("base")
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as f:
+            f.write(body)
+            f.flush()
+            result = model.transcribe(f.name)
+        del model
+        return {"text": result["text"].strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -1,1 +1,1 @@
-export const MAX_CHUNK_CHARS = 500
+export const MAX_CHUNK_CHARS = 2000

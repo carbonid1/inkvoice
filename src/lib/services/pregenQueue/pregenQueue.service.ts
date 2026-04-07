@@ -7,6 +7,7 @@ const enqueue = async (
   bookId: string,
   voice: string,
   totalParagraphs: number,
+  startChapter = 0,
 ): Promise<PregenJob> => {
   const now = Date.now()
   const row = await prisma.pregenJob.create({
@@ -14,6 +15,7 @@ const enqueue = async (
       bookId,
       voice,
       totalParagraphs,
+      currentChapter: startChapter,
       createdAt: now,
       updatedAt: now,
     },

@@ -11,7 +11,7 @@ import { useSamplePolling } from './hooks/useSamplePolling/useSamplePolling'
 const ACCEPTED_FORMATS =
   'audio/wav,audio/mpeg,audio/mp4,audio/ogg,audio/flac,.wav,.mp3,.m4a,.ogg,.flac'
 
-const MIN_DURATION = 5
+const MIN_DURATION = 10
 const MAX_DURATION = 30
 
 type VoiceUploadSectionProps = {
@@ -139,8 +139,8 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
             )}
           </div>
           <p className="text-muted-foreground text-sm">
-            Upload a WAV, MP3, M4A, OGG, or FLAC file (5–30 seconds). A TTS sample will be generated
-            automatically.
+            Upload a WAV, MP3, M4A, OGG, or FLAC file (10–30 seconds). A TTS sample will be
+            generated automatically.
           </p>
         </div>
       )}

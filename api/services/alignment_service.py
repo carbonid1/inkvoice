@@ -1,8 +1,12 @@
 import re
+import warnings
 from typing import Optional
 
 import torch
 import torchaudio
+
+# Suppress torchaudio forced_align deprecation warning (no replacement until 2.9)
+warnings.filterwarnings("ignore", message="torchaudio.functional._alignment.forced_align")
 
 
 # Wav2Vec2 downsamples 320 audio samples per emission frame at 16kHz

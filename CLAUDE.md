@@ -1,6 +1,6 @@
 # InkVoice
 
-Local audiobook reader that converts epub books to speech using Chatterbox TTS.
+Local audiobook reader that converts epub books to speech using OmniVoice TTS.
 
 ## Design System Philosophy
 
@@ -19,13 +19,13 @@ This is aspirational — not everything is migrated yet. Each new component or r
 
 ## Tech Stack
 
-| Layer        | Technology                      |
-| ------------ | ------------------------------- |
-| Frontend     | Next.js 14 + TypeScript         |
-| Styling      | Tailwind CSS                    |
-| State        | Zustand + persist middleware    |
-| Epub parsing | epub.js (browser-based)         |
-| TTS          | Chatterbox via FastAPI (Python) |
+| Layer        | Technology                     |
+| ------------ | ------------------------------ |
+| Frontend     | Next.js 14 + TypeScript        |
+| Styling      | Tailwind CSS                   |
+| State        | Zustand + persist middleware   |
+| Epub parsing | epub.js (browser-based)        |
+| TTS          | OmniVoice via FastAPI (Python) |
 
 ## Data Locations
 
