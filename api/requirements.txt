@@ -1,4 +1,4 @@
-chatterbox-tts
+omnivoice
 fastapi
 uvicorn[standard]
 python-multipart

@@ -7,8 +7,16 @@ import { NextRequest, NextResponse } from 'next/server'
 
 type RouteParams = { params: Promise<{ bookId: string }> }
 
-export const POST = async (_request: NextRequest, { params }: RouteParams) => {
+export const POST = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
+
+  // TEMP: Skip already-read chapters for large epub (remove when book is finished)
+  const DEADHOUSE_GATES_START_CHAPTER = bookId.startsWith('02_large epub_Gates') ? 32 : 0
+
+  const startChapter = parseInt(
+    request.nextUrl.searchParams.get('startChapter') ?? String(DEADHOUSE_GATES_START_CHAPTER),
+    10,
+  )
 
   try {
     // Early guard — cheap DB query
@@ -33,7 +41,7 @@ export const POST = async (_request: NextRequest, { params }: RouteParams) => {
     const totalParagraphs = overview.chapters.reduce((sum, ch) => sum + ch.paragraphCount, 0)
     const voice = voicePrefs.bookVoices[bookId] ?? voicePrefs.voice
 
-    const job = await pregenQueueService.enqueue(bookId, voice, totalParagraphs)
+    const job = await pregenQueueService.enqueue(bookId, voice, totalParagraphs, startChapter)
 
     pregenWorker.start()
 

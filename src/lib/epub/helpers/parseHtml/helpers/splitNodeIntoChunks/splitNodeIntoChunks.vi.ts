@@ -34,7 +34,7 @@ describe('splitNodeIntoChunks', () => {
 
   it('splits long paragraph into multiple chunks with aligned plain text and HTML', () => {
     const sentences = Array.from(
-      { length: 10 },
+      { length: 30 },
       (_, i) =>
         `Sentence number ${i + 1} continues with enough words to make it reasonably long for testing purposes.`,
     )
@@ -46,10 +46,10 @@ describe('splitNodeIntoChunks', () => {
     const combined = result.map(c => c.plainText).join(' ')
     expect(combined).toBe(sentences.join(' '))
     // Each chunk's plain text should be within limit
-    result.forEach(chunk => expect(chunk.plainText.length).toBeLessThanOrEqual(500))
+    result.forEach(chunk => expect(chunk.plainText.length).toBeLessThanOrEqual(2000))
   })
 
-  it('splits the large epub passage with correct HTML slices', () => {
+  it('keeps the large epub passage as a single chunk under 2000 chars', () => {
     const passage =
       'The flesh and blood Series Army was being torn apart from the inside. The wounds were ' +
       'spreading, a rot that fed on the most honorable of virtues: loyalty and duty. The warriors ' +
@@ -60,11 +60,8 @@ describe('splitNodeIntoChunks', () => {
     const el = makeElement(`<p>${passage}</p>`)
     const result = splitNodeIntoChunks(el)
 
-    expect(result.length).toBe(2)
+    expect(result.length).toBe(1)
     expect(result[0]?.html).toContain('<em>unquestioned</em>')
     expect(result[0]?.plainText).toContain('unquestioned')
-    // Verify chunks reconstruct the full text
-    const combined = result.map(c => c.plainText).join(' ')
-    expect(combined).toBe(passage.replace(/<[^>]+>/g, ''))
   })
 })

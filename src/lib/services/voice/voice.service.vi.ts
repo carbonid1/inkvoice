@@ -18,7 +18,7 @@ vi.mock('../db/db.service', () => ({
 
 import { createVoiceService } from './voice.service'
 
-const createWavBuffer = (sampleRate = 22050, durationSeconds = 6): Buffer => {
+const createWavBuffer = (sampleRate = 22050, durationSeconds = 12): Buffer => {
   const channels = 1
   const bitsPerSample = 16
   const blockAlign = channels * (bitsPerSample / 8)
@@ -149,7 +149,7 @@ describe('voiceService', () => {
 
   it('uploads a voice with WAV file', async () => {
     const service = createVoiceService(voicesDir)
-    const wavBuffer = createWavBuffer(22050, 6)
+    const wavBuffer = createWavBuffer(22050, 12)
     const result = await service.uploadVoice('New Voice', wavBuffer, 'recording.wav')
 
     expect(result.ok).toBe(true)

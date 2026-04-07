@@ -9,7 +9,7 @@ const COLD_GENERATION_COUNT = 3
 
 let generationCount = 0
 
-class ChatterboxTTSService implements TTSService {
+class TTSServiceImpl implements TTSService {
   async generate(text: string, voice: string) {
     const timeout = generationCount < COLD_GENERATION_COUNT ? TTS_COLD_TIMEOUT_MS : TTS_TIMEOUT_MS
     generationCount++
@@ -50,7 +50,7 @@ let _ttsService: TTSService | null = null
 
 export const getTTSService = (): TTSService => {
   if (!_ttsService) {
-    _ttsService = new ChatterboxTTSService()
+    _ttsService = new TTSServiceImpl()
   }
   return _ttsService
 }

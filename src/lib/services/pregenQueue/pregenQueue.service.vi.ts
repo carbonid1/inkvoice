@@ -50,6 +50,7 @@ describe('pregenQueueService', () => {
           bookId: 'book-1',
           voice: 'narrator',
           totalParagraphs: 500,
+          currentChapter: 0,
           createdAt: now,
           updatedAt: now,
         },

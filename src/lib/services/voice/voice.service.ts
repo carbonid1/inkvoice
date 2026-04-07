@@ -4,7 +4,6 @@ import path from 'path'
 import { prisma } from '../db/db.service'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
 import { normalizeTags } from './helpers/normalizeTags/normalizeTags'
-import { padWavTo40ms } from './helpers/padWavTo40ms/padWavTo40ms'
 import { prettifyVoiceName } from './helpers/prettifyVoiceName/prettifyVoiceName'
 import { slugifyVoiceName } from './helpers/slugifyVoiceName/slugifyVoiceName'
 import { validateVoiceName } from './helpers/validateVoiceName/validateVoiceName'
@@ -17,7 +16,6 @@ type UploadSuccess = {
   name: string
   displayName: string
   durationSeconds: number
-  padded: boolean
 }
 
 type UploadError = {
@@ -224,23 +222,38 @@ export const createVoiceService = (voicesDir: string) => {
       return { ok: false, code: wavResult.code, message: wavResult.message }
     }
 
-    // Pad to 40ms boundary
-    const padResult = padWavTo40ms(convertResult.buffer)
-
     // Save files
     const voiceDir = path.join(customDir, slug)
     await mkdir(voiceDir, { recursive: true })
-    await writeFile(path.join(voiceDir, 'source.wav'), padResult.buffer)
+    await writeFile(path.join(voiceDir, 'source.wav'), convertResult.buffer)
 
     // Save metadata to DB
     await upsertMetadata(slug, 'custom', { displayName, tags: [] })
+
+    // Fire-and-forget: transcribe voice reference for OmniVoice
+    // Non-fatal — OmniVoice will auto-transcribe on first use if source.txt is missing
+    const transcribeAndSave = async () => {
+      try {
+        const response = await fetch(`${env.ttsApiBaseUrl}/transcribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: new Uint8Array(convertResult.buffer),
+        })
+        if (response.ok) {
+          const { text } = await response.json()
+          if (text) await writeFile(path.join(voiceDir, 'source.txt'), text)
+        }
+      } catch {
+        /* Non-fatal */
+      }
+    }
+    transcribeAndSave()
 
     return {
       ok: true,
       name: slug,
       displayName,
       durationSeconds: wavResult.durationSeconds,
-      padded: padResult.padded,
     }
   }
 

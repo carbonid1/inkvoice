@@ -58,7 +58,6 @@ export const POST = async (request: Request) => {
       name: result.name,
       displayName: result.displayName,
       durationSeconds: result.durationSeconds,
-      padded: result.padded,
       tags: [],
     })
   } catch (error) {

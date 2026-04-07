@@ -89,7 +89,6 @@ export const mockVoiceManagement = async (page: Page) => {
           name,
           displayName,
           durationSeconds: 10,
-          padded: false,
           tags: [],
         }),
       })
