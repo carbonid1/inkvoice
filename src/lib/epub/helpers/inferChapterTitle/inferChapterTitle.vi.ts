@@ -11,76 +11,74 @@ const base = {
 
 describe('inferChapterTitle', () => {
   it('uses HTML heading when present', () => {
-    expect(inferChapterTitle({ ...base, htmlHeading: 'The Whirlwind' }, 1)).toBe('The Whirlwind')
+    expect(inferChapterTitle({ ...base, htmlHeading: 'The Whirlwind' })).toBe('The Whirlwind')
   })
 
   it('uses TOC label when no heading', () => {
-    expect(inferChapterTitle({ ...base, tocLabel: 'Dramatis Personae' }, 1)).toBe(
-      'Dramatis Personae',
-    )
+    expect(inferChapterTitle({ ...base, tocLabel: 'Dramatis Personae' })).toBe('Dramatis Personae')
   })
 
   it('uses spine title when no heading or TOC label', () => {
-    expect(inferChapterTitle({ ...base, itemTitle: 'Prologue' }, 1)).toBe('Prologue')
+    expect(inferChapterTitle({ ...base, itemTitle: 'Prologue' })).toBe('Prologue')
   })
 
   it('returns "Illustrations" for image-only chapters', () => {
-    expect(inferChapterTitle({ ...base, isImageOnly: true }, 1)).toBe('Illustrations')
+    expect(inferChapterTitle({ ...base, isImageOnly: true })).toBe('Illustrations')
   })
 
   it('extracts label from file ID keyword', () => {
-    expect(inferChapterTitle({ ...base, itemId: 'CopyrightPage' }, 1)).toBe('Copyright')
+    expect(inferChapterTitle({ ...base, itemId: 'CopyrightPage' })).toBe('Copyright')
   })
 
-  it('falls back to "Chapter N" for unknown file IDs', () => {
-    expect(inferChapterTitle({ ...base, itemId: 'xhtml-42' }, 5)).toBe('Chapter 5')
+  it('falls back to "Chapter" for unknown file IDs', () => {
+    expect(inferChapterTitle({ ...base, itemId: 'xhtml-42' })).toBe('Chapter')
   })
 
   it('heading beats TOC label', () => {
-    expect(inferChapterTitle({ ...base, htmlHeading: 'Heading', tocLabel: 'TOC Label' }, 1)).toBe(
+    expect(inferChapterTitle({ ...base, htmlHeading: 'Heading', tocLabel: 'TOC Label' })).toBe(
       'Heading',
     )
   })
 
   it('TOC label beats spine title', () => {
-    expect(inferChapterTitle({ ...base, tocLabel: 'TOC Label', itemTitle: 'Spine Title' }, 1)).toBe(
+    expect(inferChapterTitle({ ...base, tocLabel: 'TOC Label', itemTitle: 'Spine Title' })).toBe(
       'TOC Label',
     )
   })
 
   it('spine title beats image-only', () => {
-    expect(inferChapterTitle({ ...base, itemTitle: 'Maps', isImageOnly: true }, 1)).toBe('Maps')
+    expect(inferChapterTitle({ ...base, itemTitle: 'Maps', isImageOnly: true })).toBe('Maps')
   })
 
   it('file ID beats image-only fallback', () => {
-    expect(inferChapterTitle({ ...base, itemId: 'cover', isImageOnly: true }, 1)).toBe('Cover')
+    expect(inferChapterTitle({ ...base, itemId: 'cover', isImageOnly: true })).toBe('Cover')
   })
 
   it('file ID beats Chapter N fallback', () => {
-    expect(inferChapterTitle({ ...base, itemId: 'dedication.xhtml' }, 3)).toBe('Dedication')
+    expect(inferChapterTitle({ ...base, itemId: 'dedication.xhtml' })).toBe('Dedication')
   })
 
   describe('ALL CAPS normalization', () => {
     it('converts all-caps heading to title case', () => {
-      expect(inferChapterTitle({ ...base, htmlHeading: 'CHAPTER ONE' }, 1)).toBe('Chapter One')
+      expect(inferChapterTitle({ ...base, htmlHeading: 'CHAPTER ONE' })).toBe('Chapter One')
     })
 
     it('converts single all-caps word', () => {
-      expect(inferChapterTitle({ ...base, htmlHeading: 'ACKNOWLEDGEMENTS' }, 1)).toBe(
+      expect(inferChapterTitle({ ...base, htmlHeading: 'ACKNOWLEDGEMENTS' })).toBe(
         'Acknowledgements',
       )
     })
 
     it('leaves mixed-case heading unchanged', () => {
-      expect(inferChapterTitle({ ...base, htmlHeading: 'Book Two' }, 1)).toBe('Book Two')
+      expect(inferChapterTitle({ ...base, htmlHeading: 'Book Two' })).toBe('Book Two')
     })
 
     it('leaves already-title-case unchanged', () => {
-      expect(inferChapterTitle({ ...base, itemTitle: 'Prologue' }, 1)).toBe('Prologue')
+      expect(inferChapterTitle({ ...base, itemTitle: 'Prologue' })).toBe('Prologue')
     })
 
     it('preserves hyphens in all-caps titles', () => {
-      expect(inferChapterTitle({ ...base, tocLabel: 'CHAPTER TWENTY-ONE' }, 1)).toBe(
+      expect(inferChapterTitle({ ...base, tocLabel: 'CHAPTER TWENTY-ONE' })).toBe(
         'Chapter Twenty-One',
       )
     })
@@ -95,7 +93,7 @@ describe('inferChapterTitle', () => {
     })
 
     it('normalizes all-caps TOC label', () => {
-      expect(inferChapterTitle({ ...base, tocLabel: 'EPILOGUE' }, 1)).toBe('Epilogue')
+      expect(inferChapterTitle({ ...base, tocLabel: 'EPILOGUE' })).toBe('Epilogue')
     })
   })
 
@@ -110,11 +108,11 @@ describe('inferChapterTitle', () => {
     })
 
     it('strips trailing colon from TOC label', () => {
-      expect(inferChapterTitle({ ...base, tocLabel: 'Appendix:' }, 1)).toBe('Appendix')
+      expect(inferChapterTitle({ ...base, tocLabel: 'Appendix:' })).toBe('Appendix')
     })
 
     it('preserves colons mid-string', () => {
-      expect(inferChapterTitle({ ...base, htmlHeading: 'Book One: The Whirlwind' }, 1)).toBe(
+      expect(inferChapterTitle({ ...base, htmlHeading: 'Book One: The Whirlwind' })).toBe(
         'Book One: The Whirlwind',
       )
     })

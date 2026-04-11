@@ -14,7 +14,6 @@ from api.services.opus_encoder import encode_wav_to_opus
 
 CLEANUP_INTERVAL = 20
 OMNIVOICE_SAMPLE_RATE = 24000
-TRAILING_SILENCE_SECONDS = 0.3
 
 
 class TTSService:
@@ -67,6 +66,7 @@ class TTSService:
         self,
         text: str,
         voice: str | None = None,
+        language: str | None = None,
     ) -> Tuple[bytes, int, Optional[list[dict]], int, Optional[float]]:
         """
         Generate speech audio from text with optional word-level timestamps.
@@ -89,14 +89,11 @@ class TTSService:
                     text=text,
                     ref_audio=str(voice_path),
                     ref_text=ref_text,
+                    language=language,
+                    class_temperature=0.3,
                 )
             wav = audio_list[0]  # First tensor from the list, shape (1, T) at 24kHz
             gen_time_ms = int((time.time() - start) * 1000)
-
-            # Pad silence to prevent trailing word cutoff
-            # (non-autoregressive models can underestimate output duration)
-            pad = torch.zeros(1, int(OMNIVOICE_SAMPLE_RATE * TRAILING_SILENCE_SECONDS), device=wav.device)
-            wav = torch.cat([wav, pad], dim=1)
 
             # Run forced alignment to get word-level timestamps
             alignment = get_alignment_service()

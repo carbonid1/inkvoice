@@ -39,33 +39,33 @@ test.describe('voice upload', () => {
     await expect(page.getByLabel('Voice name')).not.toBeVisible()
   })
 
-  /** Upload requires both a name and a file — the button stays disabled until both are provided. */
-  test('Upload button is disabled without name or file', async ({ page }) => {
+  /** Upload validates required fields inline — clicking Upload without a name or file shows errors instead of submitting. */
+  test('validates required fields before submitting', async ({ page }) => {
     await mockVoiceManagement(page)
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
     const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
 
-    // Both empty — disabled
-    await expect(uploadButton).toBeDisabled()
+    // Both empty — clicking Upload reports the missing name and keeps the form open
+    await uploadButton.click()
+    await expect(page.getByText('Voice name is required')).toBeVisible()
+    await expect(page.getByLabel('Voice name')).toBeVisible()
 
-    // Name only — still disabled
+    // Name only — clicking Upload reports the missing file
     await page.getByLabel('Voice name').fill('My Voice')
-    await expect(uploadButton).toBeDisabled()
-
-    // File only — still disabled
-    await page.getByLabel('Voice name').fill('')
-    await setUploadFile(page)
-    await expect(uploadButton).toBeDisabled()
-
-    // Both filled — enabled (wait for async duration check)
-    await page.getByLabel('Voice name').fill('My Voice')
-    await expect(uploadButton).toBeEnabled()
+    await uploadButton.click()
+    await expect(page.getByText('Audio file is required')).toBeVisible()
   })
 
-  /** A successful upload shows a confirmation toast, collapses the form, and adds the voice to the list. */
-  test('uploading a voice shows success toast and collapses form', async ({ page }) => {
+  /**
+   * After uploading, the transcription review step appears. Clicking Save fires the success toast,
+   * collapses the form, and the new voice is present in the list both before and after Save —
+   * guards against the "voice list stays stale after Save" bug.
+   */
+  test('uploading a voice shows transcription review then adds the voice after Save', async ({
+    page,
+  }) => {
     const { getUploadedVoices } = await mockVoiceManagement(page)
     await navigateToSettings(page)
 
@@ -73,19 +73,23 @@ test.describe('voice upload', () => {
     await page.getByLabel('Voice name').fill('New Voice')
     await setUploadFile(page)
 
-    const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
-    await expect(uploadButton).toBeEnabled()
-    await uploadButton.click()
+    await page.getByRole('button', { name: 'Upload', exact: true }).click()
 
-    // Success toast should appear
+    // Transcription review step should appear with a Save button
+    await expect(page.getByRole('button', { name: 'Save' })).toBeVisible()
+
+    // New voice should already be in the list (first refetch fired on upload success)
+    await expect(page.getByText('New Voice')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Save' }).click()
+
+    // Toast + collapsed form after Save
     await expect(page.getByText('Voice added')).toBeVisible()
     await expect(page.getByText('Open a book to start listening')).toBeVisible()
-
-    // Form should collapse
     await expect(page.getByLabel('Voice name')).not.toBeVisible()
     await expect(page.getByText('Add Voice')).toBeVisible()
 
-    // Voice should appear in the list under "Your Voices"
+    // Voice still present after the form collapses
     await expect(page.getByText('New Voice')).toBeVisible()
     expect(getUploadedVoices().map(v => v.displayName)).toContain('New Voice')
   })
@@ -100,9 +104,7 @@ test.describe('voice upload', () => {
     await page.getByLabel('Voice name').fill('Test Voice')
     await setUploadFile(page)
 
-    const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
-    await expect(uploadButton).toBeEnabled()
-    await uploadButton.click()
+    await page.getByRole('button', { name: 'Upload', exact: true }).click()
 
     // Error should be visible
     await expect(page.getByText('Voice name already taken')).toBeVisible()
@@ -119,10 +121,7 @@ test.describe('voice upload', () => {
     await page.getByText('Add Voice').click()
     await page.getByLabel('Voice name').fill('New Voice')
     await setUploadFile(page)
-
-    const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
-    await expect(uploadButton).toBeEnabled()
-    await uploadButton.click()
+    await page.getByRole('button', { name: 'Upload', exact: true }).click()
 
     // The new voice row should have a disabled pulsing sample button
     const sampleButton = page.getByRole('button', { name: /Generating sample for New Voice/ })
@@ -138,10 +137,7 @@ test.describe('voice upload', () => {
     await page.getByText('Add Voice').click()
     await page.getByLabel('Voice name').fill('New Voice')
     await setUploadFile(page)
-
-    const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
-    await expect(uploadButton).toBeEnabled()
-    await uploadButton.click()
+    await page.getByRole('button', { name: 'Upload', exact: true }).click()
 
     // Verify pulsing state first
     await expect(
@@ -166,14 +162,12 @@ test.describe('voice upload', () => {
     await page.getByLabel('Voice name').fill('Enter Voice')
     await setUploadFile(page)
 
-    // Wait for duration check to complete and button to be enabled
-    const uploadButton = page.getByRole('button', { name: 'Upload', exact: true })
-    await expect(uploadButton).toBeEnabled()
-
-    // Press Enter in the name field
+    // Press Enter in the name field — triggers upload and opens transcription review
     await page.getByLabel('Voice name').press('Enter')
+    await expect(page.getByRole('button', { name: 'Save' })).toBeVisible()
 
-    // Should trigger upload and show toast
+    // Save to get the confirmation toast
+    await page.getByRole('button', { name: 'Save' }).click()
     await expect(page.getByText('Voice added')).toBeVisible()
   })
 })

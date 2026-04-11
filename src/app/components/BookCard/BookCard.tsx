@@ -96,7 +96,9 @@ export const BookCard = ({ book, onContextMenu }: BookCardProps) => {
           )}
         </div>
         <h3 className="text-foreground mb-1 line-clamp-2 font-medium">{book.title}</h3>
-        <p className="text-muted-foreground line-clamp-1 text-sm">{book.author}</p>
+        <p className="text-muted-foreground line-clamp-2 text-sm" title={book.author}>
+          {book.author}
+        </p>
         <div className="mt-1 flex min-h-[1.25rem] items-center gap-1.5">
           {job && (
             <Tooltip label={ringLabel} delay={600}>

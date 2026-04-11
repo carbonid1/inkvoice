@@ -16,6 +16,7 @@ type UploadSuccess = {
   name: string
   displayName: string
   durationSeconds: number
+  transcription: string | null
 }
 
 type UploadError = {
@@ -55,6 +56,7 @@ export const createVoiceService = (voicesDir: string) => {
     return {
       displayName: row.displayName,
       tags: JSON.parse(row.tags) as string[],
+      language: row.language ?? undefined,
     }
   }
 
@@ -63,19 +65,15 @@ export const createVoiceService = (voicesDir: string) => {
     type: VoiceType,
     meta: VoiceMetadata,
   ): Promise<void> => {
+    const fields = {
+      displayName: meta.displayName,
+      tags: JSON.stringify(meta.tags),
+      language: meta.language ?? null,
+    }
     await prisma.voiceMetadata.upsert({
       where: { name },
-      create: {
-        name,
-        displayName: meta.displayName,
-        type,
-        tags: JSON.stringify(meta.tags),
-      },
-      update: {
-        displayName: meta.displayName,
-        tags: JSON.stringify(meta.tags),
-        deletedAt: null,
-      },
+      create: { name, type, ...fields },
+      update: { ...fields, deletedAt: null },
     })
   }
 
@@ -200,6 +198,7 @@ export const createVoiceService = (voicesDir: string) => {
     displayName: string,
     audioBuffer: Buffer,
     originalFilename: string,
+    language?: string,
   ): Promise<UploadResult> => {
     const slug = slugifyVoiceName(displayName)
     const exists = await voiceNameExists(slug)
@@ -228,32 +227,34 @@ export const createVoiceService = (voicesDir: string) => {
     await writeFile(path.join(voiceDir, 'source.wav'), convertResult.buffer)
 
     // Save metadata to DB
-    await upsertMetadata(slug, 'custom', { displayName, tags: [] })
+    await upsertMetadata(slug, 'custom', { displayName, tags: [], language })
 
-    // Fire-and-forget: transcribe voice reference for OmniVoice
-    // Non-fatal — OmniVoice will auto-transcribe on first use if source.txt is missing
-    const transcribeAndSave = async () => {
-      try {
-        const response = await fetch(`${env.ttsApiBaseUrl}/transcribe`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/octet-stream' },
-          body: new Uint8Array(convertResult.buffer),
-        })
-        if (response.ok) {
-          const { text } = await response.json()
-          if (text) await writeFile(path.join(voiceDir, 'source.txt'), text)
+    // Transcribe voice reference for OmniVoice
+    let transcription: string | null = null
+    try {
+      const langParam = language ? `?language=${language}` : ''
+      const response = await fetch(`${env.ttsApiBaseUrl}/transcribe${langParam}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: new Uint8Array(convertResult.buffer),
+      })
+      if (response.ok) {
+        const { text } = await response.json()
+        if (text) {
+          transcription = text
+          await writeFile(path.join(voiceDir, 'source.txt'), text)
         }
-      } catch {
-        /* Non-fatal */
       }
+    } catch {
+      // Non-fatal — OmniVoice will auto-transcribe on first use if source.txt is missing
     }
-    transcribeAndSave()
 
     return {
       ok: true,
       name: slug,
       displayName,
       durationSeconds: wavResult.durationSeconds,
+      transcription,
     }
   }
 
@@ -321,9 +322,17 @@ export const createVoiceService = (voicesDir: string) => {
     await upsertMetadata(name, 'custom', {
       displayName: dbMeta?.displayName ?? prettifyVoiceName(name),
       tags: normalized,
+      language: dbMeta?.language,
     })
 
     return { ok: true, tags: normalized }
+  }
+
+  const saveTranscript = async (name: string, text: string): Promise<{ ok: boolean }> => {
+    const voiceDir = await resolveVoiceDir(name)
+    if (!voiceDir) return { ok: false }
+    await writeFile(path.join(voiceDir, 'source.txt'), text.trim())
+    return { ok: true }
   }
 
   return {
@@ -334,6 +343,7 @@ export const createVoiceService = (voicesDir: string) => {
     resolveVoicePath,
     resolveSamplePath,
     saveSample,
+    saveTranscript,
     updateVoiceTags,
   }
 }

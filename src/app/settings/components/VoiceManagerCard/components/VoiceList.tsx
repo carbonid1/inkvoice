@@ -68,26 +68,24 @@ export const VoiceList = ({
             <span className="text-muted-foreground"> &middot; {customVoices.length}</span>
           )}
         </h3>
-        {customVoices.length > 0 && (
-          <div ref={customParent} className="space-y-1">
-            {customVoices.map(voice => (
-              <VoiceRow
-                key={voice.name}
-                voice={voice}
-                selected={voice.name === selectedVoice}
-                editingTags={editingTagsVoice === voice.name}
-                onSelect={() => onSelect(voice.name)}
-                onToggleTagEditor={() => toggleTagEditor(voice.name)}
-                playing={playing}
-                onPlay={onPlay}
-                onDelete={onDelete}
-                onTagsChanged={handleTagsChanged}
-                tagsSaving={saving}
-              />
-            ))}
-          </div>
-        )}
-        {uploadSection}
+        <div ref={customParent} className="space-y-1">
+          {customVoices.map(voice => (
+            <VoiceRow
+              key={voice.name}
+              voice={voice}
+              selected={voice.name === selectedVoice}
+              editingTags={editingTagsVoice === voice.name}
+              onSelect={() => onSelect(voice.name)}
+              onToggleTagEditor={() => toggleTagEditor(voice.name)}
+              playing={playing}
+              onPlay={onPlay}
+              onDelete={onDelete}
+              onTagsChanged={handleTagsChanged}
+              tagsSaving={saving}
+            />
+          ))}
+          {uploadSection}
+        </div>
       </div>
 
       {appVoices.length > 0 && (

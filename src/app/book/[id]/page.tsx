@@ -246,7 +246,7 @@ export default function BookReader() {
   if (error || !overview) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <div className="text-red-600 dark:text-red-400">{error || 'Book not found'}</div>
+        <div className="text-destructive">{error || 'Book not found'}</div>
         <Link href="/" className="text-primary hover:text-primary/80 underline">
           Return to library
         </Link>

@@ -118,16 +118,13 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
           ?.trim()
         const isImageOnly = paragraphs.length === 0 && content.some(b => b.type === 'image')
 
-        const title = inferChapterTitle(
-          {
-            itemId: item.id,
-            tocLabel: tocLabels.get(item.id),
-            itemTitle: item.title || undefined,
-            htmlHeading,
-            isImageOnly,
-          },
-          chapters.length + 1,
-        )
+        const title = inferChapterTitle({
+          itemId: item.id,
+          tocLabel: tocLabels.get(item.id),
+          itemTitle: item.title || undefined,
+          htmlHeading,
+          isImageOnly,
+        })
 
         idToChapterIndex.set(item.id, chapters.length)
         chapters.push({ title, paragraphs, content })

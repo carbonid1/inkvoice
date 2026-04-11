@@ -51,6 +51,7 @@ def text_to_speech(request: TTSRequest) -> Response:
         audio_bytes, gen_time_ms, timestamps, duration_ms, sampling_rate = service.generate(
             text=text,
             voice=request.voice,
+            language=request.language,
         )
         print(f"[tts] Done in {gen_time_ms}ms ({duration_ms}ms audio)")
 
@@ -78,8 +79,11 @@ def text_to_speech(request: TTSRequest) -> Response:
 
 
 @app.post("/transcribe")
-async def transcribe_audio(request: Request):
-    """Transcribe audio using Whisper for voice reference text."""
+async def transcribe_audio(request: Request, language: str | None = None):
+    """Transcribe audio using Whisper for voice reference text.
+
+    `language` is an optional ISO 639-1 hint (e.g. "en", "ru", "uk") passed as a query param.
+    """
     import tempfile
     body = await request.body()
     if not body:
@@ -91,7 +95,8 @@ async def transcribe_audio(request: Request):
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as f:
             f.write(body)
             f.flush()
-            result = model.transcribe(f.name)
+            kwargs = {"language": language} if language else {}
+            result = model.transcribe(f.name, **kwargs)
         del model
         return {"text": result["text"].strip()}
     except Exception as e:

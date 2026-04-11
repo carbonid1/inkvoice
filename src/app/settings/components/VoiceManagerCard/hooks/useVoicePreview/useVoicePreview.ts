@@ -10,25 +10,29 @@ export const useVoicePreview = () => {
   const [error, setError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const playingRef = useRef<PlayingState>(null)
-  const blobUrlRef = useRef<string | null>(null)
+  const blobCacheRef = useRef<Map<string, string>>(new Map())
 
-  // Keep ref in sync with state for stable callback reads
+  // Ref mirror keeps `play` stable — reading state directly would force a new callback each render
   useEffect(() => {
     playingRef.current = playing
   }, [playing])
 
-  const cleanup = useCallback(() => {
+  const stopPlayback = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.onended = null
       audioRef.current.onerror = null
       audioRef.current.pause()
       audioRef.current = null
     }
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current)
-      blobUrlRef.current = null
-    }
   }, [])
+
+  const cleanup = useCallback(() => {
+    stopPlayback()
+    for (const url of blobCacheRef.current.values()) {
+      URL.revokeObjectURL(url)
+    }
+    blobCacheRef.current.clear()
+  }, [stopPlayback])
 
   useEffect(() => cleanup, [cleanup])
 
@@ -36,43 +40,45 @@ export const useVoicePreview = () => {
     async (voiceName: string, type: AudioType) => {
       setError(null)
 
-      // Toggle off if same voice+type is already playing
       if (playingRef.current?.name === voiceName && playingRef.current?.type === type) {
-        cleanup()
+        stopPlayback()
         setPlaying(null)
         return
       }
 
-      // Stop any current playback
-      cleanup()
+      // Stop playback but keep cached blob URLs for replay
+      stopPlayback()
+
+      const cacheKey = `${voiceName}:${type}`
 
       try {
-        // Bump ?v= when samples are regenerated — API returns immutable cache headers
-        const response = await fetch(`/api/voices/${voiceName}/${type}?v=4`)
-        if (!response.ok) {
-          setError(`No ${type} available for "${voiceName}"`)
-          setPlaying(null)
-          return
+        let url = blobCacheRef.current.get(cacheKey)
+
+        if (!url) {
+          // Bump ?v= when samples are regenerated — API returns immutable cache headers
+          const response = await fetch(`/api/voices/${voiceName}/${type}?v=4`)
+          if (!response.ok) {
+            setError(`No ${type} available for "${voiceName}"`)
+            setPlaying(null)
+            return
+          }
+
+          const blob = await response.blob()
+          url = URL.createObjectURL(blob)
+          blobCacheRef.current.set(cacheKey, url)
         }
 
-        const blob = await response.blob()
-        const url = URL.createObjectURL(blob)
-        blobUrlRef.current = url
         const audio = new Audio(url)
         audioRef.current = audio
         setPlaying({ name: voiceName, type })
 
         audio.onended = () => {
           setPlaying(null)
-          URL.revokeObjectURL(url)
-          blobUrlRef.current = null
         }
 
         audio.onerror = () => {
           setError(`Failed to play ${type} for "${voiceName}"`)
           setPlaying(null)
-          URL.revokeObjectURL(url)
-          blobUrlRef.current = null
         }
 
         await audio.play()
@@ -81,7 +87,7 @@ export const useVoicePreview = () => {
         setPlaying(null)
       }
     },
-    [cleanup],
+    [stopPlayback],
   )
 
   return useMemo(() => ({ playing, error, play }), [playing, error, play])

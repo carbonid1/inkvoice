@@ -2,6 +2,7 @@ const FILE_ID_LABELS: Record<string, string> = {
   cover: 'Cover',
   copyright: 'Copyright',
   dedication: 'Dedication',
+  annotation: 'Annotation',
   abouttheauthor: 'About the Author',
 }
 
@@ -28,12 +29,12 @@ type InferTitleArgs = {
 
 import { normalizeTitle } from '../normalizeTitle/normalizeTitle'
 
-export const inferChapterTitle = (args: InferTitleArgs, fallbackIndex: number): string => {
+export const inferChapterTitle = (args: InferTitleArgs): string => {
   if (args.htmlHeading) return normalizeTitle(args.htmlHeading)
   if (args.tocLabel) return normalizeTitle(args.tocLabel)
   if (args.itemTitle) return normalizeTitle(args.itemTitle)
   const fileIdLabel = titleFromFileId(args.itemId)
   if (fileIdLabel) return fileIdLabel
   if (args.isImageOnly) return 'Illustrations'
-  return `Chapter ${fallbackIndex}`
+  return 'Chapter'
 }

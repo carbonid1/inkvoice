@@ -6,12 +6,13 @@ type UploadResult = {
   name: string
   displayName: string
   durationSeconds: number
+  transcription: string | null
 }
 
 type UploadState = {
   uploading: boolean
   error: string | null
-  upload: (file: File, displayName: string) => Promise<UploadResult | null>
+  upload: (file: File, displayName: string, language?: string) => Promise<UploadResult | null>
   reset: () => void
 }
 
@@ -20,7 +21,7 @@ export const useUploadVoice = (): UploadState => {
   const [error, setError] = useState<string | null>(null)
 
   const upload = useCallback(
-    async (file: File, displayName: string): Promise<UploadResult | null> => {
+    async (file: File, displayName: string, language?: string): Promise<UploadResult | null> => {
       setUploading(true)
       setError(null)
 
@@ -28,6 +29,7 @@ export const useUploadVoice = (): UploadState => {
         const formData = new FormData()
         formData.append('file', file)
         formData.append('name', displayName)
+        if (language) formData.append('language', language)
 
         const response = await fetch('/api/voices', {
           method: 'POST',
@@ -45,6 +47,7 @@ export const useUploadVoice = (): UploadState => {
           name: data.name,
           displayName: data.displayName,
           durationSeconds: data.durationSeconds,
+          transcription: data.transcription ?? null,
         }
       } catch {
         setError('Failed to upload voice')

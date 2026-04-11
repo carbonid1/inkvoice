@@ -24,6 +24,7 @@ export const POST = async (request: Request) => {
     const formData = await request.formData()
     const file = formData.get('file')
     const name = formData.get('name')
+    const language = formData.get('language')
 
     if (!file || !(file instanceof File)) {
       return NextResponse.json(
@@ -42,7 +43,8 @@ export const POST = async (request: Request) => {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const result = await voiceService.uploadVoice(name.trim(), buffer, file.name)
+    const langStr = typeof language === 'string' && language.trim() ? language.trim() : undefined
+    const result = await voiceService.uploadVoice(name.trim(), buffer, file.name, langStr)
 
     if (!result.ok) {
       const status = result.code === 'NAME_TAKEN' ? 409 : 400
@@ -58,6 +60,7 @@ export const POST = async (request: Request) => {
       name: result.name,
       displayName: result.displayName,
       durationSeconds: result.durationSeconds,
+      transcription: result.transcription,
       tags: [],
     })
   } catch (error) {

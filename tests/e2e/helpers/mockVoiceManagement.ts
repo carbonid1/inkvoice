@@ -89,12 +89,39 @@ export const mockVoiceManagement = async (page: Page) => {
           name,
           displayName,
           durationSeconds: 10,
+          transcription: null,
           tags: [],
         }),
       })
       return
     }
 
+    route.fallback()
+  })
+
+  // Mock PUT /api/voices/{name}/transcript — accepts and acknowledges the saved transcription
+  await page.route('**/api/voices/*/transcript', (route, request) => {
+    if (request.method() === 'PUT') {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      })
+      return
+    }
+    route.fallback()
+  })
+
+  // Mock POST /api/voices/{name}/preview — returns silence audio
+  await page.route('**/api/voices/*/preview', (route, request) => {
+    if (request.method() === 'POST') {
+      route.fulfill({
+        status: 200,
+        contentType: 'audio/ogg',
+        body: silenceBuffer,
+      })
+      return
+    }
     route.fallback()
   })
 

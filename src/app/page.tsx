@@ -284,7 +284,7 @@ export default function Library() {
           </div>
         )}
 
-        {error && <div className="py-12 text-center text-red-600 dark:text-red-400">{error}</div>}
+        {error && <div className="text-destructive py-12 text-center">{error}</div>}
 
         {!loading && progressLoaded && pregenLoaded && !error && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

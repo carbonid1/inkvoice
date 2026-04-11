@@ -12,7 +12,7 @@ export const useVoices = () => {
 
   const fetchVoices = useCallback(async () => {
     try {
-      const response = await fetch('/api/voices')
+      const response = await fetch('/api/voices', { cache: 'no-store' })
       if (response.ok) {
         const data = await response.json()
         setVoices(data)

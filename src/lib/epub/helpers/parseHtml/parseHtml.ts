@@ -2,6 +2,7 @@ import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { JSDOM } from 'jsdom'
 import { getPlainText } from './helpers/getPlainText/getPlainText'
 import { isAttributionElement } from './helpers/isAttributionElement/isAttributionElement'
+import { isChapterMarker } from './helpers/isChapterMarker/isChapterMarker'
 import { isEpigraphElement } from './helpers/isEpigraphElement/isEpigraphElement'
 import { splitNodeIntoChunks } from './helpers/splitNodeIntoChunks/splitNodeIntoChunks'
 
@@ -98,6 +99,7 @@ const parseHtmlContentSync = async (
     }
 
     if (tag.match(/^h[1-6]$/)) {
+      if (isChapterMarker(getPlainText(el))) return
       const level = parseInt(tag[1] ?? '1', 10)
       const segments = toSegments(el)
       if (segments) content.push({ type: 'heading', level, segments })
@@ -116,6 +118,7 @@ const parseHtmlContentSync = async (
     }
 
     if (tag === 'p') {
+      if (isChapterMarker(getPlainText(el))) return
       const img = el.querySelector('img, image')
       if (img && !getPlainText(el).trim()) {
         processElement(img as Element)

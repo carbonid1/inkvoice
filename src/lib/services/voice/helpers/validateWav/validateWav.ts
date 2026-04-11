@@ -18,7 +18,7 @@ import { findWavChunk } from '../findWavChunk/findWavChunk'
 
 const MIN_HEADER_SIZE = 12
 const MIN_DURATION_SECONDS = 10
-const MAX_DURATION_SECONDS = 30
+const MAX_DURATION_SECONDS = 20
 
 export const validateWav = (buffer: Buffer): WavValidationResult => {
   if (buffer.length < MIN_HEADER_SIZE) {

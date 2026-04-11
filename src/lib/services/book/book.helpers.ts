@@ -6,7 +6,7 @@ import { join } from 'path'
  * Derive a book ID from a filename
  */
 export const getBookIdFromFilename = (filename: string): string => {
-  return filename.replace('.epub', '').replace(/[^a-zA-Z0-9-_]/g, '_')
+  return filename.replace('.epub', '').replace(/[^\p{L}\p{N}_-]/gu, '_')
 }
 
 const safeReaddir = async (dir: string): Promise<string[]> => {

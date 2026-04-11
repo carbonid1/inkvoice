@@ -263,9 +263,7 @@ export const PlayerContainer = ({
     <div className="border-border bg-background shrink-0 border-t px-4 py-2 shadow-[0_-1px_3px_rgba(0,0,0,0.05)] dark:shadow-[0_-1px_3px_rgba(0,0,0,0.3)]">
       <div className="relative mx-auto max-w-2xl">
         {audioPlayer.error && (
-          <div className="mb-2 text-center text-sm text-red-600 dark:text-red-400">
-            {audioPlayer.error}
-          </div>
+          <div className="text-destructive mb-2 text-center text-sm">{audioPlayer.error}</div>
         )}
 
         <PlaybackControls

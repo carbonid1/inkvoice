@@ -11,4 +11,5 @@ export type VoiceEntry = {
 export type VoiceMetadata = {
   displayName: string
   tags: string[]
+  language?: string
 }

@@ -49,10 +49,11 @@ model VoicePreference {
 }
 
 model VoiceMetadata {
-  name        String @id // slugified directory name
+  name        String  @id // slugified directory name
   displayName String
-  type        String // 'app' | 'custom'
-  tags        String @default("[]") // JSON: string[]
+  type        String  // 'app' | 'custom'
+  tags        String  @default("[]") // JSON: string[]
+  language    String? // ISO 639-1 code (e.g. "en", "ru", "uk"), null = auto-detect
   deletedAt   Int? // Unix timestamp ms, null = active
 }
 

@@ -87,9 +87,7 @@ export const DebugPanel = () => {
                         ` · ${samplingRates[job.bookId]?.toFixed(1)} it/s`}
                     </span>
                     {job.errorMessage && (
-                      <span className="truncate text-red-600 dark:text-red-400">
-                        {job.errorMessage}
-                      </span>
+                      <span className="text-destructive truncate">{job.errorMessage}</span>
                     )}
                   </div>
                 </div>
