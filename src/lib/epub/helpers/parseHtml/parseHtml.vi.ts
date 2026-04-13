@@ -320,3 +320,36 @@ describe('image parsing', () => {
     expect(content[0]?.type).toBe('paragraph')
   })
 })
+
+describe('scene break detection', () => {
+  it('should emit scene-break between paragraphs separated by empty <p>', async () => {
+    const html = '<body><p>Before.</p><p>&nbsp;</p><p>After.</p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content.map(b => b.type)).toEqual(['paragraph', 'scene-break', 'paragraph'])
+  })
+
+  it('should emit scene-break for <hr/>', async () => {
+    const html = '<body><p>Before.</p><hr/><p>After.</p></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content.map(b => b.type)).toEqual(['paragraph', 'scene-break', 'paragraph'])
+  })
+
+  it('should collapse consecutive breaks and drop leading/trailing breaks', async () => {
+    const html =
+      '<body><p>&nbsp;</p><p>Before.</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>After.</p><hr/></body>'
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content.map(b => b.type)).toEqual(['paragraph', 'scene-break', 'paragraph'])
+  })
+
+  it('should keep paragraph indices contiguous across a scene-break', async () => {
+    const html = '<body><p>Before.</p><p>&nbsp;</p><p>After.</p></body>'
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
+    const indices = content.flatMap(b => b.segments?.map(s => s.paragraphIndex) ?? [])
+
+    expect(indices).toEqual([0, 1])
+    expect(paragraphs).toHaveLength(2)
+  })
+})

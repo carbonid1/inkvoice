@@ -100,6 +100,9 @@ export const ContentBlock = ({
       )
     }
 
+    case 'scene-break':
+      return <div className="h-12" aria-hidden="true" />
+
     case 'image': {
       if (!block.src) return null
       const caption = block.alt && !isFilenameAlt(block.alt) ? block.alt : undefined

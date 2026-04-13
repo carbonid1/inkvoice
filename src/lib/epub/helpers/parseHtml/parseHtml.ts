@@ -4,6 +4,7 @@ import { getPlainText } from './helpers/getPlainText/getPlainText'
 import { isAttributionElement } from './helpers/isAttributionElement/isAttributionElement'
 import { isChapterMarker } from './helpers/isChapterMarker/isChapterMarker'
 import { isEpigraphElement } from './helpers/isEpigraphElement/isEpigraphElement'
+import { isSceneBreakParagraph } from './helpers/isSceneBreakParagraph/isSceneBreakParagraph'
 import { splitNodeIntoChunks } from './helpers/splitNodeIntoChunks/splitNodeIntoChunks'
 
 export { getInnerHtml } from './helpers/getInnerHtml/getInnerHtml'
@@ -53,6 +54,12 @@ const parseHtmlContentSync = async (
     })
   }
 
+  const pushSceneBreak = (): void => {
+    if (content.length === 0) return
+    if (content[content.length - 1]?.type === 'scene-break') return
+    content.push({ type: 'scene-break' })
+  }
+
   const processList = (listEl: Element, depth: number): void => {
     const items: TextSegment[][] = []
     listEl.querySelectorAll(':scope > li').forEach(li => {
@@ -91,6 +98,11 @@ const parseHtmlContentSync = async (
 
     if (['script', 'style', 'nav', 'header', 'footer'].includes(tag)) return
 
+    if (tag === 'hr') {
+      pushSceneBreak()
+      return
+    }
+
     if (tag === 'img' || tag === 'image') {
       const src = el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('xlink:href')
       const alt = el.getAttribute('alt') || ''
@@ -118,6 +130,10 @@ const parseHtmlContentSync = async (
     }
 
     if (tag === 'p') {
+      if (isSceneBreakParagraph(el)) {
+        pushSceneBreak()
+        return
+      }
       if (isChapterMarker(getPlainText(el))) return
       const img = el.querySelector('img, image')
       if (img && !getPlainText(el).trim()) {
@@ -159,6 +175,8 @@ const parseHtmlContentSync = async (
   }
 
   Array.from(body.children).forEach(child => processElement(child as Element))
+
+  while (content[content.length - 1]?.type === 'scene-break') content.pop()
 
   if (content.length === 0 && body.textContent?.trim()) {
     const segments = toSegments(body)
