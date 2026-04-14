@@ -32,7 +32,7 @@
   "main": "dist-electron/main.js",
   "dependencies": {
     "@base-ui/react": "^1.3.0",
-    "@carbonid1/design-system": "^0.1.0",
+    "@carbonid1/design-system": "^2.0.0",
     "@formkit/auto-animate": "^0.9.0",
     "@prisma/adapter-better-sqlite3": "^7.6.0",
     "@prisma/client": "^7.6.0",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@carbonid1/eslint-config": "^0.1.0",
-    "@carbonid1/prettier-config": "^0.1.0",
+    "@carbonid1/prettier-config": "^0.2.1",
     "@carbonid1/tailwind-config": "^0.3.0",
     "@carbonid1/tsconfig": "^0.1.0",
     "@playwright/cli": "^0.1.5",
