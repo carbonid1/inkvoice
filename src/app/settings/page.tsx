@@ -1,11 +1,10 @@
 'use client'
 
 import { PageHeader } from '@/components/PageHeader/PageHeader'
-import { Tooltip } from '@/components/Tooltip/Tooltip'
-import { buttonVariants } from '@/components/ui/Button/Button'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
 import { useVoiceStore } from '@/store/useVoiceStore'
+import { buttonVariants, Tooltip } from '@carbonid1/design-system'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'

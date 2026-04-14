@@ -1,9 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/Button/Button'
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { usePregenStore } from '@/store/usePregenStore'
+import { Button } from '@carbonid1/design-system'
 import { Download, Pause, Play, Trash2, X } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 

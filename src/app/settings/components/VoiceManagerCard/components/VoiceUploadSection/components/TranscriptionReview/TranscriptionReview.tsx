@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/Button/Button'
+import { Button } from '@carbonid1/design-system'
 import { Play } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'

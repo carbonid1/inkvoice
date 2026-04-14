@@ -6,6 +6,7 @@ const gitMessage = execSync('git log -1 --format=%s').toString().trim()
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  transpilePackages: ['@carbonid1/design-system'],
   serverExternalPackages: ['epub2'],
   outputFileTracingIncludes: {
     '/**': ['./generated/prisma/**', './node_modules/.prisma/**'],

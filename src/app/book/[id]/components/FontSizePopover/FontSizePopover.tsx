@@ -1,7 +1,7 @@
 'use client'
 
-import { Tooltip } from '@/components/Tooltip/Tooltip'
 import { useDisplayStore } from '@/store/useDisplayStore'
+import { Tooltip } from '@carbonid1/design-system'
 import { ALargeSmall } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'

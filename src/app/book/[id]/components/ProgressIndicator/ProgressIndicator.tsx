@@ -1,7 +1,7 @@
 'use client'
 
-import { Tooltip } from '@/components/Tooltip/Tooltip'
 import type { ChapterInfo } from '@/lib/types/book'
+import { Tooltip } from '@carbonid1/design-system'
 import { computeChapterPagePosition } from '../../helpers/computeChapterPagePosition/computeChapterPagePosition'
 import { computeChapterProgressPercent } from '../../helpers/computeChapterProgressPercent/computeChapterProgressPercent'
 import { shouldShowChapterProgress } from '../../helpers/shouldShowChapterProgress/shouldShowChapterProgress'

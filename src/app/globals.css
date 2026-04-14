@@ -1,114 +1,9 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@import '@carbonid1/tailwind-config/reader';
 
-@custom-variant dark (&:is(.dark *));
-
-/* --- Bridge semantic tokens to Tailwind --- */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary-muted: var(--primary-muted);
-  --color-primary-border: var(--primary-border);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-highlight: var(--highlight);
-  --color-highlight-foreground: var(--highlight-foreground);
-  --color-highlight-muted: var(--highlight-muted);
-  --color-attention: var(--attention);
-  --color-attention-foreground: var(--attention-foreground);
-  --color-attention-muted: var(--attention-muted);
-  --color-attention-border: var(--attention-border);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --font-serif: var(--font-literata), Georgia, Cambria, 'Times New Roman', Times, serif;
-  --radius: 0.625rem;
-  --animate-buffer-pulse: buffer-pulse 3s ease-in-out infinite;
-  --animate-ring-spin: ring-spin 5s linear infinite;
-  --animate-ring-drift: ring-spin 24s linear infinite;
-}
-
-/* --- Light mode tokens (outside @layer) --- */
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.546 0.245 262.881);
-  --primary-foreground: oklch(1 0 0);
-  --primary-muted: oklch(0.97 0.014 254);
-  --primary-border: oklch(0.882 0.059 254);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --highlight: oklch(0.901 0.082 85.84);
-  --highlight-foreground: oklch(0.344 0.06 58.6);
-  --highlight-muted: oklch(0.962 0.042 95.28);
-  --attention: oklch(0.769 0.188 70.08);
-  --attention-foreground: oklch(0.473 0.137 46.2);
-  --attention-muted: oklch(0.987 0.022 95.28);
-  --attention-border: oklch(0.913 0.076 95.97);
-  --success: oklch(0.62 0.19 149);
-  --success-foreground: oklch(0.42 0.12 149);
-}
-
-/* --- Dark mode tokens (outside @layer) --- */
-.dark {
-  --background: oklch(0.21 0.032 265);
-  --foreground: oklch(0.967 0.003 265);
-  --card: oklch(0.278 0.03 257);
-  --card-foreground: oklch(0.967 0.003 265);
-  --popover: oklch(0.278 0.03 257);
-  --popover-foreground: oklch(0.967 0.003 265);
-  --primary: oklch(0.78 0.13 256);
-  --primary-foreground: oklch(1 0 0);
-  --primary-muted: oklch(0.282 0.091 267 / 0.2);
-  --primary-border: oklch(0.393 0.155 264);
-  --secondary: oklch(0.373 0.031 260);
-  --secondary-foreground: oklch(0.967 0.003 265);
-  --muted: oklch(0.373 0.031 260);
-  --muted-foreground: oklch(0.714 0.019 261);
-  --accent: oklch(0.446 0.026 257);
-  --accent-foreground: oklch(0.967 0.003 265);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.373 0.031 260 / 50%);
-  --input: oklch(0.373 0.031 260 / 60%);
-  --ring: oklch(0.551 0.023 264);
-  --highlight: oklch(0.55 0.07 268);
-  --highlight-foreground: oklch(0.95 0.02 265);
-  --highlight-muted: oklch(0.3 0.04 265);
-  --attention: oklch(0.82 0.19 84);
-  --attention-foreground: oklch(0.913 0.076 95.97);
-  --attention-muted: oklch(0.414 0.112 45.9 / 0.2);
-  --attention-border: oklch(0.555 0.163 49);
-  --success: oklch(0.62 0.19 149);
-  --success-foreground: oklch(0.82 0.1 149);
-}
-
-/* --- Keyframes (moved from tailwind.config.ts) --- */
+/* InkVoice-specific keyframes */
 @keyframes fade-scale-in {
   0% {
     opacity: 0;
@@ -120,23 +15,7 @@
   }
 }
 
-@keyframes ring-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes buffer-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-/* --- Base styles --- */
+/* Base styles */
 html {
   color-scheme: light dark;
 }

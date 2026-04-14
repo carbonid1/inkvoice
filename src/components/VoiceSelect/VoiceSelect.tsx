@@ -1,8 +1,8 @@
 'use client'
 
-import { Select } from '@/components/Select/Select'
-import type { SelectGroup, SelectOption } from '@/components/Select/Select.types'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
+import type { SelectGroup, SelectOption } from '@carbonid1/design-system'
+import { Select } from '@carbonid1/design-system'
 import { useCallback, useMemo } from 'react'
 
 type VoiceSelectProps = {

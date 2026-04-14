@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/Button/Button'
+import { Button } from '@carbonid1/design-system'
 import { Copy, RefreshCw } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 

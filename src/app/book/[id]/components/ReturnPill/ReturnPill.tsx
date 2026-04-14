@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/Button/Button'
+import { Button } from '@carbonid1/design-system'
 import { Undo2, X } from 'lucide-react'
 import type { ReturnPillProps } from './ReturnPill.types'
 

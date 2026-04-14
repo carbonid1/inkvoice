@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/Button/Button'
+import { Button } from '@carbonid1/design-system'
 import { X } from 'lucide-react'
 
 type RecoveryBannerProps = {

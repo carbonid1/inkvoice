@@ -1,8 +1,7 @@
 'use client'
 
-import { Tooltip } from '@/components/Tooltip/Tooltip'
-import { Button } from '@/components/ui/Button/Button'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
+import { Button, Tooltip } from '@carbonid1/design-system'
 import { Pencil, Play, Square, Volume2, X } from 'lucide-react'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
 import { VoiceTagList } from '../../VoiceTagList/VoiceTagList'

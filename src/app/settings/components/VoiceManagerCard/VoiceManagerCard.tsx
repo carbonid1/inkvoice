@@ -1,9 +1,9 @@
 'use client'
 
-import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useVoiceStore } from '@/store/useVoiceStore'
+import { getModKey } from '@carbonid1/design-system'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'

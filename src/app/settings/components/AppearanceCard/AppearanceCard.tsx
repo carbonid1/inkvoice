@@ -1,8 +1,7 @@
 'use client'
 
-import { Select } from '@/components/Select/Select'
-import type { SelectOption, SelectOptionState } from '@/components/Select/Select.types'
-import { Kbd } from '@/components/ui/Kbd/Kbd'
+import type { SelectOption, SelectOptionState } from '@carbonid1/design-system'
+import { Kbd, Select } from '@carbonid1/design-system'
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useSyncExternalStore } from 'react'

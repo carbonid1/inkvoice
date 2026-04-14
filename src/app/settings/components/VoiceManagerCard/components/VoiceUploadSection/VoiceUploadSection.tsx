@@ -1,8 +1,7 @@
 'use client'
 
-import { Select } from '@/components/Select/Select'
-import { Button } from '@/components/ui/Button/Button'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
+import { Button, Select } from '@carbonid1/design-system'
 import { Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'

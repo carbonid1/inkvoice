@@ -1,11 +1,9 @@
 'use client'
 
-import { Tooltip } from '@/components/Tooltip/Tooltip'
-import { Button } from '@/components/ui/Button/Button'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
-import { getModKey } from '@/lib/helpers/getModKey/getModKey'
 import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
+import { Button, getModKey, Tooltip } from '@carbonid1/design-system'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'

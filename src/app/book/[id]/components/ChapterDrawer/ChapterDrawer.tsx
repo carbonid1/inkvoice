@@ -1,8 +1,7 @@
 'use client'
 
-import { Tooltip } from '@/components/Tooltip/Tooltip'
-import { Button } from '@/components/ui/Button/Button'
 import type { TocNode } from '@/lib/types/book'
+import { Button, Tooltip } from '@carbonid1/design-system'
 import { ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'

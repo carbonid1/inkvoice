@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/Button/Button'
+import { Button } from '@carbonid1/design-system'
 import { useHotkeys } from 'react-hotkeys-hook'
 import type { ChapterEndModalProps } from './ChapterEndModal.types'
 

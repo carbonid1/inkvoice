@@ -1,22 +1,8 @@
-import nextVitals from 'eslint-config-next/core-web-vitals'
-import nextTs from 'eslint-config-next/typescript'
-import eslintConfigPrettier from 'eslint-config-prettier'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import sharedConfig from '@carbonid1/eslint-config/nextjs'
+import { globalIgnores } from 'eslint/config'
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  {
-    rules: {
-      'no-console': ['error', { allow: ['warn', 'error'] }],
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': 'off',
-      'import/newline-after-import': 'error',
-      'react-hooks/exhaustive-deps': 'error',
-      '@next/next/no-img-element': 'off',
-    },
-  },
-  eslintConfigPrettier,
+const config = [
+  ...sharedConfig,
   globalIgnores([
     '.next/**',
     'out/**',
@@ -33,6 +19,6 @@ const eslintConfig = defineConfig([
     'dist/**',
     'dist-*/**',
   ]),
-])
+]
 
-export default eslintConfig
+export default config
