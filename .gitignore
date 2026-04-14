@@ -66,3 +66,6 @@ playwright-report/
 
 # E2E test data
 .e2e-data/
+
+# Claude Code session locks
+.claude/scheduled_tasks.lock
