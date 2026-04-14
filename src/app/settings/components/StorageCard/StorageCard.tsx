@@ -2,10 +2,9 @@
 
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
-import { Button, Slider } from '@carbonid1/design-system'
+import { Button, Slider, toast } from '@carbonid1/design-system'
 import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { toast } from 'sonner'
 import { useCacheStats } from './hooks/useCacheStats/useCacheStats'
 
 const GB = 1024 * 1024 * 1024

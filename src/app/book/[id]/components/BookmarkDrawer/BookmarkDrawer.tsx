@@ -3,12 +3,11 @@
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
 import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
-import { Button, getModKey, Tooltip } from '@carbonid1/design-system'
+import { Button, getModKey, toast, Tooltip } from '@carbonid1/design-system'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { toast } from 'sonner'
 import type { BookmarkDrawerProps } from './BookmarkDrawer.types'
 
 const EMPTY_BOOKMARKS: Bookmark[] = []

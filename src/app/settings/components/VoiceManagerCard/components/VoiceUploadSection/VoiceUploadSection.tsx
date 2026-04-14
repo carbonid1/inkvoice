@@ -1,11 +1,10 @@
 'use client'
 
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
-import { Button, Select } from '@carbonid1/design-system'
+import { Button, Select, toast } from '@carbonid1/design-system'
 import { Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 import { TranscriptionReview } from './components/TranscriptionReview/TranscriptionReview'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
 import { useSamplePolling } from './hooks/useSamplePolling/useSamplePolling'

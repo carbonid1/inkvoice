@@ -1,9 +1,8 @@
 'use client'
 
 import type { SelectOption, SelectOptionState } from '@carbonid1/design-system'
-import { Kbd, Select } from '@carbonid1/design-system'
+import { Kbd, Select, useTheme } from '@carbonid1/design-system'
 import { Monitor, Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { useSyncExternalStore } from 'react'
 
 type ThemeOption = SelectOption & { icon: typeof Sun }
