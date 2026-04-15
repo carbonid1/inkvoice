@@ -22,12 +22,17 @@ bash scripts/build-python.sh
 # Step 3: Build Next.js standalone
 echo -e "\n${YELLOW}[3/5] Building Next.js...${NC}"
 pnpx prisma generate
+
+# Nuke all caches and prior build outputs before building.
+# Without this, Next.js output file tracing picks up the previous dist-nextjs/
+# and bundles it recursively, nesting the entire build inside itself each run.
+rm -rf .next dist-nextjs dist
+
 pnpm build
 
 # Prepare the standalone output with static files
 # Use rsync -aL to dereference pnpm symlinks (critical for portable node_modules)
 echo -e "${YELLOW}       Preparing standalone bundle...${NC}"
-rm -rf dist-nextjs
 rsync -aL --ignore-errors .next/standalone/ dist-nextjs/ 2>/dev/null || true
 rsync -aL .next/static/ dist-nextjs/.next/static/
 rsync -aL public/ dist-nextjs/public/
