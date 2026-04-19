@@ -1,0 +1,25 @@
+{
+  "env": {
+    "CLAUDE_CODE_TASK_LIST_ID": "default"
+  },
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/setup-worktree.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "core@carbonid1": true,
+    "tdd@carbonid1": true,
+    "design-system@carbonid1": true,
+    "todo@carbonid1": true
+  }
+}
