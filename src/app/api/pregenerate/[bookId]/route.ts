@@ -1,6 +1,9 @@
 import { getBookService } from '@/lib/services/book/book.service'
+import { getCacheService } from '@/lib/services/cache/cache.service'
+import { checkBudget } from '@/lib/services/cache/helpers/checkBudget/checkBudget'
 import { pregenEvents } from '@/lib/services/pregenEvents/pregenEvents.service'
 import { pregenQueueService } from '@/lib/services/pregenQueue/pregenQueue.service'
+import { computePregenEstimate } from '@/lib/services/pregeneration/helpers/computePregenEstimate/computePregenEstimate'
 import { pregenWorker, signalStop } from '@/lib/services/pregeneration/pregeneration.service'
 import { voicePreferenceService } from '@/lib/services/voice-preference/voice-preference.service'
 import { NextRequest, NextResponse } from 'next/server'
@@ -33,7 +36,30 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
     }
 
     const totalParagraphs = overview.chapters.reduce((sum, ch) => sum + ch.paragraphCount, 0)
+    const totalWords = overview.chapters.reduce((sum, ch) => sum + ch.wordCount, 0)
     const voice = voicePrefs.bookVoices[bookId] ?? voicePrefs.voice
+
+    const cacheService = getCacheService()
+    const [cachedParagraphs, stats] = await Promise.all([
+      cacheService.countBookVoiceEntries(bookId, voice),
+      cacheService.getStats(),
+    ])
+
+    const { estimatedSizeBytes } = computePregenEstimate({
+      totalParagraphs,
+      totalWords,
+      cachedParagraphs,
+    })
+
+    const budget = checkBudget({
+      usedBytes: stats.usedBytes,
+      maxBytes: stats.maxBytes,
+      estimatedBytes: estimatedSizeBytes,
+    })
+
+    if (!budget.ok) {
+      return NextResponse.json({ error: 'Cache budget exceeded', budget }, { status: 409 })
+    }
 
     const job = await pregenQueueService.enqueue(bookId, voice, totalParagraphs, startChapter)
 

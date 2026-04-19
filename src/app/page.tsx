@@ -86,6 +86,7 @@ export default function Library() {
               cachedParagraphs: data.cachedParagraphs,
               estimatedSizeBytes: data.estimatedSizeBytes,
               estimatedGenerationMinutes: data.estimatedGenerationMinutes,
+              budget: data.budget,
             },
           }
         }),

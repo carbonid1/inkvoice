@@ -1,13 +1,11 @@
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
+import { checkBudget } from '@/lib/services/cache/helpers/checkBudget/checkBudget'
+import { computePregenEstimate } from '@/lib/services/pregeneration/helpers/computePregenEstimate/computePregenEstimate'
 import { voicePreferenceService } from '@/lib/services/voice-preference/voice-preference.service'
 import { NextRequest, NextResponse } from 'next/server'
 
 type RouteParams = { params: Promise<{ bookId: string }> }
-
-const WORDS_PER_MINUTE = 150
-const OPUS_MB_PER_HOUR = 17
-const AVG_SECONDS_PER_PARAGRAPH = 8
 
 export const GET = async (_request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
@@ -27,21 +25,28 @@ export const GET = async (_request: NextRequest, { params }: RouteParams) => {
 
   const voice = voicePrefs.bookVoices[bookId] ?? voicePrefs.voice
   const cacheService = getCacheService()
-  const cachedParagraphs = await cacheService.countBookVoiceEntries(bookId, voice)
-  const remainingParagraphs = Math.max(0, totalParagraphs - cachedParagraphs)
+  const [cachedParagraphs, stats] = await Promise.all([
+    cacheService.countBookVoiceEntries(bookId, voice),
+    cacheService.getStats(),
+  ])
 
-  const wordsPerParagraph = totalParagraphs > 0 ? totalWords / totalParagraphs : 0
-  const remainingWords = remainingParagraphs * wordsPerParagraph
-  const remainingHours = remainingWords / (WORDS_PER_MINUTE * 60)
-  const estimatedSizeBytes = Math.round(remainingHours * OPUS_MB_PER_HOUR * 1024 * 1024)
-  const estimatedGenerationMinutes = Math.round(
-    (remainingParagraphs * AVG_SECONDS_PER_PARAGRAPH) / 60,
-  )
+  const { estimatedSizeBytes, estimatedGenerationMinutes } = computePregenEstimate({
+    totalParagraphs,
+    totalWords,
+    cachedParagraphs,
+  })
+
+  const budget = checkBudget({
+    usedBytes: stats.usedBytes,
+    maxBytes: stats.maxBytes,
+    estimatedBytes: estimatedSizeBytes,
+  })
 
   return NextResponse.json({
     totalParagraphs,
     cachedParagraphs,
     estimatedSizeBytes,
     estimatedGenerationMinutes,
+    budget,
   })
 }

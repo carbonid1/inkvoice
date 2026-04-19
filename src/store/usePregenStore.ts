@@ -1,3 +1,4 @@
+import type { BudgetCheck } from '@/lib/services/cache/helpers/checkBudget/checkBudget'
 import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { create } from 'zustand'
 
@@ -6,6 +7,7 @@ export type Estimate = {
   cachedParagraphs: number
   estimatedSizeBytes: number
   estimatedGenerationMinutes: number
+  budget: BudgetCheck
 }
 
 type PregenState = {

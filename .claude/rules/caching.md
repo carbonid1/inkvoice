@@ -4,7 +4,7 @@
 
 | Layer                | Type               | Location                | Eviction             | Key                            |
 | -------------------- | ------------------ | ----------------------- | -------------------- | ------------------------------ |
-| TTS audio            | Disk (SHA256)      | `data/cache/tts/*.opus` | LRU, 800 MB          | `sha256(text + '\|' + voice)`  |
+| TTS audio            | Disk (SHA256)      | `data/cache/tts/*.opus` | User-initiated only  | `sha256(text + '\|' + voice)`  |
 | Parsed books         | In-memory Map      | `BookService` singleton | FIFO, 5 books        | Book ID                        |
 | Prefetch tracking    | In-memory Set      | `usePrefetchQueue` refs | On unmount           | `{chapter}_{sentence}_{voice}` |
 | Reading progress     | SQLite             | `data/inkvoice-dev.db`  | Never                | Book ID                        |
@@ -16,10 +16,17 @@
 **Service:** `src/lib/services/cache/cache.service.ts` (singleton)
 
 - Key: `sha256(text.trim() + '|' + (voice || 'narrator'))` → `data/cache/tts/{hash}.opus`
-- Metadata: `data/cache/tts/metadata.json` (size, access times, creation times)
-- Max size: 800 MB default, configurable via `INKVOICE_MAX_CACHE_SIZE_MB`
-- Updates `lastAccess` on hits for LRU ordering
+- Metadata: `data/cache/tts/metadata.json` (size, creation times, book/voice tags)
+- Max size: 10 GB default, configurable via `INKVOICE_MAX_CACHE_SIZE_MB` or in Settings
 - Env config: `src/lib/config/env.ts` (`INKVOICE_CACHE_DIR`, `INKVOICE_MAX_CACHE_SIZE_MB`)
+
+### Budget Policy
+
+Under the pre-generation-first UX, the cache behaves as a user-curated library, not an opportunistic cache. There is **no automatic eviction** — nothing disappears from disk unless the user explicitly clears it.
+
+- **Pregen trigger is the single enforcement point.** `POST /api/pregenerate/[bookId]` runs a preflight check (`checkBudget` helper with 15% padding). If the book's estimated size plus current usage would exceed the budget, the route returns `409` with a `budget` payload describing the shortfall, and the context-menu item renders disabled with a tooltip pointing to Settings.
+- **On-demand TTS writes (during playback) bypass the budget.** `/api/tts/[bookId]/[chapter]/[paragraph]` always persists new entries. Playback is never blocked by cache state; over-budget growth from voice switches or read-ahead surfaces in Settings where users can free space manually.
+- **Clearing a book's cache also cancels its pregen job.** `DELETE /api/cache/tts/[bookId]` removes opus files, deletes any `PregenJob` row for the book, and emits an SSE `deleted` event so the progress ring disappears on connected clients.
 
 ## TTS Route Cache Flow
 

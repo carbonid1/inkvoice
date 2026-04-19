@@ -11,10 +11,6 @@ const mockDiskSpace = vi.hoisted(() => ({
   getAvailableSpace: vi.fn(),
 }))
 
-const mockProgressService = vi.hoisted(() => ({
-  getAll: vi.fn().mockResolvedValue({}),
-}))
-
 const mockSettingsService = vi.hoisted(() => ({
   get: vi.fn().mockResolvedValue(null),
   set: vi.fn().mockResolvedValue(undefined),
@@ -22,9 +18,6 @@ const mockSettingsService = vi.hoisted(() => ({
 
 vi.mock('fs/promises', () => ({ default: mockFs }))
 vi.mock('@/lib/services/platform/diskSpace', () => ({ diskSpaceService: mockDiskSpace }))
-vi.mock('@/lib/services/progress/progress.service', () => ({
-  progressService: mockProgressService,
-}))
 vi.mock('@/lib/services/settings/settings.service', () => ({
   settingsService: mockSettingsService,
 }))
@@ -185,9 +178,8 @@ describe('TTSCacheService', () => {
     })
   })
 
-  describe('eviction priority', () => {
-    it('evicts finished-book entries before non-finished ones', async () => {
-      // Small effective max to trigger eviction easily
+  describe('no auto-eviction', () => {
+    it('keeps all entries even when writes exceed effective max', async () => {
       mockDiskSpace.getAvailableSpace.mockResolvedValue({
         available: 200,
         total: 1000,
@@ -195,39 +187,21 @@ describe('TTSCacheService', () => {
       })
       // effective max = min(10GB, 200 * 0.9) = 180 bytes
 
-      // finished-book at 99%+, unfinished-book at 40%
-      mockProgressService.getAll.mockResolvedValue({
-        'finished-book': {
-          chapter: 9,
-          paragraph: 50,
-          paragraphsPerChapter: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
-        },
-        'unfinished-book': {
-          chapter: 2,
-          paragraph: 0,
-          paragraphsPerChapter: [50, 50, 50, 50, 50],
-        },
-      })
-
       const service = getCacheService()
 
-      // Seed two entries (80 bytes each = 160 total, under 180 max)
-      await service.set('finished text', 'voice', Buffer.alloc(80), 'finished-book')
-      await service.set('unfinished text', 'voice', Buffer.alloc(80), 'unfinished-book')
+      await service.set('text 1', 'voice', Buffer.alloc(80), 'book-a')
+      await service.set('text 2', 'voice', Buffer.alloc(80), 'book-b')
+      // This write would push usage to 240, over the 180 ceiling — but we no
+      // longer evict, so the entry must persist.
+      await service.set('text 3', 'voice', Buffer.alloc(80), 'book-c')
 
-      // Adding 80 more would make total 240, exceeding 180 max → triggers eviction
-      await service.set('new text', 'voice', Buffer.alloc(80), 'other-book')
-
-      // The finished-book entry should have been evicted (its .opus file deleted)
       const unlinkCalls = mockFs.unlink.mock.calls.map(([p]: [string]) => p)
-      const evictedOpus = unlinkCalls.filter((p: string) => p.endsWith('.opus'))
-
-      // Should have evicted exactly one .opus file (the finished book's)
-      expect(evictedOpus.length).toBeGreaterThanOrEqual(1)
+      expect(unlinkCalls.filter((p: string) => p.endsWith('.opus'))).toEqual([])
 
       const stats = await service.getStats()
-      // After eviction: 80 (unfinished) + 80 (new) = 160
-      expect(stats.usedBytes).toBe(160)
+      expect(stats.usedBytes).toBe(240)
+      const bookStats = await service.getBookStats()
+      expect(bookStats.map(s => s.bookId).sort()).toEqual(['book-a', 'book-b', 'book-c'])
     })
   })
 })

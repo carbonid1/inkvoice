@@ -14,6 +14,7 @@ const refetchEstimate = async (bookId: string) => {
       cachedParagraphs: data.cachedParagraphs,
       estimatedSizeBytes: data.estimatedSizeBytes,
       estimatedGenerationMinutes: data.estimatedGenerationMinutes,
+      budget: data.budget,
     })
   } catch {
     // Estimate refresh is best-effort

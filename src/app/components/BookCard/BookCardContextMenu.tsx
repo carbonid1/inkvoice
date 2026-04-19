@@ -3,7 +3,7 @@
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { usePregenStore } from '@/store/usePregenStore'
-import { Button } from '@carbonid1/design-system'
+import { Button, Tooltip, toast } from '@carbonid1/design-system'
 import { Download, Pause, Play, Trash2, X } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
@@ -61,6 +61,13 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
     if (response.ok) {
       const newJob = await response.json()
       usePregenStore.getState().updateJob(newJob)
+    } else if (response.status === 409) {
+      const body = await response.json().catch(() => ({}))
+      if (body?.budget?.ok === false) {
+        toast('Cache full', {
+          description: `Free ${formatBytes(body.budget.shortfallBytes)} in Settings or raise the cache limit.`,
+        })
+      }
     }
     onClose()
   }
@@ -99,6 +106,9 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
     estimate.totalParagraphs > 0
   const showPregenItem = !job && !isFullyCached
   const hasCachedContent = estimate && estimate.cachedParagraphs > 0
+  const overBudget = estimate && !estimate.budget.ok
+  const shortfallLabel =
+    estimate && !estimate.budget.ok ? formatBytes(estimate.budget.shortfallBytes) : null
 
   const estimateLabel =
     estimate && showPregenItem
@@ -114,10 +124,24 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
     >
       {showPregenItem && (
         <div>
-          <Button role="menuitem" size="small" fullWidth onClick={handleStart}>
-            <Download />
-            {hasCachedContent ? 'Resume Generation' : 'Pre-generate Audio'}
-          </Button>
+          {overBudget ? (
+            <Tooltip
+              label={`Free ${shortfallLabel} in Settings or raise the cache limit.`}
+              position="bottom"
+            >
+              <div>
+                <Button role="menuitem" size="small" fullWidth disabled>
+                  <Download />
+                  {hasCachedContent ? 'Resume Generation' : 'Pre-generate Audio'}
+                </Button>
+              </div>
+            </Tooltip>
+          ) : (
+            <Button role="menuitem" size="small" fullWidth onClick={handleStart}>
+              <Download />
+              {hasCachedContent ? 'Resume Generation' : 'Pre-generate Audio'}
+            </Button>
+          )}
           {estimateLabel && (
             <p className="text-muted-foreground px-3 pb-1 text-xs">{estimateLabel}</p>
           )}

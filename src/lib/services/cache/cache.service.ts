@@ -1,7 +1,5 @@
 import { env } from '@/lib/config/env'
-import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { diskSpaceService } from '@/lib/services/platform/diskSpace'
-import { progressService } from '@/lib/services/progress/progress.service'
 import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
 import { settingsService } from '@/lib/services/settings/settings.service'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
@@ -14,10 +12,8 @@ import type { CacheService } from './cache.types'
 
 const METADATA_FILE = 'metadata.json'
 const DISK_SAFETY_MARGIN = 0.1
-const FINISHED_THRESHOLD = 99
 
 interface CacheEntry {
-  lastAccess: number
   size: number
   createdAt: number
   bookId?: string
@@ -124,13 +120,7 @@ class TTSCacheService implements CacheService {
     const filePath = path.join(this.cacheDir, `${hash}.opus`)
 
     try {
-      const buffer = await fs.readFile(filePath)
-
-      entry.lastAccess = Date.now()
-      // Fire-and-forget — don't block reads on metadata persistence
-      this.saveMetadata()
-
-      return buffer
+      return await fs.readFile(filePath)
     } catch {
       delete this.metadata.entries[hash]
       this.metadata.totalSize -= entry.size
@@ -152,15 +142,10 @@ class TTSCacheService implements CacheService {
     const filePath = path.join(this.cacheDir, `${hash}.opus`)
     const size = audio.length
 
-    if (this.metadata.totalSize + size > this.effectiveMaxBytes) {
-      await this.evict(size, bookId, voice)
-    }
-
     try {
       await fs.writeFile(filePath, audio)
 
       this.metadata.entries[hash] = {
-        lastAccess: Date.now(),
         size,
         createdAt: Date.now(),
         bookId,
@@ -293,18 +278,6 @@ class TTSCacheService implements CacheService {
     return freed
   }
 
-  private async getFinishedBookIds(): Promise<Set<string>> {
-    const allProgress = await progressService.getAll()
-    const finished = new Set<string>()
-    for (const [bookId, progress] of Object.entries(allProgress)) {
-      const percent = computeProgressPercent(progress)
-      if (percent !== null && percent >= FINISHED_THRESHOLD) {
-        finished.add(bookId)
-      }
-    }
-    return finished
-  }
-
   private async clampToDisk(requestedBytes: number): Promise<number> {
     try {
       const diskInfo = await diskSpaceService.getAvailableSpace(this.cacheDir)
@@ -321,40 +294,6 @@ class TTSCacheService implements CacheService {
     await Promise.all(Object.keys(this.metadata.entries).map(hash => this.deleteFiles(hash)))
 
     this.metadata = { totalSize: 0, entries: {} }
-    await this.saveMetadata()
-  }
-
-  private async evict(
-    bytesNeeded: number,
-    activeBookId?: string,
-    activeVoice?: string,
-  ): Promise<void> {
-    const allEntries = Object.entries(this.metadata.entries)
-    const finishedBooks = await this.getFinishedBookIds()
-
-    const isActive = (e: CacheEntry) =>
-      activeBookId !== undefined && e.bookId === activeBookId && e.voice === activeVoice
-    const isFinished = (e: CacheEntry) => e.bookId !== undefined && finishedBooks.has(e.bookId)
-
-    const sortLRU = (entries: [string, CacheEntry][]) =>
-      entries.sort((a, b) => a[1].lastAccess - b[1].lastAccess)
-
-    // 3-tier eviction: finished books → other non-active → active book
-    const finished = sortLRU(allEntries.filter(([, e]) => !isActive(e) && isFinished(e)))
-    const other = sortLRU(allEntries.filter(([, e]) => !isActive(e) && !isFinished(e)))
-    const active = sortLRU(allEntries.filter(([, e]) => isActive(e)))
-    const evictionOrder = [...finished, ...other, ...active]
-
-    let freed = 0
-    for (const [hash, entry] of evictionOrder) {
-      if (freed >= bytesNeeded) break
-
-      await this.deleteFiles(hash)
-      delete this.metadata.entries[hash]
-      freed += entry.size
-    }
-
-    this.metadata.totalSize -= freed
     await this.saveMetadata()
   }
 }
