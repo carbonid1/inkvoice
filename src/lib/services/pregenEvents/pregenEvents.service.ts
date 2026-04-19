@@ -4,10 +4,12 @@ type PregenEventBus = {
   on: (listener: PregenEventListener) => void
   off: (listener: PregenEventListener) => void
   emit: (event: PregenEvent) => void
+  getWarmingUpBookId: () => string | null
 }
 
 const createPregenEvents = (): PregenEventBus => {
   const listeners = new Set<PregenEventListener>()
+  const state = { warmingUpBookId: null as string | null }
 
   return {
     on: listener => {
@@ -17,10 +19,13 @@ const createPregenEvents = (): PregenEventBus => {
       listeners.delete(listener)
     },
     emit: event => {
+      if (event.type === 'warmup_start') state.warmingUpBookId = event.bookId
+      else if (event.type === 'warmup_complete') state.warmingUpBookId = null
       for (const listener of listeners) {
         listener(event)
       }
     },
+    getWarmingUpBookId: () => state.warmingUpBookId,
   }
 }
 

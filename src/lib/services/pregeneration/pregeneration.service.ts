@@ -9,14 +9,17 @@ import { getTTSService } from '@/lib/services/tts/tts.server'
 import { PREGEN_JOB_STATUS, type PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 
-const WARMUP_TIMEOUT_MS = 180_000
-const POLL_INTERVAL_MS = 5000
-const MIN_DISK_FREE_BYTES = 2 * 1024 * 1024 * 1024 // 2 GB
-const CACHED_SKIP_EMIT_INTERVAL = 10
-const DISK_CHECK_INTERVAL = 50
-const MAX_RETRIES_PER_PARAGRAPH = 5
-const BASE_BACKOFF_MS = 2_000
-const MAX_BACKOFF_MS = 30_000
+import {
+  BASE_BACKOFF_MS,
+  CACHED_SKIP_EMIT_INTERVAL,
+  DISK_CHECK_INTERVAL,
+  MAX_BACKOFF_MS,
+  MAX_RETRIES_PER_PARAGRAPH,
+  MIN_DISK_FREE_BYTES,
+  POLL_INTERVAL_MS,
+  WARMUP_TEXT,
+  WARMUP_TIMEOUT_MS,
+} from './pregeneration.consts'
 
 const getBackoffMs = (attempt: number): number =>
   Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS)
@@ -71,17 +74,18 @@ const emitJob = (job: PregenJob, samplingRate?: number): void => {
   pregenEvents.emit({ type: 'update', job, samplingRate })
 }
 
-const warmUpTTS = async (): Promise<void> => {
+const warmUpTTS = async (bookId: string): Promise<void> => {
   if (state.ttsWarmedUp) return
   console.warn('[pregen] Warming up TTS model...')
   const start = Date.now()
+  pregenEvents.emit({ type: 'warmup_start', bookId })
   while (!state.ttsWarmedUp) {
     try {
       const response = await fetch(env.ttsApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: 'The morning sun cast long shadows across the cobblestone street as the old merchant opened his shop for the first time in years. Dust motes danced in the golden light that streamed through the windows, illuminating rows of forgotten treasures on the shelves. He paused for a moment, breathing in the familiar scent of aged wood and leather, remembering the countless customers who had once filled this space with laughter and conversation. Today would be different, he told himself, adjusting the sign that hung crookedly above the door.',
+          text: WARMUP_TEXT,
           voice: DEFAULT_VOICE,
         }),
         signal: AbortSignal.timeout(WARMUP_TIMEOUT_MS),
@@ -93,6 +97,7 @@ const warmUpTTS = async (): Promise<void> => {
       await sleep(5_000)
     }
   }
+  pregenEvents.emit({ type: 'warmup_complete', bookId })
   console.warn(`[pregen] TTS ready (${((Date.now() - start) / 1000).toFixed(1)}s)`)
 }
 
@@ -105,7 +110,7 @@ const processLoop = async (myLoopId: number): Promise<void> => {
         continue
       }
 
-      await warmUpTTS()
+      await warmUpTTS(job.bookId)
       await processJob(job, myLoopId)
     } catch {
       await sleep(1000)

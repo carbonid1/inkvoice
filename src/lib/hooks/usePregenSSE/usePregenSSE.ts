@@ -26,6 +26,7 @@ export const usePregenSSE = () => {
   const updateJob = usePregenStore(s => s.updateJob)
   const removeJob = usePregenStore(s => s.removeJob)
   const setSamplingRate = usePregenStore(s => s.setSamplingRate)
+  const setWarmingUp = usePregenStore(s => s.setWarmingUp)
 
   useEffect(() => {
     const eventSource = new EventSource('/api/pregenerate/events')
@@ -49,14 +50,24 @@ export const usePregenSSE = () => {
       refetchEstimate(data.bookId)
     })
 
+    eventSource.addEventListener('warmup_start', (e: MessageEvent) => {
+      const data: { type: 'warmup_start'; bookId: string } = JSON.parse(e.data)
+      setWarmingUp(data.bookId)
+    })
+
+    eventSource.addEventListener('warmup_complete', () => {
+      setWarmingUp(null)
+    })
+
     eventSource.onerror = () => {
       if (usePregenStore.getState().loaded) {
         usePregenStore.setState({ loaded: false })
       }
+      setWarmingUp(null)
     }
 
     return () => {
       eventSource.close()
     }
-  }, [setJobs, updateJob, removeJob, setSamplingRate])
+  }, [setJobs, updateJob, removeJob, setSamplingRate, setWarmingUp])
 }

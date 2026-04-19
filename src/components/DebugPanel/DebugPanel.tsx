@@ -21,10 +21,16 @@ const STATUS_LABELS: Record<PregenJobStatus, { label: string; className: string 
   },
 }
 
+const WARMING_UP_LABEL = {
+  label: 'Warming up',
+  className: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+}
+
 export const DebugPanel = () => {
   const [open, setOpen] = useState(false)
   const jobs = usePregenStore(s => s.jobs)
   const samplingRates = usePregenStore(s => s.samplingRates)
+  const warmingUpBookId = usePregenStore(s => s.warmingUpBookId)
   const books = useLibraryStore(s => s.books)
 
   const toggle = useCallback(() => setOpen(prev => !prev), [])
@@ -61,7 +67,8 @@ export const DebugPanel = () => {
         ) : (
           <div className="space-y-1">
             {jobList.map(job => {
-              const status = STATUS_LABELS[job.status]
+              const status =
+                warmingUpBookId === job.bookId ? WARMING_UP_LABEL : STATUS_LABELS[job.status]
               return (
                 <div
                   key={job.id}

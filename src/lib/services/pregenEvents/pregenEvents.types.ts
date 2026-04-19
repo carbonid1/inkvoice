@@ -11,6 +11,20 @@ export type PregenDeletedEvent = {
   bookId: string
 }
 
-export type PregenEvent = PregenUpdateEvent | PregenDeletedEvent
+export type PregenWarmupStartEvent = {
+  type: 'warmup_start'
+  bookId: string
+}
+
+export type PregenWarmupCompleteEvent = {
+  type: 'warmup_complete'
+  bookId: string
+}
+
+export type PregenEvent =
+  | PregenUpdateEvent
+  | PregenDeletedEvent
+  | PregenWarmupStartEvent
+  | PregenWarmupCompleteEvent
 
 export type PregenEventListener = (event: PregenEvent) => void

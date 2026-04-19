@@ -21,6 +21,14 @@ export const GET = async () => {
       const jobs = await pregenQueueService.getAll()
       controller.enqueue(encoder.encode(`event: snapshot\ndata: ${JSON.stringify(jobs)}\n\n`))
 
+      const warmingUpBookId = pregenEvents.getWarmingUpBookId()
+      if (warmingUpBookId) {
+        const payload = { type: 'warmup_start', bookId: warmingUpBookId }
+        controller.enqueue(
+          encoder.encode(`event: warmup_start\ndata: ${JSON.stringify(payload)}\n\n`),
+        )
+      }
+
       listener = (event: PregenEvent) => {
         try {
           controller.enqueue(

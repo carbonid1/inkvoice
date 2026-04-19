@@ -71,8 +71,14 @@ vi.mock('@/lib/services/platform/diskSpace', () => ({
 vi.mock('@/lib/config/env', () => ({
   env: { cacheDir: '/tmp/test-cache', ttsApiUrl: 'http://localhost:8000/tts' },
 }))
+const mockPregenEvents = vi.hoisted(() => ({
+  on: vi.fn(),
+  off: vi.fn(),
+  emit: vi.fn(),
+  getWarmingUpBookId: vi.fn().mockReturnValue(null),
+}))
 vi.mock('@/lib/services/pregenEvents/pregenEvents.service', () => ({
-  pregenEvents: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
+  pregenEvents: mockPregenEvents,
 }))
 
 import { pregenWorker, resetPregenWorker, signalStop } from './pregeneration.service'
@@ -331,6 +337,54 @@ describe('pregenWorker', () => {
     expect(mockTtsService.generate).toHaveBeenCalledTimes(1)
     // Worker should NOT requeue — job is already paused in DB
     expect(mockPregenQueue.resume).not.toHaveBeenCalled()
+  })
+
+  it('emits warmup_start and warmup_complete around first job, skipped on subsequent jobs', async () => {
+    const job1 = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 1,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+    const job2 = { ...job1, id: 'job-2', bookId: 'book-2' }
+
+    mockPregenQueue.getNext
+      .mockResolvedValueOnce(job1)
+      .mockResolvedValueOnce(job2)
+      .mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-x',
+      title: 'Test',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 1, wordCount: 50 }],
+    })
+    mockBookService.getParagraph.mockResolvedValue('Some text')
+    mockCacheService.has.mockResolvedValue(false)
+    mockTtsService.generate.mockResolvedValue({
+      audio: Buffer.alloc(100),
+      generationTimeMs: 5000,
+      timestamps: null,
+      durationMs: 3000,
+    })
+
+    pregenWorker.start()
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    const warmupStartCalls = mockPregenEvents.emit.mock.calls.filter(
+      ([e]) => e?.type === 'warmup_start',
+    )
+    const warmupCompleteCalls = mockPregenEvents.emit.mock.calls.filter(
+      ([e]) => e?.type === 'warmup_complete',
+    )
+    expect(warmupStartCalls).toEqual([[{ type: 'warmup_start', bookId: 'book-1' }]])
+    expect(warmupCompleteCalls).toEqual([[{ type: 'warmup_complete', bookId: 'book-1' }]])
   })
 
   it('stops when job is deleted mid-processing', async () => {
