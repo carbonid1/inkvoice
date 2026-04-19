@@ -230,13 +230,13 @@ describe('buildTocTree', () => {
       ['epilogue', 2],
     ])
     const idToTitle = new Map([
-      ['part1', 'DEADHOUSE GATES'],
+      ['part1', 'SAMPLE BOOK'],
       ['ch1', 'CHAPTER ELEVEN'],
       ['epilogue', 'EPILOGUE'],
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
-    expect(result[0]?.title).toBe('large epub')
+    expect(result[0]?.title).toBe('Sample Book')
     expect(result[0]?.children[0]?.title).toBe('Chapter Eleven')
     expect(result[1]?.title).toBe('Epilogue')
   })

@@ -24,20 +24,20 @@ describe('findTitleGroupMembers', () => {
     // h1 (dup at 0), then 7 h3 section headings with paragraphs between
     const content: ContentBlock[] = [
       heading('DRAMATIS PERSONAE', 1),
-      heading('ON THE PATH OF THE HAND', 3),
-      paragraph('Kalam — assassin'),
-      heading('THE MALAZANS', 3),
-      paragraph('Whiskeyjack — sergeant'),
-      heading('WICKANS', 3),
-      paragraph('Coltaine — Fist'),
-      heading('DARUJHISTAN', 3),
-      paragraph('Kruppe — a man of parts'),
-      heading('THE TISTE ANDII', 3),
-      paragraph('Anomander Rake — Son of Darkness'),
-      heading('THE BRIDGEBURNERS', 3),
-      paragraph('Quick Ben — mage'),
+      heading('THE FIRST GROUP', 3),
+      paragraph('Alice — assassin'),
+      heading('THE SECOND GROUP', 3),
+      paragraph('Bob — sergeant'),
+      heading('THE THIRD GROUP', 3),
+      paragraph('Carol — captain'),
+      heading('THE FOURTH GROUP', 3),
+      paragraph('David — a man of parts'),
+      heading('THE FIFTH GROUP', 3),
+      paragraph('Eve — scholar'),
+      heading('THE SIXTH GROUP', 3),
+      paragraph('Frank — mage'),
       heading('OTHERS', 3),
-      paragraph('Icarium — a wanderer'),
+      paragraph('Grace — a wanderer'),
     ]
     const { titleGroupMember } = findTitleGroupMembers(content, 0)
     // First h3 (index 1) should NOT be a subtitle/member
@@ -46,14 +46,14 @@ describe('findTitleGroupMembers', () => {
 
   it('promotes unique subtitle after removed title (book divider)', () => {
     // h1 (dup at 0), image, then a single h1 subtitle
-    const content: ContentBlock[] = [heading('Book One', 1), image(), heading('Raraku', 1)]
+    const content: ContentBlock[] = [heading('Book One', 1), image(), heading('Subtitle', 1)]
     const { titleGroupMember, titleGroupStart } = findTitleGroupMembers(content, 0)
     expect(titleGroupMember.has(2)).toBe(true)
     expect(titleGroupStart.has(2)).toBe(false) // member but not start = subtitle
   })
 
   it('groups consecutive headings into a title group (no duplicate)', () => {
-    const content: ContentBlock[] = [heading('Book Two', 2), heading('The Whirlwind', 3)]
+    const content: ContentBlock[] = [heading('Book Two', 2), heading('Subtitle', 3)]
     const { titleGroupMember, titleGroupStart } = findTitleGroupMembers(content, -1)
     expect(titleGroupMember.has(0)).toBe(true)
     expect(titleGroupMember.has(1)).toBe(true)
