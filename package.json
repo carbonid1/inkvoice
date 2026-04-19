@@ -16,7 +16,7 @@
     "e2e:ui": "playwright test --ui",
     "e2e:electron": "playwright test --config playwright.electron.config.ts",
     "prepare": "husky",
-    "postinstall": "playwright-cli install --skills",
+    "postinstall": "prisma generate && playwright-cli install --skills",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
