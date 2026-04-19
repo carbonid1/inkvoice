@@ -24,11 +24,20 @@ WORKTREE_DIR="$ORIG_CWD/.claude/worktrees/$WORKTREE_NAME"
 mkdir -p "$(dirname "$WORKTREE_DIR")"
 git -C "$ORIG_CWD" worktree add "$WORKTREE_DIR" -b "$WORKTREE_NAME" >&2
 
-mkdir -p "$WORKTREE_DIR/data"
-for sub in books voices cache; do
-  if [ -d "$ORIG_CWD/data/$sub" ]; then
-    ln -s "$ORIG_CWD/data/$sub" "$WORKTREE_DIR/data/$sub"
-    echo "Linked data/$sub" >&2
+mkdir -p "$WORKTREE_DIR/data" "$WORKTREE_DIR/data/voices"
+# books and cache are gitignored top-level dirs — safe to symlink whole tree.
+# voices/ contains tracked voice samples in the worktree; only the gitignored
+# voices/custom subdir (user-uploaded references) is shared from main.
+for path in books cache voices/custom; do
+  src="$ORIG_CWD/data/$path"
+  dest="$WORKTREE_DIR/data/$path"
+  if [ -e "$dest" ] || [ -L "$dest" ]; then
+    echo "Skipped data/$path (already exists)" >&2
+    continue
+  fi
+  if [ -d "$src" ]; then
+    ln -s "$src" "$dest"
+    echo "Linked data/$path" >&2
   fi
 done
 

@@ -38,7 +38,7 @@ dist-python/
 dist-node/
 
 # Cache
-data/cache/
+data/cache
 
 # Database
 data/*.db
@@ -48,7 +48,7 @@ data/*.db-journal
 generated/
 
 # User books (starter books are in data/starter-books/)
-data/books/
+data/books
 
 # User-uploaded voices (unlicensed)
 data/voices/custom/
