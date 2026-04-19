@@ -1,6 +1,6 @@
 # InkVoice
 
-Local audiobook reader that converts EPUB books to speech using OmniVoice TTS.
+Local EPUB reader with voice generation support.
 
 ## Tech Stack
 
