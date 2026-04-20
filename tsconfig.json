@@ -24,8 +24,8 @@
     "dist-nextjs",
     "dist-node",
     "dist-python",
-    "**/*.vi.ts",
-    "**/*.vi.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
     "**/*.stories.ts",
     "**/*.stories.tsx"
   ]

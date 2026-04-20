@@ -18,7 +18,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'unit',
-          include: ['**/*.vi.{ts,tsx}'],
+          include: ['**/*.test.{ts,tsx}'],
           exclude: [...configDefaults.exclude, '.claude/worktrees/**'],
           environment: 'jsdom',
           setupFiles: ['./src/test/setup.ts'],

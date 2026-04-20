@@ -49,7 +49,7 @@ State "No tests needed — [reason]" so the omission is intentional, not forgott
 1. Identify testable behaviors — what does the user/caller observe? Not implementation steps, but outcomes.
 2. Choose the test layer for each behavior:
    - Storybook (`*.stories.tsx`) — React components (visual rendering, interaction, variants)
-   - Vitest (`*.vi.ts`) — non-visual logic (hooks, helpers, services, transformations)
+   - Vitest (`*.test.ts`) — non-visual logic (hooks, helpers, services, transformations)
    - Playwright E2E (`tests/e2e/*.spec.ts`) — cross-page flows, browser-native behavior
 3. List behaviors as test cases — verb-first descriptions (e.g., "displays error when amount exceeds balance", "disables submit while loading")
 4. Include `tdd` in the skills list

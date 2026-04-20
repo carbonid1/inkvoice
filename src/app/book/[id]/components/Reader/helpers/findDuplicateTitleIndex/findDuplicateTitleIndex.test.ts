@@ -68,10 +68,7 @@ describe('findDuplicateTitleIndex', () => {
   it('matches heading with trailing colon against title without', () => {
     const content = [heading("Acclaim for Steven Author's The Series Book of the Fallen:")]
     expect(
-      findDuplicateTitleIndex(
-        content,
-        "Acclaim for Steven Author's The Series Book of the Fallen",
-      ),
+      findDuplicateTitleIndex(content, "Acclaim for Steven Author's The Series Book of the Fallen"),
     ).toBe(0)
   })
 

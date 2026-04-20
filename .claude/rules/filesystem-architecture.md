@@ -60,7 +60,7 @@ foo/
 ├── foo.ts            # Main implementation (or foo.tsx for components)
 ├── foo.types.ts      # Types (optional — see escalation rules)
 ├── foo.consts.ts     # Constants (optional — see escalation rules)
-├── foo.vi.ts         # Tests (expected when logic exists)
+├── foo.test.ts         # Tests (expected when logic exists)
 ├── components/       # Optional — sub-components for this unit
 ├── hooks/            # Optional — feature-specific hooks for this unit
 └── helpers/          # Optional — sub-helpers for this unit
@@ -83,7 +83,7 @@ Default: types, constants, handlers, and small subcomponents live inline in `Com
 | --------------------- | ------------------------------------------------------------------ |
 | `Component.types.ts`  | Type block > ~20 lines OR referenced by sibling files              |
 | `Component.consts.ts` | ≥ 3 related constants OR prose/fixture data (long literal strings) |
-| `Component.vi.tsx`    | Logic worth testing exists (nearly always, once past a stub)       |
+| `Component.test.tsx`  | Logic worth testing exists (nearly always, once past a stub)       |
 | `components/`         | Subcomponent > ~30 lines OR reused within the unit                 |
 | `hooks/`              | Feature-specific hook > ~30 lines OR reused within the unit        |
 | `helpers/`            | Helper has its own tests OR its own sub-helpers                    |
@@ -101,7 +101,7 @@ Same escalation rules as components:
 | ----------------------- | ----------------------------------------------------- |
 | `useHookName.types.ts`  | Type block > ~20 lines OR referenced by sibling files |
 | `useHookName.consts.ts` | ≥ 3 related constants OR prose/fixture data           |
-| `useHookName.vi.ts`     | Hook has non-trivial logic (see code-style.md)        |
+| `useHookName.test.ts`   | Hook has non-trivial logic (see code-style.md)        |
 | `__mocks__/`            | Hook is imported by tests of consumers                |
 | `helpers/`              | Helper has its own tests OR sub-helpers               |
 
@@ -114,12 +114,12 @@ lib/services/{serviceName}/
 
 Services are singletons or stateless service objects under `lib/services/`. Same slot rules as components and hooks:
 
-| File                   | Extract when                                                       |
-| ---------------------- | ------------------------------------------------------------------ |
-| `{name}.consts.ts`     | ≥ 3 tuning knobs OR prose/fixture data (e.g., long warmup strings) |
-| `{name}.types.ts`      | Type block > ~20 lines OR re-exported from the public API          |
-| `{name}.service.vi.ts` | Logic worth testing exists                                         |
-| `helpers/`             | Helper has its own tests OR sub-helpers                            |
+| File                     | Extract when                                                       |
+| ------------------------ | ------------------------------------------------------------------ |
+| `{name}.consts.ts`       | ≥ 3 tuning knobs OR prose/fixture data (e.g., long warmup strings) |
+| `{name}.types.ts`        | Type block > ~20 lines OR re-exported from the public API          |
+| `{name}.service.test.ts` | Logic worth testing exists                                         |
+| `helpers/`               | Helper has its own tests OR sub-helpers                            |
 
 ## Helper Structure
 
@@ -134,7 +134,7 @@ Component/
 └── helpers/
     └── getABC/
         ├── getABC.ts
-        └── getABC.vi.ts
+        └── getABC.test.ts
 
 # Helper with its own sub-helpers
 getABC/
@@ -153,7 +153,7 @@ app/book/[id]/
 # Global helpers (only for highly reusable functions used by many consumers)
 lib/helpers/{helperName}/
 ├── {helperName}.ts
-└── {helperName}.vi.ts
+└── {helperName}.test.ts
 ```
 
 **One exported function per helper directory** — don't group related small functions into a shared folder. Even closely related utilities (e.g. `getPlainText` and `getInnerHtml`) get separate directories. A helper directory contains: implementation file, tests, types (if complex), consts (if needed), and a `helpers/` subdirectory for sub-helpers.
