@@ -67,8 +67,8 @@ importers:
         version: 5.0.12(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
       '@carbonid1/eslint-config':
-        specifier: ^0.1.0
-        version: 0.1.0(eslint-config-next@16.2.2(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
+        specifier: ^0.2.0
+        version: 0.2.0(eslint-config-next@16.2.2(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
       '@carbonid1/tsconfig':
         specifier: ^0.2.0
         version: 0.2.0(typescript@6.0.2)
@@ -369,8 +369,8 @@ packages:
       react-hotkeys-hook: ^5.0.0
       tailwind-merge: ^3.0.0
 
-  '@carbonid1/eslint-config@0.1.0':
-    resolution: {integrity: sha512-le4iUcrASHFjCGg+kd8zmuIQNz+Yg+yAm2P+9TtJlM4k1Zn9P2Ml5Py2CAeOj4wfK1VzqhQiWKTyewh64d9qAA==}
+  '@carbonid1/eslint-config@0.2.0':
+    resolution: {integrity: sha512-9YmmWs6YhoRBZvHZCJ43+nr0iZmK/6Tg0VuB4bZEnoR2tFVnSz+994mqnJE3QgzUcmngYkbc5Gka+KDnkYJeKg==}
     peerDependencies:
       eslint: ^9.0.0
       eslint-config-next: ^16.0.0
@@ -6243,7 +6243,7 @@ snapshots:
       tailwind-merge: 3.5.0
       tailwindcss: 4.2.2
 
-  '@carbonid1/eslint-config@0.1.0(eslint-config-next@16.2.2(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))':
+  '@carbonid1/eslint-config@0.2.0(eslint-config-next@16.2.2(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))':
     dependencies:
       eslint: 9.39.4(jiti@2.6.1)
       eslint-config-next: 16.2.2(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2)
