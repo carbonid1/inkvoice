@@ -1,4 +1,10 @@
-import type { PageHeaderProps } from './PageHeader.types'
+import type { ReactNode } from 'react'
+
+type PageHeaderProps = {
+  children: ReactNode
+  className?: string
+  noBorder?: boolean
+}
 
 const BASE_CLASSES = 'sticky top-0 z-10 shrink-0 bg-background'
 const BORDER_CLASSES = 'border-b border-border'

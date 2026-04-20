@@ -1,7 +1,18 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import type { SavedPosition, UseReturnPositionResult } from './useReturnPosition.types'
+
+type SavedPosition = {
+  chapter: number
+  paragraph: number
+}
+
+type UseReturnPositionResult = {
+  savedPosition: SavedPosition | null
+  savePosition: (chapter: number, paragraph: number) => void
+  clearPosition: () => void
+  navigateBack: (onNavigate: (chapter: number, paragraph: number) => void) => void
+}
 
 export const useReturnPosition = (): UseReturnPositionResult => {
   const [savedPosition, setSavedPosition] = useState<SavedPosition | null>(null)

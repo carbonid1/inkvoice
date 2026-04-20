@@ -1,6 +1,17 @@
 import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { useCallback, useEffect, useRef } from 'react'
-import type { UseBookmarkToggleArgs, UseBookmarkToggleReturn } from './useBookmarkToggle.types'
+
+type UseBookmarkToggleArgs = {
+  bookId: string
+  chapter: number
+  paragraph: number
+  preview?: string
+}
+
+type UseBookmarkToggleReturn = {
+  isBookmarked: boolean
+  toggle: () => void
+}
 
 export const useBookmarkToggle = ({
   bookId,

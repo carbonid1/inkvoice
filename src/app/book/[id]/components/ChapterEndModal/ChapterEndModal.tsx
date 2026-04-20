@@ -2,7 +2,17 @@
 
 import { Button } from '@carbonid1/design-system'
 import { useHotkeys } from 'react-hotkeys-hook'
-import type { ChapterEndModalProps } from './ChapterEndModal.types'
+
+type ChapterEndModalProps = {
+  isOpen: boolean
+  completedChapterTitle: string
+  nextChapterTitle: string
+  nextChapterPageCount: number | null
+  chaptersCompleted: number
+  totalChapters: number
+  onContinue: () => void
+  onDismiss: () => void
+}
 
 export const ChapterEndModal = ({
   isOpen,

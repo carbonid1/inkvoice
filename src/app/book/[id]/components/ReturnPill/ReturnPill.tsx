@@ -2,7 +2,12 @@
 
 import { Button } from '@carbonid1/design-system'
 import { Undo2, X } from 'lucide-react'
-import type { ReturnPillProps } from './ReturnPill.types'
+
+type ReturnPillProps = {
+  chapterName: string
+  onNavigate: () => void
+  onDismiss: () => void
+}
 
 export const ReturnPill = ({ chapterName, onNavigate, onDismiss }: ReturnPillProps) => {
   return (

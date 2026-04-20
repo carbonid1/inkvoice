@@ -8,7 +8,14 @@ import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import type { BookmarkDrawerProps } from './BookmarkDrawer.types'
+
+type BookmarkDrawerProps = {
+  bookId: string
+  isOpen: boolean
+  onClose: () => void
+  onNavigate: (chapter: number, paragraph: number) => void
+  chapterNames: string[]
+}
 
 const EMPTY_BOOKMARKS: Bookmark[] = []
 

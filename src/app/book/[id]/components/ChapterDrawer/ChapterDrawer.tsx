@@ -1,12 +1,20 @@
 'use client'
 
-import type { TocNode } from '@/lib/types/book'
+import type { ChapterInfo, TocNode } from '@/lib/types/book'
 import { Button, Tooltip } from '@carbonid1/design-system'
 import { ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { computeStartPages } from '../../helpers/computeStartPages/computeStartPages'
-import type { ChapterDrawerProps } from './ChapterDrawer.types'
+
+type ChapterDrawerProps = {
+  isOpen: boolean
+  onClose: () => void
+  onNavigate: (chapter: number) => void
+  chapters: ChapterInfo[]
+  tocTree?: TocNode[]
+  currentChapter: number
+}
 
 export const ChapterDrawer = ({
   isOpen,
