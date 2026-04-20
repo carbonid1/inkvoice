@@ -18,6 +18,7 @@ const config = [
       'scripts/after-pack.js',
       'dist/**',
       'dist-*/**',
+      '.claude/worktrees/**',
     ],
   },
 ]

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -19,6 +19,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['**/*.vi.{ts,tsx}'],
+          exclude: [...configDefaults.exclude, '.claude/worktrees/**'],
           environment: 'jsdom',
           setupFiles: ['./src/test/setup.ts'],
         },
