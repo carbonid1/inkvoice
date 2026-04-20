@@ -1,3 +1,4 @@
+import { swallowRecordNotFound } from '../../helpers/swallowRecordNotFound/swallowRecordNotFound'
 import { prisma } from '../db/db.service'
 import type { Bookmark } from './bookmark.types'
 
@@ -52,7 +53,10 @@ const removeBookmark = async (bookId: string, bookmarkId: string): Promise<boole
   })
   if (!existing) return false
 
-  await prisma.bookmark.delete({ where: { id: bookmarkId } })
+  // Two clients deleting the same bookmark race: both pass findFirst, one loses
+  // the delete with P2025. Treat "already gone" as success — the caller's intent
+  // (the bookmark is no longer there) is still met.
+  await swallowRecordNotFound(() => prisma.bookmark.delete({ where: { id: bookmarkId } }))
   return true
 }
 

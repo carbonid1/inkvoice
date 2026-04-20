@@ -1,6 +1,7 @@
 import { env } from '@/lib/config/env'
 import { mkdir, readdir, rename, rm, stat, writeFile } from 'fs/promises'
 import path from 'path'
+import { swallowRecordNotFound } from '../../helpers/swallowRecordNotFound/swallowRecordNotFound'
 import { prisma } from '../db/db.service'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
 import { normalizeTags } from './helpers/normalizeTags/normalizeTags'
@@ -277,10 +278,15 @@ export const createVoiceService = (voicesDir: string) => {
 
     if (!row || row.deletedAt === null) return { ok: false, reason: 'not_found' }
 
-    await prisma.voiceMetadata.update({
-      where: { name },
-      data: { deletedAt: null },
-    })
+    // Row can be hard-deleted (or never existed post-findUnique) between the
+    // check and the update. Treat P2025 as "not there to restore" rather than 500.
+    const updated = await swallowRecordNotFound(() =>
+      prisma.voiceMetadata.update({
+        where: { name },
+        data: { deletedAt: null },
+      }),
+    )
+    if (!updated) return { ok: false, reason: 'not_found' }
 
     return { ok: true }
   }

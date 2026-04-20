@@ -432,4 +432,74 @@ describe('pregenWorker', () => {
     expect(mockPregenQueue.resume).not.toHaveBeenCalled()
     expect(mockPregenQueue.complete).not.toHaveBeenCalled()
   })
+
+  it('exits silently when the job row is deleted between TTS and updateProgress', async () => {
+    const job = makeJobResult({
+      status: 'queued',
+      totalParagraphs: 5,
+      currentChapter: 0,
+      currentParagraph: 0,
+    })
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 5, wordCount: 250 }],
+    })
+
+    mockBookService.getParagraph.mockResolvedValue('Some text')
+    mockCacheService.has.mockResolvedValue(false)
+    mockTtsService.generate.mockResolvedValue({
+      audio: Buffer.alloc(100),
+      generationTimeMs: 5000,
+      timestamps: null,
+      durationMs: 3000,
+    })
+    // Simulate DELETE /api/cache/tts landing between TTS success and progress write
+    mockPregenQueue.updateProgress.mockResolvedValue(null)
+
+    pregenWorker.start()
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(1)
+    expect(mockPregenQueue.updateProgress).toHaveBeenCalledTimes(1)
+    // Worker treats null as "job gone" and exits — no retry, no pause, no complete
+    expect(mockPregenQueue.pause).not.toHaveBeenCalled()
+    expect(mockPregenQueue.complete).not.toHaveBeenCalled()
+    expect(mockPregenQueue.resume).not.toHaveBeenCalled()
+  })
+
+  it('exits silently when the job row is deleted during a cached-skip batch', async () => {
+    const job = makeJobResult({
+      status: 'queued',
+      totalParagraphs: 5,
+      currentChapter: 0,
+      currentParagraph: 0,
+    })
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 5, wordCount: 250 }],
+    })
+
+    mockBookService.getParagraph.mockResolvedValue('Cached text')
+    mockCacheService.has.mockResolvedValue(true)
+    mockPregenQueue.updateProgress.mockResolvedValue(null)
+
+    pregenWorker.start()
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    expect(mockTtsService.generate).not.toHaveBeenCalled()
+    expect(mockPregenQueue.pause).not.toHaveBeenCalled()
+    expect(mockPregenQueue.complete).not.toHaveBeenCalled()
+  })
 })

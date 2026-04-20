@@ -74,6 +74,13 @@ const emitJob = (job: PregenJob, samplingRate?: number): void => {
   pregenEvents.emit({ type: 'update', job, samplingRate })
 }
 
+// Grep-anchor for the job-deletion race. Service layer turns P2025 into null
+// returns; the worker logs once here when it notices so the race is visible
+// without the old "TTS attempt 1/6 failed" misdirection.
+const logVanished = (jobId: string, stage: string): void => {
+  console.warn(`[pregen] job ${jobId} vanished during ${stage}, exiting loop`)
+}
+
 const warmUpTTS = async (bookId: string): Promise<void> => {
   if (state.ttsWarmedUp) return
   console.warn('[pregen] Warming up TTS model...')
@@ -112,7 +119,10 @@ const processLoop = async (myLoopId: number): Promise<void> => {
 
       await warmUpTTS(job.bookId)
       await processJob(job, myLoopId)
-    } catch {
+    } catch (error) {
+      // Service layer swallows expected races (P2025) into null returns, so
+      // anything reaching here is unexpected. Log loudly so real bugs surface.
+      console.error('[pregen] unexpected error in processLoop:', error)
       await sleep(1000)
     }
   }
@@ -123,6 +133,10 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
   if (!fresh || fresh.status === PREGEN_JOB_STATUS.PAUSED) return
 
   const started = await pregenQueueService.start(job.id)
+  if (!started) {
+    logVanished(job.id, 'start')
+    return
+  }
   emitJob(started)
 
   const bookService = getBookService()
@@ -130,7 +144,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
   const overview = await bookService.getBookOverview(job.bookId)
   if (!overview) {
     const paused = await pregenQueueService.pause(job.id, 'Book not found')
-    emitJob(paused)
+    if (paused) emitJob(paused)
     return
   }
 
@@ -147,7 +161,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       // Worker restart → requeue so job gets picked up again
       if (state.loopId !== myLoopId || !state.running) {
         const requeued = await pregenQueueService.resume(job.id)
-        emitJob(requeued)
+        if (requeued) emitJob(requeued)
         return
       }
 
@@ -166,7 +180,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
               `[pregen] Disk space low — ${availGB} GB free (${diskInfo.percentFree}%), minimum: ${minGB} GB, path: ${env.cacheDir}`,
             )
             const paused = await pregenQueueService.pause(job.id, 'Disk space low')
-            emitJob(paused)
+            if (paused) emitJob(paused)
             return
           }
         } catch {
@@ -190,6 +204,10 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
           completedParagraphs,
           cumulativeDurationMs,
         )
+        if (!updated) {
+          logVanished(job.id, 'cached-skip updateProgress')
+          return
+        }
         if (cachedSkipsSinceEmit >= CACHED_SKIP_EMIT_INTERVAL) {
           emitJob(updated)
           cachedSkipsSinceEmit = 0
@@ -205,12 +223,13 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       }
 
       let generated = false
+      let cancelled = false
       for (let attempt = 0; attempt <= MAX_RETRIES_PER_PARAGRAPH; attempt++) {
         if (attempt > 0) {
           await sleep(getBackoffMs(attempt - 1))
           if (state.loopId !== myLoopId || !state.running) {
             const requeued = await pregenQueueService.resume(job.id)
-            emitJob(requeued)
+            if (requeued) emitJob(requeued)
             return
           }
           if (state.stoppedJobIds.has(job.id)) {
@@ -219,51 +238,59 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
           }
         }
 
-        try {
-          const ttsService = getTTSService()
-          const { audio, timestamps, durationMs, samplingRate } = await ttsService.generate(
-            text,
-            job.voice,
-          )
-
-          cacheService.set(text, job.voice, audio, job.bookId, durationMs).catch(() => {})
-          if (timestamps) {
-            cacheService.setTimestamps(text, job.voice, timestamps).catch(() => {})
+        const ttsResult = await (async () => {
+          try {
+            return await getTTSService().generate(text, job.voice)
+          } catch (error) {
+            console.warn(
+              `[pregen] TTS attempt ${attempt + 1}/${MAX_RETRIES_PER_PARAGRAPH + 1} failed for ${job.bookId} ch${ch} p${para}:`,
+              error,
+            )
+            return null
           }
+        })()
+        if (!ttsResult) continue
 
-          completedParagraphs++
-          cumulativeDurationMs += durationMs
-          const updated = await pregenQueueService.updateProgress(
-            job.id,
-            ch,
-            para,
-            completedParagraphs,
-            cumulativeDurationMs,
-          )
-          emitJob(updated, samplingRate ?? undefined)
-          generated = true
-          break
-        } catch (error) {
-          console.warn(
-            `[pregen] TTS attempt ${attempt + 1}/${MAX_RETRIES_PER_PARAGRAPH + 1} failed for ${job.bookId} ch${ch} p${para}:`,
-            error,
-          )
+        const { audio, timestamps, durationMs, samplingRate } = ttsResult
+        cacheService.set(text, job.voice, audio, job.bookId, durationMs).catch(() => {})
+        if (timestamps) {
+          cacheService.setTimestamps(text, job.voice, timestamps).catch(() => {})
         }
+
+        completedParagraphs++
+        cumulativeDurationMs += durationMs
+        const updated = await pregenQueueService.updateProgress(
+          job.id,
+          ch,
+          para,
+          completedParagraphs,
+          cumulativeDurationMs,
+        )
+        if (!updated) {
+          logVanished(job.id, 'post-TTS updateProgress')
+          cancelled = true
+          break
+        }
+        emitJob(updated, samplingRate ?? undefined)
+        generated = true
+        break
       }
+
+      if (cancelled) return
 
       if (!generated) {
         const paused = await pregenQueueService.pause(
           job.id,
           `Chapter ${ch + 1}, paragraph ${para + 1}: failed after ${MAX_RETRIES_PER_PARAGRAPH} retries`,
         )
-        emitJob(paused)
+        if (paused) emitJob(paused)
         return
       }
     }
   }
 
   const completed = await pregenQueueService.complete(job.id)
-  emitJob(completed)
+  if (completed) emitJob(completed)
 }
 
 export { signalStop }

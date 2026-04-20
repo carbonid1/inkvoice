@@ -18,8 +18,8 @@ export const DELETE = async (_request: NextRequest, { params }: RouteParams) => 
     const job = await pregenQueueService.getAnyByBookId(bookId)
     if (job) {
       signalStop(job.id)
-      await pregenQueueService.cancel(job.id)
-      pregenEvents.emit({ type: 'deleted', bookId })
+      const { deleted } = await pregenQueueService.cancel(job.id)
+      if (deleted) pregenEvents.emit({ type: 'deleted', bookId })
     }
 
     return NextResponse.json({ freedBytes })

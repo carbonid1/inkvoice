@@ -14,7 +14,14 @@ vi.mock('../db/db.service', () => ({
   prisma: mockPrisma,
 }))
 
+import { Prisma } from '../../../../generated/prisma'
 import { bookmarkService } from './bookmark.service'
+
+const recordNotFound = (): Prisma.PrismaClientKnownRequestError =>
+  new Prisma.PrismaClientKnownRequestError('Record not found', {
+    code: 'P2025',
+    clientVersion: 'test',
+  })
 
 describe('bookmarkService', () => {
   beforeEach(() => {
@@ -85,6 +92,15 @@ describe('bookmarkService', () => {
     const removed = await bookmarkService.removeBookmark('book-1', 'no-such-id')
     expect(removed).toBe(false)
     expect(mockPrisma.bookmark.delete).not.toHaveBeenCalled()
+  })
+
+  it('returns true when a concurrent delete wins the race (P2025)', async () => {
+    mockPrisma.bookmark.findFirst.mockResolvedValue({ id: 'uuid-1', bookId: 'book-1' })
+    mockPrisma.bookmark.delete.mockRejectedValue(recordNotFound())
+
+    const removed = await bookmarkService.removeBookmark('book-1', 'uuid-1')
+
+    expect(removed).toBe(true)
   })
 
   it('stores preview text on bookmark', async () => {

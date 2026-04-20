@@ -265,6 +265,23 @@ describe('voiceService', () => {
     expect(missingResult).toEqual({ ok: false, reason: 'not_found' })
   })
 
+  it('returns not_found when the row is hard-deleted between check and update (P2025)', async () => {
+    const { Prisma } = await import('../../../../generated/prisma')
+    const service = createVoiceService(voicesDir)
+
+    mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce({ deletedAt: 1710000000000 })
+    mockPrisma.voiceMetadata.update.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError('Record not found', {
+        code: 'P2025',
+        clientVersion: 'test',
+      }),
+    )
+
+    const result = await service.restoreVoice('my-voice')
+
+    expect(result).toEqual({ ok: false, reason: 'not_found' })
+  })
+
   it('excludes soft-deleted voices from listing', async () => {
     const service = createVoiceService(voicesDir)
 

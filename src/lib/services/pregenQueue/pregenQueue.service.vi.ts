@@ -16,7 +16,14 @@ const mockPrisma = vi.hoisted(() => ({
 
 vi.mock('../db/db.service', () => ({ prisma: mockPrisma }))
 
+import { Prisma } from '../../../../generated/prisma'
 import { pregenQueueService } from './pregenQueue.service'
+
+const recordNotFound = (): Prisma.PrismaClientKnownRequestError =>
+  new Prisma.PrismaClientKnownRequestError('Record not found', {
+    code: 'P2025',
+    clientVersion: 'test',
+  })
 
 describe('pregenQueueService', () => {
   beforeEach(() => {
@@ -114,6 +121,21 @@ describe('pregenQueueService', () => {
         data: { status: PREGEN_JOB_STATUS.IN_PROGRESS, updatedAt: now },
       })
     })
+
+    it('returns null when the job row was deleted (P2025)', async () => {
+      mockPrisma.pregenJob.update.mockRejectedValue(recordNotFound())
+
+      const result = await pregenQueueService.start('job-1')
+
+      expect(result).toBeNull()
+    })
+
+    it('rethrows non-P2025 Prisma errors', async () => {
+      const error = new Error('database is locked')
+      mockPrisma.pregenJob.update.mockRejectedValue(error)
+
+      await expect(pregenQueueService.start('job-1')).rejects.toThrow('database is locked')
+    })
   })
 
   describe('updateProgress', () => {
@@ -134,6 +156,14 @@ describe('pregenQueueService', () => {
         },
       })
     })
+
+    it('returns null when the job row was deleted (P2025)', async () => {
+      mockPrisma.pregenJob.update.mockRejectedValue(recordNotFound())
+
+      const result = await pregenQueueService.updateProgress('job-1', 0, 0, 0)
+
+      expect(result).toBeNull()
+    })
   })
 
   describe('pause', () => {
@@ -152,6 +182,14 @@ describe('pregenQueueService', () => {
           updatedAt: now,
         },
       })
+    })
+
+    it('returns null when the job row was deleted (P2025)', async () => {
+      mockPrisma.pregenJob.update.mockRejectedValue(recordNotFound())
+
+      const result = await pregenQueueService.pause('job-1')
+
+      expect(result).toBeNull()
     })
   })
 
@@ -172,6 +210,14 @@ describe('pregenQueueService', () => {
         },
       })
     })
+
+    it('returns null when the job row was deleted (P2025)', async () => {
+      mockPrisma.pregenJob.update.mockRejectedValue(recordNotFound())
+
+      const result = await pregenQueueService.resume('job-1')
+
+      expect(result).toBeNull()
+    })
   })
 
   describe('complete', () => {
@@ -187,17 +233,40 @@ describe('pregenQueueService', () => {
         data: { status: PREGEN_JOB_STATUS.COMPLETED, updatedAt: now },
       })
     })
+
+    it('returns null when the job row was deleted (P2025)', async () => {
+      mockPrisma.pregenJob.update.mockRejectedValue(recordNotFound())
+
+      const result = await pregenQueueService.complete('job-1')
+
+      expect(result).toBeNull()
+    })
   })
 
   describe('cancel', () => {
-    it('deletes the job', async () => {
+    it('deletes the job and reports deleted: true', async () => {
       mockPrisma.pregenJob.delete.mockResolvedValue({})
 
-      await pregenQueueService.cancel('job-1')
+      const result = await pregenQueueService.cancel('job-1')
 
       expect(mockPrisma.pregenJob.delete).toHaveBeenCalledWith({
         where: { id: 'job-1' },
       })
+      expect(result).toEqual({ deleted: true })
+    })
+
+    it('reports deleted: false when the row was already gone (P2025)', async () => {
+      mockPrisma.pregenJob.delete.mockRejectedValue(recordNotFound())
+
+      const result = await pregenQueueService.cancel('job-1')
+
+      expect(result).toEqual({ deleted: false })
+    })
+
+    it('rethrows non-P2025 errors', async () => {
+      mockPrisma.pregenJob.delete.mockRejectedValue(new Error('database is locked'))
+
+      await expect(pregenQueueService.cancel('job-1')).rejects.toThrow('database is locked')
     })
   })
 

@@ -49,6 +49,12 @@
 
 - Migrations must preserve existing user state — never discard previously stored values when adding new fields
 
+## Prisma Mutations on User-Deletable Rows
+
+- Any `prisma.X.update` / `prisma.X.delete` whose row can be deleted by a concurrent user action or background worker must go through `swallowRecordNotFound` (`src/lib/helpers/swallowRecordNotFound/`). It turns Prisma's `P2025` into a `null` return so the caller can treat "already gone" as a normal outcome instead of a 500.
+- Upserts are safe — they create on miss — and don't need the wrapper.
+- Reads (`findUnique`, `findFirst`, etc.) don't raise P2025; no wrapper needed.
+
 ## React Referential Stability
 
 - **Zustand selectors**: `useStore((s) => s.x)` not `const { x } = useStore()` — destructuring subscribes to all state
