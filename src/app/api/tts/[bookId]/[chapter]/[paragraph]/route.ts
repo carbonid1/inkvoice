@@ -40,7 +40,7 @@ const parseRequest = async (
   return { voice, fellBack, text }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export const DELETE = async (request: NextRequest, { params }: RouteParams) => {
   const result = await parseRequest(request, params)
   if (result instanceof NextResponse) return result
 
@@ -49,7 +49,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   return NextResponse.json({ deleted })
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export const GET = async (request: NextRequest, { params }: RouteParams) => {
   const result = await parseRequest(request, params)
   if (result instanceof NextResponse) return result
 

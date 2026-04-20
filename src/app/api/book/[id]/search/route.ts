@@ -59,9 +59,11 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
     let truncated = false
 
     for (let chapterIndex = startChapter; chapterIndex < endChapter; chapterIndex++) {
-      const chapter = book.chapters[chapterIndex]!
+      const chapter = book.chapters[chapterIndex]
+      if (!chapter) continue
       for (let paragraphIndex = 0; paragraphIndex < chapter.paragraphs.length; paragraphIndex++) {
-        const text = chapter.paragraphs[paragraphIndex]!
+        const text = chapter.paragraphs[paragraphIndex]
+        if (text === undefined) continue
         const positions = findMatchPositions(text, query)
         if (positions.length > 0) {
           matches.push({

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
 // Helper to verify sentence index integrity
-function verifySentenceIndexIntegrity(content: ContentBlock[], paragraphs: string[]): void {
+const verifySentenceIndexIntegrity = (content: ContentBlock[], paragraphs: string[]): void => {
   content.forEach(block => {
     if (block.segments) {
       block.segments.forEach(segment => {
@@ -21,7 +21,7 @@ function verifySentenceIndexIntegrity(content: ContentBlock[], paragraphs: strin
 }
 
 // Collect all segments from content blocks
-function getAllSegments(content: ContentBlock[]): TextSegment[] {
+const getAllSegments = (content: ContentBlock[]): TextSegment[] => {
   const segments: TextSegment[] = []
   content.forEach(block => {
     if (block.segments) {

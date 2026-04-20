@@ -458,7 +458,6 @@ describe('pregenWorker', () => {
       timestamps: null,
       durationMs: 3000,
     })
-    // Simulate DELETE /api/cache/tts landing between TTS success and progress write
     mockPregenQueue.updateProgress.mockResolvedValue(null)
 
     pregenWorker.start()
@@ -467,7 +466,6 @@ describe('pregenWorker', () => {
 
     expect(mockTtsService.generate).toHaveBeenCalledTimes(1)
     expect(mockPregenQueue.updateProgress).toHaveBeenCalledTimes(1)
-    // Worker treats null as "job gone" and exits — no retry, no pause, no complete
     expect(mockPregenQueue.pause).not.toHaveBeenCalled()
     expect(mockPregenQueue.complete).not.toHaveBeenCalled()
     expect(mockPregenQueue.resume).not.toHaveBeenCalled()

@@ -6,16 +6,6 @@
 
 ## Syntax
 
-- Use `const` with arrow functions instead of `function` declarations:
-
-  ```typescript
-  // Preferred
-  const handleClick = () => { ... }
-
-  // Avoid
-  function handleClick() { ... }
-  ```
-
 - Prefer named type aliases over inline type annotations — extract object types, union types, and function signatures into named `type` declarations
 
   ```typescript
@@ -30,10 +20,7 @@
   const Button = ({ title, onClick }: { title: string; onClick: () => void }) => { ... }
   ```
 
-- Prefer `const` over `let` — use `let` only when reassignment is unavoidable
-  - Use `.reduce()`, `.slice()`, spread, or closure patterns instead of mutable accumulators
-  - Wrap related mutable state in a `const` object rather than separate `let` variables
-- Never use non-null assertions (`!.`) — restructure code or use proper type guards instead
+- When `let` is unavoidable, use `.reduce()`, `.slice()`, spread, or closure patterns instead of mutable accumulators; wrap related mutable state in a `const` object rather than separate `let` variables.
 
 ## Keyboard Shortcuts
 
@@ -48,12 +35,6 @@
 ## Zustand Persist Migrations
 
 - Migrations must preserve existing user state — never discard previously stored values when adding new fields
-
-## Prisma Mutations on User-Deletable Rows
-
-- Any `prisma.X.update` / `prisma.X.delete` whose row can be deleted by a concurrent user action or background worker must go through `swallowRecordNotFound` (`src/lib/helpers/swallowRecordNotFound/`). It turns Prisma's `P2025` into a `null` return so the caller can treat "already gone" as a normal outcome instead of a 500.
-- Upserts are safe — they create on miss — and don't need the wrapper.
-- Reads (`findUnique`, `findFirst`, etc.) don't raise P2025; no wrapper needed.
 
 ## React Referential Stability
 

@@ -67,10 +67,6 @@ const getAll = async (): Promise<PregenJob[]> => {
   return rows as PregenJob[]
 }
 
-// Mutations below race with user-triggered deletes (cache-clear, cancel pregen).
-// swallowRecordNotFound turns P2025 into a null return so callers can detect
-// the race and exit cleanly instead of crashing.
-
 const start = async (id: string): Promise<PregenJob | null> =>
   swallowRecordNotFound(async () => {
     const row = await prisma.pregenJob.update({

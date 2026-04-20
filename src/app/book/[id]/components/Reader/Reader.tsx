@@ -66,11 +66,10 @@ export const Reader = ({
     )
   }
 
-  const hasContent = chapter.content && chapter.content.length > 0
   const proseClasses = `font-serif prose prose-lg dark:prose-invert max-w-none p-6 ${FONT_SIZE_CLASS[fontSize]} [&_a]:text-primary [&_a]:underline [&_a]:decoration-primary/40 [&_a]:underline-offset-2 [&_a]:hover:decoration-primary [&_a]:transition-colors`
 
-  if (hasContent) {
-    const content = chapter.content!
+  if (chapter.content && chapter.content.length > 0) {
+    const content = chapter.content
     const duplicateTitleIndex = findDuplicateTitleIndex(content, chapter.title)
 
     const { titleGroupStart, titleGroupMember } = findTitleGroupMembers(
@@ -140,8 +139,8 @@ export const Reader = ({
       }
     })
 
-    const duplicateBlock =
-      duplicateTitleIndex !== -1 ? normalizeCaps(content[duplicateTitleIndex]!) : undefined
+    const duplicateSource = duplicateTitleIndex !== -1 ? content[duplicateTitleIndex] : undefined
+    const duplicateBlock = duplicateSource ? normalizeCaps(duplicateSource) : undefined
 
     return (
       <div className={proseClasses}>

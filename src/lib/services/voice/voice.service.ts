@@ -278,8 +278,6 @@ export const createVoiceService = (voicesDir: string) => {
 
     if (!row || row.deletedAt === null) return { ok: false, reason: 'not_found' }
 
-    // Row can be hard-deleted (or never existed post-findUnique) between the
-    // check and the update. Treat P2025 as "not there to restore" rather than 500.
     const updated = await swallowRecordNotFound(() =>
       prisma.voiceMetadata.update({
         where: { name },

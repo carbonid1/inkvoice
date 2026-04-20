@@ -53,7 +53,8 @@ export const SearchResultsPanel = ({
       <div ref={scrollContainerRef} className="max-h-[60vh] overflow-y-auto">
         <div className="relative" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map(virtualRow => {
-            const entry = flatList[virtualRow.index]!
+            const entry = flatList[virtualRow.index]
+            if (!entry) return null
 
             if (entry.type === 'header') {
               return (

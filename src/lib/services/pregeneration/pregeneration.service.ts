@@ -74,9 +74,6 @@ const emitJob = (job: PregenJob, samplingRate?: number): void => {
   pregenEvents.emit({ type: 'update', job, samplingRate })
 }
 
-// Grep-anchor for the job-deletion race. Service layer turns P2025 into null
-// returns; the worker logs once here when it notices so the race is visible
-// without the old "TTS attempt 1/6 failed" misdirection.
 const logVanished = (jobId: string, stage: string): void => {
   console.warn(`[pregen] job ${jobId} vanished during ${stage}, exiting loop`)
 }
@@ -120,8 +117,6 @@ const processLoop = async (myLoopId: number): Promise<void> => {
       await warmUpTTS(job.bookId)
       await processJob(job, myLoopId)
     } catch (error) {
-      // Service layer swallows expected races (P2025) into null returns, so
-      // anything reaching here is unexpected. Log loudly so real bugs surface.
       console.error('[pregen] unexpected error in processLoop:', error)
       await sleep(1000)
     }

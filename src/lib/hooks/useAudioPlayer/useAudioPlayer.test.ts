@@ -31,6 +31,7 @@ beforeEach(() => {
   // Must use function() — arrow functions can't be called with `new`
   vi.stubGlobal(
     'Audio',
+    // eslint-disable-next-line prefer-arrow-callback
     vi.fn(function () {
       return mockAudio
     }),

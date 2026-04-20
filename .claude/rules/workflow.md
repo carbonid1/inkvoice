@@ -1,5 +1,11 @@
 # Workflow
 
+## Verification by Layer
+
+- **UI-layer changes** (renders, animates, responds to interaction): exercise via `agent-browser` before calling the task done.
+- **Backend / service / API changes**: `curl` + log-tail.
+- **Timing-sensitive bugs** (races, workers, background state): document the live repro recipe in the commit message.
+
 ## Log Hygiene
 
 Dev server logs should contain **only application-level information**: HTTP requests, generation progress, real errors. A new warning in the logs should mean something broke — not that a library author deprecated an internal API.
