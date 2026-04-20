@@ -1,6 +1,7 @@
 ---
 name: voice-management
 description: Manage TTS voice references for OmniVoice. Use when adding voices, generating voice samples, or working with data/voices/ directory.
+disable-model-invocation: true
 ---
 
 # Voice Management
