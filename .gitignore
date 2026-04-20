@@ -51,7 +51,7 @@ generated/
 data/books
 
 # User-uploaded voices (unlicensed)
-data/voices/custom/
+data/voices/custom
 
 # Skills CLI
 .agents/
