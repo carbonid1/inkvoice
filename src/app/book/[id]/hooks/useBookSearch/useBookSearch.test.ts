@@ -222,7 +222,7 @@ describe('useBookSearch', () => {
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(2)
-        const url = mockFetch.mock.calls[1]![0] as string
+        const url = mockFetch.mock.calls[1]?.[0]
         expect(url).toContain('&chapter=0')
       })
     })

@@ -67,10 +67,7 @@ describe('useBookOverview', () => {
 
   it('fetches overview and returns data', async () => {
     const overview = makeOverview()
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(overview),
-    } as Response)
+    vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
 
@@ -85,10 +82,7 @@ describe('useBookOverview', () => {
   it('restores valid position from progress store', async () => {
     mockGetProgress.mockReturnValue({ chapter: 1, paragraph: 2 })
     const overview = makeOverview()
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(overview),
-    } as Response)
+    vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
 
@@ -101,10 +95,7 @@ describe('useBookOverview', () => {
   it('clamps out-of-bounds chapter position', async () => {
     mockGetProgress.mockReturnValue({ chapter: 10, paragraph: 0 })
     const overview = makeOverview()
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(overview),
-    } as Response)
+    vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
 
@@ -118,10 +109,7 @@ describe('useBookOverview', () => {
   it('clamps out-of-bounds paragraph position', async () => {
     mockGetProgress.mockReturnValue({ chapter: 0, paragraph: 99 })
     const overview = makeOverview()
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(overview),
-    } as Response)
+    vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
 
@@ -133,10 +121,7 @@ describe('useBookOverview', () => {
   })
 
   it('returns error on fetch failure', async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: false,
-      status: 404,
-    } as Response)
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 404 }))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
 
@@ -147,10 +132,7 @@ describe('useBookOverview', () => {
   })
 
   it('returns generic error on non-404 failure', async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: false,
-      status: 500,
-    } as Response)
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 500 }))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
 

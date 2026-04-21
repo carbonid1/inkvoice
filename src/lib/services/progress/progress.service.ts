@@ -1,5 +1,18 @@
+import { z } from 'zod'
 import { prisma } from '../db/db.service'
 import type { Progress } from './progress.types'
+
+const numberArraySchema = z.array(z.number())
+const chapterPositionsSchema = z.record(z.string(), z.number())
+
+const parseField = <T>(json: string, schema: z.ZodType<T>, context: string): T | undefined => {
+  const parsed = schema.safeParse(JSON.parse(json))
+  if (!parsed.success) {
+    console.warn(`[progress] Invalid ${context}: ${parsed.error.message}`)
+    return undefined
+  }
+  return parsed.data
+}
 
 const getAll = async (): Promise<Record<string, Progress>> => {
   const rows = await prisma.readingProgress.findMany()
@@ -20,20 +33,29 @@ type ProgressRow = {
   chapterPositions: string | null
 }
 
-const toProgress = (row: ProgressRow): Progress => ({
-  chapter: row.chapter,
-  paragraph: row.paragraph,
-  ...(row.paragraphsPerChapter !== null && {
-    paragraphsPerChapter: JSON.parse(row.paragraphsPerChapter) as number[],
-  }),
-  ...(row.wordsPerChapter !== null && {
-    wordsPerChapter: JSON.parse(row.wordsPerChapter) as number[],
-  }),
-  ...(row.lastReadAt !== null && { lastReadAt: row.lastReadAt }),
-  ...(row.chapterPositions !== null && {
-    chapterPositions: JSON.parse(row.chapterPositions) as Record<number, number>,
-  }),
-})
+const toProgress = (row: ProgressRow): Progress => {
+  const paragraphsPerChapter =
+    row.paragraphsPerChapter !== null
+      ? parseField(row.paragraphsPerChapter, numberArraySchema, 'paragraphsPerChapter')
+      : undefined
+  const wordsPerChapter =
+    row.wordsPerChapter !== null
+      ? parseField(row.wordsPerChapter, numberArraySchema, 'wordsPerChapter')
+      : undefined
+  const chapterPositions =
+    row.chapterPositions !== null
+      ? parseField(row.chapterPositions, chapterPositionsSchema, 'chapterPositions')
+      : undefined
+
+  return {
+    chapter: row.chapter,
+    paragraph: row.paragraph,
+    ...(paragraphsPerChapter && { paragraphsPerChapter }),
+    ...(wordsPerChapter && { wordsPerChapter }),
+    ...(row.lastReadAt !== null && { lastReadAt: row.lastReadAt }),
+    ...(chapterPositions && { chapterPositions }),
+  }
+}
 
 const get = async (bookId: string): Promise<Progress | null> => {
   const row = await prisma.readingProgress.findUnique({ where: { bookId } })

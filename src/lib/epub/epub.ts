@@ -3,9 +3,17 @@ import EPub from 'epub2'
 import { unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
+import { z } from 'zod'
 import { buildTocTree } from './helpers/buildTocTree/buildTocTree'
 import { inferChapterTitle } from './helpers/inferChapterTitle/inferChapterTitle'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
+
+// epub2 populates `ncx` at runtime but doesn't expose it in its types.
+type NcxNode = { id: string; ncx_index: number; sub: NcxNode[] }
+const ncxNodeSchema: z.ZodType<NcxNode> = z.lazy(() =>
+  z.object({ id: z.string(), ncx_index: z.number(), sub: z.array(ncxNodeSchema) }),
+)
+const ncxSchema = z.array(ncxNodeSchema)
 
 // Monkey-patch epub2's walkNavMap to fix a crash when navLabel.text is
 // an empty string. The original code uses `(navLabel.text || navLabel || "").trim()`
@@ -156,10 +164,10 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
 
     // Build hierarchical TOC from ncx if available
     // Only use when: tree has nesting AND covers all chapters
-    const ncx = (epub as unknown as { ncx: Array<{ id: string; ncx_index: number; sub: never[] }> })
-      .ncx
+    const ncxParsed = ncxSchema.safeParse(Reflect.get(epub, 'ncx'))
+    const ncx = ncxParsed.success ? ncxParsed.data : []
     let tocTree: TocNode[] | undefined
-    if (ncx && ncx.length > 0) {
+    if (ncx.length > 0) {
       const tree = buildTocTree(ncx, idToChapterIndex, tocLabels)
       const hasHierarchy = tree.some(node => node.children.length > 0)
       const leafCount = countLeaves(tree)

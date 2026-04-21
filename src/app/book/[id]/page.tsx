@@ -45,8 +45,8 @@ import { useReturnPosition } from './hooks/useReturnPosition/useReturnPosition'
 const EMPTY_BOOKMARKS: Bookmark[] = []
 
 export default function BookReader() {
-  const params = useParams()
-  const bookId = params.id as string
+  const params = useParams<{ id: string }>()
+  const bookId = params.id
 
   const { effectiveVoice } = useBookVoice(bookId)
   const { overview, loading, error, initialChapter, initialParagraph } = useBookOverview(bookId)

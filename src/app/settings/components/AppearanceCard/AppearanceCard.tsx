@@ -18,7 +18,9 @@ const getSnapshot = () => true
 const getServerSnapshot = () => false
 
 const renderThemeOption = (option: SelectOption, state: SelectOptionState) => {
-  const Icon = (option as ThemeOption).icon
+  const match = THEME_OPTIONS.find(t => t.value === option.value)
+  if (!match) return null
+  const Icon = match.icon
   return (
     <span className="flex items-center gap-2">
       <Icon className="size-4" />

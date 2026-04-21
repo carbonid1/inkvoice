@@ -1,6 +1,7 @@
 import { env } from '@/lib/config/env'
 import { mkdir, readdir, rename, rm, stat, writeFile } from 'fs/promises'
 import path from 'path'
+import { z } from 'zod'
 import { swallowRecordNotFound } from '../../helpers/swallowRecordNotFound/swallowRecordNotFound'
 import { prisma } from '../db/db.service'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
@@ -48,15 +49,21 @@ const dirExists = async (dirPath: string): Promise<boolean> =>
 
 const readDirSafe = async (dirPath: string): Promise<string[]> => readdir(dirPath).catch(() => [])
 
+const tagsSchema = z.array(z.string())
+
 export const createVoiceService = (voicesDir: string) => {
   const customDir = path.join(voicesDir, 'custom')
 
   const getMetadata = async (name: string): Promise<VoiceMetadata | null> => {
     const row = await prisma.voiceMetadata.findUnique({ where: { name } })
     if (!row) return null
+    const parsedTags = tagsSchema.safeParse(JSON.parse(row.tags))
+    if (!parsedTags.success) {
+      console.warn(`[voice] Invalid tags for ${name}: ${parsedTags.error.message}`)
+    }
     return {
       displayName: row.displayName,
-      tags: JSON.parse(row.tags) as string[],
+      tags: parsedTags.success ? parsedTags.data : [],
       language: row.language ?? undefined,
     }
   }

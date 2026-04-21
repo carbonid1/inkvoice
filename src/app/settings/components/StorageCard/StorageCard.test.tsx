@@ -67,23 +67,12 @@ describe('StorageCard', () => {
     vi.mocked(fetch).mockImplementation((url: string | URL | Request) => {
       const urlStr = typeof url === 'string' ? url : url.toString()
       if (urlStr.includes('/api/cache/stats')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              ...mockStatsResponse,
-              usedBytes: 0,
-              books: [],
-            }),
-        } as Response)
+        return Promise.resolve(Response.json({ ...mockStatsResponse, usedBytes: 0, books: [] }))
       }
       if (urlStr.includes('/api/settings')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockSettingsResponse),
-        } as Response)
+        return Promise.resolve(Response.json(mockSettingsResponse))
       }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) } as Response)
+      return Promise.resolve(Response.json({}))
     })
 
     render(<StorageCard />)

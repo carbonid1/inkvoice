@@ -41,7 +41,15 @@ export const ContentBlock = ({
 
   switch (block.type) {
     case 'heading': {
-      const HeadingTag = `h${block.level || 2}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+      const HEADING_TAGS: Record<number, 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'> = {
+        1: 'h1',
+        2: 'h2',
+        3: 'h3',
+        4: 'h4',
+        5: 'h5',
+        6: 'h6',
+      }
+      const HeadingTag = HEADING_TAGS[block.level || 2] ?? 'h2'
 
       if (isInTitleGroup) {
         const titleClasses = isSubtitle

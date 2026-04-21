@@ -222,10 +222,8 @@ class BookServiceImpl implements BookService {
     await writeBookFile(filename, buffer)
 
     const id = getBookIdFromFilename(filename)
-    const arrayBuffer = buffer.buffer.slice(
-      buffer.byteOffset,
-      buffer.byteOffset + buffer.byteLength,
-    ) as ArrayBuffer
+    const arrayBuffer = new ArrayBuffer(buffer.byteLength)
+    new Uint8Array(arrayBuffer).set(buffer)
 
     let title = filename.replace('.epub', '')
     let author = 'Unknown'

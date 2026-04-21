@@ -36,10 +36,9 @@ export const findBookFile = async (bookId: string): Promise<string | null> => {
 export const readBookFile = async (filename: string): Promise<ArrayBuffer> => {
   const filePath = join(env.booksDir, filename)
   const buffer = await readFile(filePath)
-  return buffer.buffer.slice(
-    buffer.byteOffset,
-    buffer.byteOffset + buffer.byteLength,
-  ) as ArrayBuffer
+  const arrayBuffer = new ArrayBuffer(buffer.byteLength)
+  new Uint8Array(arrayBuffer).set(buffer)
+  return arrayBuffer
 }
 
 /**

@@ -5,6 +5,7 @@ import { settingsService } from '@/lib/services/settings/settings.service'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { BookCacheStats, CacheStats } from '@/lib/types/api'
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
+import { wordTimestampArraySchema } from '@/lib/types/wordTimestamp'
 import { createHash } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
@@ -67,8 +68,8 @@ class TTSCacheService implements CacheService {
   private async computeEffectiveMax(): Promise<void> {
     let configuredMax = env.maxCacheSizeBytes
     try {
-      const savedMB = (await settingsService.get(SETTINGS_KEYS.MAX_CACHE_SIZE_MB)) as number | null
-      if (savedMB !== null && savedMB > 0) {
+      const savedMB = await settingsService.get(SETTINGS_KEYS.MAX_CACHE_SIZE_MB)
+      if (typeof savedMB === 'number' && savedMB > 0) {
         configuredMax = savedMB * 1024 * 1024
       }
     } catch {
@@ -176,7 +177,12 @@ class TTSCacheService implements CacheService {
 
     try {
       const data = await fs.readFile(filePath, 'utf-8')
-      return JSON.parse(data) as WordTimestamp[]
+      const parsed = wordTimestampArraySchema.safeParse(JSON.parse(data))
+      if (!parsed.success) {
+        console.warn(`[cache] Invalid timestamps for ${hash}: ${parsed.error.message}`)
+        return null
+      }
+      return parsed.data
     } catch {
       return null
     }

@@ -66,7 +66,7 @@ describe('addBookmark', () => {
 
     // Resolve to clean up
     const serverBookmark = mockBookmark({ id: 'server-id', chapter: 3, paragraph: 7 })
-    deferred.resolve({ ok: true, json: () => Promise.resolve(serverBookmark) } as Response)
+    deferred.resolve(Response.json(serverBookmark))
     await promise
   })
 
@@ -141,7 +141,7 @@ describe('removeBookmark', () => {
     expect(useBookmarkStore.getState().bookmarks['book-1']).toEqual([keep])
     expect(useBookmarkStore.getState().isBookmarked('book-1', 3, 7)).toBe(false)
 
-    deferred.resolve({ ok: true } as Response)
+    deferred.resolve(new Response(null))
     await promise
   })
 
@@ -159,7 +159,7 @@ describe('removeBookmark', () => {
     expect(lastDeleted?.bookId).toBe('book-1')
     expect(lastDeleted?.bookmark).toEqual(bookmark)
 
-    deferred.resolve({ ok: true } as Response)
+    deferred.resolve(new Response(null))
     await promise
   })
 

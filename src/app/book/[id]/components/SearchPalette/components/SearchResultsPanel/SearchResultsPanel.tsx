@@ -3,7 +3,6 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useMemo, useRef } from 'react'
 import { buildFlatResultList } from '../../helpers/buildFlatResultList/buildFlatResultList'
-import type { FlatResultItem } from '../../helpers/buildFlatResultList/buildFlatResultList.types'
 import { highlightSnippet } from '../../helpers/highlightSnippet/highlightSnippet'
 import type { SearchResultsPanelProps } from './SearchResultsPanel.types'
 
@@ -76,8 +75,7 @@ export const SearchResultsPanel = ({
               )
             }
 
-            const resultEntry = entry as FlatResultItem
-            const isHighlighted = resultEntry.resultIndex === highlightedIndex
+            const isHighlighted = entry.resultIndex === highlightedIndex
 
             return (
               <div
@@ -89,15 +87,11 @@ export const SearchResultsPanel = ({
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
-                onClick={() => onSelect(resultEntry.resultIndex)}
-                onMouseEnter={() => onHighlight(resultEntry.resultIndex)}
+                onClick={() => onSelect(entry.resultIndex)}
+                onMouseEnter={() => onHighlight(entry.resultIndex)}
               >
                 <p className="text-foreground line-clamp-2 text-sm leading-snug">
-                  {highlightSnippet(
-                    resultEntry.match.textSnippet,
-                    query,
-                    resultEntry.match.matchPositions,
-                  )}
+                  {highlightSnippet(entry.match.textSnippet, query, entry.match.matchPositions)}
                 </p>
               </div>
             )

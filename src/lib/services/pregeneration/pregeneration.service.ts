@@ -31,6 +31,10 @@ type PregenWorkerState = {
   stoppedJobIds: Set<string>
 }
 
+declare global {
+  var pregenWorkerState: PregenWorkerState | undefined
+}
+
 const createPregenWorkerState = (): PregenWorkerState => ({
   running: false,
   loopId: 0,
@@ -38,14 +42,10 @@ const createPregenWorkerState = (): PregenWorkerState => ({
   stoppedJobIds: new Set(),
 })
 
-const globalForPregenWorker = globalThis as unknown as {
-  pregenWorkerState: PregenWorkerState | undefined
-}
-
-const state = globalForPregenWorker.pregenWorkerState ?? createPregenWorkerState()
+const state = globalThis.pregenWorkerState ?? createPregenWorkerState()
 
 if (process.env.NODE_ENV !== 'production') {
-  globalForPregenWorker.pregenWorkerState = state
+  globalThis.pregenWorkerState = state
 }
 
 // No `if (state.running) return` guard — start() must always spawn a fresh loop.

@@ -2,12 +2,11 @@ import { voiceService } from '@/lib/services/voice/voice.service'
 import { NextResponse } from 'next/server'
 import { validateVoiceParam } from '../helpers/validateVoiceParam/validateVoiceParam'
 
-const isTagsPayload = (v: unknown): v is { tags: string[] } =>
-  typeof v === 'object' &&
-  v !== null &&
-  'tags' in v &&
-  Array.isArray((v as { tags: unknown }).tags) &&
-  (v as { tags: unknown[] }).tags.every(t => typeof t === 'string')
+const isTagsPayload = (v: unknown): v is { tags: string[] } => {
+  if (typeof v !== 'object' || v === null || !('tags' in v)) return false
+  const tags: unknown = v.tags
+  return Array.isArray(tags) && tags.every(t => typeof t === 'string')
+}
 
 export const PATCH = async (
   request: Request,

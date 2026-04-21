@@ -176,12 +176,12 @@ describe('useAudioPlayer', () => {
       expect(mockAudio.pause).toHaveBeenCalledOnce()
 
       // Stale onended should be suppressed
-      act(() => mockAudio.onended?.({} as Event))
+      act(() => mockAudio.onended?.(new Event('ended')))
       expect(onEnded).not.toHaveBeenCalled()
 
       // After play(), onended should fire normally again
       await act(() => result.current.play('blob:http://localhost/def'))
-      act(() => mockAudio.onended?.({} as Event))
+      act(() => mockAudio.onended?.(new Event('ended')))
       expect(onEnded).toHaveBeenCalledOnce()
     })
   })

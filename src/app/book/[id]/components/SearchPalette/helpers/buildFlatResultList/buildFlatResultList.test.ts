@@ -56,9 +56,9 @@ describe('buildFlatResultList', () => {
     ]
 
     const flat = buildFlatResultList(results)
-    const items = flat.filter(e => e.type === 'result')
+    const resultIndexes = flat.flatMap(e => (e.type === 'result' ? [e.resultIndex] : []))
 
-    expect(items.map(e => (e as { resultIndex: number }).resultIndex)).toEqual([0, 1, 2])
+    expect(resultIndexes).toEqual([0, 1, 2])
   })
 
   it('single chapter produces one header plus result items', () => {
@@ -81,6 +81,7 @@ describe('buildFlatResultList', () => {
 
     expect(flat.every(e => e.type === 'result')).toBe(true)
     expect(flat).toHaveLength(3)
-    expect(flat.map(e => (e as { resultIndex: number }).resultIndex)).toEqual([0, 1, 2])
+    const resultIndexes = flat.flatMap(e => (e.type === 'result' ? [e.resultIndex] : []))
+    expect(resultIndexes).toEqual([0, 1, 2])
   })
 })

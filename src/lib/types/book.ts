@@ -2,6 +2,8 @@
  * Book-related types extracted from epub.ts
  */
 
+import { z } from 'zod'
+
 export interface TextSegment {
   paragraphIndex: number
   html: string
@@ -40,12 +42,14 @@ export interface BookMetadata {
   author: string
 }
 
-export interface Book {
-  id: string
-  title: string
-  author: string
-  filename: string
-}
+export const bookSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  author: z.string(),
+  filename: z.string(),
+})
+
+export type Book = z.infer<typeof bookSchema>
 
 export interface ChapterInfo {
   title: string

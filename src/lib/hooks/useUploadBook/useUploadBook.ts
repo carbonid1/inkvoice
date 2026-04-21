@@ -1,6 +1,7 @@
 'use client'
 
 import type { Book } from '@/lib/types/book'
+import { bookSchema } from '@/lib/types/book'
 import { useCallback, useMemo, useState } from 'react'
 
 type UploadBookState = {
@@ -37,7 +38,12 @@ export const useUploadBook = (): UploadBookState => {
           break
         }
 
-        results.push(data as Book)
+        const parsed = bookSchema.safeParse(data)
+        if (!parsed.success) {
+          setError('Invalid server response')
+          break
+        }
+        results.push(parsed.data)
       }
     } catch {
       setError('Failed to upload book')

@@ -1,11 +1,13 @@
+import { isElement } from '../isElement/isElement'
+
 export const getInnerHtml = (node: Node): string => {
   if (node.nodeType === 3) {
     // Text node - escape HTML
     const text = node.textContent || ''
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   }
-  if (node.nodeType === 1) {
-    const el = node as Element
+  if (isElement(node)) {
+    const el = node
     const tag = el.tagName.toLowerCase()
     if (tag === 'script' || tag === 'style') return ''
 

@@ -3,7 +3,17 @@ import { prisma } from '@/lib/services/db/db.service'
 import { swallowRecordNotFound } from '@/lib/helpers/swallowRecordNotFound/swallowRecordNotFound'
 
 import type { PregenJob } from './pregenQueue.types'
-import { PREGEN_JOB_STATUS } from './pregenQueue.types'
+import { PREGEN_JOB_STATUS, pregenJobStatusSchema } from './pregenQueue.types'
+
+type PregenJobRow = NonNullable<Awaited<ReturnType<typeof prisma.pregenJob.findFirst>>>
+
+// SQLite stores `status` as TEXT (Prisma doesn't support native enums on
+// SQLite), so the column is typed as string at the ORM layer. Validate at
+// the repository boundary instead of casting.
+const toPregenJob = (row: PregenJobRow): PregenJob => ({
+  ...row,
+  status: pregenJobStatusSchema.parse(row.status),
+})
 
 const enqueue = async (
   bookId: string,
@@ -22,7 +32,7 @@ const enqueue = async (
       updatedAt: now,
     },
   })
-  return row as PregenJob
+  return toPregenJob(row)
 }
 
 const getNext = async (): Promise<PregenJob | null> => {
@@ -30,14 +40,14 @@ const getNext = async (): Promise<PregenJob | null> => {
     where: { status: PREGEN_JOB_STATUS.QUEUED },
     orderBy: { createdAt: 'asc' },
   })
-  return (row as PregenJob) ?? null
+  return row ? toPregenJob(row) : null
 }
 
 const getJob = async (id: string): Promise<PregenJob | null> => {
   const row = await prisma.pregenJob.findUnique({
     where: { id },
   })
-  return (row as PregenJob) ?? null
+  return row ? toPregenJob(row) : null
 }
 
 const getByBookId = async (bookId: string): Promise<PregenJob | null> => {
@@ -49,7 +59,7 @@ const getByBookId = async (bookId: string): Promise<PregenJob | null> => {
       },
     },
   })
-  return (row as PregenJob) ?? null
+  return row ? toPregenJob(row) : null
 }
 
 const getAnyByBookId = async (bookId: string): Promise<PregenJob | null> => {
@@ -57,14 +67,14 @@ const getAnyByBookId = async (bookId: string): Promise<PregenJob | null> => {
     where: { bookId },
     orderBy: { createdAt: 'desc' },
   })
-  return (row as PregenJob) ?? null
+  return row ? toPregenJob(row) : null
 }
 
 const getAll = async (): Promise<PregenJob[]> => {
   const rows = await prisma.pregenJob.findMany({
     orderBy: { createdAt: 'asc' },
   })
-  return rows as PregenJob[]
+  return rows.map(toPregenJob)
 }
 
 const start = async (id: string): Promise<PregenJob | null> =>
@@ -73,7 +83,7 @@ const start = async (id: string): Promise<PregenJob | null> =>
       where: { id },
       data: { status: PREGEN_JOB_STATUS.IN_PROGRESS, updatedAt: Date.now() },
     })
-    return row as PregenJob
+    return toPregenJob(row)
   })
 
 const updateProgress = async (
@@ -94,7 +104,7 @@ const updateProgress = async (
         updatedAt: Date.now(),
       },
     })
-    return row as PregenJob
+    return toPregenJob(row)
   })
 
 const pause = async (id: string, errorMessage?: string): Promise<PregenJob | null> =>
@@ -107,7 +117,7 @@ const pause = async (id: string, errorMessage?: string): Promise<PregenJob | nul
         updatedAt: Date.now(),
       },
     })
-    return row as PregenJob
+    return toPregenJob(row)
   })
 
 const resume = async (id: string): Promise<PregenJob | null> =>
@@ -120,7 +130,7 @@ const resume = async (id: string): Promise<PregenJob | null> =>
         updatedAt: Date.now(),
       },
     })
-    return row as PregenJob
+    return toPregenJob(row)
   })
 
 const complete = async (id: string): Promise<PregenJob | null> =>
@@ -129,7 +139,7 @@ const complete = async (id: string): Promise<PregenJob | null> =>
       where: { id },
       data: { status: PREGEN_JOB_STATUS.COMPLETED, updatedAt: Date.now() },
     })
-    return row as PregenJob
+    return toPregenJob(row)
   })
 
 const cancel = async (id: string): Promise<{ deleted: boolean }> => {

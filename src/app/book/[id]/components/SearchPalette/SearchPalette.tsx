@@ -61,7 +61,7 @@ export const SearchPalette = ({
   }
 
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+    if (panelRef.current && e.target instanceof Node && !panelRef.current.contains(e.target)) {
       onClose()
     }
   }
@@ -106,7 +106,7 @@ export const SearchPalette = ({
               </button>
             ))}
           </div>
-          <span className="flex min-w-[4.5rem] shrink-0 items-center justify-end">
+          <span className="flex min-w-18 shrink-0 items-center justify-end">
             {showSpinner && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
             {showMatchCount && results.length > 0 && (
               <span className="text-muted-foreground text-xs tabular-nums">

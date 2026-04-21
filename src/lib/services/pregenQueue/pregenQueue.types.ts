@@ -1,4 +1,8 @@
-export type PregenJobStatus = 'queued' | 'in_progress' | 'paused' | 'completed'
+import { z } from 'zod'
+
+export const pregenJobStatusSchema = z.enum(['queued', 'in_progress', 'paused', 'completed'])
+
+export type PregenJobStatus = z.infer<typeof pregenJobStatusSchema>
 
 export const PREGEN_JOB_STATUS = {
   QUEUED: 'queued',

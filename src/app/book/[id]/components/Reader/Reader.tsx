@@ -174,7 +174,7 @@ export const Reader = ({
           return (
             <span
               key={idx}
-              ref={isActive ? (currentParagraphRef as React.RefObject<HTMLSpanElement>) : undefined}
+              ref={isActive ? currentParagraphRef : undefined}
               data-paragraph
               data-active-paragraph={isActive || undefined}
               onClick={() => onParagraphClick?.(currentChapter, idx)}

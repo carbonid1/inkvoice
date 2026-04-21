@@ -24,14 +24,14 @@ beforeEach(() => {
 
   vi.stubGlobal(
     'Audio',
-    class {
+    class implements MockAudio {
       play = vi.fn().mockResolvedValue(undefined)
       pause = vi.fn()
       onended: (() => void) | null = null
       onerror: (() => void) | null = null
       src = ''
       constructor() {
-        mockAudios.push(this as unknown as MockAudio)
+        mockAudios.push(this)
       }
     },
   )

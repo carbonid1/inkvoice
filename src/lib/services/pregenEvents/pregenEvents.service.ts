@@ -7,9 +7,15 @@ type PregenEventBus = {
   getWarmingUpBookId: () => string | null
 }
 
+declare global {
+  var pregenEvents: PregenEventBus | undefined
+}
+
+type WarmupState = { warmingUpBookId: string | null }
+
 const createPregenEvents = (): PregenEventBus => {
   const listeners = new Set<PregenEventListener>()
-  const state = { warmingUpBookId: null as string | null }
+  const state: WarmupState = { warmingUpBookId: null }
 
   return {
     on: listener => {
@@ -29,10 +35,8 @@ const createPregenEvents = (): PregenEventBus => {
   }
 }
 
-const globalForPregenEvents = globalThis as unknown as { pregenEvents: PregenEventBus | undefined }
-
-export const pregenEvents = globalForPregenEvents.pregenEvents ?? createPregenEvents()
+export const pregenEvents = globalThis.pregenEvents ?? createPregenEvents()
 
 if (process.env.NODE_ENV !== 'production') {
-  globalForPregenEvents.pregenEvents = pregenEvents
+  globalThis.pregenEvents = pregenEvents
 }

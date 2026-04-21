@@ -1,12 +1,13 @@
+import { isElement } from '../isElement/isElement'
+
 export const getPlainText = (node: Node): string => {
   if (node.nodeType === 3) {
     // Text node
     return node.textContent || ''
   }
-  if (node.nodeType === 1) {
+  if (isElement(node)) {
     // Element node
-    const el = node as Element
-    const tag = el.tagName.toLowerCase()
+    const tag = node.tagName.toLowerCase()
     // Skip script, style
     if (tag === 'script' || tag === 'style') return ''
     if (tag === 'br') return ' '

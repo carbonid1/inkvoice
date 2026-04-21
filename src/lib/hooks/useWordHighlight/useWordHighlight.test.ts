@@ -72,6 +72,7 @@ describe('useWordHighlight', () => {
     const audioRef = { current: makeAudio() }
     const paragraphRef = { current: makeParagraph('Hello world test') }
 
+    const initialProps: { timestamps: WordTimestamp[] | null } = { timestamps: makeTimestamps() }
     const { rerender } = renderHook(
       ({ timestamps }) =>
         useWordHighlight({
@@ -80,7 +81,7 @@ describe('useWordHighlight', () => {
           paragraphRef,
           isPlaying: false,
         }),
-      { initialProps: { timestamps: makeTimestamps() as WordTimestamp[] | null } },
+      { initialProps },
     )
 
     highlightDelete.mockClear()

@@ -73,8 +73,7 @@ export const BookCard = ({ book, onContextMenu }: BookCardProps) => {
                 loading="lazy"
                 className={`h-full w-full object-cover ${coverLoaded ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={e => {
-                  const img = e.target as HTMLImageElement
-                  if (img.naturalWidth === 0) {
+                  if (e.currentTarget.naturalWidth === 0) {
                     setCoverError(true)
                   } else {
                     setCoverLoaded(true)

@@ -10,19 +10,26 @@ type TextNodeBookmark = {
  * Collect all text nodes from an element using TreeWalker,
  * building a flat string with bookmarks for node boundaries.
  */
+// TreeWalker with SHOW_TEXT returns only Text nodes at runtime, but its
+// static return type is Node | null. Narrow with instanceof.
+const nextTextNode = (walker: TreeWalker): Text | null => {
+  const node = walker.nextNode()
+  return node instanceof Text ? node : null
+}
+
 const collectTextNodes = (element: HTMLElement): { text: string; nodes: TextNodeBookmark[] } => {
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
   const nodes: TextNodeBookmark[] = []
   let offset = 0
 
-  let node = walker.nextNode() as Text | null
+  let node = nextTextNode(walker)
   while (node) {
     const length = node.textContent?.length ?? 0
     if (length > 0) {
       nodes.push({ node, start: offset, end: offset + length })
       offset += length
     }
-    node = walker.nextNode() as Text | null
+    node = nextTextNode(walker)
   }
 
   return { text: nodes.map(n => n.node.textContent).join(''), nodes }

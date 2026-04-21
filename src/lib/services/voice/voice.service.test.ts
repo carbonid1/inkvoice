@@ -129,9 +129,7 @@ describe('voiceService', () => {
     )
     // Should not have queried DB for this voice
     const findCalls = mockPrisma.voiceMetadata.findUnique.mock.calls
-    const claraDbCall = findCalls.find(
-      (call: unknown[]) => (call[0] as { where: { name: string } })?.where?.name === 'clara',
-    )
+    const claraDbCall = findCalls.find(call => call[0]?.where?.name === 'clara')
     expect(claraDbCall).toBeUndefined()
   })
 

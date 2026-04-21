@@ -18,7 +18,7 @@ export const convertToWav = async (
 ): Promise<ConvertResult> => {
   const ext = getExtension(originalFilename)
 
-  if (!SUPPORTED_EXTENSIONS.includes(ext as (typeof SUPPORTED_EXTENSIONS)[number])) {
+  if (!SUPPORTED_EXTENSIONS.some(v => v === ext)) {
     return {
       ok: false,
       code: 'UNSUPPORTED_FORMAT',

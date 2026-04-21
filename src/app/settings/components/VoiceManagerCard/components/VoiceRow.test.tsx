@@ -16,13 +16,14 @@ const makeVoice = (overrides: Partial<VoiceEntry> = {}): VoiceEntry => ({
   ...overrides,
 })
 
+const playing: PlayingState = null
 const defaultProps = {
   voice: makeVoice(),
   selected: false,
   editingTags: false,
   onSelect: vi.fn(),
   onToggleTagEditor: vi.fn(),
-  playing: null as PlayingState,
+  playing,
   onPlay: vi.fn(),
   onTagsChanged: vi.fn(),
   tagsSaving: false,

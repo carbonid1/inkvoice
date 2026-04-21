@@ -15,7 +15,7 @@ describe('useSamplePolling', () => {
 
   it('calls onSampleReady when HEAD returns 200', async () => {
     const onSampleReady = vi.fn()
-    vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response)
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(null))
 
     const { result } = renderHook(() => useSamplePolling({ onSampleReady }))
     result.current.startPolling('my-voice')
@@ -30,8 +30,8 @@ describe('useSamplePolling', () => {
   it('retries when HEAD returns non-200', async () => {
     const onSampleReady = vi.fn()
     vi.mocked(fetch)
-      .mockResolvedValueOnce({ ok: false } as Response)
-      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(new Response(null))
 
     const { result } = renderHook(() => useSamplePolling({ onSampleReady }))
     result.current.startPolling('my-voice')
@@ -47,7 +47,7 @@ describe('useSamplePolling', () => {
 
   it('stops polling after timeout', async () => {
     const onSampleReady = vi.fn()
-    vi.mocked(fetch).mockResolvedValue({ ok: false } as Response)
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 404 }))
 
     const { result } = renderHook(() => useSamplePolling({ onSampleReady }))
     result.current.startPolling('my-voice')
@@ -64,7 +64,7 @@ describe('useSamplePolling', () => {
 
   it('clears polling on unmount', async () => {
     const onSampleReady = vi.fn()
-    vi.mocked(fetch).mockResolvedValue({ ok: false } as Response)
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 404 }))
 
     const { result, unmount } = renderHook(() => useSamplePolling({ onSampleReady }))
     result.current.startPolling('my-voice')
@@ -78,9 +78,9 @@ describe('useSamplePolling', () => {
   it('supports concurrent polls for different voices', async () => {
     const onSampleReady = vi.fn()
     vi.mocked(fetch)
-      .mockResolvedValueOnce({ ok: true } as Response) // voice-a
-      .mockResolvedValueOnce({ ok: false } as Response) // voice-b
-      .mockResolvedValueOnce({ ok: true } as Response) // voice-b retry
+      .mockResolvedValueOnce(new Response(null)) // voice-a
+      .mockResolvedValueOnce(new Response(null, { status: 404 })) // voice-b
+      .mockResolvedValueOnce(new Response(null)) // voice-b retry
 
     const { result } = renderHook(() => useSamplePolling({ onSampleReady }))
     result.current.startPolling('voice-a')

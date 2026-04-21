@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom'
 import { getPlainText } from './helpers/getPlainText/getPlainText'
 import { isAttributionElement } from './helpers/isAttributionElement/isAttributionElement'
 import { isChapterMarker } from './helpers/isChapterMarker/isChapterMarker'
+import { isElement } from './helpers/isElement/isElement'
 import { isEpigraphElement } from './helpers/isEpigraphElement/isEpigraphElement'
 import { isSceneBreakParagraph } from './helpers/isSceneBreakParagraph/isSceneBreakParagraph'
 import { splitNodeIntoChunks } from './helpers/splitNodeIntoChunks/splitNodeIntoChunks'
@@ -16,8 +17,8 @@ const isLinkListParagraph = (el: Element): boolean => {
   for (const child of children) {
     if (child.nodeType === 3) {
       if (child.textContent?.trim()) return false
-    } else if (child.nodeType === 1) {
-      if ((child as Element).tagName.toLowerCase() === 'a') linkCount++
+    } else if (isElement(child)) {
+      if (child.tagName.toLowerCase() === 'a') linkCount++
       else return false
     }
   }
@@ -67,9 +68,10 @@ const parseHtmlContentSync = async (
       if (nestedList) {
         // Add the li's direct content (e.g. "BOOK ONE: RARAKU") as an item
         Array.from(li.childNodes).forEach(child => {
-          if (child.nodeType === 1 && /^(ul|ol)$/i.test((child as Element).tagName)) return
-          if (child.nodeType === 1 && getPlainText(child).trim()) {
-            const segments = toSegments(child as Element)
+          if (!isElement(child)) return
+          if (/^(ul|ol)$/i.test(child.tagName)) return
+          if (getPlainText(child).trim()) {
+            const segments = toSegments(child)
             if (segments) items.push(segments)
           }
         })
@@ -80,7 +82,7 @@ const parseHtmlContentSync = async (
         processList(nestedList, depth + 1)
       } else if (isLinkListParagraph(li)) {
         li.querySelectorAll(':scope > a').forEach(link => {
-          const segments = toSegments(link as Element)
+          const segments = toSegments(link)
           if (segments) items.push(segments)
         })
       } else {
@@ -137,12 +139,12 @@ const parseHtmlContentSync = async (
       if (isChapterMarker(getPlainText(el))) return
       const img = el.querySelector('img, image')
       if (img && !getPlainText(el).trim()) {
-        processElement(img as Element)
+        processElement(img)
         return
       }
       if (isLinkListParagraph(el)) {
         el.querySelectorAll(':scope > a').forEach(link => {
-          const segments = toSegments(link as Element)
+          const segments = toSegments(link)
           if (segments) content.push({ type: 'paragraph', segments })
         })
         return
@@ -164,7 +166,7 @@ const parseHtmlContentSync = async (
       tag === 'figure' ||
       tag === 'svg'
     ) {
-      Array.from(el.children).forEach(child => processElement(child as Element))
+      Array.from(el.children).forEach(child => processElement(child))
       return
     }
 
@@ -174,7 +176,7 @@ const parseHtmlContentSync = async (
     }
   }
 
-  Array.from(body.children).forEach(child => processElement(child as Element))
+  Array.from(body.children).forEach(child => processElement(child))
 
   while (content[content.length - 1]?.type === 'scene-break') content.pop()
 
