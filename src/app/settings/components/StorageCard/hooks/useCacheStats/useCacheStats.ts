@@ -22,8 +22,24 @@ export const useCacheStats = () => {
   }, [])
 
   useEffect(() => {
-    fetchStats()
-  }, [fetchStats])
+    let cancelled = false
+    const load = async () => {
+      try {
+        const response = await fetch('/api/cache/stats')
+        if (cancelled || !response.ok) return
+        const data = await response.json()
+        if (!cancelled) setStats(data)
+      } catch {
+        // Fetch failed — keep current state
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return useMemo(() => ({ stats, loading, refetch: fetchStats }), [stats, loading, fetchStats])
 }

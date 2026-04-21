@@ -26,11 +26,13 @@ export const useBookSearch = (bookId: string, currentChapter: number): UseBookSe
   const currentChapterRef = useRef(currentChapter)
   const queryRef = useRef('')
 
-  // Keep refs in sync
-  resultsLengthRef.current = results.length
-  scopeRef.current = scope
-  currentChapterRef.current = currentChapter
-  queryRef.current = query
+  // Keep refs in sync with latest values for use inside async callbacks
+  useEffect(() => {
+    resultsLengthRef.current = results.length
+    scopeRef.current = scope
+    currentChapterRef.current = currentChapter
+    queryRef.current = query
+  })
 
   const open = useCallback(() => setIsOpen(true), [])
 

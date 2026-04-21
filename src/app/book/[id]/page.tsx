@@ -51,9 +51,13 @@ export default function BookReader() {
   const { effectiveVoice } = useBookVoice(bookId)
   const { overview, loading, error, initialChapter, initialParagraph } = useBookOverview(bookId)
   const [chapterData, setChapterData] = useState<ParsedChapter | null>(null)
-  const [currentChapter, setCurrentChapter] = useState(0)
-  const [currentParagraph, setCurrentParagraph] = useState(0)
-  const [positionResolved, setPositionResolved] = useState(false)
+  const [userPosition, setUserPosition] = useState<{ chapter: number; paragraph: number } | null>(
+    null,
+  )
+  const currentChapter = userPosition?.chapter ?? initialChapter ?? 0
+  const currentParagraph = userPosition?.paragraph ?? initialParagraph ?? 0
+  const positionResolved =
+    userPosition !== null || (initialChapter !== null && initialParagraph !== null)
   const search = useBookSearch(bookId, currentChapter)
   const { savedPosition, savePosition, clearPosition, navigateBack } = useReturnPosition()
   const [chapterLoading, setChapterLoading] = useState(false)
@@ -65,14 +69,6 @@ export default function BookReader() {
 
   const setProgress = useProgressStore(s => s.setProgress)
   const getProgress = useProgressStore(s => s.getProgress)
-
-  // Sync position when hook resolves initial values from overview
-  useEffect(() => {
-    if (initialChapter === null || initialParagraph === null) return
-    setCurrentChapter(initialChapter)
-    setCurrentParagraph(initialParagraph)
-    setPositionResolved(true)
-  }, [initialChapter, initialParagraph])
 
   // Fetch chapter content when currentChapter changes
   useEffect(() => {
@@ -97,8 +93,7 @@ export default function BookReader() {
 
   const handleProgressChange = useCallback(
     (chapter: number, paragraph: number) => {
-      setCurrentChapter(chapter)
-      setCurrentParagraph(paragraph)
+      setUserPosition({ chapter, paragraph })
       setProgress(bookId, chapter, paragraph)
     },
     [bookId, setProgress],

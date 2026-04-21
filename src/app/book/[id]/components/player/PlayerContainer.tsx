@@ -13,7 +13,7 @@ import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { Button, Tooltip } from '@carbonid1/design-system'
 import { Bookmark } from 'lucide-react'
 import type { RefObject } from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -231,17 +231,21 @@ export const PlayerContainer = ({
     setPlaying,
   ])
 
-  // Force replay on regenerate (replayKey changes)
-  useEffect(() => {
-    if (replayKey === prevReplayKeyRef.current) return
-    prevReplayKeyRef.current = replayKey
+  const triggerReplay = useEffectEvent(() => {
     playingPositionRef.current = null
     if (isPlaying) {
       playCurrentParagraph()
     } else {
       setPlaying(true)
     }
-  }, [replayKey, currentChapter, currentParagraph, isPlaying, setPlaying, playCurrentParagraph])
+  })
+
+  // Force replay on regenerate (replayKey changes)
+  useEffect(() => {
+    if (replayKey === prevReplayKeyRef.current) return
+    prevReplayKeyRef.current = replayKey
+    triggerReplay()
+  }, [replayKey])
 
   useWordHighlight({
     audioRef: audioPlayer.audioRef,

@@ -29,8 +29,6 @@ export default function Library() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hiddenBooks, setHiddenBooks] = useState<Set<string>>(new Set())
-  const hiddenBooksRef = useRef(hiddenBooks)
-  hiddenBooksRef.current = hiddenBooks
   const [isDragging, setIsDragging] = useState(false)
   const dragCounterRef = useRef(0)
   const lastDeletedRef = useRef<UndoState | null>(null)
@@ -63,10 +61,26 @@ export default function Library() {
   }, [setBooks])
 
   useEffect(() => {
-    fetchBooks()
+    let cancelled = false
+    const loadBooks = async () => {
+      try {
+        const response = await fetch('/api/books')
+        if (!response.ok) throw new Error('Failed to fetch books')
+        const data: Book[] = await response.json()
+        if (!cancelled) setBooks(data)
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    loadBooks()
     loadAllProgress()
     loadAllVoices()
-  }, [fetchBooks, loadAllProgress, loadAllVoices])
+    return () => {
+      cancelled = true
+    }
+  }, [setBooks, loadAllProgress, loadAllVoices])
 
   // Fetch estimates for all books once library is loaded
   useEffect(() => {
@@ -161,7 +175,7 @@ export default function Library() {
   const handleRemove = useCallback(
     (bookId: string) => {
       const book = books.find(b => b.id === bookId)
-      if (!book || hiddenBooksRef.current.has(bookId)) return
+      if (!book || hiddenBooks.has(bookId)) return
 
       setHiddenBooks(prev => new Set(prev).add(bookId))
 
@@ -187,7 +201,7 @@ export default function Library() {
         }
       })
     },
-    [books, deleteBook, handleUndo, unhideBook],
+    [books, hiddenBooks, deleteBook, handleUndo, unhideBook],
   )
 
   const handleContextMenu = useCallback((e: MouseEvent, bookId: string) => {
@@ -273,7 +287,7 @@ export default function Library() {
                 key={i}
                 className="border-border bg-background flex flex-col rounded-lg border p-4"
               >
-                <div className="bg-muted mb-3 aspect-[2/3] w-full animate-pulse rounded-sm" />
+                <div className="bg-muted mb-3 aspect-2/3 w-full animate-pulse rounded-sm" />
                 <div className="bg-muted mb-2 h-4 w-3/4 animate-pulse rounded-sm" />
                 <div className="bg-muted h-3 w-1/2 animate-pulse rounded-sm" />
                 <div className="bg-muted mt-1 h-3 w-2/5 animate-pulse rounded-sm" />

@@ -4,7 +4,7 @@ import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoic
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
 import { VoiceRow } from './VoiceRow'
 
@@ -30,19 +30,24 @@ export const VoiceList = ({
   const [customParent] = useAutoAnimate()
   const [appParent] = useAutoAnimate()
   const [editingTagsVoice, setEditingTagsVoice] = useState<string | null>(null)
-  const [localVoices, setLocalVoices] = useState(voices)
+  const [tagOverrides, setTagOverrides] = useState<Record<string, string[]>>({})
   const { saving, updateTags } = useUpdateVoiceTags()
 
-  useEffect(() => {
-    setLocalVoices(voices)
-  }, [voices])
+  const localVoices = useMemo(
+    () =>
+      voices.map(v => {
+        const override = tagOverrides[v.name]
+        return override ? { ...v, tags: override } : v
+      }),
+    [voices, tagOverrides],
+  )
 
   const handleTagsChanged = useCallback(
     async (voiceName: string, tags: string[]) => {
-      setLocalVoices(prev => prev.map(v => (v.name === voiceName ? { ...v, tags } : v)))
+      setTagOverrides(prev => ({ ...prev, [voiceName]: tags }))
       const result = await updateTags(voiceName, tags)
       if (result) {
-        setLocalVoices(prev => prev.map(v => (v.name === voiceName ? { ...v, tags: result } : v)))
+        setTagOverrides(prev => ({ ...prev, [voiceName]: result }))
       }
     },
     [updateTags],

@@ -25,8 +25,24 @@ export const useVoices = () => {
   }, [])
 
   useEffect(() => {
-    fetchVoices()
-  }, [fetchVoices])
+    let cancelled = false
+    const load = async () => {
+      try {
+        const response = await fetch('/api/voices', { cache: 'no-store' })
+        if (cancelled || !response.ok) return
+        const data = await response.json()
+        if (!cancelled) setVoices(data)
+      } catch (e) {
+        if (!cancelled) console.error('Failed to fetch voices:', e)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return useMemo(() => ({ voices, loading, refetch: fetchVoices }), [voices, loading, fetchVoices])
 }
