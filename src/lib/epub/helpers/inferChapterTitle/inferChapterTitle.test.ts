@@ -85,7 +85,7 @@ describe('inferChapterTitle', () => {
 
     it('leaves mixed-case sentence unchanged', () => {
       expect(
-        inferChapterTitle({ ...base, htmlHeading: "Acclaim for Steven Author's large epub" }, 1),
+        inferChapterTitle({ ...base, htmlHeading: "Acclaim for Steven Author's large epub" }),
       ).toBe("Acclaim for Steven Author's large epub")
     })
 
@@ -97,10 +97,7 @@ describe('inferChapterTitle', () => {
   describe('trailing colon stripping', () => {
     it('strips trailing colon from heading', () => {
       expect(
-        inferChapterTitle(
-          { ...base, htmlHeading: 'Acclaim for The Series Book of the Fallen:' },
-          1,
-        ),
+        inferChapterTitle({ ...base, htmlHeading: 'Acclaim for The Series Book of the Fallen:' }),
       ).toBe('Acclaim for The Series Book of the Fallen')
     })
 

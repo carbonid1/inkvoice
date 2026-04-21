@@ -35,13 +35,14 @@ describe('pregenQueueService', () => {
       const now = 1700000000000
       vi.spyOn(Date, 'now').mockReturnValue(now)
 
-      const row = {
+      const row: PregenJob = {
         id: 'test-uuid',
         bookId: 'book-1',
         voice: 'narrator',
         status: 'queued',
         totalParagraphs: 500,
         completedParagraphs: 0,
+        generatedDurationMs: 0,
         currentChapter: 0,
         currentParagraph: 0,
         errorMessage: null,

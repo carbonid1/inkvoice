@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useVoicePreview } from './useVoicePreview'
 
 type MockAudio = {
@@ -11,6 +11,12 @@ type MockAudio = {
 }
 
 let mockAudios: MockAudio[]
+
+const getMockAudio = (index: number): MockAudio => {
+  const audio = mockAudios[index]
+  if (!audio) throw new Error(`Mock Audio at index ${index} was never created`)
+  return audio
+}
 
 beforeEach(() => {
   mockAudios = []
@@ -66,7 +72,7 @@ describe('useVoicePreview', () => {
     await act(() => result.current.play('narrator', 'sample'))
 
     // End playback
-    act(() => mockAudios[0].onended?.())
+    act(() => getMockAudio(0).onended?.())
     expect(result.current.playing).toBeNull()
 
     // Second play — should reuse cache
@@ -81,7 +87,7 @@ describe('useVoicePreview', () => {
     const { result } = renderHook(() => useVoicePreview())
 
     await act(() => result.current.play('narrator', 'sample'))
-    act(() => mockAudios[0].onended?.())
+    act(() => getMockAudio(0).onended?.())
 
     await act(() => result.current.play('narrator', 'source'))
 
@@ -93,10 +99,10 @@ describe('useVoicePreview', () => {
     const { result, unmount } = renderHook(() => useVoicePreview())
 
     await act(() => result.current.play('narrator', 'sample'))
-    act(() => mockAudios[0].onended?.())
+    act(() => getMockAudio(0).onended?.())
 
     await act(() => result.current.play('narrator', 'source'))
-    act(() => mockAudios[1].onended?.())
+    act(() => getMockAudio(1).onended?.())
 
     unmount()
 

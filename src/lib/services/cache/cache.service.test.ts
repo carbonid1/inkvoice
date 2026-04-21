@@ -195,8 +195,8 @@ describe('TTSCacheService', () => {
       // longer evict, so the entry must persist.
       await service.set('text 3', 'voice', Buffer.alloc(80), 'book-c')
 
-      const unlinkCalls = mockFs.unlink.mock.calls.map(([p]: [string]) => p)
-      expect(unlinkCalls.filter((p: string) => p.endsWith('.opus'))).toEqual([])
+      const unlinkCalls = mockFs.unlink.mock.calls.map(args => args[0])
+      expect(unlinkCalls.filter(p => p.endsWith('.opus'))).toEqual([])
 
       const stats = await service.getStats()
       expect(stats.usedBytes).toBe(240)

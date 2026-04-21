@@ -23,10 +23,6 @@
     "dist-electron",
     "dist-nextjs",
     "dist-node",
-    "dist-python",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.stories.ts",
-    "**/*.stories.tsx"
+    "dist-python"
   ]
 }

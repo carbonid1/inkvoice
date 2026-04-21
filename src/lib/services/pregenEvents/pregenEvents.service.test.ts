@@ -10,6 +10,7 @@ const makeJob = (overrides: Partial<PregenJob> = {}): PregenJob => ({
   status: 'in_progress',
   totalParagraphs: 100,
   completedParagraphs: 50,
+  generatedDurationMs: 0,
   currentChapter: 2,
   currentParagraph: 5,
   errorMessage: null,

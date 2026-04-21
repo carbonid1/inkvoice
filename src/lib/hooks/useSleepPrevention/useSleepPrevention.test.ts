@@ -25,7 +25,7 @@ const makeJob = (overrides: Partial<PregenJob> = {}): PregenJob => ({
 beforeEach(() => {
   usePregenStore.setState({ jobs: {}, loaded: true })
   // Remove bridge to simulate dev mode by default
-  delete (window as Record<string, unknown>).inkvoice
+  delete window.inkvoice
 })
 
 describe('useSleepPrevention', () => {
@@ -45,7 +45,7 @@ describe('useSleepPrevention', () => {
     beforeEach(() => {
       sleepBlockStart.mockReset()
       sleepBlockStop.mockReset()
-      ;(window as Record<string, unknown>).inkvoice = {
+      window.inkvoice = {
         platform: 'darwin',
         retry: vi.fn(),
         quit: vi.fn(),
