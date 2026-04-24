@@ -1,14 +1,16 @@
 'use client'
 
 import type { TextSegment } from '@/lib/types/book'
-import type { MouseEvent, RefObject } from 'react'
+import type { RefObject } from 'react'
+import { ParagraphContextMenu } from '../../../ParagraphContextMenu/ParagraphContextMenu'
 import { ACTIVE_PARAGRAPH_HIGHLIGHT } from '../../Reader.consts'
 
 export type RenderSegmentsParams = {
   segments: TextSegment[] | undefined
   currentParagraph: number
   onParagraphClick: ((chapter: number, paragraph: number) => void) | undefined
-  onParagraphContextMenu?: (e: MouseEvent, chapter: number, paragraph: number) => void
+  onCopyText?: (chapter: number, paragraph: number) => void
+  onRegenerate?: (chapter: number, paragraph: number) => void | Promise<void>
   currentChapter: number
   paragraphRef: RefObject<HTMLSpanElement | null>
   bookmarkedParagraphs?: Set<number>
@@ -20,7 +22,8 @@ export const renderSegments = ({
   segments,
   currentParagraph,
   onParagraphClick,
-  onParagraphContextMenu,
+  onCopyText,
+  onRegenerate,
   currentChapter,
   paragraphRef,
   bookmarkedParagraphs,
@@ -30,27 +33,36 @@ export const renderSegments = ({
     const isActive = segment.paragraphIndex === currentParagraph
     const isBookmarked = bookmarkedParagraphs?.has(segment.paragraphIndex) ?? false
 
-    return (
-      <span key={idx}>
-        <span
-          ref={isActive ? paragraphRef : undefined}
-          data-paragraph
-          data-active-paragraph={isActive || undefined}
-          onClick={() => {
-            if (window.getSelection()?.isCollapsed === false) return
-            onParagraphClick?.(currentChapter, segment.paragraphIndex)
-          }}
-          onContextMenu={
-            onParagraphContextMenu
-              ? e => onParagraphContextMenu(e, currentChapter, segment.paragraphIndex)
-              : undefined
-          }
-          className={`cursor-pointer transition-colors ${
-            isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} -mx-0.5 px-0.5` : 'hover:bg-accent'
-          } ${isBookmarked ? 'border-attention -ml-1 border-l-2 pl-1' : ''}`}
-          dangerouslySetInnerHTML={{ __html: segment.html }}
-        />{' '}
-      </span>
+    const paragraphSpan = (
+      <span
+        ref={isActive ? paragraphRef : undefined}
+        data-paragraph
+        data-active-paragraph={isActive || undefined}
+        onClick={() => {
+          if (window.getSelection()?.isCollapsed === false) return
+          onParagraphClick?.(currentChapter, segment.paragraphIndex)
+        }}
+        className={`cursor-pointer transition-colors ${
+          isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} -mx-0.5 px-0.5` : 'hover:bg-accent'
+        } ${isBookmarked ? 'border-attention -ml-1 border-l-2 pl-1' : ''}`}
+        dangerouslySetInnerHTML={{ __html: segment.html }}
+      />
     )
+
+    const wrapped =
+      onCopyText && onRegenerate ? (
+        <ParagraphContextMenu
+          chapter={currentChapter}
+          paragraph={segment.paragraphIndex}
+          onCopyText={onCopyText}
+          onRegenerate={onRegenerate}
+        >
+          {paragraphSpan}
+        </ParagraphContextMenu>
+      ) : (
+        paragraphSpan
+      )
+
+    return <span key={idx}>{wrapped} </span>
   })
 }

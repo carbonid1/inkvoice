@@ -2,64 +2,26 @@
 
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
+import { PREGEN_JOB_STATUS } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
-import { Button, Tooltip, toast } from '@carbonid1/design-system'
-import { Check, Download, Pause, Play, RotateCcw, Trash2, X } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-
-export type BookCardMenuTarget = {
-  x: number
-  y: number
-  bookId: string
-}
+import { ContextMenu, Tooltip, toast } from '@carbonid1/design-system'
+import { Download, Pause, Play, Trash2, X } from 'lucide-react'
+import type { ReactElement } from 'react'
 
 type BookCardContextMenuProps = {
-  target: BookCardMenuTarget | null
+  bookId: string
   onRemove: (bookId: string) => void
-  onClose: () => void
+  children: ReactElement
 }
 
-export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardContextMenuProps) => {
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ left: 0, top: 0 })
-  const bookId = target?.bookId
-  const job = usePregenStore(s => (bookId ? s.jobs[bookId] : undefined))
-  const estimate = usePregenStore(s => (bookId ? s.estimates[bookId] : undefined))
-  const isFinished = useProgressStore(s => (bookId ? !!s.progress[bookId]?.finishedAt : false))
-
-  useLayoutEffect(() => {
-    if (!target || !menuRef.current) return
-    const menu = menuRef.current
-    const left = Math.min(target.x, window.innerWidth - menu.offsetWidth - 8)
-    const top = Math.min(target.y, window.innerHeight - menu.offsetHeight - 8)
-    setPosition({ left: Math.max(8, left), top: Math.max(8, top) })
-  }, [target])
-
-  useEffect(() => {
-    if (!target) return
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && e.target instanceof Node && !menuRef.current.contains(e.target)) {
-        onClose()
-      }
-    }
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscape)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [target, onClose])
-
-  if (!target) return null
+export const BookCardContextMenu = ({ bookId, onRemove, children }: BookCardContextMenuProps) => {
+  const job = usePregenStore(s => s.jobs[bookId])
+  const estimate = usePregenStore(s => s.estimates[bookId])
+  const isFinished = useProgressStore(s => !!s.progress[bookId]?.finishedAt)
 
   const handleStart = async () => {
-    const response = await fetch(`/api/pregenerate/${target.bookId}`, { method: 'POST' })
+    const response = await fetch(`/api/pregenerate/${bookId}`, { method: 'POST' })
     if (response.ok) {
       const newJob = await response.json()
       usePregenStore.getState().updateJob(newJob)
@@ -71,44 +33,26 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
         })
       }
     }
-    onClose()
   }
 
-  const handlePause = async () => {
-    await fetch(`/api/pregenerate/${target.bookId}`, {
+  const patchJob = (action: 'pause' | 'resume') =>
+    fetch(`/api/pregenerate/${bookId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'pause' }),
-    })
-    onClose()
-  }
+      body: JSON.stringify({ action }),
+    }).catch(console.error)
 
-  const handleResume = async () => {
-    await fetch(`/api/pregenerate/${target.bookId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'resume' }),
-    })
-    onClose()
-  }
+  const handlePause = () => patchJob('pause')
+  const handleResume = () => patchJob('resume')
+  const handleCancel = () =>
+    fetch(`/api/pregenerate/${bookId}`, { method: 'DELETE' }).catch(console.error)
 
-  const handleCancel = async () => {
-    await fetch(`/api/pregenerate/${target.bookId}`, { method: 'DELETE' })
-    onClose()
-  }
-
-  const handleRemove = () => {
-    onRemove(target.bookId)
-    onClose()
-  }
-
-  const handleToggleFinished = () => {
-    if (isFinished) {
-      useProgressStore.getState().unmarkFinished(target.bookId)
+  const handleToggleFinished = (checked: boolean) => {
+    if (checked) {
+      useProgressStore.getState().markFinished(bookId)
     } else {
-      useProgressStore.getState().markFinished(target.bookId)
+      useProgressStore.getState().unmarkFinished(bookId)
     }
-    onClose()
   }
 
   const isFullyCached =
@@ -120,79 +64,77 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
   const overBudget = estimate && !estimate.budget.ok
   const shortfallLabel =
     estimate && !estimate.budget.ok ? formatBytes(estimate.budget.shortfallBytes) : null
-
   const estimateLabel =
     estimate && showPregenItem
       ? `~${formatBytes(estimate.estimatedSizeBytes)} · ~${formatDuration(estimate.estimatedGenerationMinutes * 60_000)}`
       : null
 
   return (
-    <div
-      ref={menuRef}
-      style={{ left: position.left, top: position.top }}
-      className="border-border bg-background fixed z-50 min-w-52 rounded-lg border py-1 shadow-lg"
-      role="menu"
-    >
-      <Button role="menuitem" size="small" fullWidth onClick={handleToggleFinished}>
-        {isFinished ? <RotateCcw /> : <Check />}
-        {isFinished ? 'Mark as Unread' : 'Mark as Done'}
-      </Button>
+    <ContextMenu.Root>
+      <ContextMenu.Trigger render={children} />
+      <ContextMenu.Portal>
+        <ContextMenu.Positioner>
+          <ContextMenu.Popup className="min-w-52">
+            <ContextMenu.CheckboxItem checked={isFinished} onCheckedChange={handleToggleFinished}>
+              {isFinished ? 'Mark as Unread' : 'Mark as Done'}
+            </ContextMenu.CheckboxItem>
 
-      <div className="border-border my-1 border-t" />
+            {(showPregenItem || job) && <ContextMenu.Separator />}
 
-      {showPregenItem && (
-        <div>
-          {overBudget ? (
-            <Tooltip
-              label={`Free ${shortfallLabel} in Settings or raise the cache limit.`}
-              position="bottom"
-            >
-              <div>
-                <Button role="menuitem" size="small" fullWidth disabled>
-                  <Download />
-                  {hasCachedContent ? 'Resume Generation' : 'Pre-generate Audio'}
-                </Button>
-              </div>
-            </Tooltip>
-          ) : (
-            <Button role="menuitem" size="small" fullWidth onClick={handleStart}>
-              <Download />
-              {hasCachedContent ? 'Resume Generation' : 'Pre-generate Audio'}
-            </Button>
-          )}
-          {estimateLabel && (
-            <p className="text-muted-foreground px-3 pb-1 text-xs">{estimateLabel}</p>
-          )}
-        </div>
-      )}
+            {showPregenItem && (
+              <>
+                {overBudget ? (
+                  <Tooltip
+                    label={`Free ${shortfallLabel} in Settings or raise the cache limit.`}
+                    position="bottom"
+                  >
+                    <ContextMenu.Item disabled>
+                      <Download />
+                      {hasCachedContent ? 'Resume Generation' : 'Pre-generate Audio'}
+                    </ContextMenu.Item>
+                  </Tooltip>
+                ) : (
+                  <ContextMenu.Item onClick={handleStart}>
+                    <Download />
+                    {hasCachedContent ? 'Resume Generation' : 'Pre-generate Audio'}
+                  </ContextMenu.Item>
+                )}
+                {estimateLabel && (
+                  <p className="text-muted-foreground px-3 pb-1 text-xs">{estimateLabel}</p>
+                )}
+              </>
+            )}
 
-      {job?.status === 'in_progress' && (
-        <Button role="menuitem" size="small" fullWidth onClick={handlePause}>
-          <Pause />
-          Pause Generation
-        </Button>
-      )}
+            {job?.status === PREGEN_JOB_STATUS.IN_PROGRESS && (
+              <ContextMenu.Item onClick={handlePause}>
+                <Pause />
+                Pause Generation
+              </ContextMenu.Item>
+            )}
 
-      {job?.status === 'paused' && (
-        <Button role="menuitem" size="small" fullWidth onClick={handleResume}>
-          <Play />
-          Resume Generation
-        </Button>
-      )}
+            {job?.status === PREGEN_JOB_STATUS.PAUSED && (
+              <ContextMenu.Item onClick={handleResume}>
+                <Play />
+                Resume Generation
+              </ContextMenu.Item>
+            )}
 
-      {job && job.status !== 'completed' && (
-        <Button role="menuitem" size="small" fullWidth onClick={handleCancel}>
-          <X />
-          Cancel Generation
-        </Button>
-      )}
+            {job && job.status !== PREGEN_JOB_STATUS.COMPLETED && (
+              <ContextMenu.Item onClick={handleCancel}>
+                <X />
+                Cancel Generation
+              </ContextMenu.Item>
+            )}
 
-      <div className="border-border my-1 border-t" />
+            <ContextMenu.Separator />
 
-      <Button role="menuitem" size="small" fullWidth onClick={handleRemove}>
-        <Trash2 />
-        Remove Book
-      </Button>
-    </div>
+            <ContextMenu.Item variant="destructive" onClick={() => onRemove(bookId)}>
+              <Trash2 />
+              Remove Book
+            </ContextMenu.Item>
+          </ContextMenu.Popup>
+        </ContextMenu.Positioner>
+      </ContextMenu.Portal>
+    </ContextMenu.Root>
   )
 }

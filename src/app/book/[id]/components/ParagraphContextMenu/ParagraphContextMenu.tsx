@@ -1,88 +1,39 @@
 'use client'
 
-import { Button } from '@carbonid1/design-system'
+import { ContextMenu } from '@carbonid1/design-system'
 import { Copy, RefreshCw } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-
-export type ContextMenuTarget = {
-  x: number
-  y: number
-  chapter: number
-  paragraph: number
-}
+import type { ReactElement } from 'react'
 
 type ParagraphContextMenuProps = {
-  target: ContextMenuTarget | null
-  onRegenerate: (chapter: number, paragraph: number) => void | Promise<void>
+  chapter: number
+  paragraph: number
   onCopyText: (chapter: number, paragraph: number) => void
-  onClose: () => void
+  onRegenerate: (chapter: number, paragraph: number) => void | Promise<void>
+  children: ReactElement
 }
 
 export const ParagraphContextMenu = ({
-  target,
-  onRegenerate,
+  chapter,
+  paragraph,
   onCopyText,
-  onClose,
-}: ParagraphContextMenuProps) => {
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState<{ left: number; top: number }>({ left: 0, top: 0 })
-
-  useLayoutEffect(() => {
-    if (!target || !menuRef.current) return
-    const menu = menuRef.current
-    const left = Math.min(target.x, window.innerWidth - menu.offsetWidth - 8)
-    const top = Math.min(target.y, window.innerHeight - menu.offsetHeight - 8)
-    setPosition({ left: Math.max(8, left), top: Math.max(8, top) })
-  }, [target])
-
-  useEffect(() => {
-    if (!target) return
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && e.target instanceof Node && !menuRef.current.contains(e.target)) {
-        onClose()
-      }
-    }
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscape)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [target, onClose])
-
-  if (!target) return null
-
-  const handleCopy = () => {
-    onCopyText(target.chapter, target.paragraph)
-    onClose()
-  }
-
-  const handleRegenerate = () => {
-    onRegenerate(target.chapter, target.paragraph)
-    onClose()
-  }
-
-  return (
-    <div
-      ref={menuRef}
-      style={{ left: position.left, top: position.top }}
-      className="border-border bg-background fixed z-50 min-w-45 rounded-lg border py-1 shadow-lg"
-      role="menu"
-    >
-      <Button role="menuitem" size="small" fullWidth onClick={handleCopy}>
-        <Copy />
-        Copy Text
-      </Button>
-      <div className="border-border border-t" />
-      <Button role="menuitem" size="small" fullWidth onClick={handleRegenerate}>
-        <RefreshCw />
-        Regenerate Audio
-      </Button>
-    </div>
-  )
-}
+  onRegenerate,
+  children,
+}: ParagraphContextMenuProps) => (
+  <ContextMenu.Root>
+    <ContextMenu.Trigger render={children} />
+    <ContextMenu.Portal>
+      <ContextMenu.Positioner>
+        <ContextMenu.Popup>
+          <ContextMenu.Item onClick={() => onCopyText(chapter, paragraph)}>
+            <Copy />
+            Copy Text
+          </ContextMenu.Item>
+          <ContextMenu.Item onClick={() => onRegenerate(chapter, paragraph)}>
+            <RefreshCw />
+            Regenerate Audio
+          </ContextMenu.Item>
+        </ContextMenu.Popup>
+      </ContextMenu.Positioner>
+    </ContextMenu.Portal>
+  </ContextMenu.Root>
+)

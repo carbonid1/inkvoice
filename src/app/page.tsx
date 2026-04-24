@@ -11,15 +11,10 @@ import { useVoiceStore } from '@/store/useVoiceStore'
 import { buttonVariants, getModKey, toast, Tooltip } from '@carbonid1/design-system'
 import { Settings, Upload } from 'lucide-react'
 import Link from 'next/link'
-import type { MouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { AddBookCard } from './components/AddBookCard/AddBookCard'
 import { BookCard } from './components/BookCard/BookCard'
-import {
-  BookCardContextMenu,
-  type BookCardMenuTarget,
-} from './components/BookCard/BookCardContextMenu'
 
 type UndoState = {
   book: Book
@@ -32,7 +27,6 @@ export default function Library() {
   const [isDragging, setIsDragging] = useState(false)
   const dragCounterRef = useRef(0)
   const lastDeletedRef = useRef<UndoState | null>(null)
-  const [menuTarget, setMenuTarget] = useState<BookCardMenuTarget | null>(null)
 
   const books = useLibraryStore(s => s.books)
   const setBooks = useLibraryStore(s => s.setBooks)
@@ -204,14 +198,6 @@ export default function Library() {
     [books, hiddenBooks, deleteBook, handleUndo, unhideBook],
   )
 
-  const handleContextMenu = useCallback((e: MouseEvent, bookId: string) => {
-    setMenuTarget({ x: e.clientX, y: e.clientY, bookId })
-  }, [])
-
-  const handleCloseMenu = useCallback(() => {
-    setMenuTarget(null)
-  }, [])
-
   // Drag-and-drop handlers
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -301,14 +287,12 @@ export default function Library() {
         {!loading && progressLoaded && pregenLoaded && !error && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {sortedBooks.map(book => (
-              <BookCard key={book.id} book={book} onContextMenu={handleContextMenu} />
+              <BookCard key={book.id} book={book} onRemove={handleRemove} />
             ))}
             <AddBookCard onUpload={handleUpload} uploading={uploading} />
           </div>
         )}
       </main>
-
-      <BookCardContextMenu target={menuTarget} onRemove={handleRemove} onClose={handleCloseMenu} />
 
       {isDragging && (
         <div className="border-primary-border bg-primary-muted pointer-events-none fixed inset-0 z-50 flex items-center justify-center border-2 border-dashed">

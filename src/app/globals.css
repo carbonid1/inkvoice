@@ -28,12 +28,6 @@ body {
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
-
-  button,
-  [role='button'],
-  a {
-    @apply ring-offset-background focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden;
-  }
 }
 
 ::selection {

@@ -12,7 +12,6 @@ import { Button, Tooltip, buttonVariants, toast } from '@carbonid1/design-system
 import { BookMarked, ChevronLeft, List, Loader2, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import type { MouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
@@ -20,10 +19,6 @@ import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
 import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
 import { FontSizePopover } from './components/FontSizePopover/FontSizePopover'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
-import {
-  ParagraphContextMenu,
-  type ContextMenuTarget,
-} from './components/ParagraphContextMenu/ParagraphContextMenu'
 import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
@@ -62,7 +57,6 @@ export default function BookReader() {
   const { savedPosition, savePosition, clearPosition, navigateBack } = useReturnPosition()
   const [chapterLoading, setChapterLoading] = useState(false)
   const [activeDrawer, setActiveDrawer] = useState<'chapter' | 'bookmark' | null>(null)
-  const [contextMenuTarget, setContextMenuTarget] = useState<ContextMenuTarget | null>(null)
   const [showChapterEndModal, setShowChapterEndModal] = useState(false)
   const [replayKey, setReplayKey] = useState(0)
   const activeParagraphRef = useRef<HTMLSpanElement>(null)
@@ -105,16 +99,6 @@ export default function BookReader() {
     },
     [handleProgressChange],
   )
-
-  const handleParagraphContextMenu = useCallback(
-    (e: MouseEvent, chapter: number, paragraph: number) => {
-      e.preventDefault()
-      setContextMenuTarget({ x: e.clientX, y: e.clientY, chapter, paragraph })
-    },
-    [],
-  )
-
-  const handleCloseContextMenu = useCallback(() => setContextMenuTarget(null), [])
 
   const handleCopyText = useCallback(
     (_chapter: number, paragraph: number) => {
@@ -353,7 +337,8 @@ export default function BookReader() {
               currentChapter={currentChapter}
               currentParagraph={currentParagraph}
               onParagraphClick={handleParagraphClick}
-              onParagraphContextMenu={handleParagraphContextMenu}
+              onCopyText={handleCopyText}
+              onRegenerate={handleRegenerate}
               bookmarkedParagraphs={bookmarkedParagraphs}
               activeParagraphRef={activeParagraphRef}
             />
@@ -419,13 +404,6 @@ export default function BookReader() {
         onClose={closeDrawer}
         onNavigate={handleBookmarkNavigate}
         chapterNames={chapterNames}
-      />
-
-      <ParagraphContextMenu
-        target={contextMenuTarget}
-        onRegenerate={handleRegenerate}
-        onCopyText={handleCopyText}
-        onClose={handleCloseContextMenu}
       />
 
       <ChapterEndModal

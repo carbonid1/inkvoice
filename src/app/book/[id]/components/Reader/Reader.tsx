@@ -3,7 +3,7 @@
 import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
 import { useDisplayStore } from '@/store/useDisplayStore'
 import type { RefObject } from 'react'
-import { type MouseEvent, type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import { FONT_SIZE_CLASS } from '../FontSizePopover/FontSizePopover.consts'
 import { ContentBlock } from './components/ContentBlock'
 import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
@@ -16,7 +16,8 @@ interface ReaderProps {
   currentChapter: number
   currentParagraph: number
   onParagraphClick?: (chapter: number, paragraph: number) => void
-  onParagraphContextMenu?: (e: MouseEvent, chapter: number, paragraph: number) => void
+  onCopyText?: (chapter: number, paragraph: number) => void
+  onRegenerate?: (chapter: number, paragraph: number) => void | Promise<void>
   bookmarkedParagraphs?: Set<number>
   activeParagraphRef?: RefObject<HTMLSpanElement | null>
 }
@@ -40,7 +41,8 @@ export const Reader = ({
   currentChapter,
   currentParagraph,
   onParagraphClick,
-  onParagraphContextMenu,
+  onCopyText,
+  onRegenerate,
   bookmarkedParagraphs,
   activeParagraphRef: externalParagraphRef,
 }: ReaderProps) => {
@@ -102,7 +104,8 @@ export const Reader = ({
           block={isSubtitle ? normalizeCaps(block) : block}
           currentParagraph={currentParagraph}
           onParagraphClick={onParagraphClick}
-          onParagraphContextMenu={onParagraphContextMenu}
+          onCopyText={onCopyText}
+          onRegenerate={onRegenerate}
           currentChapter={currentChapter}
           paragraphRef={currentParagraphRef}
           isInTitleGroup={titleGroupMember.has(idx)}
@@ -150,7 +153,8 @@ export const Reader = ({
               segments={duplicateBlock.segments}
               currentParagraph={currentParagraph}
               onParagraphClick={onParagraphClick}
-              onParagraphContextMenu={onParagraphContextMenu}
+              onCopyText={onCopyText}
+              onRegenerate={onRegenerate}
               currentChapter={currentChapter}
               paragraphRef={currentParagraphRef}
               bookmarkedParagraphs={bookmarkedParagraphs}
