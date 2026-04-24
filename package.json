@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "./scripts/start.sh",
-    "dev:next": "next dev",
+    "dev:next": "portless run next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --fix",

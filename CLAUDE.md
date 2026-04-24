@@ -34,13 +34,3 @@ This is aspirational — not everything is migrated yet. Each new component or r
 | Book files       | `./data/books/*.epub`             |
 | Voice references | `./data/voices/{name}/source.wav` |
 | Reading progress | Browser localStorage              |
-
-## Running the App
-
-```bash
-pnpm dev
-```
-
-This runs `./scripts/start.sh` which launches both the Python TTS API (:8000) and Next.js (:3000). Always use `pnpm dev` — never start servers individually.
-
-Then add `.epub` files to `data/books/` and open http://localhost:3000

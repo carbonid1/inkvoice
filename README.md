@@ -17,18 +17,8 @@ Local EPUB reader with voice generation support.
 
 - Node.js 20+
 - pnpm 9+
-- Python 3.11+ (for TTS API)
-
-## Running the App
-
-```bash
-pnpm install
-pnpm dev
-```
-
-`pnpm dev` runs `./scripts/start.sh`, which launches the Python TTS API on `:8000` and Next.js on `:3000`. Always use `pnpm dev` — never start servers individually.
-
-Add `.epub` files to `data/books/` and open [http://localhost:3000](http://localhost:3000).
+- Python 3.11+
+- [portless](https://github.com/vercel-labs/portless) (global install): `npm install -g portless`
 
 ## Data Locations
 
