@@ -25,6 +25,7 @@ model ReadingProgress {
   paragraphsPerChapter String? // JSON: number[]
   wordsPerChapter      String? // JSON: number[]
   lastReadAt           Int? // Unix timestamp ms
+  finishedAt           Int? // Unix timestamp ms, null = not finished
   chapterPositions     String? // JSON: Record<number, number>
 
   book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)

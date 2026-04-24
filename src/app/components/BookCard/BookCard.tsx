@@ -8,7 +8,7 @@ import type { Book } from '@/lib/types/book'
 import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { ProgressRing, Tooltip } from '@carbonid1/design-system'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Check } from 'lucide-react'
 import Link from 'next/link'
 import type { MouseEvent } from 'react'
 import { useState } from 'react'
@@ -17,6 +17,13 @@ type BookCardProps = {
   book: Book
   onContextMenu: (e: MouseEvent, bookId: string) => void
 }
+
+const shortDateFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' })
+const longDateFormatter = new Intl.DateTimeFormat(undefined, {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+})
 
 const getPregenRingColor = (job: PregenJob, isWarmingUp: boolean): string => {
   if (isWarmingUp) return 'text-muted-foreground'
@@ -43,7 +50,7 @@ export const BookCard = ({ book, onContextMenu }: BookCardProps) => {
   const [coverError, setCoverError] = useState(false)
   const progress = useProgressStore(state => state.progress[book.id])
   const progressPercent = computeProgressPercent(progress)
-  const isFinished = progressPercent !== null && progressPercent >= 99
+  const finishedAt = progress?.finishedAt ?? null
   const job = usePregenStore(s => s.jobs[book.id])
   const isWarmingUp = usePregenStore(s => s.warmingUpBookId === book.id)
 
@@ -85,15 +92,28 @@ export const BookCard = ({ book, onContextMenu }: BookCardProps) => {
           ) : (
             <BookOpen className="text-muted-foreground size-12" />
           )}
-          {/* Progress bar at bottom of cover */}
-          {progressPercent !== null && (
-            <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-black/20" aria-hidden="true">
+          {finishedAt !== null ? (
+            <Tooltip label={`Finished ${longDateFormatter.format(finishedAt)}`}>
               <div
-                className={`h-full ${isFinished ? 'bg-success' : 'bg-primary'}`}
-                style={{ width: `${Math.min(progressPercent, 100)}%` }}
-              />
-              <span className="sr-only">{progressPercent}% complete</span>
-            </div>
+                className="bg-success text-success-foreground absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full shadow-sm"
+                aria-label="Finished"
+              >
+                <Check className="size-3.5" strokeWidth={3} />
+              </div>
+            </Tooltip>
+          ) : (
+            progressPercent !== null && (
+              <div
+                className="absolute right-0 bottom-0 left-0 h-0.5 bg-black/20"
+                aria-hidden="true"
+              >
+                <div
+                  className="bg-primary h-full"
+                  style={{ width: `${Math.min(progressPercent, 100)}%` }}
+                />
+                <span className="sr-only">{progressPercent}% complete</span>
+              </div>
+            )
           )}
         </div>
         <h3 className="text-foreground mb-1 line-clamp-2 font-medium">{book.title}</h3>
@@ -120,8 +140,10 @@ export const BookCard = ({ book, onContextMenu }: BookCardProps) => {
               </div>
             </Tooltip>
           )}
-          {isFinished ? (
-            <p className="text-success-foreground text-xs">Finished</p>
+          {finishedAt !== null ? (
+            <p className="text-muted-foreground text-xs">
+              Finished {shortDateFormatter.format(finishedAt)}
+            </p>
           ) : progress?.lastReadAt ? (
             <p className="text-muted-foreground text-xs">
               Last read {formatTimeAgo(progress.lastReadAt)}

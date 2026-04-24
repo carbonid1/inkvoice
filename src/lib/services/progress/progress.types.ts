@@ -6,6 +6,7 @@ export const progressSchema = z.object({
   paragraphsPerChapter: z.array(z.number()).optional(),
   wordsPerChapter: z.array(z.number()).optional(),
   lastReadAt: z.number().optional(),
+  finishedAt: z.number().nullable().optional(),
   chapterPositions: z.record(z.string(), z.number()).optional(),
 })
 

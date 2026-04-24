@@ -17,6 +17,8 @@ type ProgressState = {
   ) => void
   getProgress: (bookId: string) => Progress
   removeProgress: (bookId: string) => void
+  markFinished: (bookId: string) => void
+  unmarkFinished: (bookId: string) => void
 }
 
 const DEFAULT_PROGRESS: Progress = { chapter: 0, paragraph: 0 }
@@ -140,5 +142,32 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     fetch(`/api/progress/${bookId}`, { method: 'DELETE' }).catch(error =>
       console.error('Failed to delete progress:', error),
     )
+  },
+
+  markFinished: bookId => {
+    set(state => ({
+      progress: {
+        ...state.progress,
+        [bookId]: {
+          ...(state.progress[bookId] || DEFAULT_PROGRESS),
+          finishedAt: Date.now(),
+        },
+      },
+    }))
+    debouncedSave(bookId, () => get().progress[bookId])
+  },
+
+  unmarkFinished: bookId => {
+    set(state => {
+      const existing = state.progress[bookId]
+      if (!existing) return state
+      return {
+        progress: {
+          ...state.progress,
+          [bookId]: { ...existing, finishedAt: null },
+        },
+      }
+    })
+    debouncedSave(bookId, () => get().progress[bookId])
   },
 }))

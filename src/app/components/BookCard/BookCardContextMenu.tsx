@@ -3,8 +3,9 @@
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { usePregenStore } from '@/store/usePregenStore'
+import { useProgressStore } from '@/store/useProgressStore'
 import { Button, Tooltip, toast } from '@carbonid1/design-system'
-import { Download, Pause, Play, Trash2, X } from 'lucide-react'
+import { Check, Download, Pause, Play, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 export type BookCardMenuTarget = {
@@ -25,6 +26,7 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
   const bookId = target?.bookId
   const job = usePregenStore(s => (bookId ? s.jobs[bookId] : undefined))
   const estimate = usePregenStore(s => (bookId ? s.estimates[bookId] : undefined))
+  const isFinished = useProgressStore(s => (bookId ? !!s.progress[bookId]?.finishedAt : false))
 
   useLayoutEffect(() => {
     if (!target || !menuRef.current) return
@@ -100,6 +102,15 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
     onClose()
   }
 
+  const handleToggleFinished = () => {
+    if (isFinished) {
+      useProgressStore.getState().unmarkFinished(target.bookId)
+    } else {
+      useProgressStore.getState().markFinished(target.bookId)
+    }
+    onClose()
+  }
+
   const isFullyCached =
     estimate &&
     estimate.cachedParagraphs >= estimate.totalParagraphs &&
@@ -122,6 +133,13 @@ export const BookCardContextMenu = ({ target, onRemove, onClose }: BookCardConte
       className="border-border bg-background fixed z-50 min-w-52 rounded-lg border py-1 shadow-lg"
       role="menu"
     >
+      <Button role="menuitem" size="small" fullWidth onClick={handleToggleFinished}>
+        {isFinished ? <RotateCcw /> : <Check />}
+        {isFinished ? 'Mark as Unread' : 'Mark as Done'}
+      </Button>
+
+      <div className="border-border my-1 border-t" />
+
       {showPregenItem && (
         <div>
           {overBudget ? (

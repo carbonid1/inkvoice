@@ -110,6 +110,7 @@ describe('progressService', () => {
         paragraphsPerChapter: '[10,20,30]',
         wordsPerChapter: '[100,200,300]',
         lastReadAt: 3000,
+        finishedAt: null,
         chapterPositions: '{"0":5,"1":3}',
       },
       update: {
@@ -118,6 +119,7 @@ describe('progressService', () => {
         paragraphsPerChapter: '[10,20,30]',
         wordsPerChapter: '[100,200,300]',
         lastReadAt: 3000,
+        finishedAt: null,
         chapterPositions: '{"0":5,"1":3}',
       },
     })

@@ -30,6 +30,7 @@ type ProgressRow = {
   paragraphsPerChapter: string | null
   wordsPerChapter: string | null
   lastReadAt: number | null
+  finishedAt: number | null
   chapterPositions: string | null
 }
 
@@ -53,6 +54,7 @@ const toProgress = (row: ProgressRow): Progress => {
     ...(paragraphsPerChapter && { paragraphsPerChapter }),
     ...(wordsPerChapter && { wordsPerChapter }),
     ...(row.lastReadAt !== null && { lastReadAt: row.lastReadAt }),
+    ...(row.finishedAt !== null && { finishedAt: row.finishedAt }),
     ...(chapterPositions && { chapterPositions }),
   }
 }
@@ -72,6 +74,7 @@ const upsert = async (bookId: string, data: Progress): Promise<void> => {
       : null,
     wordsPerChapter: data.wordsPerChapter ? JSON.stringify(data.wordsPerChapter) : null,
     lastReadAt: data.lastReadAt ?? null,
+    finishedAt: data.finishedAt ?? null,
     chapterPositions: data.chapterPositions ? JSON.stringify(data.chapterPositions) : null,
   }
 
