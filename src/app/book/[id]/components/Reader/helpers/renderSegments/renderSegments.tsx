@@ -37,7 +37,7 @@ export const renderSegments = ({
           data-paragraph
           data-active-paragraph={isActive || undefined}
           onClick={() => {
-            if ((window.getSelection()?.toString().length ?? 0) > 0) return
+            if (window.getSelection()?.isCollapsed === false) return
             onParagraphClick?.(currentChapter, segment.paragraphIndex)
           }}
           onContextMenu={

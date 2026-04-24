@@ -177,7 +177,10 @@ export const Reader = ({
               ref={isActive ? currentParagraphRef : undefined}
               data-paragraph
               data-active-paragraph={isActive || undefined}
-              onClick={() => onParagraphClick?.(currentChapter, idx)}
+              onClick={() => {
+                if (window.getSelection()?.isCollapsed === false) return
+                onParagraphClick?.(currentChapter, idx)
+              }}
               className={`cursor-pointer transition-colors ${
                 isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} -mx-1 px-1` : 'hover:bg-accent'
               }`}
