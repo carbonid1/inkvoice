@@ -39,10 +39,13 @@ rsync -aL public/ dist-nextjs/public/
 rm -rf dist-nextjs/data
 
 # Flatten pnpm's .pnpm/ structure into top-level node_modules.
-# pnpm nests ALL transitive deps inside .pnpm/{pkg}/node_modules/{dep}.
-# After rsync -aL, these nested deps can't find each other via Node's resolution.
-# Strategy: first hoist deps from the top-level packages (next, jsdom, epub2, etc.)
-# so their versions take priority, then fill in remaining packages.
+# Phase 1+2 (inline): hoist a single version of each package to top level —
+#   first from top-level packages' .pnpm entries (their dep versions win),
+#   then everything else to fill gaps.
+# Phase 3 (scripts/nest-pnpm-deps.js): for every top-level package, copy its
+#   specific siblings into {pkg}/node_modules/ when the hoisted version doesn't
+#   match — fixes version-conflicting transitives (e.g. parse5@8 needs entities@8
+#   but the hoisted entities may be @6 from another path).
 echo -e "${YELLOW}       Flattening pnpm node_modules...${NC}"
 node -e "
 const fs = require('fs');
@@ -94,6 +97,8 @@ for (const entry of fs.readdirSync(pnpmDir)) {
 
 console.log('         Hoisted ' + count + ' packages');
 "
+
+node scripts/nest-pnpm-deps.js
 
 # Step 4: Compile Electron TypeScript
 echo -e "\n${YELLOW}[4/5] Compiling Electron...${NC}"

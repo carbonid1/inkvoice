@@ -19,6 +19,6 @@ module.exports = async function (context) {
   }
 
   console.log(`[afterPack] Copying node_modules to ${dest}...`)
-  fs.cpSync(src, dest, { recursive: true })
+  fs.cpSync(src, dest, { recursive: true, dereference: true })
   console.log('[afterPack] node_modules copied.')
 }

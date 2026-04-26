@@ -31,6 +31,7 @@ const config = [
       'electron/**',
       'dist-electron/**',
       'scripts/after-pack.js',
+      'scripts/nest-pnpm-deps.js',
       'scripts/dev-control-plane.ts',
       'dist/**',
       'dist-*/**',
