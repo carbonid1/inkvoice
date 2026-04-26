@@ -1,15 +1,15 @@
 'use client'
 
-import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
-import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
-import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { Button, getModKey, toast, Tooltip } from '@carbonid1/design-system'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
+import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
+import { useBookmarkStore } from '@/store/useBookmarkStore'
 
-type BookmarkDrawerProps = {
+interface BookmarkDrawerProps {
   bookId: string
   isOpen: boolean
   onClose: () => void
@@ -49,6 +49,7 @@ export const BookmarkDrawer = ({
   useEffect(() => {
     const prevIds = prevBookmarkIdsRef.current
     const restoredId = bookmarks.find(b => !prevIds.has(b.id))?.id
+
     prevBookmarkIdsRef.current = new Set(bookmarks.map(b => b.id))
 
     if (restoredId) {

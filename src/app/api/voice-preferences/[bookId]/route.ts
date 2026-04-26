@@ -1,7 +1,7 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { voicePreferenceService } from '@/lib/services/voice-preference/voice-preference.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = {
+interface RouteParams {
   params: Promise<{
     bookId: string
   }>
@@ -11,6 +11,7 @@ export const PUT = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
   let body: { voiceName: unknown }
+
   try {
     body = await request.json()
   } catch {

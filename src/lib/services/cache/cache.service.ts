@@ -1,14 +1,13 @@
+import { createHash } from 'crypto'
+import fs from 'fs/promises'
+import path from 'path'
 import { env } from '@/lib/config/env'
 import { diskSpaceService } from '@/lib/services/platform/diskSpace'
 import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
 import { settingsService } from '@/lib/services/settings/settings.service'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { BookCacheStats, CacheStats } from '@/lib/types/api'
-import type { WordTimestamp } from '@/lib/types/wordTimestamp'
-import { wordTimestampArraySchema } from '@/lib/types/wordTimestamp'
-import { createHash } from 'crypto'
-import fs from 'fs/promises'
-import path from 'path'
+import { type WordTimestamp, wordTimestampArraySchema } from '@/lib/types/wordTimestamp'
 import type { CacheService } from './cache.types'
 
 const METADATA_FILE = 'metadata.json'
@@ -29,6 +28,7 @@ interface CacheMetadata {
 
 const getCacheHash = (text: string, voice: string): string => {
   const input = `${text.trim()}|${voice || DEFAULT_VOICE}`
+
   return createHash('sha256').update(input).digest('hex')
 }
 
@@ -67,8 +67,10 @@ class TTSCacheService implements CacheService {
 
   private async computeEffectiveMax(): Promise<void> {
     let configuredMax = env.maxCacheSizeBytes
+
     try {
       const savedMB = await settingsService.get(SETTINGS_KEYS.MAX_CACHE_SIZE_MB)
+
       if (typeof savedMB === 'number' && savedMB > 0) {
         configuredMax = savedMB * 1024 * 1024
       }
@@ -83,6 +85,7 @@ class TTSCacheService implements CacheService {
     try {
       const metadataPath = path.join(this.cacheDir, METADATA_FILE)
       const data = await fs.readFile(metadataPath, 'utf-8')
+
       this.metadata = JSON.parse(data)
     } catch {
       this.metadata = { totalSize: 0, entries: {} }
@@ -92,6 +95,7 @@ class TTSCacheService implements CacheService {
   private async saveMetadata(): Promise<void> {
     try {
       const metadataPath = path.join(this.cacheDir, METADATA_FILE)
+
       await fs.writeFile(metadataPath, JSON.stringify(this.metadata, null, 2))
     } catch (error) {
       console.error('Failed to save cache metadata:', error)
@@ -101,12 +105,14 @@ class TTSCacheService implements CacheService {
   async has(text: string, voice: string): Promise<boolean> {
     await this.ensureInitialized()
     const hash = getCacheHash(text, voice)
+
     return hash in this.metadata.entries
   }
 
   async getDurationMs(text: string, voice: string): Promise<number> {
     await this.ensureInitialized()
     const hash = getCacheHash(text, voice)
+
     return this.metadata.entries[hash]?.durationMs ?? 0
   }
 
@@ -178,6 +184,7 @@ class TTSCacheService implements CacheService {
     try {
       const data = await fs.readFile(filePath, 'utf-8')
       const parsed = wordTimestampArraySchema.safeParse(JSON.parse(data))
+
       if (!parsed.success) {
         console.warn(`[cache] Invalid timestamps for ${hash}: ${parsed.error.message}`)
         return null
@@ -206,6 +213,7 @@ class TTSCacheService implements CacheService {
 
     const hash = getCacheHash(text, voice)
     const entry = this.metadata.entries[hash]
+
     if (!entry) return false
 
     await this.deleteFiles(hash)
@@ -219,6 +227,7 @@ class TTSCacheService implements CacheService {
   private async deleteFiles(hash: string): Promise<void> {
     const audioPath = path.join(this.cacheDir, `${hash}.opus`)
     const jsonPath = path.join(this.cacheDir, `${hash}.json`)
+
     try {
       await fs.unlink(audioPath)
     } catch {}
@@ -235,6 +244,7 @@ class TTSCacheService implements CacheService {
     for (const entry of Object.values(this.metadata.entries)) {
       const bookId = entry.bookId ?? 'unknown'
       const group = groups[bookId] ?? { usedBytes: 0, entryCount: 0 }
+
       group.usedBytes += entry.size
       group.entryCount++
       groups[bookId] = group
@@ -249,6 +259,7 @@ class TTSCacheService implements CacheService {
   async countBookVoiceEntries(bookId: string, voice: string): Promise<number> {
     await this.ensureInitialized()
     let count = 0
+
     for (const entry of Object.values(this.metadata.entries)) {
       if (entry.bookId === bookId && entry.voice === voice) count++
     }
@@ -288,6 +299,7 @@ class TTSCacheService implements CacheService {
     try {
       const diskInfo = await diskSpaceService.getAvailableSpace(this.cacheDir)
       const safeAvailable = Math.floor(diskInfo.available * (1 - DISK_SAFETY_MARGIN))
+
       return Math.min(requestedBytes, safeAvailable)
     } catch {
       return requestedBytes

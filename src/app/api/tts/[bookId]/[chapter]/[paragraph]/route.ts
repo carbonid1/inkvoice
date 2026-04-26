@@ -1,13 +1,15 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { resolveValidVoice } from '@/lib/services/voice/helpers/resolveValidVoice/resolveValidVoice'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import { voiceService } from '@/lib/services/voice/voice.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = { params: Promise<{ bookId: string; chapter: string; paragraph: string }> }
+interface RouteParams {
+  params: Promise<{ bookId: string; chapter: string; paragraph: string }>
+}
 
-type RequestContext = {
+interface RequestContext {
   voice: string
   fellBack: boolean
   text: string
@@ -33,6 +35,7 @@ const parseRequest = async (
 
   const bookService = getBookService()
   const text = await bookService.getParagraph(bookId, chapterIdx, paragraphIdx)
+
   if (!text) {
     return NextResponse.json({ error: 'Paragraph not found' }, { status: 404 })
   }
@@ -42,21 +45,25 @@ const parseRequest = async (
 
 export const DELETE = async (request: NextRequest, { params }: RouteParams) => {
   const result = await parseRequest(request, params)
+
   if (result instanceof NextResponse) return result
 
   const cacheService = getCacheService()
   const deleted = await cacheService.delete(result.text, result.voice)
+
   return NextResponse.json({ deleted })
 }
 
 export const GET = async (request: NextRequest, { params }: RouteParams) => {
   const result = await parseRequest(request, params)
+
   if (result instanceof NextResponse) return result
 
   const { voice, fellBack, text } = result
   const cacheService = getCacheService()
 
   const cached = await cacheService.get(text, voice)
+
   if (!cached) {
     return NextResponse.json({ error: 'Audio not generated' }, { status: 404 })
   }
@@ -68,9 +75,11 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
     'X-Cache-Used': stats.usedBytes.toString(),
     'X-Cache-Max': stats.maxBytes.toString(),
   }
+
   if (fellBack) headers['X-Voice-Fallback'] = 'true'
 
   const timestamps = await cacheService.getTimestamps(text, voice)
+
   if (timestamps) {
     headers['X-Word-Timestamps'] = Buffer.from(JSON.stringify(timestamps)).toString('base64')
   }

@@ -1,6 +1,6 @@
-import { env } from '@/lib/config/env'
 import { readdir, readFile, rename, writeFile } from 'fs/promises'
 import { join } from 'path'
+import { env } from '@/lib/config/env'
 
 /**
  * Derive a book ID from a filename
@@ -24,6 +24,7 @@ export const findBookFile = async (bookId: string): Promise<string | null> => {
   const files = await safeReaddir(env.booksDir)
   const epubFile = files.find(f => {
     const fileId = getBookIdFromFilename(f)
+
     return fileId === bookId
   })
 
@@ -37,6 +38,7 @@ export const readBookFile = async (filename: string): Promise<ArrayBuffer> => {
   const filePath = join(env.booksDir, filename)
   const buffer = await readFile(filePath)
   const arrayBuffer = new ArrayBuffer(buffer.byteLength)
+
   new Uint8Array(arrayBuffer).set(buffer)
   return arrayBuffer
 }
@@ -46,6 +48,7 @@ export const readBookFile = async (filename: string): Promise<ArrayBuffer> => {
  */
 export const listEpubFiles = async (): Promise<string[]> => {
   const files = await safeReaddir(env.booksDir)
+
   return files.filter(f => f.endsWith('.epub'))
 }
 
@@ -54,6 +57,7 @@ export const listEpubFiles = async (): Promise<string[]> => {
  */
 export const writeBookFile = async (filename: string, buffer: Buffer): Promise<void> => {
   const filePath = join(env.booksDir, filename)
+
   await writeFile(filePath, buffer)
 }
 
@@ -62,6 +66,7 @@ export const writeBookFile = async (filename: string, buffer: Buffer): Promise<v
  */
 export const softDeleteBookFile = async (filename: string): Promise<void> => {
   const filePath = join(env.booksDir, filename)
+
   await rename(filePath, filePath + '_deleted')
 }
 
@@ -70,6 +75,7 @@ export const softDeleteBookFile = async (filename: string): Promise<void> => {
  */
 export const restoreBookFile = async (filename: string): Promise<void> => {
   const filePath = join(env.booksDir, filename)
+
   await rename(filePath + '_deleted', filePath)
 }
 
@@ -81,6 +87,7 @@ export const findDeletedBookFile = async (bookId: string): Promise<string | null
   const deletedFile = files.find(f => {
     if (!f.endsWith('.epub_deleted')) return false
     const original = f.replace(/_deleted$/, '')
+
     return getBookIdFromFilename(original) === bookId
   })
 

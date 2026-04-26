@@ -1,5 +1,5 @@
-import { defineConfig, devices } from '@playwright/test'
 import { resolve } from 'node:path'
+import { defineConfig, devices } from '@playwright/test'
 import { E2E_DATA_DIR } from './tests/e2e/e2e.consts'
 
 export default defineConfig({

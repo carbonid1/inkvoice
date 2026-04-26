@@ -7,5 +7,6 @@ const BARE_NUMBER_RE = /^\d{1,3}$/
  */
 export const isChapterMarker = (text: string): boolean => {
   const trimmed = text.trim()
+
   return ROMAN_NUMERAL_RE.test(trimmed) || BARE_NUMBER_RE.test(trimmed)
 }

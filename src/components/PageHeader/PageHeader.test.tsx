@@ -11,6 +11,7 @@ describe('PageHeader', () => {
     )
 
     const header = screen.getByRole('banner')
+
     expect(header).toBeInTheDocument()
     expect(screen.getByText('Test Title')).toBeInTheDocument()
   })
@@ -23,6 +24,7 @@ describe('PageHeader', () => {
     )
 
     const header = screen.getByRole('banner')
+
     expect(header.className).toContain('bg-background')
     expect(header.className).toContain('border-b')
     expect(header.className).toContain('shrink-0')
@@ -36,6 +38,7 @@ describe('PageHeader', () => {
     )
 
     const header = screen.getByRole('banner')
+
     expect(header.className).not.toContain('border-b')
     expect(header.className).toContain('bg-background')
   })
@@ -48,6 +51,7 @@ describe('PageHeader', () => {
     )
 
     const header = screen.getByRole('banner')
+
     expect(header.className).toContain('bg-background')
     expect(header.className).toContain('mt-4')
   })

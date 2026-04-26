@@ -1,15 +1,17 @@
-import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { NextResponse } from 'next/server'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { validateVoiceParam } from '../helpers/validateVoiceParam/validateVoiceParam'
 
 export const POST = async (request: Request, { params }: { params: Promise<{ name: string }> }) => {
   const { name } = await params
 
   const invalid = validateVoiceParam(name)
+
   if (invalid) return invalid
 
   try {
     const { text } = await request.json()
+
     if (typeof text !== 'string' || !text.trim()) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 })
     }
@@ -23,10 +25,12 @@ export const POST = async (request: Request, { params }: { params: Promise<{ nam
 
     if (!response.ok) {
       const errorText = await response.text()
+
       return NextResponse.json({ error: errorText }, { status: response.status })
     }
 
     const audioBuffer = await response.arrayBuffer()
+
     return new NextResponse(audioBuffer, {
       headers: {
         'Content-Type': 'audio/ogg',

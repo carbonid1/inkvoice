@@ -1,10 +1,9 @@
 'use client'
 
-import type { Book } from '@/lib/types/book'
-import { bookSchema } from '@/lib/types/book'
 import { useCallback, useMemo, useState } from 'react'
+import { type Book, bookSchema } from '@/lib/types/book'
 
-type UploadBookState = {
+interface UploadBookState {
   uploading: boolean
   error: string | null
   upload: (files: File[]) => Promise<Book[]>
@@ -24,6 +23,7 @@ export const useUploadBook = (): UploadBookState => {
     try {
       for (const file of files) {
         const formData = new FormData()
+
         formData.append('file', file)
 
         const response = await fetch('/api/books', {
@@ -39,6 +39,7 @@ export const useUploadBook = (): UploadBookState => {
         }
 
         const parsed = bookSchema.safeParse(data)
+
         if (!parsed.success) {
           setError('Invalid server response')
           break

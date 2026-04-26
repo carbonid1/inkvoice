@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { TagBadge } from '../TagBadge/TagBadge'
 
-type VoiceTagEditorProps = {
+interface VoiceTagEditorProps {
   tags: string[]
   onTagsChanged: (tags: string[]) => void
   saving: boolean
@@ -21,6 +21,7 @@ export const VoiceTagEditor = ({ tags, onTagsChanged, saving }: VoiceTagEditorPr
     e.preventDefault()
 
     const trimmed = tagInput.trim().toLowerCase()
+
     if (!trimmed) return
 
     if (!tags.includes(trimmed)) {

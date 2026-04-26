@@ -1,23 +1,23 @@
 'use client'
 
-import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
-import type { VoiceEntry } from '@/lib/services/voice/voice.types'
-import { useVoiceStore } from '@/store/useVoiceStore'
 import { getModKey, toast } from '@carbonid1/design-system'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
+import type { VoiceEntry } from '@/lib/services/voice/voice.types'
+import { useVoiceStore } from '@/store/useVoiceStore'
 import { VoiceList } from './components/VoiceList'
 import { VoiceListSkeleton } from './components/VoiceListSkeleton'
 import { VoiceUploadSection } from './components/VoiceUploadSection/VoiceUploadSection'
 import { useVoicePreview } from './hooks/useVoicePreview/useVoicePreview'
 
-type UndoState = {
+interface UndoState {
   voiceName: string
   previousVoice: string
   previousBookVoices: Record<string, string>
 }
 
-type VoiceManagerCardProps = {
+interface VoiceManagerCardProps {
   voices: VoiceEntry[]
   loading: boolean
   onVoicesChanged: () => void
@@ -37,6 +37,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   const unhideVoice = useCallback((name: string) => {
     setHiddenVoices(prev => {
       const next = new Set(prev)
+
       next.delete(name)
       return next
     })
@@ -54,6 +55,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
 
   const handleUndo = useCallback(async () => {
     const undoState = lastDeletedRef.current
+
     if (!undoState) return
     lastDeletedRef.current = null
 
@@ -61,6 +63,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
     toast.dismiss()
 
     const restored = await restoreVoice(undoState.voiceName)
+
     if (!restored) {
       toast.error('Failed to restore voice')
       return
@@ -77,9 +80,11 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
 
       const previousVoice = useVoiceStore.getState().voice
       const previousBookVoices = { ...useVoiceStore.getState().bookVoices }
+
       clearVoiceFromAllBooks(voiceName)
 
       const undoState: UndoState = { voiceName, previousVoice, previousBookVoices }
+
       lastDeletedRef.current = undoState
 
       toast.dismiss()
@@ -126,31 +131,37 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
         Choose a voice for your narration. Changing voices will re-generate any unheard audio.
       </p>
 
-      {loading ? (
-        <VoiceListSkeleton />
-      ) : visibleVoices.length === 0 ? (
-        <div className="text-muted-foreground">
-          <p>No voices found.</p>
-          <p className="mt-2 text-sm">
-            Add voices to{' '}
-            <code className="bg-muted rounded-sm px-1">data/voices/&lt;name&gt;/source.wav</code>
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <VoiceList
-            voices={visibleVoices}
-            selectedVoice={voice}
-            onSelect={setVoice}
-            playing={playing}
-            onPlay={play}
-            onDelete={handleDelete}
-            uploadSection={<VoiceUploadSection onVoicesChanged={onVoicesChanged} />}
-          />
+      {(() => {
+        if (loading) return <VoiceListSkeleton />
+        if (visibleVoices.length === 0) {
+          return (
+            <div className="text-muted-foreground">
+              <p>No voices found.</p>
+              <p className="mt-2 text-sm">
+                Add voices to{' '}
+                <code className="bg-muted rounded-sm px-1">
+                  data/voices/&lt;name&gt;/source.wav
+                </code>
+              </p>
+            </div>
+          )
+        }
+        return (
+          <div className="space-y-4">
+            <VoiceList
+              voices={visibleVoices}
+              selectedVoice={voice}
+              onSelect={setVoice}
+              playing={playing}
+              onPlay={play}
+              onDelete={handleDelete}
+              uploadSection={<VoiceUploadSection onVoicesChanged={onVoicesChanged} />}
+            />
 
-          {previewError && <p className="text-attention-foreground text-sm">{previewError}</p>}
-        </div>
-      )}
+            {previewError && <p className="text-attention-foreground text-sm">{previewError}</p>}
+          </div>
+        )
+      })()}
     </div>
   )
 }

@@ -1,5 +1,5 @@
-import preview from '#.storybook/preview'
 import { expect, waitFor } from 'storybook/test'
+import preview from '#.storybook/preview'
 import { TTSStatusPill } from './TTSStatusPill'
 
 const meta = preview.meta({
@@ -25,6 +25,7 @@ export const Starting = meta.story({ args: { state: 'starting' } })
 
 Starting.test('exposes an accessible "starting" label', async ({ canvas }) => {
   const pill = await waitFor(() => canvas.getByLabelText('Voice engine starting'))
+
   expect(pill).toBeVisible()
 })
 
@@ -33,6 +34,7 @@ export const Ready = meta.story({ args: { state: 'ready' } })
 
 Ready.test('uses the ready label and a filled icon', async ({ canvas }) => {
   const pill = await waitFor(() => canvas.getByLabelText('Voice engine ready'))
+
   expect(pill).toBeVisible()
 })
 

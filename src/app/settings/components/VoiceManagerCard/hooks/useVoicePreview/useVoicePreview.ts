@@ -57,6 +57,7 @@ export const useVoicePreview = () => {
         if (!url) {
           // Bump ?v= when samples are regenerated — API returns immutable cache headers
           const response = await fetch(`/api/voices/${voiceName}/${type}?v=4`)
+
           if (!response.ok) {
             setError(`No ${type} available for "${voiceName}"`)
             setPlaying(null)
@@ -64,11 +65,13 @@ export const useVoicePreview = () => {
           }
 
           const blob = await response.blob()
+
           url = URL.createObjectURL(blob)
           blobCacheRef.current.set(cacheKey, url)
         }
 
         const audio = new Audio(url)
+
         audioRef.current = audio
         setPlaying({ name: voiceName, type })
 

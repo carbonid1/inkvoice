@@ -1,7 +1,7 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { getBookService } from '@/lib/services/book/book.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = {
+interface RouteParams {
   params: Promise<{
     id: string
     index: string
@@ -20,6 +20,7 @@ export const GET = async (_request: NextRequest, { params }: RouteParams) => {
 
   try {
     const chapter = await bookService.getChapter(id, chapterIndex)
+
     if (!chapter) {
       return NextResponse.json({ error: 'Chapter not found' }, { status: 404 })
     }

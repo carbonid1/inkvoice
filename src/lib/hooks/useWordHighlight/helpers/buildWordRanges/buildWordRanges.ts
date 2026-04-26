@@ -1,6 +1,6 @@
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 
-type TextNodeBookmark = {
+interface TextNodeBookmark {
   node: Text
   start: number
   end: number
@@ -14,6 +14,7 @@ type TextNodeBookmark = {
 // static return type is Node | null. Narrow with instanceof.
 const nextTextNode = (walker: TreeWalker): Text | null => {
   const node = walker.nextNode()
+
   return node instanceof Text ? node : null
 }
 
@@ -23,8 +24,10 @@ const collectTextNodes = (element: HTMLElement): { text: string; nodes: TextNode
   let offset = 0
 
   let node = nextTextNode(walker)
+
   while (node) {
     const length = node.textContent?.length ?? 0
+
     if (length > 0) {
       nodes.push({ node, start: offset, end: offset + length })
       offset += length
@@ -50,6 +53,7 @@ const findNodeAtOffset = (
   }
   // charOffset at the very end
   const last = nodes[nodes.length - 1]
+
   if (last && charOffset === last.end) {
     return { node: last.node, offset: last.node.textContent?.length ?? 0 }
   }
@@ -67,6 +71,7 @@ export const buildWordRanges = (
   if (timestamps.length === 0) return []
 
   const { text, nodes } = collectTextNodes(element)
+
   if (nodes.length === 0) return []
 
   const ranges: (Range | null)[] = new Array(timestamps.length).fill(null)
@@ -74,9 +79,11 @@ export const buildWordRanges = (
 
   for (let i = 0; i < timestamps.length; i++) {
     const ts = timestamps[i]
+
     if (!ts) continue
 
     const wordStart = findWordInText(text, ts.w, searchFrom)
+
     if (wordStart === -1) continue
 
     const wordEnd = wordStart + ts.w.length
@@ -88,6 +95,7 @@ export const buildWordRanges = (
 
     try {
       const range = document.createRange()
+
       range.setStart(startPos.node, startPos.offset)
       range.setEnd(endPos.node, endPos.offset)
       ranges[i] = range
@@ -113,16 +121,20 @@ const findWordInText = (text: string, word: string, from: number): number => {
 
   // Try exact match first (case-insensitive)
   const exactIdx = textLower.indexOf(wordLower, from)
+
   if (exactIdx !== -1) return exactIdx
 
   // Strip leading/trailing punctuation for fuzzy match
   const stripped = wordLower.replace(/^[^\w]+|[^\w]+$/g, '')
+
   if (stripped && stripped !== wordLower) {
     const fuzzyIdx = textLower.indexOf(stripped, from)
+
     if (fuzzyIdx !== -1) {
       // Expand to include surrounding punctuation if adjacent
       let start = fuzzyIdx
       let end = fuzzyIdx + stripped.length
+
       while (start > from && /[^\s\w]/.test(text[start - 1] ?? '')) start--
       while (end < text.length && /[^\s\w]/.test(text[end] ?? '')) end++
       return start

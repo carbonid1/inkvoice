@@ -1,6 +1,6 @@
-import { voiceService } from '@/lib/services/voice/voice.service'
 import { readFile } from 'fs/promises'
 import { NextResponse } from 'next/server'
+import { voiceService } from '@/lib/services/voice/voice.service'
 import { validateVoiceParam } from '../helpers/validateVoiceParam/validateVoiceParam'
 
 export const HEAD = async (
@@ -10,6 +10,7 @@ export const HEAD = async (
   const { name } = await params
 
   const invalid = validateVoiceParam(name)
+
   if (invalid) return invalid
 
   const samplePath = await voiceService.resolveSamplePath(name)
@@ -25,6 +26,7 @@ export const GET = async (_request: Request, { params }: { params: Promise<{ nam
   const { name } = await params
 
   const invalid = validateVoiceParam(name)
+
   if (invalid) return invalid
 
   const samplePath = await voiceService.resolveSamplePath(name)
@@ -35,6 +37,7 @@ export const GET = async (_request: Request, { params }: { params: Promise<{ nam
 
   try {
     const buffer = await readFile(samplePath)
+
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'audio/wav',

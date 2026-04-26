@@ -1,6 +1,6 @@
 export type SearchScope = 'book' | 'chapter'
 
-export type SearchMatch = {
+export interface SearchMatch {
   chapter: number
   paragraph: number
   chapterTitle: string
@@ -8,14 +8,14 @@ export type SearchMatch = {
   matchPositions: number[]
 }
 
-export type SearchResponse = {
+export interface SearchResponse {
   query: string
   matches: SearchMatch[]
   totalMatches: number
   truncated: boolean
 }
 
-export type UseBookSearchResult = {
+export interface UseBookSearchResult {
   isOpen: boolean
   query: string
   results: SearchMatch[]

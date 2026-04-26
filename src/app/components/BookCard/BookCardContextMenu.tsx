@@ -1,15 +1,15 @@
 'use client'
 
+import { ContextMenu, Tooltip, toast } from '@carbonid1/design-system'
+import { Download, Pause, Play, Trash2, X } from 'lucide-react'
+import type { ReactElement } from 'react'
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { PREGEN_JOB_STATUS } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
-import { ContextMenu, Tooltip, toast } from '@carbonid1/design-system'
-import { Download, Pause, Play, Trash2, X } from 'lucide-react'
-import type { ReactElement } from 'react'
 
-type BookCardContextMenuProps = {
+interface BookCardContextMenuProps {
   bookId: string
   onRemove: (bookId: string) => void
   children: ReactElement
@@ -18,15 +18,18 @@ type BookCardContextMenuProps = {
 export const BookCardContextMenu = ({ bookId, onRemove, children }: BookCardContextMenuProps) => {
   const job = usePregenStore(s => s.jobs[bookId])
   const estimate = usePregenStore(s => s.estimates[bookId])
-  const isFinished = useProgressStore(s => !!s.progress[bookId]?.finishedAt)
+  const isFinished = useProgressStore(s => Boolean(s.progress[bookId]?.finishedAt))
 
   const handleStart = async () => {
     const response = await fetch(`/api/pregenerate/${bookId}`, { method: 'POST' })
+
     if (response.ok) {
       const newJob = await response.json()
+
       usePregenStore.getState().updateJob(newJob)
     } else if (response.status === 409) {
       const body = await response.json().catch(() => ({}))
+
       if (body?.budget?.ok === false) {
         toast('Cache full', {
           description: `Free ${formatBytes(body.budget.shortfallBytes)} in Settings or raise the cache limit.`,

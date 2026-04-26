@@ -1,9 +1,9 @@
 'use client'
 
-import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
-import { usePregenStore } from '@/store/usePregenStore'
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
+import { usePregenStore } from '@/store/usePregenStore'
 import { useSleepPrevention } from './useSleepPrevention'
 
 const makeJob = (overrides: Partial<PregenJob> = {}): PregenJob => ({
@@ -99,6 +99,7 @@ describe('useSleepPrevention', () => {
       })
 
       const { rerender } = renderHook(() => useSleepPrevention())
+
       rerender()
       rerender()
 
@@ -111,6 +112,7 @@ describe('useSleepPrevention', () => {
       })
 
       const { rerender } = renderHook(() => useSleepPrevention())
+
       expect(sleepBlockStart).toHaveBeenCalledOnce()
 
       // Pause
@@ -134,6 +136,7 @@ describe('useSleepPrevention', () => {
       })
 
       const { unmount } = renderHook(() => useSleepPrevention())
+
       expect(sleepBlockStart).toHaveBeenCalledOnce()
 
       unmount()

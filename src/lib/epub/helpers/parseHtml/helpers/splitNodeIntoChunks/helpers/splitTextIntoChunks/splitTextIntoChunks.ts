@@ -29,6 +29,7 @@ const skipClosingQuote = (text: string, index: number): number =>
 
 const isSentenceBoundary = (text: string, dotIndex: number): boolean => {
   const terminator = text[dotIndex]
+
   if (terminator !== '.' && terminator !== '!' && terminator !== '?') return false
 
   // Must have a space (or closing quote + space) after the terminator
@@ -39,6 +40,7 @@ const isSentenceBoundary = (text: string, dotIndex: number): boolean => {
 
   // Character after space must be uppercase, opening quote, or opening paren
   const nextChar = text[afterIndex + 1]
+
   if (!nextChar) return false
   if (
     nextChar === '"' ||
@@ -57,22 +59,27 @@ const isSentenceBoundary = (text: string, dotIndex: number): boolean => {
     // Single letter initial: "J. K. Rowling"
     if (dotIndex >= 1 && (dotIndex < 2 || text[dotIndex - 2] === ' ')) {
       const prevChar = text[dotIndex - 1]
+
       if (prevChar && prevChar >= 'A' && prevChar <= 'Z') return false
     }
 
     // Digit before period: "3. Take the left fork"
     const prevChar = text[dotIndex - 1]
+
     if (prevChar && prevChar >= '0' && prevChar <= '9') return false
 
     // Known abbreviations
     let wordStart = dotIndex - 1
+
     while (wordStart > 0 && text[wordStart - 1] !== ' ') wordStart--
     const word = text.slice(wordStart, dotIndex).toLowerCase()
+
     if (ABBREVIATIONS.has(word)) return false
 
     // e.g. / i.e.
     if (dotIndex >= 2) {
       const twoBack = text.slice(dotIndex - 2, dotIndex)
+
       if (twoBack === 'e.g' || twoBack === 'i.e') return false
     }
   }
@@ -85,6 +92,7 @@ export const splitTextIntoChunks = (text: string, maxChars: number): string[] =>
 
   // Find all sentence boundary positions (index of the space after terminator+quote)
   const boundaries: number[] = []
+
   for (let i = 0; i < text.length; i++) {
     if (isSentenceBoundary(text, i)) {
       // splitAt is the space between sentences (after optional closing quote)
@@ -101,6 +109,7 @@ export const splitTextIntoChunks = (text: string, maxChars: number): string[] =>
 
   for (const boundary of boundaries) {
     const chunkSoFar = text.slice(start, boundary)
+
     if (chunkSoFar.length <= maxChars) {
       lastGoodBoundary = boundary
     } else {
@@ -118,6 +127,7 @@ export const splitTextIntoChunks = (text: string, maxChars: number): string[] =>
 
   // Handle remaining text after last split
   const remaining = text.slice(start).trim()
+
   if (remaining.length > maxChars && lastGoodBoundary > start) {
     chunks.push(text.slice(start, lastGoodBoundary).trim())
     chunks.push(text.slice(lastGoodBoundary + 1).trim())

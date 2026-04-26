@@ -53,6 +53,7 @@ export const SearchResultsPanel = ({
         <div className="relative" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map(virtualRow => {
             const entry = flatList[virtualRow.index]
+
             if (!entry) return null
 
             if (entry.type === 'header') {

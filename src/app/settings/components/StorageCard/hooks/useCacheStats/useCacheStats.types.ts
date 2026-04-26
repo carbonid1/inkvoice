@@ -1,11 +1,11 @@
-export type BookCacheStat = {
+export interface BookCacheStat {
   bookId: string
   title: string
   usedBytes: number
   entryCount: number
 }
 
-export type CacheStatsResponse = {
+export interface CacheStatsResponse {
   usedBytes: number
   maxBytes: number
   diskTotalBytes: number | null

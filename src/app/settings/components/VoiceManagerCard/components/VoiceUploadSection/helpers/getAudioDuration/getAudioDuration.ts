@@ -4,6 +4,7 @@ const getAudioDuration = async (file: File): Promise<number> => {
 
   try {
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
     return audioBuffer.duration
   } finally {
     await audioContext.close()

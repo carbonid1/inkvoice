@@ -1,6 +1,6 @@
+import { NextResponse } from 'next/server'
 import { getBookIdFromFilename, listEpubFiles } from '@/lib/services/book/book.helpers'
 import { getBookService } from '@/lib/services/book/book.service'
-import { NextResponse } from 'next/server'
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100 MB
 
@@ -8,6 +8,7 @@ export const GET = async () => {
   try {
     const bookService = getBookService()
     const books = await bookService.listBooks()
+
     return NextResponse.json(books)
   } catch (error) {
     console.error('Error listing books:', error)
@@ -18,6 +19,7 @@ export const GET = async () => {
 export const POST = async (request: Request) => {
   try {
     const contentLength = Number(request.headers.get('content-length') ?? 0)
+
     if (contentLength > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: 'File too large (max 100 MB)', code: 'TOO_LARGE' },
@@ -33,6 +35,7 @@ export const POST = async (request: Request) => {
     }
 
     const filename = file.name
+
     if (!filename.endsWith('.epub')) {
       return NextResponse.json(
         { error: 'Only .epub files are supported', code: 'INVALID_TYPE' },
@@ -44,6 +47,7 @@ export const POST = async (request: Request) => {
     const existing = await listEpubFiles()
     const newId = getBookIdFromFilename(filename)
     const duplicate = existing.find(f => getBookIdFromFilename(f) === newId)
+
     if (duplicate) {
       return NextResponse.json(
         { error: 'A book with this filename already exists', code: 'DUPLICATE' },

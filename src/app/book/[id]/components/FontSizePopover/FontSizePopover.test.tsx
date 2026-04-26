@@ -1,9 +1,9 @@
 'use client'
 
-import { useDisplayStore } from '@/store/useDisplayStore'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { useDisplayStore } from '@/store/useDisplayStore'
 import { FontSizePopover } from './FontSizePopover'
 
 beforeEach(() => {
@@ -18,6 +18,7 @@ describe('FontSizePopover', () => {
 
   it('opens popover with size options on click', async () => {
     const user = userEvent.setup()
+
     render(<FontSizePopover />)
 
     await user.click(screen.getByRole('button', { name: /font size/i }))
@@ -29,6 +30,7 @@ describe('FontSizePopover', () => {
 
   it('highlights the active font size', async () => {
     const user = userEvent.setup()
+
     useDisplayStore.setState({ fontSize: 'large' })
     render(<FontSizePopover />)
 
@@ -40,6 +42,7 @@ describe('FontSizePopover', () => {
 
   it('updates store when selecting a size', async () => {
     const user = userEvent.setup()
+
     render(<FontSizePopover />)
 
     await user.click(screen.getByRole('button', { name: /font size/i }))
@@ -50,6 +53,7 @@ describe('FontSizePopover', () => {
 
   it('closes on Escape key', async () => {
     const user = userEvent.setup()
+
     render(<FontSizePopover />)
 
     await user.click(screen.getByRole('button', { name: /font size/i }))
@@ -61,6 +65,7 @@ describe('FontSizePopover', () => {
 
   it('closes on click outside', async () => {
     const user = userEvent.setup()
+
     render(
       <div>
         <span data-testid="outside">outside</span>

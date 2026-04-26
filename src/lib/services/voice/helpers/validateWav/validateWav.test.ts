@@ -48,6 +48,7 @@ describe('validateWav', () => {
       bitsPerSample: 16,
     })
     const result = validateWav(buffer)
+
     expect(result).toEqual({
       ok: true,
       sampleRate: 22050,
@@ -60,55 +61,65 @@ describe('validateWav', () => {
   it('rejects non-WAV buffer', () => {
     const buffer = Buffer.from('not a wav file at all')
     const result = validateWav(buffer)
+
     expect(result).toEqual({ ok: false, code: 'INVALID_FORMAT', message: expect.any(String) })
   })
 
   it('rejects buffer too small to contain WAV header', () => {
     const buffer = Buffer.alloc(20)
     const result = validateWav(buffer)
+
     expect(result).toEqual({ ok: false, code: 'INVALID_FORMAT', message: expect.any(String) })
   })
 
   it('rejects WAV shorter than 10 seconds', () => {
     const buffer = createWavBuffer({ durationSeconds: 7 })
     const result = validateWav(buffer)
+
     expect(result).toEqual({ ok: false, code: 'TOO_SHORT', message: expect.any(String) })
   })
 
   it('accepts exactly 10 seconds', () => {
     const buffer = createWavBuffer({ durationSeconds: 10 })
     const result = validateWav(buffer)
+
     expect(result).toMatchObject({ ok: true, durationSeconds: expect.closeTo(10, 1) })
   })
 
   it('handles stereo WAV', () => {
     const buffer = createWavBuffer({ channels: 2 })
     const result = validateWav(buffer)
+
     expect(result).toMatchObject({ ok: true, channels: 2 })
   })
 
   it('handles 24-bit WAV', () => {
     const buffer = createWavBuffer({ bitsPerSample: 24 })
     const result = validateWav(buffer)
+
     expect(result).toMatchObject({ ok: true, bitsPerSample: 24 })
   })
 
   it('rejects WAV longer than 20 seconds', () => {
     const buffer = createWavBuffer({ durationSeconds: 25 })
     const result = validateWav(buffer)
+
     expect(result).toEqual({ ok: false, code: 'TOO_LONG', message: expect.any(String) })
   })
 
   it('accepts exactly 20 seconds', () => {
     const buffer = createWavBuffer({ durationSeconds: 20 })
     const result = validateWav(buffer)
+
     expect(result).toMatchObject({ ok: true, durationSeconds: expect.closeTo(20, 1) })
   })
 
   it('rejects RIFF header without WAVE format', () => {
     const buffer = createWavBuffer()
+
     buffer.write('AVI ', 8)
     const result = validateWav(buffer)
+
     expect(result).toEqual({ ok: false, code: 'INVALID_FORMAT', message: expect.any(String) })
   })
 })

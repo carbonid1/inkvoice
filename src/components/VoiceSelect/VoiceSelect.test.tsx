@@ -1,7 +1,7 @@
-import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { VoiceSelect } from './VoiceSelect'
 
 const voices: VoiceEntry[] = [
@@ -37,6 +37,7 @@ describe('VoiceSelect', () => {
     fireEvent.click(screen.getByRole('button', { name: /narrator/i }))
 
     const listbox = screen.getByRole('listbox')
+
     expect(listbox).toBeInTheDocument()
 
     expect(screen.getByRole('option', { name: /narrator/i })).toBeInTheDocument()
@@ -46,6 +47,7 @@ describe('VoiceSelect', () => {
 
   it('calls onChange and closes menu when a voice is selected', () => {
     const onChange = vi.fn()
+
     renderWith(<VoiceSelect voices={voices} value="narrator" onChange={onChange} />)
 
     fireEvent.click(screen.getByRole('button', { name: /narrator/i }))
@@ -61,13 +63,16 @@ describe('VoiceSelect', () => {
     fireEvent.click(screen.getByRole('button', { name: /narrator/i }))
 
     const casualOption = screen.getByRole('option', { name: /casual/i })
+
     expect(casualOption).toHaveTextContent('warm, friendly')
 
     const alexOption = screen.getByRole('option', { name: /alex/i })
+
     expect(alexOption).toHaveTextContent('male, british')
 
     // Narrator has no tags — should not render tag text
     const narratorOption = screen.getByRole('option', { name: /^narrator$/i })
+
     expect(narratorOption).not.toHaveTextContent(',')
   })
 
@@ -93,9 +98,11 @@ describe('VoiceSelect', () => {
 
   it('navigates with arrow keys and selects with Enter', () => {
     const onChange = vi.fn()
+
     renderWith(<VoiceSelect voices={voices} value="narrator" onChange={onChange} />)
 
     const button = screen.getByRole('button', { name: /narrator/i })
+
     fireEvent.click(button)
 
     // Arrow down highlights first item (Alex), then second (Narrator)
@@ -128,6 +135,7 @@ describe('VoiceSelect', () => {
 
   it('renders extra options before voice groups', () => {
     const onChange = vi.fn()
+
     renderWith(
       <VoiceSelect
         voices={voices}
@@ -142,6 +150,7 @@ describe('VoiceSelect', () => {
     fireEvent.click(screen.getByRole('button', { name: /default \(narrator\)/i }))
 
     const options = screen.getAllByRole('option')
+
     expect(options[0]).toHaveTextContent('Default (Narrator)')
   })
 })

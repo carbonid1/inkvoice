@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 
-type UpdateVoiceTagsState = {
+interface UpdateVoiceTagsState {
   saving: boolean
   error: string | null
   updateTags: (voiceName: string, tags: string[]) => Promise<string[] | null>
@@ -26,11 +26,13 @@ export const useUpdateVoiceTags = (): UpdateVoiceTagsState => {
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({ error: 'Failed to update tags' }))
+
           setError(data.error ?? 'Failed to update tags')
           return null
         }
 
         const data = await response.json()
+
         return data.tags
       } catch {
         setError('Failed to update tags')

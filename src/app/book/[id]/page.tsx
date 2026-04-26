@@ -1,25 +1,24 @@
 'use client'
 
-import { PageHeader } from '@/components/PageHeader/PageHeader'
-import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
-import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
-import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
-import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
-import type { ParsedChapter } from '@/lib/types/book'
-import { useBookmarkStore } from '@/store/useBookmarkStore'
-import { useProgressStore } from '@/store/useProgressStore'
 import { Button, Tooltip, buttonVariants, toast } from '@carbonid1/design-system'
 import { BookMarked, ChevronLeft, List, Loader2, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
+import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
+import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
+import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
+import type { ParsedChapter } from '@/lib/types/book'
+import { useBookmarkStore } from '@/store/useBookmarkStore'
+import { useProgressStore } from '@/store/useProgressStore'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
 import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
 import { FontSizePopover } from './components/FontSizePopover/FontSizePopover'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
-import { PlayerContainer } from './components/player/PlayerContainer'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
 import { ReaderSkeleton } from './components/ReaderSkeleton/ReaderSkeleton'
@@ -27,6 +26,7 @@ import { RecoveryBanner } from './components/RecoveryBanner/RecoveryBanner'
 import { ReturnPill } from './components/ReturnPill/ReturnPill'
 import { SearchPalette } from './components/SearchPalette/SearchPalette'
 import { VoiceSelector } from './components/VoiceSelector/VoiceSelector'
+import { PlayerContainer } from './components/player/PlayerContainer'
 import {
   WORDS_PER_PAGE,
   computePagePosition,
@@ -72,8 +72,10 @@ export default function BookReader() {
       setChapterLoading(true)
       try {
         const response = await fetch(`/api/book/${bookId}/chapter/${currentChapter}`)
+
         if (!response.ok) throw new Error('Failed to load chapter')
         const data: ParsedChapter = await response.json()
+
         setChapterData(data)
       } catch (e) {
         console.error('Failed to fetch chapter:', e)
@@ -103,6 +105,7 @@ export default function BookReader() {
   const handleCopyText = useCallback(
     (_chapter: number, paragraph: number) => {
       const text = chapterData?.paragraphs[paragraph]?.trim()
+
       if (text) navigator.clipboard.writeText(text)
     },
     [chapterData],
@@ -111,6 +114,7 @@ export default function BookReader() {
   const handleRegenerate = useCallback(
     (chapter: number, paragraph: number) => {
       const params = new URLSearchParams({ voice: effectiveVoice })
+
       fetch(`/api/tts/${bookId}/${chapter}/${paragraph}?${params}`, { method: 'DELETE' }).catch(
         console.error,
       )
@@ -163,6 +167,7 @@ export default function BookReader() {
   useHotkeys('escape', () => search.close(), { enabled: search.isOpen })
   useHotkeys('mod+z', () => {
     const { lastDeleted, undoRemoveBookmark } = useBookmarkStore.getState()
+
     if (!lastDeleted) return
     undoRemoveBookmark()
     toast.dismiss()
@@ -177,6 +182,7 @@ export default function BookReader() {
     (chapter: number) => {
       clearPosition()
       const saved = getProgress(bookId).chapterPositions?.[chapter] ?? 0
+
       handleProgressChange(chapter, saved)
     },
     [bookId, getProgress, handleProgressChange, clearPosition],

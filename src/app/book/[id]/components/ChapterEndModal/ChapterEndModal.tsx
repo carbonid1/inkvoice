@@ -3,7 +3,7 @@
 import { Button } from '@carbonid1/design-system'
 import { useHotkeys } from 'react-hotkeys-hook'
 
-type ChapterEndModalProps = {
+interface ChapterEndModalProps {
   isOpen: boolean
   completedChapterTitle: string
   nextChapterTitle: string

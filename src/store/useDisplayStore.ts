@@ -4,7 +4,7 @@ import { create } from 'zustand'
 
 type FontSize = 'small' | 'medium' | 'large'
 
-type DisplayState = {
+interface DisplayState {
   fontSize: FontSize
   loaded: boolean
   loadFromApi: () => Promise<void>
@@ -25,6 +25,7 @@ export const useDisplayStore = create<DisplayState>()((set, get) => ({
 
       if (response.ok) {
         const data: { value: FontSize } = await response.json()
+
         set({ fontSize: data.value, loaded: true })
         return
       }

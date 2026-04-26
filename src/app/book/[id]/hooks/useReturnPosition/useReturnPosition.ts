@@ -2,12 +2,12 @@
 
 import { useCallback, useMemo, useState } from 'react'
 
-type SavedPosition = {
+interface SavedPosition {
   chapter: number
   paragraph: number
 }
 
-type UseReturnPositionResult = {
+interface UseReturnPositionResult {
   savedPosition: SavedPosition | null
   savePosition: (chapter: number, paragraph: number) => void
   clearPosition: () => void

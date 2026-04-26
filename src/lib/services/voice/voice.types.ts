@@ -1,6 +1,6 @@
 export type VoiceType = 'app' | 'custom'
 
-export type VoiceEntry = {
+export interface VoiceEntry {
   name: string
   displayName: string
   type: VoiceType
@@ -8,7 +8,7 @@ export type VoiceEntry = {
   tags: string[]
 }
 
-export type VoiceMetadata = {
+export interface VoiceMetadata {
   displayName: string
   tags: string[]
   language?: string

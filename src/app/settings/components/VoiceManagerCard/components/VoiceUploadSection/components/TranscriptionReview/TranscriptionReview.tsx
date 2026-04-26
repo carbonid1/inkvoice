@@ -1,9 +1,9 @@
 'use client'
 
-import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
 import { Button, toast } from '@carbonid1/design-system'
 import { Play } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
 
 const MAX_CUSTOM_CHARS = 500
 
@@ -41,7 +41,7 @@ const SOURCE_OPTIONS: Array<{ value: TextSource; label: string }> = [
   { value: 'custom', label: 'Custom' },
 ]
 
-type TranscriptionReviewProps = {
+interface TranscriptionReviewProps {
   voiceName: string
   language: string
   initialTranscription: string
@@ -62,12 +62,11 @@ export const TranscriptionReview = ({
   const previewUrlRef = useRef<string | null>(null)
   const lifecycleState = useTTSLifecycleStore(s => s.state)
 
-  const previewLabel =
-    !previewing
-      ? 'Preview'
-      : lifecycleState === 'starting' || lifecycleState === 'stopped'
-        ? 'Starting voice engine…'
-        : 'Generating…'
+  const activePreviewLabel =
+    lifecycleState === 'starting' || lifecycleState === 'stopped'
+      ? 'Starting voice engine…'
+      : 'Generating…'
+  const previewLabel = !previewing ? 'Preview' : activePreviewLabel
 
   // Revoke any pending blob URL if the form closes without Save
   useEffect(
@@ -79,12 +78,11 @@ export const TranscriptionReview = ({
 
   const presetText = isPresetLanguage(language) ? PRESET_TEXTS[language] : PRESET_TEXTS.en
 
-  const activeText: string =
-    textSource === 'transcription'
-      ? transcription
-      : textSource === 'preset'
-        ? presetText
-        : customText
+  const activeText: string = (() => {
+    if (textSource === 'transcription') return transcription
+    if (textSource === 'preset') return presetText
+    return customText
+  })()
 
   const handlePreview = async () => {
     if (!activeText.trim()) return
@@ -107,6 +105,7 @@ export const TranscriptionReview = ({
 
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
+
       previewUrlRef.current = url
 
       if (audioRef.current) {

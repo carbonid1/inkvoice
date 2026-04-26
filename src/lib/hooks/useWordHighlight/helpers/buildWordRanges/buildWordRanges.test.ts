@@ -1,12 +1,13 @@
 /**
  * @vitest-environment jsdom
  */
-import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { describe, expect, it } from 'vitest'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { buildWordRanges } from './buildWordRanges'
 
 const makeElement = (html: string): HTMLElement => {
   const el = document.createElement('span')
+
   el.innerHTML = html
   return el
 }
@@ -16,11 +17,13 @@ const ts = (w: string, s: number, e: number): WordTimestamp => ({ w, s, e })
 describe('buildWordRanges', () => {
   it('returns empty array for empty timestamps', () => {
     const el = makeElement('Hello world')
+
     expect(buildWordRanges(el, [])).toEqual([])
   })
 
   it('returns empty array for empty element', () => {
     const el = makeElement('')
+
     expect(buildWordRanges(el, [ts('Hello', 0, 0.3)])).toEqual([])
   })
 
@@ -135,6 +138,7 @@ describe('buildWordRanges', () => {
     const ranges = buildWordRanges(el, timestamps)
 
     const nullCount = ranges.filter(r => r === null).length
+
     expect(nullCount).toBe(0)
     expect(ranges[0]?.toString()).toBe('The')
     expect(ranges[words.length - 1]?.toString()).toBe('rims.')
@@ -154,6 +158,7 @@ describe('buildWordRanges', () => {
     ]
 
     const ranges1 = buildWordRanges(el, words)
+
     expect(ranges1[0]?.toString()).toBe('She')
     expect(ranges1[2]?.toString()).toBe('absolutely')
 
@@ -162,6 +167,7 @@ describe('buildWordRanges', () => {
 
     // Rebuild produces valid ranges from the new text nodes
     const ranges2 = buildWordRanges(el, words)
+
     expect(ranges2).toHaveLength(6)
     expect(ranges2.filter(r => r !== null)).toHaveLength(6)
     expect(ranges2[0]?.toString()).toBe('She')

@@ -17,6 +17,7 @@ test.describe('voice deletion', () => {
 
     // Hover the custom voice row to reveal the remove button
     const voiceRow = page.locator('[data-voice="test-voice"]')
+
     await voiceRow.hover()
     await page.getByRole('button', { name: 'Remove Test Voice' }).click()
 
@@ -35,6 +36,7 @@ test.describe('voice deletion', () => {
 
     // Delete the custom voice
     const voiceRow = page.locator('[data-voice="test-voice"]')
+
     await voiceRow.hover()
     await page.getByRole('button', { name: 'Remove Test Voice' }).click()
     await expect(page.getByText('Voice removed')).toBeVisible()
@@ -54,6 +56,7 @@ test.describe('voice deletion', () => {
 
     // Delete the custom voice
     const voiceRow = page.locator('[data-voice="test-voice"]')
+
     await voiceRow.hover()
     await page.getByRole('button', { name: 'Remove Test Voice' }).click()
     await expect(page.getByText('Voice removed')).toBeVisible()

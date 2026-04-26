@@ -1,8 +1,8 @@
-import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { describe, expect, it } from 'vitest'
+import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { parseHtmlContent } from './parseHtml'
 
-const noopGetImage = async () => null
+const noopGetImage = (): Promise<null> => Promise.resolve(null)
 
 const getAllSegments = (content: ContentBlock[]): TextSegment[] =>
   content.flatMap(block => [...(block.segments ?? []), ...(block.items?.flat() ?? [])])
@@ -237,6 +237,7 @@ describe('link-list paragraph splitting', () => {
     const { content } = await parseHtmlContent(html, noopGetImage)
 
     const lists = content.filter(b => b.type === 'list')
+
     expect(lists).toHaveLength(3)
     expect(lists[0]?.level).toBe(0)
     expect(lists[0]?.items).toHaveLength(2) // Prologue + Book One (siblings)

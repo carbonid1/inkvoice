@@ -55,8 +55,10 @@ describe('convertToWav', () => {
 
   it('accepts supported audio extensions', async () => {
     const wav = createWavBuffer()
+
     for (const ext of ['wav', 'mp3', 'm4a', 'ogg', 'flac']) {
       const result = await convertToWav(wav, `test.${ext}`)
+
       // WAV input should always succeed; non-WAV with WAV data may fail at ffmpeg
       // but the extension check should pass
       if (ext === 'wav') {

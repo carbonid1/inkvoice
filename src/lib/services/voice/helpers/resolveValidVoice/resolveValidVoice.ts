@@ -1,7 +1,7 @@
 import { DEFAULT_VOICE } from '../../voice.consts'
 import type { VoiceEntry } from '../../voice.types'
 
-type ResolveValidVoiceResult = {
+interface ResolveValidVoiceResult {
   voice: string
   fellBack: boolean
 }
@@ -24,6 +24,7 @@ export const resolveValidVoice = async (
 
   const voices = await listVoices()
   const first = voices[0]
+
   if (first) {
     return { voice: first.name, fellBack: true }
   }

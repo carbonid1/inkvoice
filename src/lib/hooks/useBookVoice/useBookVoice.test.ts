@@ -1,8 +1,8 @@
 'use client'
 
-import { useVoiceStore } from '@/store/useVoiceStore'
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { useVoiceStore } from '@/store/useVoiceStore'
 import { useBookVoice } from './useBookVoice'
 
 beforeEach(() => {
@@ -96,6 +96,7 @@ describe('useBookVoice', () => {
     it('setVoice is stable across rerenders', () => {
       const { result, rerender } = renderHook(() => useBookVoice('book-1'))
       const first = result.current.setVoice
+
       rerender()
       expect(result.current.setVoice).toBe(first)
     })
@@ -103,6 +104,7 @@ describe('useBookVoice', () => {
     it('clearVoice is stable across rerenders', () => {
       const { result, rerender } = renderHook(() => useBookVoice('book-1'))
       const first = result.current.clearVoice
+
       rerender()
       expect(result.current.clearVoice).toBe(first)
     })

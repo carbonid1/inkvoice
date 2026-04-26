@@ -1,13 +1,13 @@
 export const WORDS_PER_PAGE = 350
 
-type PagePositionInput = {
+interface PagePositionInput {
   chapter: number
   paragraph: number
   wordsPerChapter: number[]
   paragraphsPerChapter: number[]
 }
 
-type PagePosition = {
+interface PagePosition {
   currentPage: number
   totalPages: number
 }
@@ -18,6 +18,7 @@ export const computePagePosition = (input: PagePositionInput): PagePosition | nu
   if (wordsPerChapter.length === 0 || paragraphsPerChapter.length === 0) return null
 
   const totalWords = wordsPerChapter.reduce((a, b) => a + b, 0)
+
   if (totalWords === 0) return null
 
   const totalPages = Math.ceil(totalWords / WORDS_PER_PAGE)

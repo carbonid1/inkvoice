@@ -10,8 +10,10 @@ export const useCacheStats = () => {
   const fetchStats = useCallback(async () => {
     try {
       const response = await fetch('/api/cache/stats')
+
       if (response.ok) {
         const data = await response.json()
+
         setStats(data)
       }
     } catch {
@@ -26,8 +28,10 @@ export const useCacheStats = () => {
     const load = async () => {
       try {
         const response = await fetch('/api/cache/stats')
+
         if (cancelled || !response.ok) return
         const data = await response.json()
+
         if (!cancelled) setStats(data)
       } catch {
         // Fetch failed — keep current state
@@ -35,6 +39,7 @@ export const useCacheStats = () => {
         if (!cancelled) setLoading(false)
       }
     }
+
     load()
     return () => {
       cancelled = true

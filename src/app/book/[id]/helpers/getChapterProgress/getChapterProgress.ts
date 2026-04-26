@@ -1,4 +1,4 @@
-type ChapterProgressInput = {
+interface ChapterProgressInput {
   currentChapter: number
   currentParagraph: number
   paragraphsPerChapter: number[]
@@ -15,6 +15,7 @@ export const getChapterProgress = ({
 
   for (let i = 0; i < paragraphsPerChapter.length; i++) {
     const total = paragraphsPerChapter[i] ?? 0
+
     if (total <= 0) {
       progress[i] = 0
       continue
@@ -22,6 +23,7 @@ export const getChapterProgress = ({
 
     const position = i === currentChapter ? currentParagraph : (chapterPositions[i] ?? 0)
     const lastParagraphIndex = total - 1
+
     progress[i] = Math.min(1, lastParagraphIndex === 0 ? 0 : position / lastParagraphIndex)
   }
 

@@ -35,6 +35,7 @@ describe('bookmarkService', () => {
   it('returns empty array for unknown book', async () => {
     mockPrisma.bookmark.findMany.mockResolvedValue([])
     const bookmarks = await bookmarkService.getBookmarks('unknown-book')
+
     expect(bookmarks).toEqual([])
     expect(mockPrisma.bookmark.findMany).toHaveBeenCalledWith({
       where: { bookId: 'unknown-book' },
@@ -54,6 +55,7 @@ describe('bookmarkService', () => {
     })
 
     const bookmark = await bookmarkService.addBookmark('book-1', 2, 5)
+
     expect(bookmark).toMatchObject({ chapter: 2, paragraph: 5 })
     expect(bookmark.id).toBe('uuid-1')
     expect(bookmark.createdAt).toBe(1000)
@@ -68,9 +70,11 @@ describe('bookmarkService', () => {
       createdAt: 1000,
       preview: null,
     }
+
     mockPrisma.bookmark.findFirst.mockResolvedValue(existing)
 
     const result = await bookmarkService.addBookmark('book-1', 3, 7)
+
     expect(result.id).toBe('uuid-1')
     expect(mockPrisma.bookmark.create).not.toHaveBeenCalled()
   })
@@ -83,6 +87,7 @@ describe('bookmarkService', () => {
     mockPrisma.bookmark.delete.mockResolvedValue({})
 
     const removed = await bookmarkService.removeBookmark('book-1', 'uuid-1')
+
     expect(removed).toBe(true)
     expect(mockPrisma.bookmark.delete).toHaveBeenCalledWith({ where: { id: 'uuid-1' } })
   })
@@ -90,6 +95,7 @@ describe('bookmarkService', () => {
   it('returns false when removing non-existent bookmark', async () => {
     mockPrisma.bookmark.findFirst.mockResolvedValue(null)
     const removed = await bookmarkService.removeBookmark('book-1', 'no-such-id')
+
     expect(removed).toBe(false)
     expect(mockPrisma.bookmark.delete).not.toHaveBeenCalled()
   })
@@ -115,6 +121,7 @@ describe('bookmarkService', () => {
     })
 
     const bookmark = await bookmarkService.addBookmark('book-1', 1, 0, 'The quick brown fox')
+
     expect(bookmark.preview).toBe('The quick brown fox')
     expect(mockPrisma.bookmark.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -126,6 +133,7 @@ describe('bookmarkService', () => {
   it('truncates preview to 120 characters', async () => {
     mockPrisma.bookmark.findFirst.mockResolvedValue(null)
     const longText = 'A'.repeat(200)
+
     mockPrisma.bookmark.create.mockImplementation(({ data }) =>
       Promise.resolve({
         id: 'uuid-1',
@@ -135,6 +143,7 @@ describe('bookmarkService', () => {
     )
 
     const bookmark = await bookmarkService.addBookmark('book-1', 0, 0, longText)
+
     expect(bookmark.preview).toHaveLength(120)
   })
 
@@ -150,18 +159,21 @@ describe('bookmarkService', () => {
     })
 
     const bookmark = await bookmarkService.addBookmark('book-1', 0, 0)
+
     expect(bookmark.preview).toBeUndefined()
   })
 
   it('removes all bookmarks for a book', async () => {
     mockPrisma.bookmark.deleteMany.mockResolvedValue({ count: 3 })
     const removed = await bookmarkService.removeAllBookmarks('book-1')
+
     expect(removed).toBe(true)
   })
 
   it('returns false when removing all bookmarks for unknown book', async () => {
     mockPrisma.bookmark.deleteMany.mockResolvedValue({ count: 0 })
     const removed = await bookmarkService.removeAllBookmarks('unknown')
+
     expect(removed).toBe(false)
   })
 })

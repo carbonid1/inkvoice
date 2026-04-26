@@ -1,7 +1,7 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { settingsService } from '@/lib/services/settings/settings.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = {
+interface RouteParams {
   params: Promise<{
     key: string
   }>
@@ -22,6 +22,7 @@ export const PUT = async (request: NextRequest, { params }: RouteParams) => {
   const { key } = await params
 
   let body: { value: unknown }
+
   try {
     body = await request.json()
   } catch {

@@ -1,7 +1,7 @@
 import type { TocNode } from '@/lib/types/book'
 import { normalizeTitle } from '../normalizeTitle/normalizeTitle'
 
-type NcxNode = {
+interface NcxNode {
   id: string
   ncx_index: number
   sub: NcxNode[]
@@ -11,6 +11,7 @@ const firstLeafIndex = (node: TocNode): number | undefined => {
   if (node.children.length === 0) return node.chapterIndex
   for (const child of node.children) {
     const idx = firstLeafIndex(child)
+
     if (idx !== undefined) return idx
   }
   return undefined
@@ -32,8 +33,10 @@ export const buildTocTree = (
       if (chapterIndex === undefined) {
         // Parent-only grouping node: inherit first child's chapter index
         const firstChild = children[0]
+
         if (!firstChild) return []
         const fallbackIndex = firstLeafIndex(firstChild)
+
         if (fallbackIndex === undefined) return []
         return [
           { title: resolveTitle(node.id, fallbackIndex), chapterIndex: fallbackIndex, children },
@@ -53,10 +56,13 @@ export const buildTocTree = (
  */
 const deduplicateSiblings = (nodes: TocNode[]): TocNode[] => {
   const result: TocNode[] = []
+
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i]
+
     if (!node) continue
     const next = nodes[i + 1]
+
     if (
       node.children.length === 0 &&
       next &&

@@ -4,6 +4,7 @@ import { splitTextIntoChunks } from './splitTextIntoChunks'
 describe('splitTextIntoChunks', () => {
   it('returns short text as single chunk', () => {
     const text = 'A short sentence.'
+
     expect(splitTextIntoChunks(text, 500)).toEqual([text])
   })
 
@@ -45,6 +46,7 @@ describe('splitTextIntoChunks', () => {
 
   it('returns unsplittable text as single chunk when no sentence boundaries exist', () => {
     const text = 'a'.repeat(600)
+
     expect(splitTextIntoChunks(text, 500)).toEqual([text])
   })
 

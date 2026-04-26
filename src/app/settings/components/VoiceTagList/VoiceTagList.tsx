@@ -1,6 +1,6 @@
 import { TagBadge } from '../TagBadge/TagBadge'
 
-type VoiceTagListProps = {
+interface VoiceTagListProps {
   tags: string[]
 }
 

@@ -1,12 +1,11 @@
 'use client'
 
+import { type RefObject, useEffect, useRef } from 'react'
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
-import type { RefObject } from 'react'
-import { useEffect, useRef } from 'react'
 import { buildWordRanges } from './helpers/buildWordRanges/buildWordRanges'
 import { findActiveWord } from './helpers/findActiveWord/findActiveWord'
 
-type UseWordHighlightOptions = {
+interface UseWordHighlightOptions {
   audioRef: RefObject<HTMLAudioElement | null>
   timestamps: WordTimestamp[] | null
   paragraphRef: RefObject<HTMLSpanElement | null>
@@ -24,6 +23,7 @@ const injectHighlightStyle = () => {
   styleInjected = true
   try {
     const sheet = new CSSStyleSheet()
+
     sheet.replaceSync(
       '::highlight(active-word) { background-color: var(--highlight); color: var(--highlight-foreground); }',
     )
@@ -65,6 +65,7 @@ export const useWordHighlight = ({
     const rebuildRanges = () => {
       const element = paragraphRef.current
       const ts = timestampsRef.current
+
       if (!element || !ts || ts.length === 0) {
         wordRangesRef.current = []
         return
@@ -74,8 +75,10 @@ export const useWordHighlight = ({
 
     const reapplyHighlight = () => {
       const idx = activeIndexRef.current
+
       if (idx < 0) return
       const range = wordRangesRef.current[idx]
+
       if (range) {
         CSS.highlights.set(HIGHLIGHT_ACTIVE_WORD, new Highlight(range))
       }
@@ -95,6 +98,7 @@ export const useWordHighlight = ({
     })
 
     const element = paragraphRef.current
+
     if (element) {
       observer.observe(element, {
         childList: true,
@@ -108,6 +112,7 @@ export const useWordHighlight = ({
     if (isPlaying) {
       const tick = () => {
         const audio = audioRef.current
+
         if (!audio || audio.paused) {
           rafIdRef.current = requestAnimationFrame(tick)
           return
@@ -115,6 +120,7 @@ export const useWordHighlight = ({
 
         const currentTime = audio.currentTime
         const ts = timestampsRef.current
+
         if (!ts) {
           rafIdRef.current = requestAnimationFrame(tick)
           return
@@ -125,6 +131,7 @@ export const useWordHighlight = ({
         if (newIndex !== activeIndexRef.current && newIndex >= 0) {
           activeIndexRef.current = newIndex
           const range = wordRangesRef.current[newIndex]
+
           if (range) {
             CSS.highlights.set(HIGHLIGHT_ACTIVE_WORD, new Highlight(range))
           }
@@ -135,8 +142,10 @@ export const useWordHighlight = ({
 
       // Set initial word
       const audio = audioRef.current
+
       if (audio) {
         const initialIndex = findActiveWord(audio.currentTime, timestamps)
+
         if (initialIndex >= 0) {
           activeIndexRef.current = initialIndex
           reapplyHighlight()

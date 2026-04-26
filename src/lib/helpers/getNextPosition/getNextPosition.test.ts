@@ -1,5 +1,5 @@
-import type { ChapterInfo } from '@/lib/types/book'
 import { describe, expect, it } from 'vitest'
+import type { ChapterInfo } from '@/lib/types/book'
 import { getNextPosition } from './getNextPosition'
 
 const makeChapters = (paragraphCounts: number[]): ChapterInfo[] =>
@@ -12,16 +12,19 @@ const makeChapters = (paragraphCounts: number[]): ChapterInfo[] =>
 describe('getNextPosition', () => {
   it('returns next paragraph in same chapter', () => {
     const chapters = makeChapters([5, 3])
+
     expect(getNextPosition(chapters, 0, 2)).toEqual({ ch: 0, para: 3 })
   })
 
   it('crosses chapter boundary', () => {
     const chapters = makeChapters([3, 5])
+
     expect(getNextPosition(chapters, 0, 2)).toEqual({ ch: 1, para: 0 })
   })
 
   it('returns null at end of book', () => {
     const chapters = makeChapters([3, 2])
+
     expect(getNextPosition(chapters, 1, 1)).toBeNull()
   })
 

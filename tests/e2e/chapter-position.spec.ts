@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { mockTTS } from './helpers/mockTTS'
 import { navigateToBook } from './helpers/navigateToBook'
 import { TEST_BOOK_ID } from './helpers/testBook'
@@ -7,22 +7,21 @@ const CHAPTER_A = 0
 const CHAPTER_B = 1
 const PARAGRAPH_INDEX = 1
 
-const activeParagraph = (page: import('@playwright/test').Page) =>
-  page.locator('main span[data-active-paragraph]')
+const activeParagraph = (page: Page) => page.locator('main span[data-active-paragraph]')
 
-const allParagraphs = (page: import('@playwright/test').Page) =>
-  page.locator('main span[data-paragraph]')
+const allParagraphs = (page: Page) => page.locator('main span[data-paragraph]')
 
-const tocButton = (page: import('@playwright/test').Page) =>
-  page.locator('button[aria-label="Table of Contents"]')
+const tocButton = (page: Page) => page.locator('button[aria-label="Table of Contents"]')
 
-const selectChapter = async (page: import('@playwright/test').Page, index: number) => {
+const selectChapter = async (page: Page, index: number) => {
   await tocButton(page).click()
   const drawer = page.getByRole('dialog', { name: 'Table of Contents' })
+
   await drawer.waitFor()
   // Expand all collapsed groups so all chapters are visible
   const collapsedToggles = drawer.locator('button[aria-label="Expand"]')
   const count = await collapsedToggles.count()
+
   for (let i = 0; i < count; i++) {
     await collapsedToggles.nth(0).click()
   }
@@ -33,6 +32,7 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
       resp.url().includes('/chapter/') &&
       resp.status() === 200,
   )
+
   await drawer.locator(`button[data-chapter-index="${index}"]`).click()
   await chapterResponse
   // Wait for the drawer to close — the transition and React re-renders
@@ -41,7 +41,7 @@ const selectChapter = async (page: import('@playwright/test').Page, index: numbe
   await allParagraphs(page).first().waitFor()
 }
 
-const setupAndClickParagraph = async (page: import('@playwright/test').Page) => {
+const setupAndClickParagraph = async (page: Page) => {
   await mockTTS(page)
   await navigateToBook(page, TEST_BOOK_ID)
 
@@ -49,10 +49,12 @@ const setupAndClickParagraph = async (page: import('@playwright/test').Page) => 
   await allParagraphs(page).first().waitFor()
 
   const target = allParagraphs(page).nth(PARAGRAPH_INDEX)
+
   await target.click()
   await expect(activeParagraph(page)).toBeVisible()
 
   const text = await activeParagraph(page).textContent()
+
   return text ?? ''
 }
 

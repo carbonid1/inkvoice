@@ -30,6 +30,7 @@ class BookCache {
     // Evict oldest if at capacity
     if (this.cache.size >= this.maxSize && !this.cache.has(bookId)) {
       const firstKey = this.cache.keys().next().value
+
       if (firstKey) {
         this.cache.delete(firstKey)
       }
@@ -51,6 +52,7 @@ const extractMetadataSafe = async (
 ): Promise<{ title: string; author: string }> => {
   try {
     const arrayBuffer = await readBookFile(filename)
+
     return await getBookMetadata(arrayBuffer)
   } catch (e) {
     console.error(`Failed to read metadata for ${filename}:`, e)
@@ -73,6 +75,7 @@ class BookServiceImpl implements BookService {
     const filesToSync = files.filter(f => {
       const id = getBookIdFromFilename(f)
       const existing = dbMap.get(id)
+
       return !existing || existing.deletedAt !== null
     })
 
@@ -81,6 +84,7 @@ class BookServiceImpl implements BookService {
         filesToSync.map(async filename => {
           const id = getBookIdFromFilename(filename)
           const meta = await extractMetadataSafe(filename)
+
           return { id, title: meta.title, author: meta.author, filename }
         }),
       )
@@ -101,6 +105,7 @@ class BookServiceImpl implements BookService {
 
     // Remove DB records for files that no longer exist (skip soft-deleted books)
     const staleIds = dbBooks.filter(b => !fileIds.has(b.id) && b.deletedAt === null).map(b => b.id)
+
     if (staleIds.length > 0) {
       await prisma.book.deleteMany({ where: { id: { in: staleIds } } })
     }
@@ -110,6 +115,7 @@ class BookServiceImpl implements BookService {
       where: { deletedAt: null },
       orderBy: { title: 'asc' },
     })
+
     return allBooks.map(b => ({
       id: b.id,
       title: b.title,
@@ -121,12 +127,14 @@ class BookServiceImpl implements BookService {
   async getBook(bookId: string): Promise<ParsedBook | null> {
     // Check cache first
     const cached = this.cache.get(bookId)
+
     if (cached) {
       return cached
     }
 
     // Find and parse the book
     const filename = await findBookFile(bookId)
+
     if (!filename) {
       return null
     }
@@ -148,6 +156,7 @@ class BookServiceImpl implements BookService {
 
   async getBookOverview(bookId: string): Promise<BookOverview | null> {
     const book = await this.getBook(bookId)
+
     if (!book) return null
     return {
       id: book.id,
@@ -164,17 +173,20 @@ class BookServiceImpl implements BookService {
 
   async getChapter(bookId: string, chapterIndex: number): Promise<ParsedChapter | null> {
     const book = await this.getBook(bookId)
+
     if (!book) return null
     return book.chapters[chapterIndex] ?? null
   }
 
   async getParagraph(bookId: string, chapter: number, paragraph: number): Promise<string | null> {
     const book = await this.getBook(bookId)
+
     if (!book) {
       return null
     }
 
     const chapterData = book.chapters[chapter]
+
     if (!chapterData) {
       return null
     }
@@ -185,18 +197,21 @@ class BookServiceImpl implements BookService {
   async getMetadata(bookId: string): Promise<BookMetadata | null> {
     // Check in-memory cache
     const cached = this.cache.get(bookId)
+
     if (cached) {
       return { title: cached.title, author: cached.author }
     }
 
     // Check DB
     const dbBook = await prisma.book.findUnique({ where: { id: bookId } })
+
     if (dbBook) {
       return { title: dbBook.title, author: dbBook.author }
     }
 
     // Fall back to parsing EPUB
     const filename = await findBookFile(bookId)
+
     if (!filename) {
       return null
     }
@@ -206,11 +221,13 @@ class BookServiceImpl implements BookService {
 
   async getCover(bookId: string): Promise<{ data: Buffer; mimeType: string } | null> {
     const filename = await findBookFile(bookId)
+
     if (!filename) {
       return null
     }
 
     const arrayBuffer = await readBookFile(filename)
+
     return getCoverImage(arrayBuffer)
   }
 
@@ -223,12 +240,15 @@ class BookServiceImpl implements BookService {
 
     const id = getBookIdFromFilename(filename)
     const arrayBuffer = new ArrayBuffer(buffer.byteLength)
+
     new Uint8Array(arrayBuffer).set(buffer)
 
     let title = filename.replace('.epub', '')
     let author = 'Unknown'
+
     try {
       const metadata = await getBookMetadata(arrayBuffer)
+
       title = metadata.title
       author = metadata.author
     } catch {
@@ -246,6 +266,7 @@ class BookServiceImpl implements BookService {
 
   async deleteBook(bookId: string): Promise<boolean> {
     const filename = await findBookFile(bookId)
+
     if (!filename) return false
 
     await softDeleteBookFile(filename)
@@ -256,9 +277,11 @@ class BookServiceImpl implements BookService {
 
   async restoreBook(bookId: string): Promise<boolean> {
     const deletedFile = await findDeletedBookFile(bookId)
+
     if (!deletedFile) return false
 
     const originalFilename = deletedFile.replace(/_deleted$/, '')
+
     await restoreBookFile(originalFilename)
     await prisma.book.update({ where: { id: bookId }, data: { deletedAt: null } })
 

@@ -1,13 +1,13 @@
 'use client'
 
-import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { Button, Tooltip } from '@carbonid1/design-system'
 import { Pencil, Play, Square, Volume2, X } from 'lucide-react'
+import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
 import { VoiceTagList } from '../../VoiceTagList/VoiceTagList'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
 
-type VoiceRowProps = {
+interface VoiceRowProps {
   voice: VoiceEntry
   selected: boolean
   editingTags: boolean
@@ -80,26 +80,22 @@ export const VoiceRow = ({
 
           {showSampleButton && (
             <Tooltip
-              label={
-                sampleGenerating
-                  ? 'Generating sample...'
-                  : playingSample
-                    ? 'Stop'
-                    : 'Play voice sample'
-              }
+              label={(() => {
+                if (sampleGenerating) return 'Generating sample...'
+                if (playingSample) return 'Stop'
+                return 'Play voice sample'
+              })()}
             >
               <Button
                 variant="subtle"
                 size="icon"
                 onClick={() => onPlay(voice.name, 'sample')}
                 disabled={sampleGenerating}
-                aria-label={
-                  sampleGenerating
-                    ? `Generating sample for ${voice.displayName}`
-                    : playingSample
-                      ? 'Stop'
-                      : `Play voice sample for ${voice.displayName}`
-                }
+                aria-label={(() => {
+                  if (sampleGenerating) return `Generating sample for ${voice.displayName}`
+                  if (playingSample) return 'Stop'
+                  return `Play voice sample for ${voice.displayName}`
+                })()}
                 className={sampleGenerating ? 'animate-pulse opacity-40' : ''}
               >
                 {playingSample ? <Square /> : <Volume2 />}

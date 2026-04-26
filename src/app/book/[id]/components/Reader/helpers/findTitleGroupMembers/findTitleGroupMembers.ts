@@ -1,6 +1,6 @@
 import type { ContentBlock } from '@/lib/types/book'
 
-export type TitleGroupResult = {
+export interface TitleGroupResult {
   titleGroupStart: Set<number>
   titleGroupMember: Set<number>
 }
@@ -8,12 +8,14 @@ export type TitleGroupResult = {
 const isSectionTitle = (block: ContentBlock): boolean => {
   if (block.type !== 'heading') return false
   const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''
+
   return text.length > 0 && text.length < 50
 }
 
 const findNextSectionTitle = (content: ContentBlock[], start: number): number => {
   for (let j = start + 1; j < content.length; j++) {
     const b = content[j]
+
     if (!b) break
     if (b.type === 'image') continue
     return isSectionTitle(b) ? j : -1
@@ -31,8 +33,10 @@ export const findTitleGroupMembers = (
   for (let i = 0; i < content.length; i++) {
     if (i === duplicateTitleIndex) continue
     const block = content[i]
+
     if (block && isSectionTitle(block)) {
       const nextTitle = findNextSectionTitle(content, i)
+
       if (nextTitle !== -1 && nextTitle !== duplicateTitleIndex) {
         titleGroupStart.add(i)
         titleGroupMember.add(i)
@@ -47,8 +51,10 @@ export const findTitleGroupMembers = (
   // (possibly separated by an image block) — only if it's the sole heading at that level
   if (duplicateTitleIndex !== -1) {
     const subtitleIdx = findNextSectionTitle(content, duplicateTitleIndex)
+
     if (subtitleIdx !== -1 && !titleGroupMember.has(subtitleIdx)) {
       const subtitleBlock = content[subtitleIdx]
+
       if (subtitleBlock) {
         const subtitleLevel = subtitleBlock.level
         const othersAtSameLevel = content.some(
@@ -58,6 +64,7 @@ export const findTitleGroupMembers = (
             isSectionTitle(b) &&
             b.level === subtitleLevel,
         )
+
         if (!othersAtSameLevel) {
           titleGroupMember.add(subtitleIdx)
         }

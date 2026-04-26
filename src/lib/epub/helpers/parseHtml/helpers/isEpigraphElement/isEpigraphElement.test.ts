@@ -4,6 +4,7 @@ import { isEpigraphElement } from './isEpigraphElement'
 
 const makeElement = (html: string): Element => {
   const dom = new JSDOM(html)
+
   return dom.window.document.body.firstElementChild!
 }
 

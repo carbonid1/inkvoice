@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-type Book = {
+interface Book {
   id: string
   title: string
   author: string
@@ -33,6 +33,7 @@ export const mockBookManagement = async (page: Page) => {
 
     if (method === 'GET') {
       const visible = [...MOCK_BOOKS, ...uploadedBooks].filter(b => !deletedIds.has(b.id))
+
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -49,6 +50,7 @@ export const mockBookManagement = async (page: Page) => {
       const id = filename.replace('.epub', '').replace(/[^a-zA-Z0-9-_]/g, '_')
       const title = filename.replace('.epub', '')
       const book: Book = { id, title, author: 'Test Author', filename }
+
       uploadedBooks.push(book)
 
       route.fulfill({

@@ -1,9 +1,9 @@
 'use client'
 
-import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import type { PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
 import { VoiceRow } from './VoiceRow'
 
@@ -39,6 +39,7 @@ const renderRow = (overrides = {}) =>
 describe('VoiceRow', () => {
   it('clicking voice name calls onSelect', () => {
     const onSelect = vi.fn()
+
     renderRow({ onSelect })
 
     fireEvent.click(screen.getByRole('button', { name: /^Clara/ }))
@@ -49,6 +50,7 @@ describe('VoiceRow', () => {
     renderRow({ selected: true })
 
     const row = screen.getByRole('button', { name: /^Clara/ })
+
     expect(row).toHaveAttribute('aria-current', 'true')
   })
 
@@ -56,6 +58,7 @@ describe('VoiceRow', () => {
     renderRow({ selected: false })
 
     const row = screen.getByRole('button', { name: /^Clara/ })
+
     expect(row).not.toHaveAttribute('aria-current', 'true')
   })
 
@@ -90,6 +93,7 @@ describe('VoiceRow', () => {
     })
 
     const button = screen.getByRole('button', { name: /Generating sample for My Voice/ })
+
     expect(button).toBeDisabled()
     expect(button).toHaveClass('animate-pulse')
   })
@@ -105,12 +109,14 @@ describe('VoiceRow', () => {
     })
 
     const button = screen.getByRole('button', { name: /Play voice sample for My Voice/ })
+
     expect(button).not.toBeDisabled()
     expect(button).not.toHaveClass('animate-pulse')
   })
 
   it('source button shows "Stop" label when playing source', () => {
     const playing: PlayingState = { name: 'clara', type: 'source' }
+
     renderRow({ playing })
 
     expect(screen.getByRole('button', { name: 'Stop' })).toBeInTheDocument()
@@ -125,6 +131,7 @@ describe('VoiceRow', () => {
 
   it('edit tags button calls onToggleTagEditor for custom voices', () => {
     const onToggleTagEditor = vi.fn()
+
     renderRow({ voice: makeVoice({ type: 'custom' }), onToggleTagEditor })
 
     fireEvent.click(screen.getByRole('button', { name: /Edit tags for Clara/ }))
@@ -143,12 +150,14 @@ describe('VoiceRow', () => {
     expect(screen.queryByRole('button', { name: /Remove/ })).not.toBeInTheDocument()
 
     const onDelete = vi.fn()
+
     renderRow({ onDelete })
     expect(screen.getByRole('button', { name: /Remove/ })).toBeInTheDocument()
   })
 
   it('clicking source play calls onPlay with source', () => {
     const onPlay = vi.fn()
+
     renderRow({ onPlay })
 
     fireEvent.click(screen.getByRole('button', { name: /Play source audio for Clara/ }))
@@ -157,6 +166,7 @@ describe('VoiceRow', () => {
 
   it('clicking sample play calls onPlay with sample', () => {
     const onPlay = vi.fn()
+
     renderRow({ onPlay })
 
     fireEvent.click(screen.getByRole('button', { name: /Play voice sample for Clara/ }))
@@ -165,6 +175,7 @@ describe('VoiceRow', () => {
 
   it('clicking delete calls onDelete immediately', () => {
     const onDelete = vi.fn()
+
     renderRow({ onDelete })
 
     fireEvent.click(screen.getByRole('button', { name: /Remove/ }))

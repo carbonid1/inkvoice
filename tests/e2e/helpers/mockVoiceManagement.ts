@@ -1,8 +1,8 @@
-import type { Page } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import type { Page } from '@playwright/test'
 
-type Voice = {
+interface Voice {
   name: string
   displayName: string
   type: 'app' | 'custom'
@@ -49,6 +49,7 @@ export const mockVoiceManagement = async (page: Page) => {
       const visible = [...MOCK_VOICES, ...uploadedVoices]
         .filter(v => !deletedNames.has(v.name))
         .map(v => ({ ...v, hasSample: v.hasSample || samplesReady.has(v.name) }))
+
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -64,6 +65,7 @@ export const mockVoiceManagement = async (page: Page) => {
       const name = displayName.toLowerCase().replace(/\s+/g, '-')
 
       const existing = [...MOCK_VOICES, ...uploadedVoices].find(v => v.name === name)
+
       if (existing && !deletedNames.has(name)) {
         route.fulfill({
           status: 409,
@@ -80,6 +82,7 @@ export const mockVoiceManagement = async (page: Page) => {
         hasSample: false,
         tags: [],
       }
+
       uploadedVoices.push(voice)
 
       route.fulfill({

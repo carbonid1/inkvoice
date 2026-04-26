@@ -1,10 +1,10 @@
 'use client'
 
-import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
-import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
 import { Button, Slider, toast } from '@carbonid1/design-system'
 import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
+import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
 import { useCacheStats } from './hooks/useCacheStats/useCacheStats'
 
 const GB = 1024 * 1024 * 1024
@@ -24,8 +24,10 @@ export const StorageCard = () => {
     const loadSettings = async () => {
       try {
         const response = await fetch('/api/settings')
+
         if (response.ok) {
           const settings = await response.json()
+
           if (typeof settings[SETTINGS_KEYS.MAX_CACHE_SIZE_MB] === 'number') {
             setMaxSizeGB(Math.round(settings[SETTINGS_KEYS.MAX_CACHE_SIZE_MB] / 1024))
           }
@@ -36,6 +38,7 @@ export const StorageCard = () => {
         setSettingsLoaded(true)
       }
     }
+
     loadSettings()
   }, [])
 
@@ -54,8 +57,10 @@ export const StorageCard = () => {
   const handleDeleteBookCache = useCallback(
     async (bookId: string, title: string) => {
       const response = await fetch(`/api/cache/tts/${bookId}`, { method: 'DELETE' })
+
       if (response.ok) {
         const { freedBytes } = await response.json()
+
         toast(`Removed ${formatBytes(freedBytes)} of cached audio for "${title}"`)
         refetch()
       }
@@ -111,38 +116,44 @@ export const StorageCard = () => {
 
       <div className="space-y-2">
         <h3 className="text-sm font-medium">Cached Books</h3>
-        {loading ? (
-          <div className="space-y-2">
-            {[1, 2].map(i => (
-              <div key={i} className="bg-muted-foreground/10 h-10 rounded-lg" />
-            ))}
-          </div>
-        ) : stats?.books.length ? (
-          <div className="space-y-1">
-            {stats.books.map(book => (
-              <div
-                key={book.bookId}
-                className="group hover:bg-accent flex items-center justify-between rounded-lg px-3 py-2"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{book.title}</p>
-                  <p className="text-muted-foreground text-xs">{formatBytes(book.usedBytes)}</p>
-                </div>
-                <Button
-                  variant="danger"
-                  size="smallIcon"
-                  className="opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
-                  onClick={() => handleDeleteBookCache(book.bookId, book.title)}
-                  aria-label={`Delete cache for ${book.title}`}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
+        {(() => {
+          if (loading) {
+            return (
+              <div className="space-y-2">
+                {[1, 2].map(i => (
+                  <div key={i} className="bg-muted-foreground/10 h-10 rounded-lg" />
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-sm">No cached audio.</p>
-        )}
+            )
+          }
+          if (stats?.books.length) {
+            return (
+              <div className="space-y-1">
+                {stats.books.map(book => (
+                  <div
+                    key={book.bookId}
+                    className="group hover:bg-accent flex items-center justify-between rounded-lg px-3 py-2"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm">{book.title}</p>
+                      <p className="text-muted-foreground text-xs">{formatBytes(book.usedBytes)}</p>
+                    </div>
+                    <Button
+                      variant="danger"
+                      size="smallIcon"
+                      className="opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
+                      onClick={() => handleDeleteBookCache(book.bookId, book.title)}
+                      aria-label={`Delete cache for ${book.title}`}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+          return <p className="text-muted-foreground text-sm">No cached audio.</p>
+        })()}
       </div>
     </section>
   )

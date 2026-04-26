@@ -3,7 +3,7 @@
 import { Loader2, Plus } from 'lucide-react'
 import { useRef } from 'react'
 
-type AddBookCardProps = {
+interface AddBookCardProps {
   onUpload: (files: FileList) => void
   uploading: boolean
 }
@@ -19,6 +19,7 @@ export const AddBookCard = ({ onUpload, uploading }: AddBookCardProps) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
+
     if (files && files.length > 0) {
       onUpload(files)
     }

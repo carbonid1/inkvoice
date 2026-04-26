@@ -1,5 +1,5 @@
-import type { SearchMatch } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
 import { describe, expect, it } from 'vitest'
+import type { SearchMatch } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
 import { buildFlatResultList } from './buildFlatResultList'
 
 const match = (overrides: Partial<SearchMatch> = {}): SearchMatch => ({
@@ -82,6 +82,7 @@ describe('buildFlatResultList', () => {
     expect(flat.every(e => e.type === 'result')).toBe(true)
     expect(flat).toHaveLength(3)
     const resultIndexes = flat.flatMap(e => (e.type === 'result' ? [e.resultIndex] : []))
+
     expect(resultIndexes).toEqual([0, 1, 2])
   })
 })

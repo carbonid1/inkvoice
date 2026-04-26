@@ -1,7 +1,7 @@
 'use client'
 
-import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
 import type { RefObject } from 'react'
+import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
 import { isFilenameAlt } from '../helpers/isFilenameAlt/isFilenameAlt'
 import { renderSegments } from '../helpers/renderSegments/renderSegments'
 
@@ -58,6 +58,7 @@ export const ContentBlock = ({
         const titleClasses = isSubtitle
           ? 'text-lg font-medium text-muted-foreground text-center mb-6'
           : 'text-2xl font-bold text-center mt-12 mb-2'
+
         return <HeadingTag className={titleClasses}>{segments(block.segments)}</HeadingTag>
       }
 
@@ -69,6 +70,7 @@ export const ContentBlock = ({
         5: 'text-base font-medium mt-3 mb-1',
         6: 'text-sm font-medium mt-2 mb-1',
       }
+
       return (
         <HeadingTag className={headingClasses[block.level || 2] || headingClasses[2]}>
           {segments(block.segments)}
@@ -81,6 +83,7 @@ export const ContentBlock = ({
         const titleClasses = isSubtitle
           ? 'text-lg font-medium text-muted-foreground text-center mb-6'
           : 'text-2xl font-bold text-center mt-12 mb-2'
+
         return <p className={titleClasses}>{segments(block.segments)}</p>
       }
       return <p className="mb-4 leading-relaxed">{segments(block.segments)}</p>
@@ -102,6 +105,7 @@ export const ContentBlock = ({
 
     case 'list': {
       const depthPadding = ['', 'pl-6', 'pl-12', 'pl-16'][block.level ?? 0] ?? 'pl-16'
+
       return (
         <ul className={`mb-1 list-none space-y-1 ${depthPadding}`}>
           {block.items?.map((itemSegments, idx) => (
@@ -117,6 +121,7 @@ export const ContentBlock = ({
     case 'image': {
       if (!block.src) return null
       const caption = block.alt && !isFilenameAlt(block.alt) ? block.alt : undefined
+
       return (
         <figure className="my-6">
           <img

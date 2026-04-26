@@ -1,6 +1,6 @@
-import type { ChapterInfo } from '@/lib/types/book'
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { ChapterInfo } from '@/lib/types/book'
 import { useBookPosition } from './useBookPosition'
 
 const makeChapters = (paragraphCounts: number[]): ChapterInfo[] =>
@@ -23,6 +23,7 @@ describe('useBookPosition', () => {
       const props = defaultProps()
       const { result, rerender } = renderHook(() => useBookPosition(props))
       const first = result.current.advanceToNext
+
       rerender()
       expect(result.current.advanceToNext).toBe(first)
     })
@@ -31,6 +32,7 @@ describe('useBookPosition', () => {
       const props = defaultProps()
       const { result, rerender } = renderHook(() => useBookPosition(props))
       const first = result.current.getNextPosition
+
       rerender()
       expect(result.current.getNextPosition).toBe(first)
     })
@@ -39,6 +41,7 @@ describe('useBookPosition', () => {
       const props = defaultProps()
       const { result, rerender } = renderHook(() => useBookPosition(props))
       const first = result.current.skipBack
+
       rerender()
       expect(result.current.skipBack).toBe(first)
     })
@@ -47,6 +50,7 @@ describe('useBookPosition', () => {
       const props = defaultProps()
       const { result, rerender } = renderHook(() => useBookPosition(props))
       const first = result.current.skipForward
+
       rerender()
       expect(result.current.skipForward).toBe(first)
     })
@@ -55,6 +59,7 @@ describe('useBookPosition', () => {
       const props = defaultProps()
       const { result, rerender } = renderHook(p => useBookPosition(p), { initialProps: props })
       const first = result.current.skipBack
+
       rerender({ ...props, currentParagraph: 1 })
       expect(result.current.skipBack).not.toBe(first)
     })

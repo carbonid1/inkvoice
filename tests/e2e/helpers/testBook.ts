@@ -1,6 +1,6 @@
-import type { APIRequestContext } from '@playwright/test'
 import { copyFileSync, unlinkSync } from 'node:fs'
 import { resolve } from 'node:path'
+import type { APIRequestContext } from '@playwright/test'
 import { E2E_DATA_DIR } from '../e2e.consts'
 
 const FIXTURE_PATH = resolve('tests/fixtures/test-book.epub')

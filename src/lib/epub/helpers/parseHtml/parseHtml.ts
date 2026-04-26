@@ -1,5 +1,5 @@
-import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { JSDOM } from 'jsdom'
+import type { ContentBlock, TextSegment } from '@/lib/types/book'
 import { getPlainText } from './helpers/getPlainText/getPlainText'
 import { isAttributionElement } from './helpers/isAttributionElement/isAttributionElement'
 import { isChapterMarker } from './helpers/isChapterMarker/isChapterMarker'
@@ -14,6 +14,7 @@ export { getPlainText } from './helpers/getPlainText/getPlainText'
 const isLinkListParagraph = (el: Element): boolean => {
   const children = Array.from(el.childNodes)
   let linkCount = 0
+
   for (const child of children) {
     if (child.nodeType === 3) {
       if (child.textContent?.trim()) return false
@@ -47,9 +48,11 @@ const parseHtmlContentSync = async (
   // chunk in the shared paragraphs array. Returns null if the element is empty.
   const toSegments = (node: Element): TextSegment[] | null => {
     const mappings = splitNodeIntoChunks(node)
+
     if (mappings.length === 0) return null
     return mappings.map(m => {
       const idx = paragraphs.length
+
       paragraphs.push(m.plainText)
       return { paragraphIndex: idx, html: m.html }
     })
@@ -63,8 +66,10 @@ const parseHtmlContentSync = async (
 
   const processList = (listEl: Element, depth: number): void => {
     const items: TextSegment[][] = []
+
     listEl.querySelectorAll(':scope > li').forEach(li => {
       const nestedList = li.querySelector(':scope > ul, :scope > ol')
+
       if (nestedList) {
         // Add the li's direct content (e.g. "BOOK ONE: RARAKU") as an item
         Array.from(li.childNodes).forEach(child => {
@@ -72,6 +77,7 @@ const parseHtmlContentSync = async (
           if (/^(ul|ol)$/i.test(child.tagName)) return
           if (getPlainText(child).trim()) {
             const segments = toSegments(child)
+
             if (segments) items.push(segments)
           }
         })
@@ -83,10 +89,12 @@ const parseHtmlContentSync = async (
       } else if (isLinkListParagraph(li)) {
         li.querySelectorAll(':scope > a').forEach(link => {
           const segments = toSegments(link)
+
           if (segments) items.push(segments)
         })
       } else {
         const segments = toSegments(li)
+
         if (segments) items.push(segments)
       }
     })
@@ -108,6 +116,7 @@ const parseHtmlContentSync = async (
     if (tag === 'img' || tag === 'image') {
       const src = el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('xlink:href')
       const alt = el.getAttribute('alt') || ''
+
       if (src) content.push({ type: 'image', src, alt })
       return
     }
@@ -116,12 +125,14 @@ const parseHtmlContentSync = async (
       if (isChapterMarker(getPlainText(el))) return
       const level = parseInt(tag[1] ?? '1', 10)
       const segments = toSegments(el)
+
       if (segments) content.push({ type: 'heading', level, segments })
       return
     }
 
     if (tag === 'blockquote') {
       const segments = toSegments(el)
+
       if (segments) content.push({ type: 'blockquote', segments })
       return
     }
@@ -138,6 +149,7 @@ const parseHtmlContentSync = async (
       }
       if (isChapterMarker(getPlainText(el))) return
       const img = el.querySelector('img, image')
+
       if (img && !getPlainText(el).trim()) {
         processElement(img)
         return
@@ -145,16 +157,18 @@ const parseHtmlContentSync = async (
       if (isLinkListParagraph(el)) {
         el.querySelectorAll(':scope > a').forEach(link => {
           const segments = toSegments(link)
+
           if (segments) content.push({ type: 'paragraph', segments })
         })
         return
       }
-      const blockType: ContentBlock['type'] = isEpigraphElement(el)
-        ? 'blockquote'
-        : isAttributionElement(el)
-          ? 'attribution'
-          : 'paragraph'
+      const blockType: ContentBlock['type'] = (() => {
+        if (isEpigraphElement(el)) return 'blockquote'
+        if (isAttributionElement(el)) return 'attribution'
+        return 'paragraph'
+      })()
       const segments = toSegments(el)
+
       if (segments) content.push({ type: blockType, segments })
       return
     }
@@ -172,6 +186,7 @@ const parseHtmlContentSync = async (
 
     if (getPlainText(el).trim()) {
       const segments = toSegments(el)
+
       if (segments) content.push({ type: 'paragraph', segments })
     }
   }
@@ -182,14 +197,17 @@ const parseHtmlContentSync = async (
 
   if (content.length === 0 && body.textContent?.trim()) {
     const segments = toSegments(body)
+
     if (segments) content.push({ type: 'paragraph', segments })
   }
 
   // Debug: Verify sentence indices match array positions
   if (process.env.NODE_ENV === 'development') {
     let mismatchFound = false
+
     content.forEach(block => {
       const segments = block.segments || (block.items?.flat() ?? [])
+
       segments.forEach(seg => {
         if (paragraphs[seg.paragraphIndex] === undefined) {
           console.error(
@@ -209,6 +227,7 @@ const parseHtmlContentSync = async (
     if (block.type === 'image' && block.src) {
       try {
         const imageData = await getImage(block.src)
+
         if (imageData) {
           block.src = imageData
         }

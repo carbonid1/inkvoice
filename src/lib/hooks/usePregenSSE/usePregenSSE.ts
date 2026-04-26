@@ -1,14 +1,16 @@
 'use client'
 
+import { useEffect } from 'react'
 import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { usePregenStore } from '@/store/usePregenStore'
-import { useEffect } from 'react'
 
 const refetchEstimate = async (bookId: string) => {
   try {
     const response = await fetch(`/api/pregenerate/estimate/${bookId}`)
+
     if (!response.ok) return
     const data = await response.json()
+
     usePregenStore.getState().updateEstimate(bookId, {
       totalParagraphs: data.totalParagraphs,
       cachedParagraphs: data.cachedParagraphs,
@@ -33,11 +35,13 @@ export const usePregenSSE = () => {
 
     eventSource.addEventListener('snapshot', (e: MessageEvent) => {
       const jobs: PregenJob[] = JSON.parse(e.data)
+
       setJobs(jobs)
     })
 
     eventSource.addEventListener('update', (e: MessageEvent) => {
       const data: { type: 'update'; job: PregenJob; samplingRate?: number } = JSON.parse(e.data)
+
       updateJob(data.job)
       if (data.samplingRate !== undefined) {
         setSamplingRate(data.job.bookId, data.samplingRate)
@@ -46,12 +50,14 @@ export const usePregenSSE = () => {
 
     eventSource.addEventListener('deleted', (e: MessageEvent) => {
       const data: { type: 'deleted'; bookId: string } = JSON.parse(e.data)
+
       removeJob(data.bookId)
       refetchEstimate(data.bookId)
     })
 
     eventSource.addEventListener('warmup_start', (e: MessageEvent) => {
       const data: { type: 'warmup_start'; bookId: string } = JSON.parse(e.data)
+
       setWarmingUp(data.bookId)
     })
 

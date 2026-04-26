@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 
-type DeleteBookState = {
+interface DeleteBookState {
   deleteBook: (id: string) => Promise<boolean>
   restoreBook: (id: string) => Promise<boolean>
 }
@@ -13,6 +13,7 @@ export const useDeleteBook = (): DeleteBookState => {
       const response = await fetch(`/api/books/${encodeURIComponent(id)}`, {
         method: 'DELETE',
       })
+
       return response.ok
     } catch {
       return false
@@ -24,6 +25,7 @@ export const useDeleteBook = (): DeleteBookState => {
       const response = await fetch(`/api/books/${encodeURIComponent(id)}`, {
         method: 'PATCH',
       })
+
       return response.ok
     } catch {
       return false

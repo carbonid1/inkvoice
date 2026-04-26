@@ -1,12 +1,12 @@
 'use client'
 
+import { Tooltip } from '@carbonid1/design-system'
+import { useMemo, useState } from 'react'
 import { VoiceSelect } from '@/components/VoiceSelect/VoiceSelect'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
-import { Tooltip } from '@carbonid1/design-system'
-import { useMemo, useState } from 'react'
 
-type VoiceSelectorProps = {
+interface VoiceSelectorProps {
   bookId: string
 }
 

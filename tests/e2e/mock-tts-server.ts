@@ -17,9 +17,11 @@ const server = createServer((req, res) => {
 
   if (req.method === 'POST' && req.url === '/tts') {
     const chunks: Buffer[] = []
+
     req.on('data', (chunk: Buffer) => chunks.push(chunk))
     req.on('end', () => {
       const body = JSON.parse(Buffer.concat(chunks).toString())
+
       console.log(`[mock-tts] ${body.voice} | ${body.text?.slice(0, 60)}...`)
 
       // Small delay so the worker's SSE events can be observed by the browser

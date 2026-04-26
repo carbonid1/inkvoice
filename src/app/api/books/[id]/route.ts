@@ -1,13 +1,16 @@
-import { getBookService } from '@/lib/services/book/book.service'
 import { NextResponse } from 'next/server'
+import { getBookService } from '@/lib/services/book/book.service'
 import { validateBookId } from './helpers/validateBookId/validateBookId'
 
-type RouteContext = { params: Promise<{ id: string }> }
+interface RouteContext {
+  params: Promise<{ id: string }>
+}
 
 export const DELETE = async (_request: Request, { params }: RouteContext) => {
   const { id } = await params
 
   const invalid = validateBookId(id)
+
   if (invalid) return invalid
 
   const bookService = getBookService()
@@ -24,6 +27,7 @@ export const PATCH = async (_request: Request, { params }: RouteContext) => {
   const { id } = await params
 
   const invalid = validateBookId(id)
+
   if (invalid) return invalid
 
   const bookService = getBookService()

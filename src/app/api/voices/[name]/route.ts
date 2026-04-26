@@ -1,5 +1,5 @@
-import { voiceService } from '@/lib/services/voice/voice.service'
 import { NextResponse } from 'next/server'
+import { voiceService } from '@/lib/services/voice/voice.service'
 import { validateVoiceParam } from './helpers/validateVoiceParam/validateVoiceParam'
 
 export const DELETE = async (
@@ -9,6 +9,7 @@ export const DELETE = async (
   const { name } = await params
 
   const invalid = validateVoiceParam(name)
+
   if (invalid) return invalid
 
   const result = await voiceService.deleteVoice(name)
@@ -31,6 +32,7 @@ export const PATCH = async (
   const { name } = await params
 
   const invalid = validateVoiceParam(name)
+
   if (invalid) return invalid
 
   const result = await voiceService.restoreVoice(name)

@@ -1,9 +1,9 @@
 'use client'
 
-import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { render, screen } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { VoiceList } from './VoiceList'
 
 vi.mock('@/lib/hooks/useUpdateVoiceTags/useUpdateVoiceTags', () => ({
@@ -47,6 +47,7 @@ describe('VoiceList', () => {
     renderList()
 
     const headings = screen.getAllByRole('heading', { level: 3 })
+
     expect(headings[0]).toHaveTextContent(/Your Voices/)
     expect(headings[1]).toHaveTextContent(/Included Voices/)
   })
@@ -55,6 +56,7 @@ describe('VoiceList', () => {
     renderList({ voices: [appVoice] })
 
     const headings = screen.getAllByRole('heading', { level: 3 })
+
     expect(headings).toHaveLength(2)
     expect(headings[0]).toHaveTextContent(/Your Voices/)
     expect(headings[1]).toHaveTextContent(/Included Voices/)
@@ -64,6 +66,7 @@ describe('VoiceList', () => {
     renderList({ voices: [appVoice] })
 
     const heading = screen.getAllByRole('heading', { level: 3 })[0]
+
     expect(heading).toHaveTextContent('Your Voices')
     expect(heading).not.toHaveTextContent('·')
   })
@@ -72,6 +75,7 @@ describe('VoiceList', () => {
     renderList({ selectedVoice: 'clara' })
 
     const claraButton = screen.getByRole('button', { name: /^Clara/ })
+
     expect(claraButton).toHaveAttribute('aria-current', 'true')
   })
 
@@ -79,6 +83,7 @@ describe('VoiceList', () => {
     renderList({ selectedVoice: 'clara' })
 
     const myVoiceButton = screen.getByRole('button', { name: /^My Voice/ })
+
     expect(myVoiceButton).not.toHaveAttribute('aria-current', 'true')
   })
 })

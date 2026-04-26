@@ -66,6 +66,7 @@ describe('StorageCard', () => {
   it('shows empty state when no books have cache', async () => {
     vi.mocked(fetch).mockImplementation((url: string | URL | Request) => {
       const urlStr = typeof url === 'string' ? url : url.toString()
+
       if (urlStr.includes('/api/cache/stats')) {
         return Promise.resolve(Response.json({ ...mockStatsResponse, usedBytes: 0, books: [] }))
       }
@@ -84,6 +85,7 @@ describe('StorageCard', () => {
 
   it('calls delete API when trash button is clicked', async () => {
     const user = userEvent.setup()
+
     render(<StorageCard />)
 
     await waitFor(() => {
@@ -91,6 +93,7 @@ describe('StorageCard', () => {
     })
 
     const deleteButton = screen.getByLabelText('Delete cache for Jekyll & Hyde')
+
     await user.click(deleteButton)
 
     expect(fetch).toHaveBeenCalledWith('/api/cache/tts/book-1', { method: 'DELETE' })

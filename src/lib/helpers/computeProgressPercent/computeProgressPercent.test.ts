@@ -19,6 +19,7 @@ describe('computeProgressPercent', () => {
       paragraph: 0,
       paragraphsPerChapter: [10, 20, 10],
     })
+
     expect(result).toBe(0)
   })
 
@@ -29,6 +30,7 @@ describe('computeProgressPercent', () => {
       paragraph: 5,
       paragraphsPerChapter: [10, 20, 10],
     })
+
     expect(result).toBe(37.5)
   })
 
@@ -38,6 +40,7 @@ describe('computeProgressPercent', () => {
       paragraph: 0,
       paragraphsPerChapter: [10, 20, 10],
     })
+
     // completed: 10 + 20 + 10 + 0 = 40 out of 40
     expect(result).toBe(100)
   })

@@ -1,8 +1,8 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { getBookService } from '@/lib/services/book/book.service'
-import { NextRequest, NextResponse } from 'next/server'
 import { findMatchPositions } from './helpers/findMatchPositions/findMatchPositions'
 
-type SearchMatch = {
+interface SearchMatch {
   chapter: number
   paragraph: number
   chapterTitle: string
@@ -10,14 +10,14 @@ type SearchMatch = {
   matchPositions: number[]
 }
 
-type SearchResponse = {
+interface SearchResponse {
   query: string
   matches: SearchMatch[]
   totalMatches: number
   truncated: boolean
 }
 
-type RouteParams = {
+interface RouteParams {
   params: Promise<{ id: string }>
 }
 
@@ -40,11 +40,13 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
 
   try {
     const book = await bookService.getBook(id)
+
     if (!book) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 })
     }
 
     const chapterFilter = chapterParam !== null ? parseInt(chapterParam, 10) : null
+
     if (
       chapterFilter !== null &&
       (isNaN(chapterFilter) || chapterFilter < 0 || chapterFilter >= book.chapters.length)
@@ -60,11 +62,14 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
 
     for (let chapterIndex = startChapter; chapterIndex < endChapter; chapterIndex++) {
       const chapter = book.chapters[chapterIndex]
+
       if (!chapter) continue
       for (let paragraphIndex = 0; paragraphIndex < chapter.paragraphs.length; paragraphIndex++) {
         const text = chapter.paragraphs[paragraphIndex]
+
         if (text === undefined) continue
         const positions = findMatchPositions(text, query)
+
         if (positions.length > 0) {
           matches.push({
             chapter: chapterIndex,

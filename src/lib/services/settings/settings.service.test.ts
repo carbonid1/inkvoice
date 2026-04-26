@@ -19,6 +19,7 @@ describe('settingsService', () => {
   it('returns empty record when no settings exist', async () => {
     mockPrisma.userSetting.findMany.mockResolvedValue([])
     const result = await settingsService.getAll()
+
     expect(result).toEqual({})
   })
 
@@ -28,6 +29,7 @@ describe('settingsService', () => {
       { key: 'prefetch.enabled', value: 'false' },
     ])
     const result = await settingsService.getAll()
+
     expect(result).toEqual({
       'display.fontSize': 'large',
       'prefetch.enabled': false,
@@ -40,12 +42,14 @@ describe('settingsService', () => {
       value: '"medium"',
     })
     const result = await settingsService.get('display.fontSize')
+
     expect(result).toBe('medium')
   })
 
   it('returns null for unknown key', async () => {
     mockPrisma.userSetting.findUnique.mockResolvedValue(null)
     const result = await settingsService.get('unknown.key')
+
     expect(result).toBeNull()
   })
 
@@ -61,12 +65,14 @@ describe('settingsService', () => {
   it('removes setting and returns true when found', async () => {
     mockPrisma.userSetting.deleteMany.mockResolvedValue({ count: 1 })
     const result = await settingsService.remove('display.fontSize')
+
     expect(result).toBe(true)
   })
 
   it('returns false when removing non-existent setting', async () => {
     mockPrisma.userSetting.deleteMany.mockResolvedValue({ count: 0 })
     const result = await settingsService.remove('unknown')
+
     expect(result).toBe(false)
   })
 })

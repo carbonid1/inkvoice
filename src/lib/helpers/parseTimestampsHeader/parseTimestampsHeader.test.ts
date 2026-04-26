@@ -1,5 +1,5 @@
-import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { describe, expect, it } from 'vitest'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { parseTimestampsHeader } from './parseTimestampsHeader'
 
 const makeResponse = (headerValue: string | null): Response =>
@@ -26,18 +26,21 @@ describe('parseTimestampsHeader', () => {
   it('parses plain JSON header (ASCII words)', () => {
     const json = JSON.stringify(asciiTimestamps)
     const result = parseTimestampsHeader(makeResponse(json))
+
     expect(result).toEqual(asciiTimestamps)
   })
 
   it('parses base64-encoded header', () => {
     const base64 = Buffer.from(JSON.stringify(asciiTimestamps)).toString('base64')
     const result = parseTimestampsHeader(makeResponse(base64))
+
     expect(result).toEqual(asciiTimestamps)
   })
 
   it('round-trips Unicode through base64 encoding', () => {
     const encoded = Buffer.from(JSON.stringify(unicodeTimestamps)).toString('base64')
     const result = parseTimestampsHeader(makeResponse(encoded))
+
     expect(result).toEqual(unicodeTimestamps)
   })
 

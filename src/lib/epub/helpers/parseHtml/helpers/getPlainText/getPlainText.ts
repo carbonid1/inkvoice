@@ -8,6 +8,7 @@ export const getPlainText = (node: Node): string => {
   if (isElement(node)) {
     // Element node
     const tag = node.tagName.toLowerCase()
+
     // Skip script, style
     if (tag === 'script' || tag === 'style') return ''
     if (tag === 'br') return ' '

@@ -1,13 +1,13 @@
 'use client'
 
-import type { ChapterInfo, TocNode } from '@/lib/types/book'
 import { Button, Tooltip } from '@carbonid1/design-system'
 import { ChevronDown, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import type { ChapterInfo, TocNode } from '@/lib/types/book'
 import { computeStartPages } from '../../helpers/computeStartPages/computeStartPages'
 
-type ChapterDrawerProps = {
+interface ChapterDrawerProps {
   isOpen: boolean
   onClose: () => void
   onNavigate: (chapter: number) => void
@@ -47,6 +47,7 @@ export const ChapterDrawer = ({
 
   const renderChapterRow = (chapterIndex: number, title: string, indent: number = 0) => {
     const chapter = chapters[chapterIndex]
+
     if (!chapter) return null
 
     const startPage = startPages[chapterIndex]
@@ -139,7 +140,7 @@ export const ChapterDrawer = ({
   )
 }
 
-type TocGroupCollapsibleProps = {
+interface TocGroupCollapsibleProps {
   node: TocNode
   indent: number
   currentChapter: number

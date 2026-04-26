@@ -1,5 +1,16 @@
 'use client'
 
+import { Button, Tooltip } from '@carbonid1/design-system'
+import { Bookmark } from 'lucide-react'
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parseTimestampsHeader'
 import { useAudioPlayer } from '@/lib/hooks/useAudioPlayer/useAudioPlayer'
 import { useBookPosition } from '@/lib/hooks/useBookPosition/useBookPosition'
@@ -10,10 +21,6 @@ import { useWordHighlight } from '@/lib/hooks/useWordHighlight/useWordHighlight'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
-import { Button, Tooltip } from '@carbonid1/design-system'
-import { Bookmark } from 'lucide-react'
-import type { RefObject } from 'react'
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -108,11 +115,14 @@ export const PlayerContainer = ({
     async (ch: number, para: number, signal: AbortSignal) => {
       const url = `/api/tts/${bookId}/${ch}/${para}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}`
       const response = await fetch(url, { cache: 'no-store', signal })
+
       if (!response.ok) return null
       const timestamps = parseTimestampsHeader(response)
       const blob = await response.blob()
+
       if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
       const blobUrl = URL.createObjectURL(blob)
+
       blobUrlRef.current = blobUrl
       return { url: blobUrl, timestamps }
     },
@@ -130,6 +140,7 @@ export const PlayerContainer = ({
     // Abort previous fetch if still in flight
     abortRef.current?.abort()
     const controller = new AbortController()
+
     abortRef.current = controller
 
     // Stop old audio immediately so its onEnded won't fire during fetch

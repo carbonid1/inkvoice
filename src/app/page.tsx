@@ -1,5 +1,10 @@
 'use client'
 
+import { buttonVariants, getModKey, toast, Tooltip } from '@carbonid1/design-system'
+import { Settings, Upload } from 'lucide-react'
+import Link from 'next/link'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
 import { useUploadBook } from '@/lib/hooks/useUploadBook/useUploadBook'
@@ -8,15 +13,10 @@ import { useLibraryStore } from '@/store/useLibraryStore'
 import { type Estimate, usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { useVoiceStore } from '@/store/useVoiceStore'
-import { buttonVariants, getModKey, toast, Tooltip } from '@carbonid1/design-system'
-import { Settings, Upload } from 'lucide-react'
-import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { AddBookCard } from './components/AddBookCard/AddBookCard'
 import { BookCard } from './components/BookCard/BookCard'
 
-type UndoState = {
+interface UndoState {
   book: Book
 }
 
@@ -44,8 +44,10 @@ export default function Library() {
   const fetchBooks = useCallback(async () => {
     try {
       const response = await fetch('/api/books')
+
       if (!response.ok) throw new Error('Failed to fetch books')
       const data: Book[] = await response.json()
+
       setBooks(data)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error')
@@ -59,8 +61,10 @@ export default function Library() {
     const loadBooks = async () => {
       try {
         const response = await fetch('/api/books')
+
         if (!response.ok) throw new Error('Failed to fetch books')
         const data: Book[] = await response.json()
+
         if (!cancelled) setBooks(data)
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error')
@@ -68,6 +72,7 @@ export default function Library() {
         if (!cancelled) setLoading(false)
       }
     }
+
     loadBooks()
     loadAllProgress()
     loadAllVoices()
@@ -85,8 +90,10 @@ export default function Library() {
       const results = await Promise.all(
         books.map(async book => {
           const response = await fetch(`/api/pregenerate/estimate/${book.id}`)
+
           if (!response.ok) return null
           const data = await response.json()
+
           return {
             bookId: book.id,
             estimate: {
@@ -102,6 +109,7 @@ export default function Library() {
 
       if (cancelled) return
       const map: Record<string, Estimate> = {}
+
       for (const result of results) {
         if (result) map[result.bookId] = result.estimate
       }
@@ -124,13 +132,16 @@ export default function Library() {
   const handleUpload = useCallback(
     async (files: FileList) => {
       const fileArray = Array.from(files).filter(f => f.name.endsWith('.epub'))
+
       if (fileArray.length === 0) return
 
       const uploaded = await upload(fileArray)
+
       if (uploaded.length > 0) {
         addBooks(uploaded)
         setHiddenBooks(prev => {
           const next = new Set(prev)
+
           uploaded.forEach(b => next.delete(b.id))
           return next
         })
@@ -142,6 +153,7 @@ export default function Library() {
   const unhideBook = useCallback((bookId: string) => {
     setHiddenBooks(prev => {
       const next = new Set(prev)
+
       next.delete(bookId)
       return next
     })
@@ -149,6 +161,7 @@ export default function Library() {
 
   const handleUndo = useCallback(async () => {
     const undoState = lastDeletedRef.current
+
     if (!undoState) return
     lastDeletedRef.current = null
 
@@ -156,6 +169,7 @@ export default function Library() {
     toast.dismiss()
 
     const restored = await restoreBook(undoState.book.id)
+
     if (!restored) {
       toast.error('Failed to restore book')
       return
@@ -169,6 +183,7 @@ export default function Library() {
   const handleRemove = useCallback(
     (bookId: string) => {
       const book = books.find(b => b.id === bookId)
+
       if (!book || hiddenBooks.has(bookId)) return
 
       setHiddenBooks(prev => new Set(prev).add(bookId))
@@ -226,6 +241,7 @@ export default function Library() {
       setIsDragging(false)
 
       const files = e.dataTransfer.files
+
       if (files.length > 0) {
         handleUpload(files)
       }
@@ -235,9 +251,11 @@ export default function Library() {
 
   const sortedBooks = useMemo(() => {
     const visible = books.filter(b => !hiddenBooks.has(b.id))
+
     return [...visible].sort((a, b) => {
       const aRead = progress[a.id]?.lastReadAt ?? 0
       const bRead = progress[b.id]?.lastReadAt ?? 0
+
       return bRead - aRead
     })
   }, [books, hiddenBooks, progress])

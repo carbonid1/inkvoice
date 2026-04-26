@@ -1,7 +1,7 @@
-import type { BookOverview, ChapterInfo } from '@/lib/types/book'
 import { renderHook, waitFor } from '@testing-library/react'
 import { StrictMode, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { BookOverview, ChapterInfo } from '@/lib/types/book'
 import { useBookOverview } from './useBookOverview'
 
 vi.mock('@/store/useHydrated', () => ({
@@ -67,6 +67,7 @@ describe('useBookOverview', () => {
 
   it('fetches overview and returns data', async () => {
     const overview = makeOverview()
+
     vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
@@ -82,6 +83,7 @@ describe('useBookOverview', () => {
   it('restores valid position from progress store', async () => {
     mockGetProgress.mockReturnValue({ chapter: 1, paragraph: 2 })
     const overview = makeOverview()
+
     vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
@@ -95,6 +97,7 @@ describe('useBookOverview', () => {
   it('clamps out-of-bounds chapter position', async () => {
     mockGetProgress.mockReturnValue({ chapter: 10, paragraph: 0 })
     const overview = makeOverview()
+
     vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })
@@ -109,6 +112,7 @@ describe('useBookOverview', () => {
   it('clamps out-of-bounds paragraph position', async () => {
     mockGetProgress.mockReturnValue({ chapter: 0, paragraph: 99 })
     const overview = makeOverview()
+
     vi.mocked(fetch).mockResolvedValue(Response.json(overview))
 
     const { result } = renderHook(() => useBookOverview('book-1'), { wrapper })

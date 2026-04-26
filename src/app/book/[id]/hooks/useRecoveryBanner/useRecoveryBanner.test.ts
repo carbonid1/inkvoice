@@ -1,6 +1,6 @@
-import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { useRecoveryBanner } from './useRecoveryBanner'
 
 const bookmark = (overrides: Partial<Bookmark> = {}): Bookmark => ({
@@ -139,6 +139,7 @@ describe('useRecoveryBanner', () => {
     )
 
     const first = result.current.dismissBanner
+
     rerender()
     expect(result.current.dismissBanner).toBe(first)
   })

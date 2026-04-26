@@ -10,6 +10,7 @@ export const useDebouncedLoading = (isLoading: boolean) => {
   useEffect(() => {
     if (!isLoading) return
     const timer = setTimeout(() => setDelayElapsed(true), LOADING_DELAY_MS)
+
     return () => {
       clearTimeout(timer)
       setDelayElapsed(false)

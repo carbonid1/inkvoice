@@ -1,4 +1,4 @@
-type DecodedEntity = {
+interface DecodedEntity {
   char: string
   length: number
 }
@@ -28,6 +28,7 @@ export const decodeNextEntity = (html: string, pos: number): DecodedEntity | nul
 
   // Numeric entity
   const numMatch = html.slice(pos).match(/^&#(\d+);/)
+
   if (numMatch?.[1]) {
     return { char: String.fromCharCode(parseInt(numMatch[1], 10)), length: numMatch[0].length }
   }

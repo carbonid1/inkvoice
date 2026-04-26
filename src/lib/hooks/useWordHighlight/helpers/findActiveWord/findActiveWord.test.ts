@@ -1,5 +1,5 @@
-import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { describe, expect, it } from 'vitest'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { findActiveWord } from './findActiveWord'
 
 const timestamps: WordTimestamp[] = [

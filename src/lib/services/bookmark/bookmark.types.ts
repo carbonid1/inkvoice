@@ -1,4 +1,4 @@
-export type Bookmark = {
+export interface Bookmark {
   id: string
   chapter: number
   paragraph: number

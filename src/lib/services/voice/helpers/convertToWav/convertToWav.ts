@@ -3,8 +3,15 @@ import { mkdtemp, readFile, rm, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import path from 'path'
 
-type ConvertSuccess = { ok: true; buffer: Buffer }
-type ConvertError = { ok: false; code: 'UNSUPPORTED_FORMAT' | 'CONVERSION_FAILED'; message: string }
+interface ConvertSuccess {
+  ok: true
+  buffer: Buffer
+}
+interface ConvertError {
+  ok: false
+  code: 'UNSUPPORTED_FORMAT' | 'CONVERSION_FAILED'
+  message: string
+}
 export type ConvertResult = ConvertSuccess | ConvertError
 
 const SUPPORTED_EXTENSIONS = ['wav', 'mp3', 'm4a', 'ogg', 'flac'] as const
@@ -46,6 +53,7 @@ export const convertToWav = async (
     })
 
     const outputBuffer = await readFile(outputPath)
+
     return { ok: true, buffer: outputBuffer }
   } catch {
     return {

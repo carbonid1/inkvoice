@@ -1,12 +1,13 @@
+import { NextResponse } from 'next/server'
 import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { voiceService } from '@/lib/services/voice/voice.service'
-import { NextResponse } from 'next/server'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
 export const GET = async () => {
   try {
     const voices = await voiceService.listVoices()
+
     return NextResponse.json(voices)
   } catch (error) {
     console.error('Error listing voices:', error)
@@ -17,6 +18,7 @@ export const GET = async () => {
 export const POST = async (request: Request) => {
   try {
     const contentLength = Number(request.headers.get('content-length') ?? 0)
+
     if (contentLength > MAX_FILE_SIZE) {
       return NextResponse.json({ error: 'File too large', code: 'TOO_LARGE' }, { status: 413 })
     }
@@ -48,6 +50,7 @@ export const POST = async (request: Request) => {
 
     if (!result.ok) {
       const status = result.code === 'NAME_TAKEN' ? 409 : 400
+
       return NextResponse.json({ error: result.message, code: result.code }, { status })
     }
 
@@ -88,6 +91,7 @@ const generateSampleInBackground = async (voiceName: string) => {
   }
 
   const arrayBuffer = await response.arrayBuffer()
+
   await voiceService.saveSample(voiceName, Buffer.from(arrayBuffer))
   console.warn(`Generated sample for custom voice "${voiceName}"`)
 }

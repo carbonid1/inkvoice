@@ -1,12 +1,12 @@
 'use client'
 
+import { X } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import type { PregenJobStatus } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { useLibraryStore } from '@/store/useLibraryStore'
 import { usePregenStore } from '@/store/usePregenStore'
-import { X } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 
 const STATUS_LABELS: Record<PregenJobStatus, { label: string; className: string }> = {
   queued: { label: 'Queued', className: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' },
@@ -39,6 +39,7 @@ export const DebugPanel = () => {
 
   const bookTitles = useMemo(() => {
     const map: Record<string, string> = {}
+
     for (const book of books) {
       map[book.id] = book.title
     }
@@ -69,6 +70,7 @@ export const DebugPanel = () => {
             {jobList.map(job => {
               const status =
                 warmingUpBookId === job.bookId ? WARMING_UP_LABEL : STATUS_LABELS[job.status]
+
               return (
                 <div
                   key={job.id}

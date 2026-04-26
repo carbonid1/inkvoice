@@ -10,6 +10,7 @@ export const navigateToBook = async (page: Page, bookId?: string) => {
   const booksResponse = page.waitForResponse(
     resp => resp.url().includes('/api/books') && resp.status() === 200,
   )
+
   await page.goto('/')
   await booksResponse
   await page.locator('a[href^="/book/"]').first().waitFor()

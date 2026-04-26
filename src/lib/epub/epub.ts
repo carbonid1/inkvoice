@@ -1,15 +1,19 @@
-import type { ParsedBook, ParsedChapter, TocNode } from '@/lib/types/book'
-import EPub from 'epub2'
 import { unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
+import EPub from 'epub2'
 import { z } from 'zod'
+import type { ParsedBook, ParsedChapter, TocNode } from '@/lib/types/book'
 import { buildTocTree } from './helpers/buildTocTree/buildTocTree'
 import { inferChapterTitle } from './helpers/inferChapterTitle/inferChapterTitle'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
 // epub2 populates `ncx` at runtime but doesn't expose it in its types.
-type NcxNode = { id: string; ncx_index: number; sub: NcxNode[] }
+interface NcxNode {
+  id: string
+  ncx_index: number
+  sub: NcxNode[]
+}
 const ncxNodeSchema: z.ZodType<NcxNode> = z.lazy(() =>
   z.object({ id: z.string(), ncx_index: z.number(), sub: z.array(ncxNodeSchema) }),
 )
@@ -19,6 +23,7 @@ const ncxSchema = z.array(ncxNodeSchema)
 // an empty string. The original code uses `(navLabel.text || navLabel || "").trim()`
 // which resolves to the navLabel *object* when text is falsy, then .trim() throws.
 const origWalkNavMap = EPub.prototype.walkNavMap
+
 EPub.prototype.walkNavMap = function (...args: Parameters<typeof origWalkNavMap>) {
   try {
     return origWalkNavMap.apply(this, args)
@@ -52,6 +57,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
 
     // Build TOC label lookup: spine item ID → TOC entry title
     const tocLabels = new Map<string, string>()
+
     for (const entry of epub.toc || []) {
       if (entry.id && entry.title) {
         tocLabels.set(entry.id, entry.title)
@@ -72,6 +78,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         const manifestId = Object.keys(epub.manifest || {}).find(id => {
           const item = epub.manifest[id]
           const href = item.href ?? ''
+
           return (
             href.endsWith(src) || src.endsWith(href) || normalizePath(href) === normalizePath(src)
           )
@@ -89,6 +96,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         if (!data) return null
 
         const base64 = data.toString('base64')
+
         return `data:${mimeType};base64,${base64}`
       } catch {
         return null
@@ -100,6 +108,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
 
     for (let i = 0; i < flow.length; i++) {
       const item = flow[i]
+
       if (!item.id) continue
 
       try {
@@ -117,6 +126,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
         const { content, paragraphs } = await parseHtmlContent(html, getImage)
 
         const hasContent = paragraphs.length > 0 || content.some(b => b.type === 'image')
+
         if (!hasContent) continue
 
         const htmlHeading = html
@@ -146,8 +156,10 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
     // includes a fragment (e.g. "file.html#section"). These don't match spine item
     // IDs, so buildTocTree would drop them. Fix: strip fragment, match by base href.
     const hrefToChapterIndex = new Map<string, number>()
+
     for (const item of flow) {
       const idx = idToChapterIndex.get(item.id)
+
       if (item.href && idx !== undefined) {
         hrefToChapterIndex.set(item.href, idx)
       }
@@ -156,6 +168,7 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
       if (entry.id && !idToChapterIndex.has(entry.id) && entry.href) {
         const baseHref = entry.href.split('#')[0]
         const chapterIndex = hrefToChapterIndex.get(baseHref)
+
         if (chapterIndex !== undefined) {
           idToChapterIndex.set(entry.id, chapterIndex)
         }
@@ -167,11 +180,13 @@ export const parseEpub = async (arrayBuffer: ArrayBuffer, bookId: string): Promi
     const ncxParsed = ncxSchema.safeParse(Reflect.get(epub, 'ncx'))
     const ncx = ncxParsed.success ? ncxParsed.data : []
     let tocTree: TocNode[] | undefined
+
     if (ncx.length > 0) {
       const tree = buildTocTree(ncx, idToChapterIndex, tocLabels)
       const hasHierarchy = tree.some(node => node.children.length > 0)
       const leafCount = countLeaves(tree)
       const coversAllChapters = leafCount >= chapters.length
+
       if (hasHierarchy && coversAllChapters) {
         tocTree = tree
       }
@@ -241,6 +256,7 @@ export const getCoverImage = async (
             else resolve([data, mime])
           })
         })
+
         if (data && data.length > 0) {
           return { data, mimeType }
         }
@@ -253,14 +269,17 @@ export const getCoverImage = async (
     // Strategy 1: epub.metadata.cover (EPUB2 standard)
     if (epub.metadata?.cover) {
       const result = await getImageById(epub.metadata.cover)
+
       if (result) return result
     }
 
     // Strategy 2: Manifest item with ID containing "cover" and image MIME type
     for (const id of Object.keys(manifest)) {
       const item = manifest[id]
+
       if (id.toLowerCase().includes('cover') && item['media-type']?.startsWith('image/')) {
         const result = await getImageById(id)
+
         if (result) return result
       }
     }
@@ -268,8 +287,10 @@ export const getCoverImage = async (
     // Strategy 3: Manifest item with properties="cover-image" (EPUB3)
     for (const id of Object.keys(manifest)) {
       const item = manifest[id]
+
       if (item.properties?.includes('cover-image') && item['media-type']?.startsWith('image/')) {
         const result = await getImageById(id)
+
         if (result) return result
       }
     }
@@ -277,8 +298,10 @@ export const getCoverImage = async (
     // Strategy 4: First image in manifest (fallback)
     for (const id of Object.keys(manifest)) {
       const item = manifest[id]
+
       if (item['media-type']?.startsWith('image/')) {
         const result = await getImageById(id)
+
         if (result) return result
       }
     }

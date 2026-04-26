@@ -2,14 +2,14 @@
 
 import { useCallback, useMemo, useState } from 'react'
 
-type UploadResult = {
+interface UploadResult {
   name: string
   displayName: string
   durationSeconds: number
   transcription: string | null
 }
 
-type UploadState = {
+interface UploadState {
   uploading: boolean
   error: string | null
   upload: (file: File, displayName: string, language?: string) => Promise<UploadResult | null>
@@ -27,6 +27,7 @@ export const useUploadVoice = (): UploadState => {
 
       try {
         const formData = new FormData()
+
         formData.append('file', file)
         formData.append('name', displayName)
         if (language) formData.append('language', language)

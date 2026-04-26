@@ -15,6 +15,7 @@ describe('VoiceTagEditor', () => {
 
   it('calls onTagsChanged without the tag when remove is clicked', () => {
     const onTagsChanged = vi.fn()
+
     renderWith(
       <VoiceTagEditor
         tags={['male', 'british', 'warm']}
@@ -29,9 +30,11 @@ describe('VoiceTagEditor', () => {
 
   it('adds a custom tag via text input on Enter', () => {
     const onTagsChanged = vi.fn()
+
     renderWith(<VoiceTagEditor tags={['male']} onTagsChanged={onTagsChanged} saving={false} />)
 
     const input = screen.getByPlaceholderText('Add tag...')
+
     fireEvent.change(input, { target: { value: 'deep' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
@@ -42,6 +45,7 @@ describe('VoiceTagEditor', () => {
     renderWith(<VoiceTagEditor tags={[]} onTagsChanged={vi.fn()} saving={false} />)
 
     const input = screen.getByPlaceholderText('Add tag...')
+
     fireEvent.change(input, { target: { value: 'deep' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
@@ -50,9 +54,11 @@ describe('VoiceTagEditor', () => {
 
   it('does not add a blank custom tag', () => {
     const onTagsChanged = vi.fn()
+
     renderWith(<VoiceTagEditor tags={[]} onTagsChanged={onTagsChanged} saving={false} />)
 
     const input = screen.getByPlaceholderText('Add tag...')
+
     fireEvent.change(input, { target: { value: '   ' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 

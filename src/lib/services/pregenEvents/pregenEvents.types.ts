@@ -1,22 +1,22 @@
 import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 
-export type PregenUpdateEvent = {
+export interface PregenUpdateEvent {
   type: 'update'
   job: PregenJob
   samplingRate?: number
 }
 
-export type PregenDeletedEvent = {
+export interface PregenDeletedEvent {
   type: 'deleted'
   bookId: string
 }
 
-export type PregenWarmupStartEvent = {
+export interface PregenWarmupStartEvent {
   type: 'warmup_start'
   bookId: string
 }
 
-export type PregenWarmupCompleteEvent = {
+export interface PregenWarmupCompleteEvent {
   type: 'warmup_complete'
   bookId: string
 }

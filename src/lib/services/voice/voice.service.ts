@@ -1,8 +1,8 @@
-import { env } from '@/lib/config/env'
-import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { mkdir, readdir, rename, rm, stat, writeFile } from 'fs/promises'
 import path from 'path'
 import { z } from 'zod'
+import { env } from '@/lib/config/env'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { swallowRecordNotFound } from '../../helpers/swallowRecordNotFound/swallowRecordNotFound'
 import { prisma } from '../db/db.service'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
@@ -14,7 +14,7 @@ import { validateWav } from './helpers/validateWav/validateWav'
 import { APP_VOICES, isAppVoice } from './voice.consts'
 import type { VoiceEntry, VoiceMetadata, VoiceType } from './voice.types'
 
-type UploadSuccess = {
+interface UploadSuccess {
   ok: true
   name: string
   displayName: string
@@ -22,7 +22,7 @@ type UploadSuccess = {
   transcription: string | null
 }
 
-type UploadError = {
+interface UploadError {
   ok: false
   code: string
   message: string
@@ -38,17 +38,17 @@ type UpdateTagsResult =
   | { ok: true; tags: string[] }
   | { ok: false; reason: 'not_found' | 'app_voice' }
 
-const fileExists = async (filePath: string): Promise<boolean> =>
+const fileExists = (filePath: string): Promise<boolean> =>
   stat(filePath)
     .then(s => s.isFile())
     .catch(() => false)
 
-const dirExists = async (dirPath: string): Promise<boolean> =>
+const dirExists = (dirPath: string): Promise<boolean> =>
   stat(dirPath)
     .then(s => s.isDirectory())
     .catch(() => false)
 
-const readDirSafe = async (dirPath: string): Promise<string[]> => readdir(dirPath).catch(() => [])
+const readDirSafe = (dirPath: string): Promise<string[]> => readdir(dirPath).catch(() => [])
 
 const tagsSchema = z.array(z.string())
 
@@ -57,8 +57,10 @@ export const createVoiceService = (voicesDir: string) => {
 
   const getMetadata = async (name: string): Promise<VoiceMetadata | null> => {
     const row = await prisma.voiceMetadata.findUnique({ where: { name } })
+
     if (!row) return null
     const parsedTags = tagsSchema.safeParse(JSON.parse(row.tags))
+
     if (!parsedTags.success) {
       console.warn(`[voice] Invalid tags for ${name}: ${parsedTags.error.message}`)
     }
@@ -79,6 +81,7 @@ export const createVoiceService = (voicesDir: string) => {
       tags: JSON.stringify(meta.tags),
       language: meta.language ?? null,
     }
+
     await prisma.voiceMetadata.upsert({
       where: { name },
       create: { name, type, ...fields },
@@ -97,6 +100,7 @@ export const createVoiceService = (voicesDir: string) => {
         .filter(entry => !skip?.includes(entry))
         .map(async entry => {
           const entryPath = path.join(dir, entry)
+
           if (!(await fileExists(path.join(entryPath, 'source.wav')))) return null
 
           const [hasSample, meta] = await Promise.all([
@@ -166,6 +170,7 @@ export const createVoiceService = (voicesDir: string) => {
       where: { deletedAt: { not: null } },
       select: { name: true },
     })
+
     return rows.map(r => r.name)
   }
 
@@ -176,14 +181,17 @@ export const createVoiceService = (voicesDir: string) => {
       listVoicesInDir(voicesDir, 'app', ['custom']),
       listVoicesInDir(customDir, 'custom', deletedNames),
     ])
+
     return [...appVoices, ...customVoices]
   }
 
   const resolveVoiceDir = async (name: string): Promise<string | null> => {
     const appPath = path.join(voicesDir, name)
+
     if (name !== 'custom' && (await dirExists(appPath))) return appPath
 
     const customPath = path.join(customDir, name)
+
     if (await dirExists(customPath)) return customPath
 
     return null
@@ -194,11 +202,13 @@ export const createVoiceService = (voicesDir: string) => {
       where: { name },
       select: { deletedAt: true },
     })
+
     return row !== null && row.deletedAt !== null
   }
 
   const voiceNameExists = async (slug: string): Promise<boolean> => {
     const dir = await resolveVoiceDir(slug)
+
     if (!dir) return false
     return !(await isDeleted(slug))
   }
@@ -215,23 +225,27 @@ export const createVoiceService = (voicesDir: string) => {
 
     if (nameError) {
       const code = nameError.includes('already exists') ? 'NAME_TAKEN' : 'INVALID_NAME'
+
       return { ok: false, code, message: nameError }
     }
 
     // Convert to standard WAV format
     const convertResult = await convertToWav(audioBuffer, originalFilename)
+
     if (!convertResult.ok) {
       return { ok: false, code: convertResult.code, message: convertResult.message }
     }
 
     // Validate WAV
     const wavResult = validateWav(convertResult.buffer)
+
     if (!wavResult.ok) {
       return { ok: false, code: wavResult.code, message: wavResult.message }
     }
 
     // Save files
     const voiceDir = path.join(customDir, slug)
+
     await mkdir(voiceDir, { recursive: true })
     await writeFile(path.join(voiceDir, 'source.wav'), convertResult.buffer)
 
@@ -240,6 +254,7 @@ export const createVoiceService = (voicesDir: string) => {
 
     // Transcribe voice reference for OmniVoice
     let transcription: string | null = null
+
     try {
       const langParam = language ? `?language=${language}` : ''
       const response = await getPythonClient().fetch(`/transcribe${langParam}`, {
@@ -248,8 +263,10 @@ export const createVoiceService = (voicesDir: string) => {
         body: new Uint8Array(convertResult.buffer),
         signal: AbortSignal.timeout(300_000),
       })
+
       if (response.ok) {
         const { text } = await response.json()
+
         if (text) {
           transcription = text
           await writeFile(path.join(voiceDir, 'source.txt'), text)
@@ -272,6 +289,7 @@ export const createVoiceService = (voicesDir: string) => {
     if (isAppVoice(name)) return { ok: false, reason: 'app_voice' }
 
     const customPath = path.join(customDir, name)
+
     if (!(await dirExists(customPath))) return { ok: false, reason: 'not_found' }
 
     await markVoiceDeleted(name)
@@ -293,6 +311,7 @@ export const createVoiceService = (voicesDir: string) => {
         data: { deletedAt: null },
       }),
     )
+
     if (!updated) return { ok: false, reason: 'not_found' }
 
     return { ok: true }
@@ -300,9 +319,11 @@ export const createVoiceService = (voicesDir: string) => {
 
   const resolveVoicePath = async (name: string): Promise<string | null> => {
     const appPath = path.join(voicesDir, name, 'source.wav')
+
     if (await fileExists(appPath)) return appPath
 
     const customPath = path.join(customDir, name, 'source.wav')
+
     if (await fileExists(customPath)) return customPath
 
     return null
@@ -310,9 +331,11 @@ export const createVoiceService = (voicesDir: string) => {
 
   const resolveSamplePath = async (name: string): Promise<string | null> => {
     const appPath = path.join(voicesDir, name, 'sample.wav')
+
     if (await fileExists(appPath)) return appPath
 
     const customPath = path.join(customDir, name, 'sample.wav')
+
     if (await fileExists(customPath)) return customPath
 
     return null
@@ -320,6 +343,7 @@ export const createVoiceService = (voicesDir: string) => {
 
   const saveSample = async (name: string, buffer: Buffer): Promise<void> => {
     const samplePath = path.join(customDir, name, 'sample.wav')
+
     await writeFile(samplePath, buffer)
   }
 
@@ -327,6 +351,7 @@ export const createVoiceService = (voicesDir: string) => {
     if (isAppVoice(name)) return { ok: false, reason: 'app_voice' }
 
     const voiceDir = await resolveVoiceDir(name)
+
     if (!voiceDir) return { ok: false, reason: 'not_found' }
 
     const normalized = normalizeTags(tags)
@@ -343,6 +368,7 @@ export const createVoiceService = (voicesDir: string) => {
 
   const saveTranscript = async (name: string, text: string): Promise<{ ok: boolean }> => {
     const voiceDir = await resolveVoiceDir(name)
+
     if (!voiceDir) return { ok: false }
     await writeFile(path.join(voiceDir, 'source.txt'), text.trim())
     return { ok: true }

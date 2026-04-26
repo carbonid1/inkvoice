@@ -38,6 +38,7 @@ describe('markFinished', () => {
     useProgressStore.getState().markFinished('book-1')
 
     const progress = useProgressStore.getState().progress['book-1']
+
     expect(progress?.chapter).toBe(3)
     expect(progress?.paragraph).toBe(10)
     expect(progress?.lastReadAt).toBe(5000)

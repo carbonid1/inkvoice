@@ -32,6 +32,7 @@ describe('ChapterEndModal', () => {
 
   it('calls onContinue when Continue button is clicked', () => {
     const onContinue = vi.fn()
+
     render(<ChapterEndModal {...defaultProps} onContinue={onContinue} />)
 
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
@@ -40,6 +41,7 @@ describe('ChapterEndModal', () => {
 
   it('calls onDismiss when backdrop is clicked', () => {
     const onDismiss = vi.fn()
+
     render(<ChapterEndModal {...defaultProps} onDismiss={onDismiss} />)
 
     fireEvent.click(screen.getByTestId('chapter-end-backdrop'))

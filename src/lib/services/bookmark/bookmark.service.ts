@@ -21,6 +21,7 @@ const getBookmarks = async (bookId: string): Promise<Bookmark[]> => {
     where: { bookId },
     orderBy: { createdAt: 'asc' },
   })
+
   return rows.map(toBookmark)
 }
 
@@ -33,6 +34,7 @@ const addBookmark = async (
   const existing = await prisma.bookmark.findFirst({
     where: { bookId, chapter, paragraph },
   })
+
   if (existing) return toBookmark(existing)
 
   const row = await prisma.bookmark.create({
@@ -44,6 +46,7 @@ const addBookmark = async (
       ...(preview !== undefined && { preview: preview.slice(0, 120) }),
     },
   })
+
   return toBookmark(row)
 }
 
@@ -51,6 +54,7 @@ const removeBookmark = async (bookId: string, bookmarkId: string): Promise<boole
   const existing = await prisma.bookmark.findFirst({
     where: { id: bookmarkId, bookId },
   })
+
   if (!existing) return false
 
   await swallowRecordNotFound(() => prisma.bookmark.delete({ where: { id: bookmarkId } }))
@@ -59,6 +63,7 @@ const removeBookmark = async (bookId: string, bookmarkId: string): Promise<boole
 
 const removeAllBookmarks = async (bookId: string): Promise<boolean> => {
   const result = await prisma.bookmark.deleteMany({ where: { bookId } })
+
   return result.count > 0
 }
 

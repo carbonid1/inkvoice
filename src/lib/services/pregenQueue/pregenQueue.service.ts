@@ -1,9 +1,7 @@
+import { swallowRecordNotFound } from '@/lib/helpers/swallowRecordNotFound/swallowRecordNotFound'
 import { prisma } from '@/lib/services/db/db.service'
 
-import { swallowRecordNotFound } from '@/lib/helpers/swallowRecordNotFound/swallowRecordNotFound'
-
-import type { PregenJob } from './pregenQueue.types'
-import { PREGEN_JOB_STATUS, pregenJobStatusSchema } from './pregenQueue.types'
+import { type PregenJob, PREGEN_JOB_STATUS, pregenJobStatusSchema } from './pregenQueue.types'
 
 type PregenJobRow = NonNullable<Awaited<ReturnType<typeof prisma.pregenJob.findFirst>>>
 
@@ -32,6 +30,7 @@ const enqueue = async (
       updatedAt: now,
     },
   })
+
   return toPregenJob(row)
 }
 
@@ -40,6 +39,7 @@ const getNext = async (): Promise<PregenJob | null> => {
     where: { status: PREGEN_JOB_STATUS.QUEUED },
     orderBy: { createdAt: 'asc' },
   })
+
   return row ? toPregenJob(row) : null
 }
 
@@ -47,6 +47,7 @@ const getJob = async (id: string): Promise<PregenJob | null> => {
   const row = await prisma.pregenJob.findUnique({
     where: { id },
   })
+
   return row ? toPregenJob(row) : null
 }
 
@@ -59,6 +60,7 @@ const getByBookId = async (bookId: string): Promise<PregenJob | null> => {
       },
     },
   })
+
   return row ? toPregenJob(row) : null
 }
 
@@ -67,6 +69,7 @@ const getAnyByBookId = async (bookId: string): Promise<PregenJob | null> => {
     where: { bookId },
     orderBy: { createdAt: 'desc' },
   })
+
   return row ? toPregenJob(row) : null
 }
 
@@ -74,19 +77,21 @@ const getAll = async (): Promise<PregenJob[]> => {
   const rows = await prisma.pregenJob.findMany({
     orderBy: { createdAt: 'asc' },
   })
+
   return rows.map(toPregenJob)
 }
 
-const start = async (id: string): Promise<PregenJob | null> =>
+const start = (id: string): Promise<PregenJob | null> =>
   swallowRecordNotFound(async () => {
     const row = await prisma.pregenJob.update({
       where: { id },
       data: { status: PREGEN_JOB_STATUS.IN_PROGRESS, updatedAt: Date.now() },
     })
+
     return toPregenJob(row)
   })
 
-const updateProgress = async (
+const updateProgress = (
   id: string,
   chapter: number,
   paragraph: number,
@@ -104,10 +109,11 @@ const updateProgress = async (
         updatedAt: Date.now(),
       },
     })
+
     return toPregenJob(row)
   })
 
-const pause = async (id: string, errorMessage?: string): Promise<PregenJob | null> =>
+const pause = (id: string, errorMessage?: string): Promise<PregenJob | null> =>
   swallowRecordNotFound(async () => {
     const row = await prisma.pregenJob.update({
       where: { id },
@@ -117,10 +123,11 @@ const pause = async (id: string, errorMessage?: string): Promise<PregenJob | nul
         updatedAt: Date.now(),
       },
     })
+
     return toPregenJob(row)
   })
 
-const resume = async (id: string): Promise<PregenJob | null> =>
+const resume = (id: string): Promise<PregenJob | null> =>
   swallowRecordNotFound(async () => {
     const row = await prisma.pregenJob.update({
       where: { id },
@@ -130,20 +137,23 @@ const resume = async (id: string): Promise<PregenJob | null> =>
         updatedAt: Date.now(),
       },
     })
+
     return toPregenJob(row)
   })
 
-const complete = async (id: string): Promise<PregenJob | null> =>
+const complete = (id: string): Promise<PregenJob | null> =>
   swallowRecordNotFound(async () => {
     const row = await prisma.pregenJob.update({
       where: { id },
       data: { status: PREGEN_JOB_STATUS.COMPLETED, updatedAt: Date.now() },
     })
+
     return toPregenJob(row)
   })
 
 const cancel = async (id: string): Promise<{ deleted: boolean }> => {
   const result = await swallowRecordNotFound(() => prisma.pregenJob.delete({ where: { id } }))
+
   return { deleted: result !== null }
 }
 

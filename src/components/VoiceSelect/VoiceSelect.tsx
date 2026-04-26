@@ -1,11 +1,10 @@
 'use client'
 
-import type { VoiceEntry } from '@/lib/services/voice/voice.types'
-import type { SelectGroup, SelectOption } from '@carbonid1/design-system'
-import { Select } from '@carbonid1/design-system'
+import { type SelectGroup, type SelectOption, Select } from '@carbonid1/design-system'
 import { useCallback, useMemo } from 'react'
+import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 
-type VoiceSelectProps = {
+interface VoiceSelectProps {
   voices: VoiceEntry[]
   value: string
   onChange: (name: string) => void
@@ -33,6 +32,7 @@ export const VoiceSelect = ({
   const groups: SelectGroup[] = useMemo(() => {
     const appVoices = voices.filter(v => v.type === 'app')
     const customVoices = voices.filter(v => v.type === 'custom')
+
     return [
       ...(customVoices.length > 0
         ? [
@@ -58,6 +58,7 @@ export const VoiceSelect = ({
   const renderOption = useCallback(
     (option: SelectOption) => {
       const voice = voicesByName.get(option.value)
+
       if (!voice) return <span>{option.label}</span>
       return (
         <>

@@ -1,9 +1,9 @@
 'use client'
 
-import type { Book } from '@/lib/types/book'
 import { create } from 'zustand'
+import type { Book } from '@/lib/types/book'
 
-export type LibraryState = {
+export interface LibraryState {
   books: Book[]
   currentBook: string | null
   setBooks: (books: Book[]) => void
@@ -19,6 +19,7 @@ export const useLibraryStore = create<LibraryState>()(set => ({
   addBooks: books =>
     set(state => {
       const newIds = new Set(books.map(b => b.id))
+
       return { books: [...state.books.filter(b => !newIds.has(b.id)), ...books] }
     }),
 }))

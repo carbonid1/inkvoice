@@ -1,8 +1,8 @@
 'use client'
 
+import { useCallback, useMemo } from 'react'
 import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
 import { useVoiceStore } from '@/store/useVoiceStore'
-import { useCallback, useMemo } from 'react'
 
 export const useBookVoice = (bookId: string, availableVoiceNames?: string[]) => {
   const globalVoice = useVoiceStore(s => s.voice)

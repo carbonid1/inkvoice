@@ -20,16 +20,19 @@ test.describe('pre-generation', () => {
     await page.goto('/')
 
     const bookCard = page.locator(`a[href="/book/${TEST_BOOK_ID}"]`)
+
     await expect(bookCard).toBeVisible()
 
     // Start pre-generation
     await bookCard.click({ button: 'right' })
     const menu = page.locator('[role="menu"]')
+
     await expect(menu).toBeVisible()
     await menu.locator('[role="menuitem"]', { hasText: 'Pre-generate Audio' }).click()
 
     // Wait for generation to complete (may pass through Queued/Generating states too fast to observe)
     const ring = bookCard.locator('svg[role="img"]')
+
     await expect(ring).toHaveAttribute('aria-label', /^\d+ paragraphs/, { timeout: 30_000 })
   })
 })

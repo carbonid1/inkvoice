@@ -4,6 +4,7 @@ import { buildTocTree } from './buildTocTree'
 describe('buildTocTree', () => {
   it('returns empty array when ncx is empty', () => {
     const result = buildTocTree([], new Map(), new Map())
+
     expect(result).toEqual([])
   })
 
@@ -22,6 +23,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toEqual([
       { title: 'Chapter 1', chapterIndex: 0, children: [] },
       { title: 'Chapter 2', chapterIndex: 1, children: [] },
@@ -60,6 +62,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toEqual([
       {
         title: 'Book 1',
@@ -89,6 +92,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toEqual([{ title: 'Chapter 1', chapterIndex: 0, children: [] }])
   })
 
@@ -98,6 +102,7 @@ describe('buildTocTree', () => {
     const idToTitle = new Map<string, string>()
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toEqual([{ title: 'Chapter 1', chapterIndex: 0, children: [] }])
   })
 
@@ -123,6 +128,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toEqual([
       {
         title: 'Book One',
@@ -147,6 +153,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toEqual([{ title: 'Chapter 1', chapterIndex: 0, children: [] }])
   })
 
@@ -177,6 +184,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     // "Book One" should be removed — "Raraku" (with children) is kept
     expect(result).toEqual([
       {
@@ -211,6 +219,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toHaveLength(2)
     expect(result[0]).toEqual({ title: 'Prologue', chapterIndex: 0, children: [] })
   })
@@ -236,6 +245,7 @@ describe('buildTocTree', () => {
     ])
 
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result[0]?.title).toBe('Sample Book')
     expect(result[0]?.children[0]?.title).toBe('Chapter Eleven')
     expect(result[1]?.title).toBe('Epilogue')
@@ -260,6 +270,7 @@ describe('buildTocTree', () => {
     // For a flat list, the consumer should check hasHierarchy
     // buildTocTree always builds the tree; the caller decides whether to include it
     const result = buildTocTree(ncx, idToIndex, idToTitle)
+
     expect(result).toHaveLength(2)
     expect(result.every(n => n.children.length === 0)).toBe(true)
   })

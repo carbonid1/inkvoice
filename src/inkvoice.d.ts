@@ -1,4 +1,4 @@
-type InkVoice = {
+interface InkVoice {
   platform: string
   retry: () => void
   quit: () => void

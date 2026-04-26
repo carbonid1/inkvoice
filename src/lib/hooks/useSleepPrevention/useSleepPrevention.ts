@@ -1,8 +1,8 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import type { PregenJobStatus } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { usePregenStore } from '@/store/usePregenStore'
-import { useEffect, useRef } from 'react'
 
 const ACTIVE_STATUSES: Set<PregenJobStatus> = new Set(['queued', 'in_progress'])
 
@@ -15,6 +15,7 @@ export const useSleepPrevention = (): void => {
 
   useEffect(() => {
     const bridge = window.inkvoice
+
     if (!bridge) return
 
     if (hasActiveJobs && !isBlockingRef.current) {

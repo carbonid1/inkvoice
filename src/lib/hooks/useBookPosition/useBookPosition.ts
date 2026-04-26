@@ -1,8 +1,8 @@
 'use client'
 
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { getNextPosition as getNextPositionHelper } from '@/lib/helpers/getNextPosition/getNextPosition'
 import type { ChapterInfo } from '@/lib/types/book'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface UseBookPositionOptions {
   chapters: ChapterInfo[]
@@ -40,6 +40,7 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
       onProgressChange(currentChapter, currentParagraph - 1)
     } else if (currentChapter > 0) {
       const prevChapter = chapters[currentChapter - 1]
+
       if (prevChapter) {
         onProgressChange(currentChapter - 1, prevChapter.paragraphCount - 1)
       }
@@ -48,6 +49,7 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
 
   const skipForward = useCallback(() => {
     const ch = chapters[currentChapter]
+
     if (ch && currentParagraph < ch.paragraphCount - 1) {
       onProgressChange(currentChapter, currentParagraph + 1)
     } else if (currentChapter < chapters.length - 1) {
@@ -57,6 +59,7 @@ export const useBookPosition = (options: UseBookPositionOptions) => {
 
   const advanceToNext = useCallback((): boolean => {
     const next = getNextPosition(currentChapterRef.current, currentParagraphRef.current)
+
     if (next) {
       onProgressChangeRef.current(next.ch, next.para)
       return true

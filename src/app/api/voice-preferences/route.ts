@@ -1,8 +1,9 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { voicePreferenceService } from '@/lib/services/voice-preference/voice-preference.service'
-import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async () => {
   const preferences = await voicePreferenceService.getAll()
+
   return NextResponse.json(preferences)
 }
 
@@ -14,5 +15,6 @@ export const DELETE = async (request: NextRequest) => {
   }
 
   const count = await voicePreferenceService.removeByVoiceName(voiceName)
+
   return NextResponse.json({ deleted: count })
 }

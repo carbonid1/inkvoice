@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useVoicePreview } from './useVoicePreview'
 
-type MockAudio = {
+interface MockAudio {
   play: ReturnType<typeof vi.fn>
   pause: ReturnType<typeof vi.fn>
   onended: (() => void) | null
@@ -14,6 +14,7 @@ let mockAudios: MockAudio[]
 
 const getMockAudio = (index: number): MockAudio => {
   const audio = mockAudios[index]
+
   if (!audio) throw new Error(`Mock Audio at index ${index} was never created`)
   return audio
 }
@@ -45,13 +46,12 @@ beforeEach(() => {
   )
 
   let urlCounter = 0
-  vi.stubGlobal(
-    'URL',
-    Object.assign({}, globalThis.URL, {
-      createObjectURL: vi.fn(() => `blob:mock-${++urlCounter}`),
-      revokeObjectURL: vi.fn(),
-    }),
-  )
+
+  vi.stubGlobal('URL', {
+    ...globalThis.URL,
+    createObjectURL: vi.fn(() => `blob:mock-${++urlCounter}`),
+    revokeObjectURL: vi.fn(),
+  })
 })
 
 describe('useVoicePreview', () => {
@@ -124,6 +124,7 @@ describe('useVoicePreview', () => {
   it('keeps play callback stable across rerenders', () => {
     const { result, rerender } = renderHook(() => useVoicePreview())
     const first = result.current.play
+
     rerender()
     expect(result.current.play).toBe(first)
   })

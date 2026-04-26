@@ -3,7 +3,7 @@
 import { Button } from '@carbonid1/design-system'
 import { Undo2, X } from 'lucide-react'
 
-type ReturnPillProps = {
+interface ReturnPillProps {
   chapterName: string
   onNavigate: () => void
   onDismiss: () => void

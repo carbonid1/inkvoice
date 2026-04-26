@@ -1,14 +1,13 @@
 'use client'
 
+import { useAutoAnimate } from '@formkit/auto-animate/react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoiceTags'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
-import { useAutoAnimate } from '@formkit/auto-animate/react'
-import type { ReactNode } from 'react'
-import { useCallback, useMemo, useState } from 'react'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
 import { VoiceRow } from './VoiceRow'
 
-type VoiceListProps = {
+interface VoiceListProps {
   voices: VoiceEntry[]
   selectedVoice: string
   onSelect: (name: string) => void
@@ -37,6 +36,7 @@ export const VoiceList = ({
     () =>
       voices.map(v => {
         const override = tagOverrides[v.name]
+
         return override ? { ...v, tags: override } : v
       }),
     [voices, tagOverrides],
@@ -46,6 +46,7 @@ export const VoiceList = ({
     async (voiceName: string, tags: string[]) => {
       setTagOverrides(prev => ({ ...prev, [voiceName]: tags }))
       const result = await updateTags(voiceName, tags)
+
       if (result) {
         setTagOverrides(prev => ({ ...prev, [voiceName]: result }))
       }

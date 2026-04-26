@@ -61,7 +61,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@carbonid1/eslint-config": "^0.3.0",
+    "@carbonid1/eslint-config": "^0.4.0",
     "@carbonid1/tsconfig": "^0.2.1",
     "@playwright/cli": "^0.1.8",
     "@playwright/test": "^1.59.1",
@@ -82,6 +82,7 @@
     "@vitest/browser-playwright": "^4.1.4",
     "electron": "^41.2.1",
     "electron-builder": "^26.8.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "lefthook": "^1.10.0",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",

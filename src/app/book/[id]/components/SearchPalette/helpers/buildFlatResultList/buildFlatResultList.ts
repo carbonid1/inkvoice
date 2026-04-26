@@ -11,12 +11,14 @@ export const buildFlatResultList = (
 
   for (let i = 0; i < results.length; i++) {
     const match = results[i]
+
     if (!match) continue
 
     if (match.chapter !== currentChapter) {
       if (showHeaders) {
         // Count how many consecutive matches share this chapter
         let count = 0
+
         for (let j = i; j < results.length && results[j]?.chapter === match.chapter; j++) {
           count++
         }

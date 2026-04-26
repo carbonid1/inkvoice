@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { type MockInstance, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAudioPlayer } from './useAudioPlayer'
 
-type MockAudio = {
+interface MockAudio {
   play: MockInstance
   pause: MockInstance
   load: MockInstance
@@ -55,6 +55,7 @@ describe('useAudioPlayer', () => {
       it(`${name} is stable across re-renders`, () => {
         const { result, rerender } = renderHook(() => useAudioPlayer())
         const first = result.current[name]
+
         rerender()
         expect(result.current[name]).toBe(first)
       })
@@ -64,6 +65,7 @@ describe('useAudioPlayer', () => {
   describe('state bail-out', () => {
     it('setLoading(true) when already true does not change state reference', () => {
       const { result, rerender } = renderHook(() => useAudioPlayer())
+
       act(() => result.current.setLoading(true))
       rerender()
       const stateAfterFirst = {
@@ -71,6 +73,7 @@ describe('useAudioPlayer', () => {
         isLoading: result.current.isLoading,
         error: result.current.error,
       }
+
       act(() => result.current.setLoading(true))
       rerender()
       const stateAfterSecond = {
@@ -78,6 +81,7 @@ describe('useAudioPlayer', () => {
         isLoading: result.current.isLoading,
         error: result.current.error,
       }
+
       expect(stateAfterSecond).toEqual(stateAfterFirst)
     })
   })
@@ -85,12 +89,14 @@ describe('useAudioPlayer', () => {
   describe('play', () => {
     it('sets src on the audio element', async () => {
       const { result } = renderHook(() => useAudioPlayer())
+
       await act(() => result.current.play('blob:http://localhost/abc'))
       expect(mockAudio.src).toBe('blob:http://localhost/abc')
     })
 
     it('sets isPlaying to true after playing', async () => {
       const { result } = renderHook(() => useAudioPlayer())
+
       await act(() => result.current.play('blob:http://localhost/abc'))
       expect(result.current.isPlaying).toBe(true)
     })
@@ -195,6 +201,7 @@ describe('useAudioPlayer', () => {
         'The play() request was interrupted by a call to pause().',
         'AbortError',
       )
+
       mockAudio.play.mockRejectedValueOnce(abortError)
 
       await act(() => result.current.play('blob:http://localhost/abc'))
@@ -213,6 +220,7 @@ describe('useAudioPlayer', () => {
         'The play() request was interrupted by a call to pause().',
         'AbortError',
       )
+
       mockAudio.play.mockRejectedValueOnce(abortError)
 
       await act(() => result.current.resume())

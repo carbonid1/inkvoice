@@ -1,5 +1,5 @@
-import preview from '#.storybook/preview'
 import { expect, fn, waitFor, within } from 'storybook/test'
+import preview from '#.storybook/preview'
 import { ParagraphContextMenu } from './ParagraphContextMenu'
 
 const meta = preview.meta({
@@ -28,8 +28,10 @@ Default.test(
   async ({ canvas, args, userEvent }) => {
     const body = within(document.body)
     const trigger = canvas.getByText('A paragraph of text to right-click.')
+
     await userEvent.pointer({ keys: '[MouseRight]', target: trigger })
     const item = await waitFor(() => body.getByRole('menuitem', { name: 'Copy Text' }))
+
     await userEvent.click(item)
     await expect(args.onCopyText).toHaveBeenCalledWith(3, 5)
   },
@@ -40,8 +42,10 @@ Default.test(
   async ({ canvas, args, userEvent }) => {
     const body = within(document.body)
     const trigger = canvas.getByText('A paragraph of text to right-click.')
+
     await userEvent.pointer({ keys: '[MouseRight]', target: trigger })
     const item = await waitFor(() => body.getByRole('menuitem', { name: 'Regenerate Audio' }))
+
     await userEvent.click(item)
     await expect(args.onRegenerate).toHaveBeenCalledWith(3, 5)
   },

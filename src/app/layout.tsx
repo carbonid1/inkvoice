@@ -1,8 +1,8 @@
-import { BuildInfo } from '@/components/BuildInfo/BuildInfo'
-import { PregenSSEProvider } from '@/components/PregenSSEProvider/PregenSSEProvider'
 import { ThemeCycler, ThemeProvider, Toaster } from '@carbonid1/design-system'
 import type { Metadata } from 'next'
 import { Literata } from 'next/font/google'
+import { BuildInfo } from '@/components/BuildInfo/BuildInfo'
+import { PregenSSEProvider } from '@/components/PregenSSEProvider/PregenSSEProvider'
 import './globals.css'
 
 const literata = Literata({

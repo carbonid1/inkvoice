@@ -1,3 +1,6 @@
+import { execSync } from 'child_process'
+import fs from 'fs'
+import path from 'path'
 import {
   _electron as electron,
   expect,
@@ -5,9 +8,6 @@ import {
   type ElectronApplication,
   type Page,
 } from '@playwright/test'
-import { execSync } from 'child_process'
-import fs from 'fs'
-import path from 'path'
 
 const DEFAULT_APP_PATH = path.resolve(
   __dirname,
@@ -18,6 +18,7 @@ const APP_PATH = process.env.INKVOICE_APP_PATH ?? DEFAULT_APP_PATH
 const isInkVoiceRunning = (): boolean => {
   try {
     const result = execSync('pgrep -x InkVoice', { encoding: 'utf-8' })
+
     return result.trim().length > 0
   } catch {
     return false
@@ -48,6 +49,7 @@ test.describe('electron smoke', () => {
 
   test('loading screen renders', async () => {
     const url = window.url()
+
     expect(url).toContain('loading.html')
 
     await expect(window.locator('h1')).toHaveText('InkVoice')

@@ -1,7 +1,6 @@
-import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parseTimestampsHeader'
-import type { TTSService } from './tts.types'
-import { TTSError } from './tts.types'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
+import { type TTSService, TTSError } from './tts.types'
 
 const TTS_TIMEOUT_MS = 180_000
 const TTS_COLD_TIMEOUT_MS = 300_000
@@ -14,11 +13,13 @@ class TTSServiceImpl implements TTSService {
   async generate(text: string, voice: string) {
     const client = getPythonClient()
     const instanceId = client.getCurrentInstanceId()
+
     if (instanceId !== lastInstanceId) {
       lastInstanceId = instanceId
       generationCount = 0
     }
     const timeout = generationCount < COLD_GENERATION_COUNT ? TTS_COLD_TIMEOUT_MS : TTS_TIMEOUT_MS
+
     generationCount++
 
     const response = await client.fetch('/tts', {
@@ -30,6 +31,7 @@ class TTSServiceImpl implements TTSService {
 
     if (!response.ok) {
       const errorText = await response.text()
+
       if (response.status === 400 && errorText.toLowerCase().includes('not found')) {
         throw new TTSError('VOICE_NOT_FOUND', errorText, 400)
       }

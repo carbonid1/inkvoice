@@ -57,22 +57,26 @@ describe('voiceService', () => {
 
     // Create an app voice
     const narratorDir = path.join(voicesDir, 'narrator')
+
     await fs.mkdir(narratorDir)
     await fs.writeFile(path.join(narratorDir, 'source.wav'), createWavBuffer())
     await fs.writeFile(path.join(narratorDir, 'sample.wav'), Buffer.alloc(100))
 
     // Create another app voice without sample
     const casualDir = path.join(voicesDir, 'casual')
+
     await fs.mkdir(casualDir)
     await fs.writeFile(path.join(casualDir, 'source.wav'), createWavBuffer())
 
     // Create an app voice matching APP_VOICES const (for metadata/tag tests)
     const claraDir = path.join(voicesDir, 'clara')
+
     await fs.mkdir(claraDir)
     await fs.writeFile(path.join(claraDir, 'source.wav'), createWavBuffer())
 
     // Create custom dir with one voice
     const customDir = path.join(voicesDir, 'custom', 'my-voice')
+
     await fs.mkdir(customDir, { recursive: true })
     await fs.writeFile(path.join(customDir, 'source.wav'), createWavBuffer())
     await fs.writeFile(
@@ -112,6 +116,7 @@ describe('voiceService', () => {
     const service = createVoiceService(voicesDir)
     const voices = await service.listVoices()
     const narrator = voices.find(v => v.name === 'narrator')
+
     expect(narrator?.displayName).toBe('Narrator')
   })
 
@@ -130,6 +135,7 @@ describe('voiceService', () => {
     // Should not have queried DB for this voice
     const findCalls = mockPrisma.voiceMetadata.findUnique.mock.calls
     const claraDbCall = findCalls.find(call => call[0]?.where?.name === 'clara')
+
     expect(claraDbCall).toBeUndefined()
   })
 
@@ -158,6 +164,7 @@ describe('voiceService', () => {
     // Verify file was saved
     const sourcePath = path.join(voicesDir, 'custom', 'new-voice', 'source.wav')
     const fileStat = await fs.stat(sourcePath)
+
     expect(fileStat.isFile()).toBe(true)
 
     // Verify metadata was saved to DB
@@ -202,10 +209,12 @@ describe('voiceService', () => {
   it('soft-deletes a custom voice by setting deletedAt in DB', async () => {
     const service = createVoiceService(voicesDir)
     const result = await service.deleteVoice('my-voice')
+
     expect(result).toEqual({ ok: true })
 
     // Directory should still exist (not renamed)
     const dir = await fs.stat(path.join(voicesDir, 'custom', 'my-voice'))
+
     expect(dir.isDirectory()).toBe(true)
 
     // DB should have been updated with deletedAt
@@ -220,16 +229,19 @@ describe('voiceService', () => {
   it('refuses to delete an app voice', async () => {
     const service = createVoiceService(voicesDir)
     const result = await service.deleteVoice('clara')
+
     expect(result).toEqual({ ok: false, reason: 'app_voice' })
 
     // Verify not deleted
     const fileStat = await fs.stat(path.join(voicesDir, 'clara', 'source.wav'))
+
     expect(fileStat.isFile()).toBe(true)
   })
 
   it('returns not_found when deleting non-existent voice', async () => {
     const service = createVoiceService(voicesDir)
     const result = await service.deleteVoice('does-not-exist')
+
     expect(result).toEqual({ ok: false, reason: 'not_found' })
   })
 
@@ -240,6 +252,7 @@ describe('voiceService', () => {
     mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce({ deletedAt: 1710000000000 })
 
     const result = await service.restoreVoice('my-voice')
+
     expect(result).toEqual({ ok: true })
 
     // DB should have been updated to clear deletedAt
@@ -255,11 +268,13 @@ describe('voiceService', () => {
     // Voice exists in DB but is not deleted
     mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce({ deletedAt: null })
     const activeResult = await service.restoreVoice('my-voice')
+
     expect(activeResult).toEqual({ ok: false, reason: 'not_found' })
 
     // Voice doesn't exist in DB at all
     mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce(null)
     const missingResult = await service.restoreVoice('does-not-exist')
+
     expect(missingResult).toEqual({ ok: false, reason: 'not_found' })
   })
 
@@ -288,6 +303,7 @@ describe('voiceService', () => {
 
     const voices = await service.listVoices()
     const names = voices.map(v => v.name)
+
     expect(names).not.toContain('my-voice')
   })
 
@@ -324,18 +340,21 @@ describe('voiceService', () => {
   it('resolves voice path for app voice', async () => {
     const service = createVoiceService(voicesDir)
     const voicePath = await service.resolveVoicePath('narrator')
+
     expect(voicePath).toBe(path.join(voicesDir, 'narrator', 'source.wav'))
   })
 
   it('resolves voice path for custom voice', async () => {
     const service = createVoiceService(voicesDir)
     const voicePath = await service.resolveVoicePath('my-voice')
+
     expect(voicePath).toBe(path.join(voicesDir, 'custom', 'my-voice', 'source.wav'))
   })
 
   it('returns null for non-existent voice path', async () => {
     const service = createVoiceService(voicesDir)
     const voicePath = await service.resolveVoicePath('nope')
+
     expect(voicePath).toBeNull()
   })
 })

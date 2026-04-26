@@ -1,5 +1,5 @@
-import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { describe, expect, it, vi } from 'vitest'
+import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { pregenEvents } from './pregenEvents.service'
 import type { PregenEvent } from './pregenEvents.types'
 
@@ -22,9 +22,11 @@ const makeJob = (overrides: Partial<PregenJob> = {}): PregenJob => ({
 describe('pregenEvents', () => {
   it('delivers emitted events to subscribers', () => {
     const listener = vi.fn()
+
     pregenEvents.on(listener)
 
     const event: PregenEvent = { type: 'update', job: makeJob() }
+
     pregenEvents.emit(event)
 
     expect(listener).toHaveBeenCalledWith(event)
@@ -33,6 +35,7 @@ describe('pregenEvents', () => {
 
   it('stops delivering after unsubscribe', () => {
     const listener = vi.fn()
+
     pregenEvents.on(listener)
     pregenEvents.off(listener)
 
@@ -44,10 +47,12 @@ describe('pregenEvents', () => {
   it('delivers to multiple subscribers independently', () => {
     const listener1 = vi.fn()
     const listener2 = vi.fn()
+
     pregenEvents.on(listener1)
     pregenEvents.on(listener2)
 
     const event: PregenEvent = { type: 'deleted', bookId: 'book-1' }
+
     pregenEvents.emit(event)
 
     expect(listener1).toHaveBeenCalledWith(event)
@@ -59,6 +64,7 @@ describe('pregenEvents', () => {
   it('removing one subscriber does not affect others', () => {
     const listener1 = vi.fn()
     const listener2 = vi.fn()
+
     pregenEvents.on(listener1)
     pregenEvents.on(listener2)
     pregenEvents.off(listener1)

@@ -4,7 +4,7 @@ import { ContextMenu } from '@carbonid1/design-system'
 import { Copy, RefreshCw } from 'lucide-react'
 import type { ReactElement } from 'react'
 
-type ParagraphContextMenuProps = {
+interface ParagraphContextMenuProps {
   chapter: number
   paragraph: number
   onCopyText: (chapter: number, paragraph: number) => void

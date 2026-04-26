@@ -30,11 +30,13 @@ const set = async (bookId: string, voiceName: string): Promise<void> => {
 
 const remove = async (bookId: string): Promise<boolean> => {
   const result = await prisma.voicePreference.deleteMany({ where: { bookId } })
+
   return result.count > 0
 }
 
 const removeByVoiceName = async (voiceName: string): Promise<number> => {
   const result = await prisma.voicePreference.deleteMany({ where: { voiceName } })
+
   return result.count
 }
 

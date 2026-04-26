@@ -1,7 +1,7 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { getBookService } from '@/lib/services/book/book.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = {
+interface RouteParams {
   params: Promise<{
     id: string
   }>
@@ -13,6 +13,7 @@ export const GET = async (_: NextRequest, { params }: RouteParams) => {
 
   try {
     const cover = await bookService.getCover(id)
+
     if (!cover) {
       return new NextResponse(null, { status: 204 })
     }

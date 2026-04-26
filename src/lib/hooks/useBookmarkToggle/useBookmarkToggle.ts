@@ -1,14 +1,14 @@
-import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { useCallback, useEffect, useRef } from 'react'
+import { useBookmarkStore } from '@/store/useBookmarkStore'
 
-type UseBookmarkToggleArgs = {
+interface UseBookmarkToggleArgs {
   bookId: string
   chapter: number
   paragraph: number
   preview?: string
 }
 
-type UseBookmarkToggleReturn = {
+interface UseBookmarkToggleReturn {
   isBookmarked: boolean
   toggle: () => void
 }
@@ -25,6 +25,7 @@ export const useBookmarkToggle = ({
   const removeBookmark = useBookmarkStore(s => s.removeBookmark)
 
   const previewRef = useRef(preview)
+
   useEffect(() => {
     previewRef.current = preview
   }, [preview])
@@ -32,6 +33,7 @@ export const useBookmarkToggle = ({
   const toggle = useCallback(() => {
     if (isBookmarked) {
       const bookmark = bookmarks?.find(b => b.chapter === chapter && b.paragraph === paragraph)
+
       if (bookmark) {
         removeBookmark(bookId, bookmark.id)
       }

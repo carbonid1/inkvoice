@@ -1,11 +1,12 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { getCacheService } from '@/lib/services/cache/cache.service'
-import { NextRequest, NextResponse } from 'next/server'
 
 const MIN_CACHE_SIZE_MB = 1024 // 1 GB
 const MAX_CACHE_SIZE_MB = 30 * 1024 // 30 GB
 
 export const PUT = async (request: NextRequest) => {
   let body: { maxSizeMB: unknown }
+
   try {
     body = await request.json()
   } catch {
@@ -30,6 +31,7 @@ export const PUT = async (request: NextRequest) => {
 
   try {
     const cacheService = getCacheService()
+
     await cacheService.setMaxSizeMB(maxSizeMB)
     return NextResponse.json({ success: true })
   } catch (error) {

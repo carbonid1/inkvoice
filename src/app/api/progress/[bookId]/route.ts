@@ -1,8 +1,8 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { progressService } from '@/lib/services/progress/progress.service'
 import { progressSchema } from '@/lib/services/progress/progress.types'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = {
+interface RouteParams {
   params: Promise<{
     bookId: string
   }>
@@ -23,6 +23,7 @@ export const PUT = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
   let rawBody: unknown
+
   try {
     rawBody = await request.json()
   } catch {
@@ -30,6 +31,7 @@ export const PUT = async (request: NextRequest, { params }: RouteParams) => {
   }
 
   const parsed = progressSchema.safeParse(rawBody)
+
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 })
   }

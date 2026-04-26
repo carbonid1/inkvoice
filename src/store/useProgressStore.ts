@@ -1,11 +1,11 @@
 'use client'
 
-import type { Progress } from '@/lib/services/progress/progress.types'
 import { create } from 'zustand'
+import type { Progress } from '@/lib/services/progress/progress.types'
 
 export type { Progress } from '@/lib/services/progress/progress.types'
 
-type ProgressState = {
+interface ProgressState {
   progress: Record<string, Progress>
   loaded: boolean
   loadAllProgress: () => Promise<void>
@@ -37,6 +37,7 @@ const saveToApi = (bookId: string, data: Progress) => {
 
 const debouncedSave = (bookId: string, getData: () => Progress | undefined) => {
   const existing = pendingWrites.get(bookId)
+
   if (existing) clearTimeout(existing)
 
   pendingWrites.set(
@@ -44,6 +45,7 @@ const debouncedSave = (bookId: string, getData: () => Progress | undefined) => {
     setTimeout(() => {
       pendingWrites.delete(bookId)
       const data = getData()
+
       if (data) saveToApi(bookId, data)
     }, DEBOUNCE_MS),
   )
@@ -53,6 +55,7 @@ const flushPendingWrites = () => {
   pendingWrites.forEach((timeout, bookId) => {
     clearTimeout(timeout)
     const data = useProgressStore.getState().progress[bookId]
+
     if (data) {
       fetch(`/api/progress/${bookId}`, {
         method: 'PUT',
@@ -79,6 +82,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     try {
       const response = await fetch('/api/progress')
       const data: Record<string, Progress> = await response.json()
+
       set({ progress: data, loaded: true })
     } catch (error) {
       console.error('Failed to load progress:', error)
@@ -89,6 +93,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
   setProgress: (bookId, chapter, paragraph) => {
     set(state => {
       const existing = state.progress[bookId]
+
       return {
         progress: {
           ...state.progress,
@@ -129,6 +134,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
   removeProgress: bookId => {
     // Cancel any pending debounced write
     const pending = pendingWrites.get(bookId)
+
     if (pending) {
       clearTimeout(pending)
       pendingWrites.delete(bookId)
@@ -136,6 +142,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
 
     set(state => {
       const { [bookId]: _, ...rest } = state.progress
+
       return { progress: rest }
     })
 
@@ -160,6 +167,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
   unmarkFinished: bookId => {
     set(state => {
       const existing = state.progress[bookId]
+
       if (!existing) return state
       return {
         progress: {

@@ -68,6 +68,7 @@ const mockPythonClient = vi.hoisted(() => ({
   getStatus: vi.fn(),
   getCurrentInstanceId: vi.fn().mockReturnValue(1),
 }))
+
 vi.mock('@/lib/services/pythonClient/pythonClient', () => ({
   getPythonClient: () => mockPythonClient,
 }))
@@ -86,6 +87,7 @@ const mockPregenEvents = vi.hoisted(() => ({
   emit: vi.fn(),
   getWarmingUpBookId: vi.fn().mockReturnValue(null),
 }))
+
 vi.mock('@/lib/services/pregenEvents/pregenEvents.service', () => ({
   pregenEvents: mockPregenEvents,
 }))
@@ -95,6 +97,7 @@ import { pregenWorker, resetPregenWorker, signalStop } from './pregeneration.ser
 const mockFetch = vi
   .fn()
   .mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) })
+
 vi.stubGlobal('fetch', mockFetch)
 
 describe('pregenWorker', () => {
@@ -333,14 +336,14 @@ describe('pregenWorker', () => {
     mockCacheService.has.mockResolvedValue(false)
 
     // After first TTS call, signal external pause via in-memory flag
-    mockTtsService.generate.mockImplementation(async () => {
+    mockTtsService.generate.mockImplementation(() => {
       signalStop(job.id)
-      return {
+      return Promise.resolve({
         audio: Buffer.alloc(100),
         generationTimeMs: 5000,
         timestamps: null,
         durationMs: 3000,
-      }
+      })
     })
 
     pregenWorker.start()
@@ -397,6 +400,7 @@ describe('pregenWorker', () => {
     const warmupCompleteCalls = mockPregenEvents.emit.mock.calls.filter(
       ([e]) => e?.type === 'warmup_complete',
     )
+
     expect(warmupStartCalls).toEqual([[{ type: 'warmup_start', bookId: 'book-1' }]])
     expect(warmupCompleteCalls).toEqual([[{ type: 'warmup_complete', bookId: 'book-1' }]])
   })
@@ -427,14 +431,14 @@ describe('pregenWorker', () => {
     mockCacheService.has.mockResolvedValue(false)
 
     // After first TTS call, signal deletion via in-memory flag
-    mockTtsService.generate.mockImplementation(async () => {
+    mockTtsService.generate.mockImplementation(() => {
       signalStop(job.id)
-      return {
+      return Promise.resolve({
         audio: Buffer.alloc(100),
         generationTimeMs: 5000,
         timestamps: null,
         durationMs: 3000,
-      }
+      })
     })
 
     pregenWorker.start()

@@ -1,5 +1,9 @@
 'use client'
 
+import { ProgressRing, Tooltip } from '@carbonid1/design-system'
+import { BookOpen, Check } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
 import { computeProgressPercent } from '@/lib/helpers/computeProgressPercent/computeProgressPercent'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { formatTimeAgo } from '@/lib/helpers/formatTimeAgo/formatTimeAgo'
@@ -7,13 +11,9 @@ import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import type { Book } from '@/lib/types/book'
 import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
-import { ProgressRing, Tooltip } from '@carbonid1/design-system'
-import { BookOpen, Check } from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
 import { BookCardContextMenu } from './BookCardContextMenu'
 
-type BookCardProps = {
+interface BookCardProps {
   book: Book
   onRemove: (bookId: string) => void
 }
@@ -132,15 +132,16 @@ export const BookCard = ({ book, onRemove }: BookCardProps) => {
                 </div>
               </Tooltip>
             )}
-            {finishedAt !== null ? (
+            {finishedAt !== null && (
               <p className="text-muted-foreground text-xs">
                 Finished {shortDateFormatter.format(finishedAt)}
               </p>
-            ) : progress?.lastReadAt ? (
+            )}
+            {finishedAt === null && progress?.lastReadAt && (
               <p className="text-muted-foreground text-xs">
                 Last read {formatTimeAgo(progress.lastReadAt)}
               </p>
-            ) : null}
+            )}
           </div>
         </div>
       </Link>

@@ -1,6 +1,6 @@
 import type { FontSize } from '@/store/useDisplayStore'
 
-type FontSizeOption = {
+interface FontSizeOption {
   value: FontSize
   label: string
 }

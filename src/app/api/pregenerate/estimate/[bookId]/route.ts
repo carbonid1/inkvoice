@@ -1,11 +1,13 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { checkBudget } from '@/lib/services/cache/helpers/checkBudget/checkBudget'
 import { computePregenEstimate } from '@/lib/services/pregeneration/helpers/computePregenEstimate/computePregenEstimate'
 import { voicePreferenceService } from '@/lib/services/voice-preference/voice-preference.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = { params: Promise<{ bookId: string }> }
+interface RouteParams {
+  params: Promise<{ bookId: string }>
+}
 
 export const GET = async (_request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params

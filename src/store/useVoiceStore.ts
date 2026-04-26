@@ -1,9 +1,9 @@
 'use client'
 
-import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import { create } from 'zustand'
+import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 
-type VoiceState = {
+interface VoiceState {
   voice: string
   bookVoices: Record<string, string>
   loaded: boolean
@@ -27,6 +27,7 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
     try {
       const response = await fetch('/api/voice-preferences')
       const data: { voice: string; bookVoices: Record<string, string> } = await response.json()
+
       set({ voice: data.voice, bookVoices: data.bookVoices, loaded: true })
     } catch (error) {
       console.error('Failed to load voice preferences:', error)
@@ -55,6 +56,7 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
   clearBookVoice: bookId => {
     set(state => {
       const { [bookId]: _, ...rest } = state.bookVoices
+
       return { bookVoices: rest }
     })
     fetch(`/api/voice-preferences/${bookId}`, { method: 'DELETE' }).catch(error =>
@@ -64,10 +66,12 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
 
   clearVoiceFromAllBooks: voiceName => {
     const globalWasAffected = get().voice === voiceName
+
     set(state => {
       const updated = Object.fromEntries(
         Object.entries(state.bookVoices).filter(([, v]) => v !== voiceName),
       )
+
       return {
         voice: state.voice === voiceName ? DEFAULT_VOICE : state.voice,
         bookVoices: updated,

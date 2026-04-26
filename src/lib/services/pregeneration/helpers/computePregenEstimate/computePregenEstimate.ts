@@ -2,13 +2,13 @@ const WORDS_PER_MINUTE = 150
 const OPUS_MB_PER_HOUR = 17
 const AVG_SECONDS_PER_PARAGRAPH = 8
 
-type ComputePregenEstimateArgs = {
+interface ComputePregenEstimateArgs {
   totalParagraphs: number
   totalWords: number
   cachedParagraphs: number
 }
 
-type PregenEstimate = {
+interface PregenEstimate {
   estimatedSizeBytes: number
   estimatedGenerationMinutes: number
 }

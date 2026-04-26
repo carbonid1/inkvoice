@@ -18,6 +18,7 @@ describe('voicePreferenceService', () => {
   it('returns default voice and empty bookVoices when no rows exist', async () => {
     mockPrisma.voicePreference.findMany.mockResolvedValue([])
     const result = await voicePreferenceService.getAll()
+
     expect(result).toEqual({ voice: 'clara', bookVoices: {} })
   })
 
@@ -29,6 +30,7 @@ describe('voicePreferenceService', () => {
     ])
 
     const result = await voicePreferenceService.getAll()
+
     expect(result).toEqual({
       voice: 'narrator',
       bookVoices: { 'book-1': 'emma', 'book-2': 'james' },
@@ -47,6 +49,7 @@ describe('voicePreferenceService', () => {
   it('removes a preference and returns true when found', async () => {
     mockPrisma.voicePreference.deleteMany.mockResolvedValue({ count: 1 })
     const result = await voicePreferenceService.remove('book-1')
+
     expect(result).toBe(true)
     expect(mockPrisma.voicePreference.deleteMany).toHaveBeenCalledWith({
       where: { bookId: 'book-1' },
@@ -56,12 +59,14 @@ describe('voicePreferenceService', () => {
   it('returns false when removing non-existent preference', async () => {
     mockPrisma.voicePreference.deleteMany.mockResolvedValue({ count: 0 })
     const result = await voicePreferenceService.remove('unknown')
+
     expect(result).toBe(false)
   })
 
   it('deletes all rows matching a voice name and returns count', async () => {
     mockPrisma.voicePreference.deleteMany.mockResolvedValue({ count: 3 })
     const result = await voicePreferenceService.removeByVoiceName('emma')
+
     expect(result).toBe(3)
     expect(mockPrisma.voicePreference.deleteMany).toHaveBeenCalledWith({
       where: { voiceName: 'emma' },

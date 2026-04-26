@@ -1,8 +1,11 @@
 'use client'
 
-import type { LifecycleState, LifecycleStatus } from '@/lib/services/pythonClient/pythonClient.types'
 import { useEffect } from 'react'
 import { create } from 'zustand'
+import type {
+  LifecycleState,
+  LifecycleStatus,
+} from '@/lib/services/pythonClient/pythonClient.types'
 
 export type { LifecycleState }
 
@@ -16,6 +19,7 @@ export const useTTSLifecycleStore = create<Store>((set, get) => ({
   instanceId: 0,
   setSnapshot: snapshot => {
     const cur = get()
+
     if (
       cur.state === snapshot.state &&
       cur.url === snapshot.url &&
@@ -41,9 +45,11 @@ export const useTTSLifecycle = () => {
     eventSource.onmessage = e => {
       try {
         const raw: unknown = JSON.parse(e.data)
+
         if (typeof raw !== 'object' || raw === null) return
         const data: Record<string, unknown> = { ...raw }
         const state = data.state
+
         if (
           state !== 'stopped' &&
           state !== 'starting' &&
@@ -53,6 +59,7 @@ export const useTTSLifecycle = () => {
           return
         const url = typeof data.url === 'string' ? data.url : undefined
         const instanceId = typeof data.instanceId === 'number' ? data.instanceId : 0
+
         setSnapshot({ state, url, instanceId })
       } catch {
         // ignore malformed

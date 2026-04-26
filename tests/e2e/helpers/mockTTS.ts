@@ -1,6 +1,6 @@
-import { type Page } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { type Page } from '@playwright/test'
 
 const silencePath = path.resolve(__dirname, '../../fixtures/silence.wav')
 

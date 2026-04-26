@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { PregenJob } from './pregenQueue.types'
-import { PREGEN_JOB_STATUS } from './pregenQueue.types'
-
 const mockPrisma = vi.hoisted(() => ({
   pregenJob: {
     create: vi.fn(),
@@ -18,6 +15,7 @@ vi.mock('../db/db.service', () => ({ prisma: mockPrisma }))
 
 import { Prisma } from '../../../../generated/prisma'
 import { pregenQueueService } from './pregenQueue.service'
+import { PREGEN_JOB_STATUS, type PregenJob } from './pregenQueue.types'
 
 const recordNotFound = (): Prisma.PrismaClientKnownRequestError =>
   new Prisma.PrismaClientKnownRequestError('Record not found', {
@@ -49,6 +47,7 @@ describe('pregenQueueService', () => {
   describe('enqueue', () => {
     it('creates a job with status queued', async () => {
       const now = 1700000000000
+
       vi.spyOn(Date, 'now').mockReturnValue(now)
 
       const row: PregenJob = {
@@ -65,6 +64,7 @@ describe('pregenQueueService', () => {
         createdAt: now,
         updatedAt: now,
       }
+
       mockPrisma.pregenJob.create.mockResolvedValue(row)
 
       const result = await pregenQueueService.enqueue('book-1', 'narrator', 500)
@@ -86,6 +86,7 @@ describe('pregenQueueService', () => {
   describe('getNext', () => {
     it('returns oldest queued job (FIFO)', async () => {
       const older = makeJob({ id: 'older', status: 'queued', createdAt: 1000 })
+
       mockPrisma.pregenJob.findFirst.mockResolvedValue(older)
 
       const result = await pregenQueueService.getNext()
@@ -109,6 +110,7 @@ describe('pregenQueueService', () => {
   describe('getByBookId', () => {
     it('returns active job for a book', async () => {
       const job = makeJob({ id: 'job-1', bookId: 'book-1', status: 'in_progress' })
+
       mockPrisma.pregenJob.findFirst.mockResolvedValue(job)
 
       const result = await pregenQueueService.getByBookId('book-1')
@@ -128,6 +130,7 @@ describe('pregenQueueService', () => {
   describe('start', () => {
     it('transitions to in_progress', async () => {
       const now = 1700000000000
+
       vi.spyOn(Date, 'now').mockReturnValue(now)
       mockPrisma.pregenJob.update.mockResolvedValue(makeJob())
 
@@ -149,6 +152,7 @@ describe('pregenQueueService', () => {
 
     it('rethrows non-P2025 Prisma errors', async () => {
       const error = new Error('database is locked')
+
       mockPrisma.pregenJob.update.mockRejectedValue(error)
 
       await expect(pregenQueueService.start('job-1')).rejects.toThrow('database is locked')
@@ -158,6 +162,7 @@ describe('pregenQueueService', () => {
   describe('updateProgress', () => {
     it('updates chapter, paragraph, and completed count', async () => {
       const now = 1700000000000
+
       vi.spyOn(Date, 'now').mockReturnValue(now)
       mockPrisma.pregenJob.update.mockResolvedValue(makeJob())
 
@@ -186,6 +191,7 @@ describe('pregenQueueService', () => {
   describe('pause', () => {
     it('transitions to paused with error message', async () => {
       const now = 1700000000000
+
       vi.spyOn(Date, 'now').mockReturnValue(now)
       mockPrisma.pregenJob.update.mockResolvedValue(makeJob())
 
@@ -213,6 +219,7 @@ describe('pregenQueueService', () => {
   describe('resume', () => {
     it('transitions paused to queued', async () => {
       const now = 1700000000000
+
       vi.spyOn(Date, 'now').mockReturnValue(now)
       mockPrisma.pregenJob.update.mockResolvedValue(makeJob())
 
@@ -240,6 +247,7 @@ describe('pregenQueueService', () => {
   describe('complete', () => {
     it('transitions to completed', async () => {
       const now = 1700000000000
+
       vi.spyOn(Date, 'now').mockReturnValue(now)
       mockPrisma.pregenJob.update.mockResolvedValue(makeJob())
 
@@ -290,6 +298,7 @@ describe('pregenQueueService', () => {
   describe('getAll', () => {
     it('returns all jobs ordered by creation time', async () => {
       const jobs = [makeJob({ id: '1' }), makeJob({ id: '2' })]
+
       mockPrisma.pregenJob.findMany.mockResolvedValue(jobs)
 
       const result = await pregenQueueService.getAll()
@@ -304,6 +313,7 @@ describe('pregenQueueService', () => {
   describe('getJob', () => {
     it('returns a job by id', async () => {
       const job = makeJob({ id: 'job-1' })
+
       mockPrisma.pregenJob.findUnique.mockResolvedValue(job)
 
       const result = await pregenQueueService.getJob('job-1')

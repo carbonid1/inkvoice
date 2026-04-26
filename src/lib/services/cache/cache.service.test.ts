@@ -80,6 +80,7 @@ describe('TTSCacheService', () => {
       })
 
       const service = getCacheService()
+
       await service.set('text 1', 'voice', Buffer.alloc(100), 'book-a')
       await service.set('text 2', 'voice', Buffer.alloc(200), 'book-a')
       await service.set('text 3', 'voice', Buffer.alloc(300), 'book-b')
@@ -88,6 +89,7 @@ describe('TTSCacheService', () => {
 
       const bookA = stats.find(s => s.bookId === 'book-a')
       const bookB = stats.find(s => s.bookId === 'book-b')
+
       expect(bookA).toEqual({ bookId: 'book-a', usedBytes: 300, entryCount: 2 })
       expect(bookB).toEqual({ bookId: 'book-b', usedBytes: 300, entryCount: 1 })
     })
@@ -100,11 +102,13 @@ describe('TTSCacheService', () => {
       })
 
       const service = getCacheService()
+
       await service.set('orphan text', 'voice', Buffer.alloc(50))
 
       const stats = await service.getBookStats()
 
       const unknown = stats.find(s => s.bookId === 'unknown')
+
       expect(unknown).toEqual({ bookId: 'unknown', usedBytes: 50, entryCount: 1 })
     })
   })
@@ -118,6 +122,7 @@ describe('TTSCacheService', () => {
       })
 
       const service = getCacheService()
+
       await service.set('text 1', 'voice', Buffer.alloc(100), 'book-a')
       await service.set('text 2', 'voice', Buffer.alloc(200), 'book-a')
       await service.set('text 3', 'voice', Buffer.alloc(300), 'book-b')
@@ -126,9 +131,11 @@ describe('TTSCacheService', () => {
 
       expect(freed).toBe(300)
       const stats = await service.getStats()
+
       expect(stats.usedBytes).toBe(300)
 
       const bookStats = await service.getBookStats()
+
       expect(bookStats.find(s => s.bookId === 'book-a')).toBeUndefined()
       expect(bookStats.find(s => s.bookId === 'book-b')).toBeDefined()
     })
@@ -156,9 +163,11 @@ describe('TTSCacheService', () => {
       })
 
       const service = getCacheService()
+
       await service.setMaxSizeMB(5120) // 5 GB
 
       const stats = await service.getStats()
+
       expect(stats.maxBytes).toBe(5120 * 1024 * 1024)
       expect(mockSettingsService.set).toHaveBeenCalledWith('maxCacheSizeMB', 5120)
     })
@@ -171,9 +180,11 @@ describe('TTSCacheService', () => {
       })
 
       const service = getCacheService()
+
       await service.setMaxSizeMB(5120) // requesting 5 GB, but only 2.7 GB safe
 
       const stats = await service.getStats()
+
       expect(stats.maxBytes).toBe(2_700_000_000) // 3GB * 0.9
     })
   })
@@ -196,11 +207,14 @@ describe('TTSCacheService', () => {
       await service.set('text 3', 'voice', Buffer.alloc(80), 'book-c')
 
       const unlinkCalls = mockFs.unlink.mock.calls.map(args => args[0])
+
       expect(unlinkCalls.filter(p => p.endsWith('.opus'))).toEqual([])
 
       const stats = await service.getStats()
+
       expect(stats.usedBytes).toBe(240)
       const bookStats = await service.getBookStats()
+
       expect(bookStats.map(s => s.bookId).sort()).toEqual(['book-a', 'book-b', 'book-c'])
     })
   })

@@ -1,10 +1,11 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { mockBookManagement } from './helpers/mockBookManagement'
 
-const waitForLibrary = async (page: import('@playwright/test').Page) => {
+const waitForLibrary = async (page: Page) => {
   const booksResponse = page.waitForResponse(
     resp => resp.url().includes('/api/books') && resp.status() === 200,
   )
+
   await page.goto('/')
   await booksResponse
   await page.waitForSelector('a[href^="/book/"]')
@@ -27,10 +28,12 @@ test.describe('book management', () => {
   /** Selecting an EPUB file through the Add Book card adds it to the library immediately. */
   test('uploading a book adds it to the grid', async ({ page }) => {
     const { getUploadedBooks } = await mockBookManagement(page)
+
     await waitForLibrary(page)
 
     // Set up the file chooser before clicking
     const fileChooserPromise = page.waitForEvent('filechooser')
+
     await page.getByText('Add Book').click()
     const fileChooser = await fileChooserPromise
 

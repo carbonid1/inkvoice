@@ -1,6 +1,6 @@
-import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useBookmarkStore } from '@/store/useBookmarkStore'
 import { useBookmarkToggle } from './useBookmarkToggle'
 
 const mockFetch = vi.fn()
@@ -17,6 +17,7 @@ describe('useBookmarkToggle', () => {
       useBookmarkToggle({ bookId: 'book-1', chapter: 0, paragraph: 0 }),
     )
     const first = result.current.toggle
+
     rerender()
     expect(result.current.toggle).toBe(first)
   })
@@ -27,6 +28,7 @@ describe('useBookmarkToggle', () => {
       useBookmarkToggle({ bookId: 'book-1', chapter: 0, paragraph: 0, preview }),
     )
     const first = result.current.toggle
+
     preview = 'Second sentence'
     rerender()
     expect(result.current.toggle).toBe(first)
@@ -58,6 +60,7 @@ describe('useBookmarkToggle', () => {
 
   it('adds bookmark when not bookmarked', async () => {
     const bookmark = { id: 'bm-1', chapter: 2, paragraph: 5, createdAt: Date.now() }
+
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(bookmark),
@@ -87,6 +90,7 @@ describe('useBookmarkToggle', () => {
       createdAt: Date.now(),
       preview: 'Hello world',
     }
+
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(bookmark),

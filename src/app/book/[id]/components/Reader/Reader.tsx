@@ -1,15 +1,15 @@
 'use client'
 
+import { type ReactNode, type RefObject, useEffect, useRef } from 'react'
+import { isAllCaps, toTitleCase } from '@/lib/epub/helpers/normalizeTitle/normalizeTitle'
 import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
 import { useDisplayStore } from '@/store/useDisplayStore'
-import type { RefObject } from 'react'
-import { type ReactNode, useEffect, useRef } from 'react'
 import { FONT_SIZE_CLASS } from '../FontSizePopover/FontSizePopover.consts'
+import { ACTIVE_PARAGRAPH_HIGHLIGHT } from './Reader.consts'
 import { ContentBlock } from './components/ContentBlock'
 import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
 import { findTitleGroupMembers } from './helpers/findTitleGroupMembers/findTitleGroupMembers'
 import { SegmentList } from './helpers/renderSegments/renderSegments'
-import { ACTIVE_PARAGRAPH_HIGHLIGHT } from './Reader.consts'
 
 interface ReaderProps {
   chapter: ParsedChapter
@@ -22,10 +22,9 @@ interface ReaderProps {
   activeParagraphRef?: RefObject<HTMLSpanElement | null>
 }
 
-import { isAllCaps, toTitleCase } from '@/lib/epub/helpers/normalizeTitle/normalizeTitle'
-
 const normalizeCaps = (block: ContentBlockType): ContentBlockType => {
   const text = block.segments?.map(s => s.html.replace(/<[^>]+>/g, '')).join('') || ''
+
   if (!isAllCaps(text)) return block
   return {
     ...block,
@@ -85,9 +84,11 @@ export const Reader = ({
     const firstEpigraphCandidate = content.findIndex(
       (block, i) => !titleGroupMember.has(i) && block.type !== 'heading',
     )
+
     if (firstEpigraphCandidate !== -1) {
       for (let i = firstEpigraphCandidate; i < content.length; i++) {
         const epBlock = content[i]
+
         if (epBlock && (epBlock.type === 'blockquote' || epBlock.type === 'attribution')) {
           epigraphGroupMember.add(i)
         } else {
@@ -98,6 +99,7 @@ export const Reader = ({
 
     const renderBlock = (block: ContentBlockType, idx: number) => {
       const isSubtitle = titleGroupMember.has(idx) && !titleGroupStart.has(idx)
+
       return (
         <ContentBlock
           key={idx}
@@ -175,6 +177,7 @@ export const Reader = ({
       <div className="leading-relaxed">
         {chapter.paragraphs.map((paragraph, idx) => {
           const isActive = idx === currentParagraph
+
           return (
             <span
               key={idx}

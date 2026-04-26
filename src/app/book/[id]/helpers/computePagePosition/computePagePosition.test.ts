@@ -31,6 +31,7 @@ describe('computePagePosition', () => {
       wordsPerChapter: [700, 700],
       paragraphsPerChapter: [10, 10],
     })
+
     // 1400 words / 350 wpp = 4 pages
     expect(result).toEqual({ currentPage: 1, totalPages: 4 })
   })
@@ -45,6 +46,7 @@ describe('computePagePosition', () => {
       wordsPerChapter: [350, 700],
       paragraphsPerChapter: [10, 10],
     })
+
     expect(result).toEqual({ currentPage: 3, totalPages: 3 })
   })
 
@@ -56,6 +58,7 @@ describe('computePagePosition', () => {
       wordsPerChapter: [350, 350],
       paragraphsPerChapter: [10, 10],
     })
+
     expect(result).toEqual({ currentPage: 2, totalPages: 2 })
   })
 
@@ -66,6 +69,7 @@ describe('computePagePosition', () => {
       wordsPerChapter: [100],
       paragraphsPerChapter: [5],
     })
+
     expect(result).toEqual({ currentPage: 1, totalPages: 1 })
   })
 })

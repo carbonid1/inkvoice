@@ -4,7 +4,7 @@ import { Button, Tooltip } from '@carbonid1/design-system'
 import { ChevronLeft, ChevronRight, Loader2, Pause, Play } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
-type PlaybackControlsProps = {
+interface PlaybackControlsProps {
   isPlaying: boolean
   isLoading: boolean
   onPlayPause: () => void

@@ -12,34 +12,32 @@ const recordNotFound = (): Prisma.PrismaClientKnownRequestError =>
 
 describe('swallowRecordNotFound', () => {
   it('returns the value when the callback resolves', async () => {
-    const result = await swallowRecordNotFound(async () => ({ id: 'x' }))
+    const result = await swallowRecordNotFound(() => Promise.resolve({ id: 'x' }))
 
     expect(result).toEqual({ id: 'x' })
   })
 
   it('returns null when the callback throws P2025', async () => {
-    const result = await swallowRecordNotFound(async () => {
-      throw recordNotFound()
-    })
+    const result = await swallowRecordNotFound(() => Promise.reject(recordNotFound()))
 
     expect(result).toBeNull()
   })
 
   it('rethrows non-P2025 Prisma errors', async () => {
-    const fail = swallowRecordNotFound(async () => {
-      throw new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
-        code: 'P2002',
-        clientVersion: 'test',
-      })
-    })
+    const fail = swallowRecordNotFound(() =>
+      Promise.reject(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: 'test',
+        }),
+      ),
+    )
 
     await expect(fail).rejects.toMatchObject({ code: 'P2002' })
   })
 
   it('rethrows non-Prisma errors', async () => {
-    const fail = swallowRecordNotFound(async () => {
-      throw new Error('database is locked')
-    })
+    const fail = swallowRecordNotFound(() => Promise.reject(new Error('database is locked')))
 
     await expect(fail).rejects.toThrow('database is locked')
   })

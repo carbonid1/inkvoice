@@ -1,4 +1,4 @@
-type WavMetadata = {
+interface WavMetadata {
   ok: true
   sampleRate: number
   channels: number
@@ -6,7 +6,7 @@ type WavMetadata = {
   durationSeconds: number
 }
 
-type WavError = {
+interface WavError {
   ok: false
   code: 'INVALID_FORMAT' | 'TOO_SHORT' | 'TOO_LONG'
   message: string
@@ -37,11 +37,13 @@ export const validateWav = (buffer: Buffer): WavValidationResult => {
   }
 
   const fmtOffset = findWavChunk(buffer, 'fmt ')
+
   if (fmtOffset === -1) {
     return { ok: false, code: 'INVALID_FORMAT', message: 'WAV file missing fmt chunk' }
   }
 
   const dataOffset = findWavChunk(buffer, 'data')
+
   if (dataOffset === -1) {
     return { ok: false, code: 'INVALID_FORMAT', message: 'WAV file missing data chunk' }
   }

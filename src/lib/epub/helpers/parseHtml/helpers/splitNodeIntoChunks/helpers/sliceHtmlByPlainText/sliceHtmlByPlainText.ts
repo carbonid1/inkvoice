@@ -23,6 +23,7 @@ export const sliceHtmlByPlainText = (html: string, chunks: string[]): string[] =
       if (ch === '<') {
         // Parse tag
         const closeIdx = html.indexOf('>', htmlPos)
+
         if (closeIdx === -1) break
         const tag = html.slice(htmlPos, closeIdx + 1)
         const isClosing = tag[1] === '/'
@@ -33,6 +34,7 @@ export const sliceHtmlByPlainText = (html: string, chunks: string[]): string[] =
             openTags.pop()
           } else {
             const tagName = tag.match(/^<(\w+)/)?.[1]
+
             if (tagName) openTags.push(tagName)
           }
         }
@@ -40,6 +42,7 @@ export const sliceHtmlByPlainText = (html: string, chunks: string[]): string[] =
         htmlPos = closeIdx + 1
       } else if (ch === '&') {
         const entity = decodeNextEntity(html, htmlPos)
+
         if (entity) {
           chunkPlainPos += entity.char.length
           htmlPos += entity.length
@@ -58,6 +61,7 @@ export const sliceHtmlByPlainText = (html: string, chunks: string[]): string[] =
 
     // Close any tags that were opened inside this chunk but not closed
     const tagsToClose = openTags.slice(tagsOpenAtStart.length)
+
     for (let i = tagsToClose.length - 1; i >= 0; i--) {
       slice += `</${tagsToClose[i]}>`
     }
@@ -65,6 +69,7 @@ export const sliceHtmlByPlainText = (html: string, chunks: string[]): string[] =
     // Prepend reopened tags for chunks after the first
     if (chunkIndex > 0) {
       const prefix = tagsOpenAtStart.map(tag => `<${tag}>`).join('')
+
       slice = prefix + slice
     }
 

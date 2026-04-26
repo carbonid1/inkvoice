@@ -1,11 +1,13 @@
 const HEARTBEAT_INTERVAL_MS = 30_000
 
-export type SSEEnqueue = {
+export interface SSEEnqueue {
   event: (event: string, data: unknown) => void
   data: (data: unknown) => void
 }
 
-export type SSESetup = (enqueue: SSEEnqueue) => void | Promise<void> | (() => void) | Promise<() => void>
+export type SSESetup = (
+  enqueue: SSEEnqueue,
+) => void | Promise<void> | (() => void) | Promise<() => void>
 
 export const makeSSEResponse = (setup: SSESetup): Response => {
   const encoder = new TextEncoder()
@@ -32,6 +34,7 @@ export const makeSSEResponse = (setup: SSESetup): Response => {
       }
 
       const result = await setup(enqueue)
+
       if (typeof result === 'function') cleanup = result
 
       heartbeat = setInterval(() => {

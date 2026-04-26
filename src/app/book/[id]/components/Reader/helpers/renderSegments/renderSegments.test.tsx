@@ -4,8 +4,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import type { RenderSegmentsParams } from './renderSegments'
-import { SegmentList } from './renderSegments'
+import { type RenderSegmentsParams, SegmentList } from './renderSegments'
 
 const makeSegment = (paragraphIndex: number, html: string) => ({ paragraphIndex, html })
 
@@ -59,6 +58,7 @@ describe('SegmentList', () => {
     )
 
     const inactive = screen.getByText('Inactive')
+
     expect(inactive.className).toContain('hover:bg-accent')
   })
 
@@ -96,6 +96,7 @@ describe('SegmentList', () => {
 
   it('renders nothing for undefined segments', () => {
     const { container } = render(<SegmentList {...defaultProps({ segments: undefined })} />)
+
     expect(container.innerHTML).toBe('')
   })
 })

@@ -1,9 +1,9 @@
 'use client'
 
-import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
-import type { LifecycleState } from '@/lib/services/pythonClient/pythonClient.types'
 import { Tooltip } from '@carbonid1/design-system'
 import { CircleDot, Loader2 } from 'lucide-react'
+import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
+import type { LifecycleState } from '@/lib/services/pythonClient/pythonClient.types'
 
 const TOOLTIP_LABEL: Record<LifecycleState, string> = {
   stopped: 'Voice engine idle',
@@ -18,7 +18,7 @@ const PILL_TEXT: Record<Exclude<LifecycleState, 'stopped'>, string> = {
   stopping: 'Stopping',
 }
 
-export type TTSStatusPillProps = {
+export interface TTSStatusPillProps {
   state?: LifecycleState
 }
 

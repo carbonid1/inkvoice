@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { cleanupBookmarks } from './helpers/cleanupBookmarks'
 import { mockTTS } from './helpers/mockTTS'
 import { navigateToBook } from './helpers/navigateToBook'
@@ -7,7 +7,7 @@ import { TEST_BOOK_ID } from './helpers/testBook'
 // First body paragraph of chapter 1 in the test book fixture (paragraph index 1, after the heading)
 const BOOKMARK_TEXT = 'The morning sun cast long shadows across the quiet village square.'
 
-const clickFirstBodyParagraph = async (page: import('@playwright/test').Page) => {
+const clickFirstBodyParagraph = async (page: Page) => {
   await page.locator('main span[data-paragraph]').nth(1).click()
 }
 
@@ -35,6 +35,7 @@ test.describe('bookmarks', () => {
 
     // Drawer should slide in and show the bookmark
     const drawer = page.getByRole('dialog', { name: 'Bookmarks' })
+
     await expect(drawer.getByText(BOOKMARK_TEXT)).toBeVisible()
 
     // Close with Escape — drawer should slide off-screen
@@ -55,6 +56,7 @@ test.describe('bookmarks', () => {
     // Open drawer and remove the bookmark
     await page.keyboard.press('Shift+B')
     const drawer = page.getByRole('dialog', { name: 'Bookmarks' })
+
     await expect(drawer.getByText(BOOKMARK_TEXT)).toBeVisible()
 
     // Hover bookmark row to reveal X button, then click
@@ -79,6 +81,7 @@ test.describe('bookmarks', () => {
     // Open drawer and remove
     await page.keyboard.press('Shift+B')
     const drawer = page.getByRole('dialog', { name: 'Bookmarks' })
+
     await drawer.getByText(BOOKMARK_TEXT).hover()
     await drawer.getByRole('button', { name: 'Remove bookmark', exact: true }).click()
 
@@ -102,6 +105,7 @@ test.describe('bookmarks', () => {
     // Open drawer and remove
     await page.keyboard.press('Shift+B')
     const drawer = page.getByRole('dialog', { name: 'Bookmarks' })
+
     await drawer.getByText(BOOKMARK_TEXT).hover()
     await drawer.getByRole('button', { name: 'Remove bookmark', exact: true }).click()
     await expect(page.getByText('Bookmark removed')).toBeVisible()
@@ -120,6 +124,7 @@ test.describe('bookmarks', () => {
 
     // Wait for bookmark button to render (exact case matches player bar, not drawer)
     const bookmarkButton = page.getByRole('button', { name: 'Add Bookmark', exact: true })
+
     await expect(bookmarkButton).toBeVisible()
 
     // Click to add bookmark

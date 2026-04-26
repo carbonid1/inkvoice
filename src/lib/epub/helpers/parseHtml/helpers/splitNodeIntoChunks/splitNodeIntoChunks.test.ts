@@ -4,6 +4,7 @@ import { splitNodeIntoChunks } from './splitNodeIntoChunks'
 
 const makeElement = (html: string): Element => {
   const dom = new JSDOM(html)
+
   return dom.window.document.body.firstElementChild!
 }
 
@@ -44,6 +45,7 @@ describe('splitNodeIntoChunks', () => {
     expect(result.length).toBeGreaterThan(1)
     // All plain text concatenated should equal original
     const combined = result.map(c => c.plainText).join(' ')
+
     expect(combined).toBe(sentences.join(' '))
     // Each chunk's plain text should be within limit
     result.forEach(chunk => expect(chunk.plainText.length).toBeLessThanOrEqual(2000))

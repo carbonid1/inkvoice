@@ -11,7 +11,7 @@ export const PREGEN_JOB_STATUS = {
   COMPLETED: 'completed',
 } as const satisfies Record<string, PregenJobStatus>
 
-export type PregenJob = {
+export interface PregenJob {
   id: string
   bookId: string
   voice: string

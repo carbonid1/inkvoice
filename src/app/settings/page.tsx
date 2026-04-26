@@ -1,13 +1,13 @@
 'use client'
 
-import { PageHeader } from '@/components/PageHeader/PageHeader'
-import { useVoices } from '@/lib/hooks/useVoices/useVoices'
-import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
-import { useVoiceStore } from '@/store/useVoiceStore'
 import { buttonVariants, Tooltip } from '@carbonid1/design-system'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { useVoices } from '@/lib/hooks/useVoices/useVoices'
+import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
+import { useVoiceStore } from '@/store/useVoiceStore'
 import { AppearanceCard } from './components/AppearanceCard/AppearanceCard'
 import { CreditsCard } from './components/CreditsCard/CreditsCard'
 import { StorageCard } from './components/StorageCard/StorageCard'
@@ -28,6 +28,7 @@ export default function Settings() {
     if (loading || voices.length === 0) return
     const voiceNames = voices.map(v => v.name)
     const fallback = getVoiceFallback(voice, voiceNames)
+
     if (fallback !== voice) setVoice(fallback)
   }, [loading, voices, voice, setVoice])
 

@@ -1,7 +1,7 @@
 import { Button } from '@carbonid1/design-system'
 import { X } from 'lucide-react'
 
-type RecoveryBannerProps = {
+interface RecoveryBannerProps {
   chapterName: string
   onNavigate: () => void
   onDismiss: () => void

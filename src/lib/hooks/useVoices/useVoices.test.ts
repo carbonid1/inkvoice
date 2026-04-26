@@ -12,6 +12,7 @@ describe('useVoices', () => {
       ok: true,
       json: () => Promise.resolve([]),
     })
+
     vi.stubGlobal('fetch', fetchMock)
 
     renderHook(() => useVoices())

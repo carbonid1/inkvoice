@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 
-type DeleteVoiceState = {
+interface DeleteVoiceState {
   deleteVoice: (name: string) => Promise<boolean>
   restoreVoice: (name: string) => Promise<boolean>
 }
@@ -13,6 +13,7 @@ export const useDeleteVoice = (): DeleteVoiceState => {
       const response = await fetch(`/api/voices/${encodeURIComponent(name)}`, {
         method: 'DELETE',
       })
+
       return response.ok
     } catch {
       return false
@@ -24,6 +25,7 @@ export const useDeleteVoice = (): DeleteVoiceState => {
       const response = await fetch(`/api/voices/${encodeURIComponent(name)}`, {
         method: 'PATCH',
       })
+
       return response.ok
     } catch {
       return false

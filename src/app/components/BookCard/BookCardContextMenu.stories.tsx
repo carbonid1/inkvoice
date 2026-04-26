@@ -1,8 +1,8 @@
+import { expect, fn, waitFor, within } from 'storybook/test'
 import preview from '#.storybook/preview'
 import { PREGEN_JOB_STATUS, type PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
-import { expect, fn, waitFor, within } from 'storybook/test'
 import { BookCardContextMenu } from './BookCardContextMenu'
 
 const BOOK_ID = 'book-1'
@@ -58,8 +58,10 @@ export const Default = meta.story({
 Default.test('Mark as Done toggles the book to finished', async ({ canvas, userEvent }) => {
   const body = within(document.body)
   const trigger = canvas.getByText('Book card')
+
   await userEvent.pointer({ keys: '[MouseRight]', target: trigger })
   const item = await waitFor(() => body.getByRole('menuitemcheckbox', { name: 'Mark as Done' }))
+
   await userEvent.click(item)
   await expect(useProgressStore.getState().progress[BOOK_ID]?.finishedAt).toEqual(
     expect.any(Number),
@@ -69,8 +71,10 @@ Default.test('Mark as Done toggles the book to finished', async ({ canvas, userE
 Default.test('Remove Book calls onRemove with bookId', async ({ canvas, args, userEvent }) => {
   const body = within(document.body)
   const trigger = canvas.getByText('Book card')
+
   await userEvent.pointer({ keys: '[MouseRight]', target: trigger })
   const item = await waitFor(() => body.getByRole('menuitem', { name: 'Remove Book' }))
+
   await userEvent.click(item)
   await expect(args.onRemove).toHaveBeenCalledWith(BOOK_ID)
 })
@@ -89,8 +93,10 @@ export const Finished = meta.story({
 Finished.test('Mark as Unread clears finishedAt', async ({ canvas, userEvent }) => {
   const body = within(document.body)
   const trigger = canvas.getByText('Book card')
+
   await userEvent.pointer({ keys: '[MouseRight]', target: trigger })
   const item = await waitFor(() => body.getByRole('menuitemcheckbox', { name: 'Mark as Unread' }))
+
   await userEvent.click(item)
   await expect(useProgressStore.getState().progress[BOOK_ID]?.finishedAt).toBeNull()
 })

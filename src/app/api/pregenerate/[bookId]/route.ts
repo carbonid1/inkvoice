@@ -1,3 +1,4 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { checkBudget } from '@/lib/services/cache/helpers/checkBudget/checkBudget'
@@ -6,9 +7,10 @@ import { pregenQueueService } from '@/lib/services/pregenQueue/pregenQueue.servi
 import { computePregenEstimate } from '@/lib/services/pregeneration/helpers/computePregenEstimate/computePregenEstimate'
 import { pregenWorker, signalStop } from '@/lib/services/pregeneration/pregeneration.service'
 import { voicePreferenceService } from '@/lib/services/voice-preference/voice-preference.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = { params: Promise<{ bookId: string }> }
+interface RouteParams {
+  params: Promise<{ bookId: string }>
+}
 
 export const POST = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
@@ -18,6 +20,7 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
   try {
     // Early guard — cheap DB query
     const existing = await pregenQueueService.getByBookId(bookId)
+
     if (existing) {
       return NextResponse.json(
         { error: 'Pre-generation already active for this book' },
@@ -94,6 +97,7 @@ export const DELETE = async (_request: NextRequest, { params }: RouteParams) => 
 
   signalStop(job.id)
   const { deleted } = await pregenQueueService.cancel(job.id)
+
   if (deleted) pregenEvents.emit({ type: 'deleted', bookId })
   return NextResponse.json({ success: true })
 }
@@ -102,6 +106,7 @@ export const PATCH = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
   let body: { action?: string }
+
   try {
     body = await request.json()
   } catch {
@@ -119,6 +124,7 @@ export const PATCH = async (request: NextRequest, { params }: RouteParams) => {
 
   try {
     const job = await pregenQueueService.getByBookId(bookId)
+
     if (!job) {
       return NextResponse.json({ error: 'No active pre-generation for this book' }, { status: 404 })
     }
@@ -132,6 +138,7 @@ export const PATCH = async (request: NextRequest, { params }: RouteParams) => {
     }
 
     const updated = await pregenQueueService.getByBookId(bookId)
+
     if (updated) pregenEvents.emit({ type: 'update', job: updated })
 
     return NextResponse.json({ success: true })

@@ -46,6 +46,7 @@ const mockSearchResponse = (overrides: Partial<SearchResponse> = {}): SearchResp
 
 const setupWithResults = async () => {
   const response = mockSearchResponse()
+
   mockFetch.mockResolvedValueOnce({
     ok: true,
     json: () => Promise.resolve(response),
@@ -74,6 +75,7 @@ const setupWithResults = async () => {
 describe('useBookSearch', () => {
   it('starts closed with empty state', () => {
     const { result } = renderHook(() => useBookSearch('book-1', 0))
+
     expect(result.current.isOpen).toBe(false)
     expect(result.current.query).toBe('')
     expect(result.current.results).toEqual([])
@@ -84,6 +86,7 @@ describe('useBookSearch', () => {
 
   it('open sets isOpen to true', () => {
     const { result } = renderHook(() => useBookSearch('book-1', 0))
+
     act(() => result.current.open())
     expect(result.current.isOpen).toBe(true)
   })
@@ -115,6 +118,7 @@ describe('useBookSearch', () => {
     const firstHighlightPrev = result.current.highlightPrevious
     const firstSetHighlightedIndex = result.current.setHighlightedIndex
     const firstSetScope = result.current.setScope
+
     rerender()
     expect(result.current.open).toBe(firstOpen)
     expect(result.current.close).toBe(firstClose)
@@ -128,6 +132,7 @@ describe('useBookSearch', () => {
   describe('highlightedIndex', () => {
     it('initializes to 0', () => {
       const { result } = renderHook(() => useBookSearch('book-1', 0))
+
       expect(result.current.highlightedIndex).toBe(0)
     })
 
@@ -160,12 +165,13 @@ describe('useBookSearch', () => {
 
       // Trigger new search
       const newResponse = mockSearchResponse({ query: 'new' })
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(newResponse),
       })
       act(() => result.current.setQuery('new'))
-      await act(async () => {
+      act(() => {
         vi.useFakeTimers()
         vi.advanceTimersByTime(300)
         vi.useRealTimers()
@@ -198,11 +204,13 @@ describe('useBookSearch', () => {
   describe('scope', () => {
     it('defaults to book', () => {
       const { result } = renderHook(() => useBookSearch('book-1', 0))
+
       expect(result.current.scope).toBe('book')
     })
 
     it('close resets scope to book', () => {
       const { result } = renderHook(() => useBookSearch('book-1', 0))
+
       act(() => result.current.open())
       act(() => result.current.setScope('chapter'))
       expect(result.current.scope).toBe('chapter')
@@ -223,12 +231,14 @@ describe('useBookSearch', () => {
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(2)
         const url = mockFetch.mock.calls[1]?.[0]
+
         expect(url).toContain('&chapter=0')
       })
     })
 
     it('setScope with short query does not fetch', () => {
       const { result } = renderHook(() => useBookSearch('book-1', 0))
+
       act(() => result.current.open())
       act(() => result.current.setQuery('a'))
 

@@ -1,7 +1,7 @@
+import { type NextRequest, NextResponse } from 'next/server'
 import { bookmarkService } from '@/lib/services/bookmark/bookmark.service'
-import { NextRequest, NextResponse } from 'next/server'
 
-type RouteParams = {
+interface RouteParams {
   params: Promise<{
     bookId: string
   }>
@@ -10,6 +10,7 @@ type RouteParams = {
 export const GET = async (_request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
   const bookmarks = await bookmarkService.getBookmarks(bookId)
+
   return NextResponse.json(bookmarks)
 }
 
@@ -17,6 +18,7 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
   let body: { chapter: unknown; paragraph: unknown; preview: unknown }
+
   try {
     body = await request.json()
   } catch {
@@ -46,6 +48,7 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
       paragraph,
       typeof preview === 'string' ? preview : undefined,
     )
+
     return NextResponse.json(bookmark, { status: 201 })
   } catch (error) {
     console.error('Failed to create bookmark:', error)
@@ -57,6 +60,7 @@ export const DELETE = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
   let body: { bookmarkId: unknown }
+
   try {
     body = await request.json()
   } catch {
@@ -71,6 +75,7 @@ export const DELETE = async (request: NextRequest, { params }: RouteParams) => {
 
   try {
     const removed = await bookmarkService.removeBookmark(bookId, bookmarkId)
+
     if (!removed) {
       return NextResponse.json({ error: 'Bookmark not found' }, { status: 404 })
     }

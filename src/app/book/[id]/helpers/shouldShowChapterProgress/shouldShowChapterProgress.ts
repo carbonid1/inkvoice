@@ -1,6 +1,6 @@
 const DEFAULT_THRESHOLD = 1750
 
-type ShouldShowInput = {
+interface ShouldShowInput {
   wordsInChapter: number
   threshold?: number
 }

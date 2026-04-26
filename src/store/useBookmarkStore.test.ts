@@ -1,8 +1,8 @@
-import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { useBookmarkStore } from './useBookmarkStore'
 
-type Deferred<T> = {
+interface Deferred<T> {
   promise: Promise<T>
   resolve: (value: T) => void
   reject: (reason: unknown) => void
@@ -15,6 +15,7 @@ const createDeferred = <T>(): Deferred<T> => {
     resolve = res
     reject = rej
   })
+
   return { promise, resolve, reject }
 }
 
@@ -34,6 +35,7 @@ beforeEach(() => {
 describe('fetchBookmarks', () => {
   it('populates state from API', async () => {
     const bookmarks = [mockBookmark(), mockBookmark({ id: 'bm-2', chapter: 3 })]
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -52,12 +54,14 @@ describe('fetchBookmarks', () => {
 describe('addBookmark', () => {
   it('adds bookmark to state before API responds', async () => {
     const deferred = createDeferred<Response>()
+
     vi.stubGlobal('fetch', vi.fn().mockReturnValue(deferred.promise))
 
     const promise = useBookmarkStore.getState().addBookmark('book-1', 3, 7, 'Hello')
 
     // State updated immediately, before fetch resolves
     const bookmarks = useBookmarkStore.getState().bookmarks['book-1'] ?? []
+
     expect(bookmarks).toHaveLength(1)
     expect(bookmarks[0]?.chapter).toBe(3)
     expect(bookmarks[0]?.paragraph).toBe(7)
@@ -66,6 +70,7 @@ describe('addBookmark', () => {
 
     // Resolve to clean up
     const serverBookmark = mockBookmark({ id: 'server-id', chapter: 3, paragraph: 7 })
+
     deferred.resolve(Response.json(serverBookmark))
     await promise
   })
@@ -77,6 +82,7 @@ describe('addBookmark', () => {
       paragraph: 7,
       preview: 'Hello',
     })
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -89,6 +95,7 @@ describe('addBookmark', () => {
 
     expect(result).toEqual(serverBookmark)
     const bookmarks = useBookmarkStore.getState().bookmarks['book-1'] ?? []
+
     expect(bookmarks).toHaveLength(1)
     expect(bookmarks[0]?.id).toBe('server-id')
   })
@@ -106,9 +113,11 @@ describe('addBookmark', () => {
 
   it('preserves existing bookmarks on add', async () => {
     const existing = mockBookmark({ id: 'bm-1', chapter: 1, paragraph: 0 })
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [existing] } })
 
     const created = mockBookmark({ id: 'server-id', chapter: 3, paragraph: 7 })
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -120,6 +129,7 @@ describe('addBookmark', () => {
     await useBookmarkStore.getState().addBookmark('book-1', 3, 7)
 
     const bookmarks = useBookmarkStore.getState().bookmarks['book-1'] ?? []
+
     expect(bookmarks).toHaveLength(2)
     expect(bookmarks[0]).toEqual(existing)
     expect(bookmarks[1]?.id).toBe('server-id')
@@ -130,9 +140,11 @@ describe('removeBookmark', () => {
   it('removes from state before API responds', async () => {
     const keep = mockBookmark({ id: 'bm-1', chapter: 1, paragraph: 0 })
     const remove = mockBookmark({ id: 'bm-2', chapter: 3, paragraph: 7 })
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [keep, remove] } })
 
     const deferred = createDeferred<Response>()
+
     vi.stubGlobal('fetch', vi.fn().mockReturnValue(deferred.promise))
 
     const promise = useBookmarkStore.getState().removeBookmark('book-1', 'bm-2')
@@ -147,14 +159,17 @@ describe('removeBookmark', () => {
 
   it('sets lastDeleted before API responds', async () => {
     const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, paragraph: 5 })
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     const deferred = createDeferred<Response>()
+
     vi.stubGlobal('fetch', vi.fn().mockReturnValue(deferred.promise))
 
     const promise = useBookmarkStore.getState().removeBookmark('book-1', 'bm-1')
 
     const { lastDeleted } = useBookmarkStore.getState()
+
     expect(lastDeleted).not.toBeNull()
     expect(lastDeleted?.bookId).toBe('book-1')
     expect(lastDeleted?.bookmark).toEqual(bookmark)
@@ -165,6 +180,7 @@ describe('removeBookmark', () => {
 
   it('rolls back on API failure', async () => {
     const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, paragraph: 5 })
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
@@ -180,6 +196,7 @@ describe('removeBookmark', () => {
 
   it('calls API with correct params', async () => {
     const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, paragraph: 5 })
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
@@ -197,15 +214,18 @@ describe('removeBookmark', () => {
 describe('undoRemoveBookmark', () => {
   it('re-adds the deleted bookmark and clears lastDeleted', async () => {
     const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, paragraph: 5, preview: 'Hello world' })
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     let callCount = 0
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation(() => {
         callCount++
         // First call = DELETE (removeBookmark), second call = POST (addBookmark via undo)
         const result = callCount === 1 ? { success: true } : { ...bookmark, id: 'bm-new' }
+
         return Promise.resolve({ ok: true, json: () => Promise.resolve(result) })
       }),
     )
@@ -217,6 +237,7 @@ describe('undoRemoveBookmark', () => {
     await useBookmarkStore.getState().undoRemoveBookmark()
     expect(useBookmarkStore.getState().lastDeleted).toBeNull()
     const restored = useBookmarkStore.getState().bookmarks['book-1'] ?? []
+
     expect(restored).toHaveLength(1)
     expect(restored[0]?.chapter).toBe(2)
     expect(restored[0]?.paragraph).toBe(5)
@@ -232,6 +253,7 @@ describe('undoRemoveBookmark', () => {
 describe('clearLastDeleted', () => {
   it('resets lastDeleted to null', async () => {
     const bookmark = mockBookmark()
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     vi.stubGlobal(
@@ -254,6 +276,7 @@ describe('sequential deletes', () => {
   it('overwrites lastDeleted with the latest deletion', async () => {
     const first = mockBookmark({ id: 'bm-1', chapter: 1, paragraph: 0 })
     const second = mockBookmark({ id: 'bm-2', chapter: 3, paragraph: 7 })
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [first, second] } })
 
     vi.stubGlobal(
@@ -268,6 +291,7 @@ describe('sequential deletes', () => {
     await useBookmarkStore.getState().removeBookmark('book-1', 'bm-2')
 
     const { lastDeleted } = useBookmarkStore.getState()
+
     expect(lastDeleted?.bookmark.id).toBe('bm-2')
   })
 })
@@ -277,6 +301,7 @@ describe('auto-clear timer', () => {
     vi.useFakeTimers()
 
     const bookmark = mockBookmark()
+
     useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
 
     vi.stubGlobal(

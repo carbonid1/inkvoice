@@ -13,8 +13,10 @@ export const useVoices = () => {
   const fetchVoices = useCallback(async () => {
     try {
       const response = await fetch('/api/voices', { cache: 'no-store' })
+
       if (response.ok) {
         const data = await response.json()
+
         setVoices(data)
       }
     } catch (e) {
@@ -29,8 +31,10 @@ export const useVoices = () => {
     const load = async () => {
       try {
         const response = await fetch('/api/voices', { cache: 'no-store' })
+
         if (cancelled || !response.ok) return
         const data = await response.json()
+
         if (!cancelled) setVoices(data)
       } catch (e) {
         if (!cancelled) console.error('Failed to fetch voices:', e)
@@ -38,6 +42,7 @@ export const useVoices = () => {
         if (!cancelled) setLoading(false)
       }
     }
+
     load()
     return () => {
       cancelled = true

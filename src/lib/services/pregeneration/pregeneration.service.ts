@@ -4,10 +4,10 @@ import { getCacheService } from '@/lib/services/cache/cache.service'
 import { diskSpaceService } from '@/lib/services/platform/diskSpace'
 import { pregenEvents } from '@/lib/services/pregenEvents/pregenEvents.service'
 import { pregenQueueService } from '@/lib/services/pregenQueue/pregenQueue.service'
+import { PREGEN_JOB_STATUS, type PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { getTTSService } from '@/lib/services/tts/tts.server'
 
-import { PREGEN_JOB_STATUS, type PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 
 import {
@@ -25,7 +25,7 @@ import {
 const getBackoffMs = (attempt: number): number =>
   Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS)
 
-type PregenWorkerState = {
+interface PregenWorkerState {
   running: boolean
   loopId: number
   warmedUpInstanceId: number
@@ -81,10 +81,12 @@ const logVanished = (jobId: string, stage: string): void => {
 
 const warmUpTTS = async (bookId: string): Promise<void> => {
   const client = getPythonClient()
+
   // Reset warmup tracking when Python instance changes (model is gone after restart)
   if (state.warmedUpInstanceId === client.getCurrentInstanceId()) return
   console.warn('[pregen] Warming up TTS model...')
   const start = Date.now()
+
   pregenEvents.emit({ type: 'warmup_start', bookId })
   while (state.warmedUpInstanceId !== client.getCurrentInstanceId()) {
     try {
@@ -97,6 +99,7 @@ const warmUpTTS = async (bookId: string): Promise<void> => {
         }),
         signal: AbortSignal.timeout(WARMUP_TIMEOUT_MS),
       })
+
       await response.arrayBuffer()
       if (!response.ok) throw new Error(`${response.status}`)
       state.warmedUpInstanceId = client.getCurrentInstanceId()
@@ -112,6 +115,7 @@ const processLoop = async (myLoopId: number): Promise<void> => {
   while (state.running && state.loopId === myLoopId) {
     try {
       const job = await pregenQueueService.getNext()
+
       if (!job) {
         await sleep(POLL_INTERVAL_MS)
         continue
@@ -128,9 +132,11 @@ const processLoop = async (myLoopId: number): Promise<void> => {
 
 const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
   const fresh = await pregenQueueService.getJob(job.id)
+
   if (!fresh || fresh.status === PREGEN_JOB_STATUS.PAUSED) return
 
   const started = await pregenQueueService.start(job.id)
+
   if (!started) {
     logVanished(job.id, 'start')
     return
@@ -140,8 +146,10 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
   const bookService = getBookService()
   const cacheService = getCacheService()
   const overview = await bookService.getBookOverview(job.bookId)
+
   if (!overview) {
     const paused = await pregenQueueService.pause(job.id, 'Book not found')
+
     if (paused) emitJob(paused)
     return
   }
@@ -152,6 +160,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
 
   for (let ch = job.currentChapter; ch < overview.chapters.length; ch++) {
     const chapter = overview.chapters[ch]
+
     if (!chapter) continue
     const startPara = ch === job.currentChapter ? job.currentParagraph : 0
 
@@ -159,6 +168,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       // Worker restart → requeue so job gets picked up again
       if (state.loopId !== myLoopId || !state.running) {
         const requeued = await pregenQueueService.resume(job.id)
+
         if (requeued) emitJob(requeued)
         return
       }
@@ -171,13 +181,16 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       if (completedParagraphs % DISK_CHECK_INTERVAL === 0) {
         try {
           const diskInfo = await diskSpaceService.getAvailableSpace(env.cacheDir)
+
           if (diskInfo.available < MIN_DISK_FREE_BYTES) {
             const availGB = (diskInfo.available / 1024 / 1024 / 1024).toFixed(2)
             const minGB = (MIN_DISK_FREE_BYTES / 1024 / 1024 / 1024).toFixed(0)
+
             console.error(
               `[pregen] Disk space low — ${availGB} GB free (${diskInfo.percentFree}%), minimum: ${minGB} GB, path: ${env.cacheDir}`,
             )
             const paused = await pregenQueueService.pause(job.id, 'Disk space low')
+
             if (paused) emitJob(paused)
             return
           }
@@ -187,10 +200,12 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       }
 
       const text = await bookService.getParagraph(job.bookId, ch, para)
+
       if (!text) continue
 
       // Skip already-cached paragraphs (batch emit to avoid flooding)
       const isCached = await cacheService.has(text, job.voice)
+
       if (isCached) {
         completedParagraphs++
         cumulativeDurationMs += await cacheService.getDurationMs(text, job.voice)
@@ -202,6 +217,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
           completedParagraphs,
           cumulativeDurationMs,
         )
+
         if (!updated) {
           logVanished(job.id, 'cached-skip updateProgress')
           return
@@ -216,17 +232,20 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
       // Flush any pending cached skip progress before TTS
       if (cachedSkipsSinceEmit > 0) {
         const current = await pregenQueueService.getJob(job.id)
+
         if (current) emitJob(current)
         cachedSkipsSinceEmit = 0
       }
 
       let generated = false
       let cancelled = false
+
       for (let attempt = 0; attempt <= MAX_RETRIES_PER_PARAGRAPH; attempt++) {
         if (attempt > 0) {
           await sleep(getBackoffMs(attempt - 1))
           if (state.loopId !== myLoopId || !state.running) {
             const requeued = await pregenQueueService.resume(job.id)
+
             if (requeued) emitJob(requeued)
             return
           }
@@ -247,9 +266,11 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
             return null
           }
         })()
+
         if (!ttsResult) continue
 
         const { audio, timestamps, durationMs, samplingRate } = ttsResult
+
         cacheService.set(text, job.voice, audio, job.bookId, durationMs).catch(() => {})
         if (timestamps) {
           cacheService.setTimestamps(text, job.voice, timestamps).catch(() => {})
@@ -264,6 +285,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
           completedParagraphs,
           cumulativeDurationMs,
         )
+
         if (!updated) {
           logVanished(job.id, 'post-TTS updateProgress')
           cancelled = true
@@ -281,6 +303,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
           job.id,
           `Chapter ${ch + 1}, paragraph ${para + 1}: failed after ${MAX_RETRIES_PER_PARAGRAPH} retries`,
         )
+
         if (paused) emitJob(paused)
         return
       }
@@ -288,6 +311,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
   }
 
   const completed = await pregenQueueService.complete(job.id)
+
   if (completed) emitJob(completed)
 }
 
@@ -316,6 +340,7 @@ if (!state.running) {
       const hasWork = jobs.some(
         j => j.status === PREGEN_JOB_STATUS.QUEUED || j.status === PREGEN_JOB_STATUS.IN_PROGRESS,
       )
+
       if (orphaned.length > 0) {
         Promise.allSettled(orphaned.map(j => pregenQueueService.resume(j.id)))
           .then(() => {

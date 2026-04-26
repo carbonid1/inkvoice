@@ -1,4 +1,4 @@
-type TagBadgeProps = {
+interface TagBadgeProps {
   tag: string
   onRemove?: () => void
 }

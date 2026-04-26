@@ -3,7 +3,7 @@ import type {
   SearchScope,
 } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
 
-export type SearchResultsPanelProps = {
+export interface SearchResultsPanelProps {
   results: SearchMatch[]
   query: string
   highlightedIndex: number

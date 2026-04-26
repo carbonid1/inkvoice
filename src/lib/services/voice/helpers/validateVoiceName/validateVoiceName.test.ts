@@ -20,6 +20,7 @@ describe('validateVoiceName', () => {
 
   it('rejects names longer than 50 characters', () => {
     const long = 'a'.repeat(51)
+
     expect(validateVoiceName(long)).toBe('Voice name must be 50 characters or less')
   })
 

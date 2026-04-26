@@ -1,10 +1,10 @@
 'use client'
 
-import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { Button, Select, toast } from '@carbonid1/design-system'
 import { Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { TranscriptionReview } from './components/TranscriptionReview/TranscriptionReview'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
 import { useSamplePolling } from './hooks/useSamplePolling/useSamplePolling'
@@ -22,16 +22,16 @@ const LANGUAGE_OPTIONS = [
   { value: 'uk', label: 'Ukrainian' },
 ]
 
-type UploadFormValues = {
+interface UploadFormValues {
   name: string
 }
 
-type UploadedVoice = {
+interface UploadedVoice {
   name: string
   transcription: string
 }
 
-type VoiceUploadSectionProps = {
+interface VoiceUploadSectionProps {
   onVoicesChanged: () => void
 }
 
@@ -63,6 +63,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
 
     try {
       const duration = await getAudioDuration(selectedFile)
+
       setFileDuration(duration)
     } catch {
       setError('root', { message: 'Could not read audio file' })
@@ -86,6 +87,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
     }
 
     const result = await upload(file, data.name.trim(), language || undefined)
+
     if (result) {
       setUploadedVoice({ name: result.name, transcription: result.transcription ?? '' })
       onVoicesChanged()

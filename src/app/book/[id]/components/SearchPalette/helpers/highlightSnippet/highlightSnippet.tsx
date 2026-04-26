@@ -16,6 +16,7 @@ export const highlightSnippet = (
 
   for (let i = 0; i < matchPositions.length; i++) {
     const start = matchPositions[i]
+
     if (start === undefined) continue
     const end = start + query.length
 

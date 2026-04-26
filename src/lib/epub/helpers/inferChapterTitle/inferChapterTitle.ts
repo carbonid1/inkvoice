@@ -8,13 +8,14 @@ const FILE_ID_LABELS: Record<string, string> = {
 
 const titleFromFileId = (itemId: string): string | undefined => {
   const normalized = itemId.toLowerCase().replace(/\.x?html?$/, '')
+
   for (const [keyword, label] of Object.entries(FILE_ID_LABELS)) {
     if (normalized.includes(keyword)) return label
   }
   return undefined
 }
 
-type InferTitleArgs = {
+interface InferTitleArgs {
   /** First `<h1-3>` text from chapter HTML. Source: epub */
   htmlHeading: string | undefined
   /** Label from `epub.toc` matched by spine item ID. Source: epub */
@@ -34,6 +35,7 @@ export const inferChapterTitle = (args: InferTitleArgs): string => {
   if (args.tocLabel) return normalizeTitle(args.tocLabel)
   if (args.itemTitle) return normalizeTitle(args.itemTitle)
   const fileIdLabel = titleFromFileId(args.itemId)
+
   if (fileIdLabel) return fileIdLabel
   if (args.isImageOnly) return 'Illustrations'
   return 'Chapter'

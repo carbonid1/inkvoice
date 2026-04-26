@@ -1,12 +1,12 @@
 import { WORDS_PER_PAGE } from '../computePagePosition/computePagePosition'
 
-type ChapterPagePositionInput = {
+interface ChapterPagePositionInput {
   paragraph: number
   paragraphCount: number
   wordCount: number
 }
 
-type ChapterPagePosition = {
+interface ChapterPagePosition {
   currentPage: number
   totalPages: number
 }

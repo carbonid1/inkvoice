@@ -23,18 +23,22 @@ test.describe('per-book voice selection', () => {
 
     // 3. Book voice selector should show "Default (<newVoiceName>)"
     const bookVoiceButton = page.getByRole('button', { name: 'Voice' })
+
     await bookVoiceButton.waitFor()
     await expect(bookVoiceButton).toContainText(`Default (${newVoiceName})`)
 
     // 4. Override voice at book level
     await bookVoiceButton.click()
     const bookListbox = page.getByRole('listbox')
+
     await bookListbox.waitFor()
     const bookOptions = await bookListbox.getByRole('option').all()
 
     let overrideOption = null
+
     for (const option of bookOptions) {
       const text = (await option.textContent()) ?? ''
+
       if (!text.includes('Default') && !text.includes(newVoiceName)) {
         overrideOption = option
         break
@@ -43,6 +47,7 @@ test.describe('per-book voice selection', () => {
 
     if (overrideOption) {
       const overrideName = (await overrideOption.locator('span').first().textContent()) ?? ''
+
       await overrideOption.click()
       await expect(bookVoiceButton).toContainText(overrideName)
     }
@@ -50,6 +55,7 @@ test.describe('per-book voice selection', () => {
     // 5. Return to settings — selected voice should be unchanged
     await page.goto('/settings')
     const selectedAfter = page.locator('button[aria-current="true"]')
+
     await selectedAfter.waitFor()
     await expect(selectedAfter).toContainText(newVoiceName)
   })
@@ -67,6 +73,7 @@ test.describe('per-book voice selection', () => {
 
     // 3. Verify the voice is still selected after refresh
     const selectedAfterRefresh = page.locator('button[aria-current="true"]')
+
     await selectedAfterRefresh.waitFor()
     await expect(selectedAfterRefresh).toContainText(newVoiceName)
   })

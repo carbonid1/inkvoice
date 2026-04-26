@@ -50,6 +50,7 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
 
     audioRef.current.onerror = () => {
       const msg = 'Audio playback error'
+
       setState(s => (s.error === msg && !s.isPlaying ? s : { ...s, error: msg, isPlaying: false }))
       onErrorRef.current?.(msg)
     }
@@ -81,6 +82,7 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
         return
       }
       const error = e instanceof Error ? e.message : 'Failed to play audio'
+
       setState(s => ({ ...s, error, isPlaying: false, isLoading: false }))
     }
   }, [])
@@ -96,6 +98,7 @@ export const useAudioPlayer = (options: UseAudioPlayerOptions = {}) => {
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return
       const error = e instanceof Error ? e.message : 'Failed to resume audio'
+
       setState(s => ({ ...s, error, isPlaying: false }))
     }
   }, [])

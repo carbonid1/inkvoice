@@ -13,9 +13,11 @@ describe('TagBadge', () => {
 
   it('shows remove button when onRemove provided', () => {
     const onRemove = vi.fn()
+
     renderWith(<TagBadge tag="male" onRemove={onRemove} />)
 
     const removeButton = screen.getByRole('button', { name: /remove male/i })
+
     expect(removeButton).toBeInTheDocument()
 
     fireEvent.click(removeButton)

@@ -13,6 +13,7 @@ export const getNextPosition = (
   }
 
   const nextCh = ch + 1
+
   if (nextCh < chapters.length) {
     return { ch: nextCh, para: 0 }
   }

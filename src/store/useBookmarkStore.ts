@@ -1,15 +1,15 @@
 'use client'
 
-import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 import { create } from 'zustand'
+import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
 
-type LastDeleted = {
+interface LastDeleted {
   bookId: string
   bookmark: Bookmark
   timerId: ReturnType<typeof setTimeout>
 }
 
-export type BookmarkState = {
+export interface BookmarkState {
   bookmarks: Record<string, Bookmark[]>
   lastDeleted: LastDeleted | null
   fetchBookmarks: (bookId: string) => Promise<void>
@@ -35,6 +35,7 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
     try {
       const response = await fetch(`/api/bookmarks/${bookId}`)
       const bookmarks: Bookmark[] = await response.json()
+
       set(state => ({ bookmarks: { ...state.bookmarks, [bookId]: bookmarks } }))
     } catch (error) {
       console.error('Failed to fetch bookmarks:', error)
@@ -45,6 +46,7 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
     const existing = (get().bookmarks[bookId] ?? []).find(
       b => b.chapter === chapter && b.paragraph === paragraph,
     )
+
     if (existing) return existing
 
     const optimistic: Bookmark = {
@@ -68,6 +70,7 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chapter, paragraph, preview }),
       })
+
       if (!response.ok) throw new Error(`Bookmark creation failed: ${response.status}`)
       const serverBookmark: Bookmark = await response.json()
 
@@ -94,9 +97,11 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
 
   removeBookmark: async (bookId, bookmarkId) => {
     const bookmark = (get().bookmarks[bookId] ?? []).find(b => b.id === bookmarkId)
+
     if (!bookmark) return
 
     const previous = get().lastDeleted
+
     if (previous) clearTimeout(previous.timerId)
 
     const timerId = setTimeout(() => get().clearLastDeleted(), UNDO_WINDOW_MS)
@@ -117,6 +122,7 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
       })
     } catch {
       const current = get().lastDeleted
+
       if (current) clearTimeout(current.timerId)
 
       set(state => ({
@@ -131,21 +137,25 @@ export const useBookmarkStore = create<BookmarkState>()((set, get) => ({
 
   undoRemoveBookmark: async () => {
     const { lastDeleted } = get()
+
     if (!lastDeleted) return
 
     const { bookId, bookmark } = lastDeleted
+
     try {
       get().clearLastDeleted()
       await get().addBookmark(bookId, bookmark.chapter, bookmark.paragraph, bookmark.preview)
     } catch {
       // Restore undo state so user can retry
       const timerId = setTimeout(() => get().clearLastDeleted(), UNDO_WINDOW_MS)
+
       set({ lastDeleted: { bookId, bookmark, timerId } })
     }
   },
 
   clearLastDeleted: () => {
     const { lastDeleted } = get()
+
     if (lastDeleted) clearTimeout(lastDeleted.timerId)
     set({ lastDeleted: null })
   },

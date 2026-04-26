@@ -1,6 +1,6 @@
 import type { PregenEvent, PregenEventListener } from './pregenEvents.types'
 
-type PregenEventBus = {
+interface PregenEventBus {
   on: (listener: PregenEventListener) => void
   off: (listener: PregenEventListener) => void
   emit: (event: PregenEvent) => void
@@ -11,7 +11,9 @@ declare global {
   var pregenEvents: PregenEventBus | undefined
 }
 
-type WarmupState = { warmingUpBookId: string | null }
+interface WarmupState {
+  warmingUpBookId: string | null
+}
 
 const createPregenEvents = (): PregenEventBus => {
   const listeners = new Set<PregenEventListener>()

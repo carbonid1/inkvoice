@@ -1,12 +1,12 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import type { BookOverview } from '@/lib/types/book'
 import { useHydrated } from '@/store/useHydrated'
 import { useLibraryStore } from '@/store/useLibraryStore'
 import { useProgressStore } from '@/store/useProgressStore'
-import { useEffect, useMemo, useState } from 'react'
 
-type UseBookOverviewResult = {
+interface UseBookOverviewResult {
   overview: BookOverview | null
   loading: boolean
   error: string | null
@@ -36,22 +36,27 @@ export const useBookOverview = (bookId: string): UseBookOverviewResult => {
         const response = await fetch(`/api/book/${bookId}`, {
           signal: controller.signal,
         })
+
         if (!response.ok) {
           if (response.status === 404) throw new Error('Book not found')
           throw new Error('Failed to load book')
         }
         const data: BookOverview = await response.json()
+
         setOverview(data)
         setCurrentBook(bookId)
 
         const paragraphsPerChapter = data.chapters.map(ch => ch.paragraphCount)
         const wordsPerChapter = data.chapters.map(ch => ch.wordCount)
+
         setBookMetadata(bookId, paragraphsPerChapter, wordsPerChapter)
 
         const progress = getProgress(bookId)
+
         if (progress.chapter < data.chapters.length) {
           setInitialChapter(progress.chapter)
           const chapterInfo = data.chapters[progress.chapter]
+
           if (chapterInfo && progress.paragraph < chapterInfo.paragraphCount) {
             setInitialParagraph(progress.paragraph)
           } else {

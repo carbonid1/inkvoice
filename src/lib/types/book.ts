@@ -57,7 +57,7 @@ export interface ChapterInfo {
   wordCount: number
 }
 
-export type TocNode = {
+export interface TocNode {
   title: string
   chapterIndex: number
   children: TocNode[]

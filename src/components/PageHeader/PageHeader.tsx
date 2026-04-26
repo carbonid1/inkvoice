@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-type PageHeaderProps = {
+interface PageHeaderProps {
   children: ReactNode
   className?: string
   noBorder?: boolean
@@ -13,5 +13,6 @@ export const PageHeader = ({ children, className, noBorder }: PageHeaderProps) =
   const classes = [BASE_CLASSES, noBorder ? '' : BORDER_CLASSES, className]
     .filter(Boolean)
     .join(' ')
+
   return <header className={classes}>{children}</header>
 }

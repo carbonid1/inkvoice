@@ -1,8 +1,8 @@
+import { create } from 'zustand'
 import type { BudgetCheck } from '@/lib/services/cache/helpers/checkBudget/checkBudget'
 import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
-import { create } from 'zustand'
 
-export type Estimate = {
+export interface Estimate {
   totalParagraphs: number
   cachedParagraphs: number
   estimatedSizeBytes: number
@@ -10,7 +10,7 @@ export type Estimate = {
   budget: BudgetCheck
 }
 
-type PregenState = {
+interface PregenState {
   jobs: Record<string, PregenJob>
   estimates: Record<string, Estimate>
   samplingRates: Record<string, number>
@@ -34,6 +34,7 @@ export const usePregenStore = create<PregenState>(set => ({
 
   setJobs: jobs => {
     const map: Record<string, PregenJob> = {}
+
     for (const job of jobs) {
       map[job.bookId] = job
     }
@@ -48,6 +49,7 @@ export const usePregenStore = create<PregenState>(set => ({
   removeJob: bookId =>
     set(state => {
       const { [bookId]: _, ...rest } = state.jobs
+
       return { jobs: rest }
     }),
 

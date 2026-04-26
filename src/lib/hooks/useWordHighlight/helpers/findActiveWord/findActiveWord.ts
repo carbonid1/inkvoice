@@ -11,10 +11,12 @@ export const findActiveWord = (currentTime: number, timestamps: WordTimestamp[])
 
   // Before first word — snap to 0
   const first = timestamps[0]
+
   if (!first || currentTime < first.s) return 0
 
   // After last word — snap to last
   const last = timestamps[timestamps.length - 1]
+
   if (!last || currentTime >= last.e) return timestamps.length - 1
 
   // Binary search for the word containing currentTime (with lookahead)
@@ -24,6 +26,7 @@ export const findActiveWord = (currentTime: number, timestamps: WordTimestamp[])
   while (low <= high) {
     const mid = (low + high) >>> 1
     const word = timestamps[mid]
+
     if (!word) break
 
     if (currentTime + LOOKAHEAD_MS < word.s) {

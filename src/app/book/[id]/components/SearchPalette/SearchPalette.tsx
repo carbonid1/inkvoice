@@ -1,11 +1,11 @@
 'use client'
 
-import type { SearchScope } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
-import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import { Loader2, Search, X } from 'lucide-react'
 import { type KeyboardEvent, useEffect, useRef } from 'react'
-import { SearchResultsPanel } from './components/SearchResultsPanel/SearchResultsPanel'
+import type { SearchScope } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
+import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { SearchPaletteProps } from './SearchPalette.types'
+import { SearchResultsPanel } from './components/SearchResultsPanel/SearchResultsPanel'
 
 const SCOPE_OPTIONS: { value: SearchScope; label: string }[] = [
   { value: 'book', label: 'Book' },
@@ -44,6 +44,7 @@ export const SearchPalette = ({
     } else if (e.key === 'Enter') {
       e.preventDefault()
       const match = results[highlightedIndex]
+
       if (match) {
         onSelect(match.chapter, match.paragraph)
       }
@@ -55,6 +56,7 @@ export const SearchPalette = ({
 
   const handleSelectResult = (resultIndex: number) => {
     const match = results[resultIndex]
+
     if (match) {
       onSelect(match.chapter, match.paragraph)
     }

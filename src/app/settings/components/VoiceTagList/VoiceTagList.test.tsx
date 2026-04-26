@@ -15,6 +15,7 @@ describe('VoiceTagList', () => {
 
   it('renders nothing when tags are empty', () => {
     const { container } = renderWith(<VoiceTagList tags={[]} />)
+
     expect(container.firstChild).toBeNull()
   })
 })

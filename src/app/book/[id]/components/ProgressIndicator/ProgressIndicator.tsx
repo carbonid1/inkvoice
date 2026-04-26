@@ -1,12 +1,12 @@
 'use client'
 
-import type { ChapterInfo } from '@/lib/types/book'
 import { Tooltip } from '@carbonid1/design-system'
+import type { ChapterInfo } from '@/lib/types/book'
 import { computeChapterPagePosition } from '../../helpers/computeChapterPagePosition/computeChapterPagePosition'
 import { computeChapterProgressPercent } from '../../helpers/computeChapterProgressPercent/computeChapterProgressPercent'
 import { shouldShowChapterProgress } from '../../helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 
-type ProgressIndicatorProps = {
+interface ProgressIndicatorProps {
   paragraph: number
   chapterInfo: ChapterInfo
 }

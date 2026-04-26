@@ -16,6 +16,7 @@ describe('computeChapterPagePosition', () => {
 
   it('returns page 1 of 1 for a short chapter', () => {
     const result = computeChapterPagePosition({ paragraph: 5, paragraphCount: 10, wordCount: 200 })
+
     expect(result).toEqual({ currentPage: 1, totalPages: 1 })
   })
 
@@ -26,6 +27,7 @@ describe('computeChapterPagePosition', () => {
       paragraphCount: 100,
       wordCount: 700,
     })
+
     expect(result).toEqual({ currentPage: 2, totalPages: 2 })
   })
 
@@ -35,6 +37,7 @@ describe('computeChapterPagePosition', () => {
       paragraphCount: 100,
       wordCount: 3500,
     })
+
     expect(result).toEqual({ currentPage: 1, totalPages: 10 })
   })
 
@@ -45,6 +48,7 @@ describe('computeChapterPagePosition', () => {
       paragraphCount: 100,
       wordCount: 700,
     })
+
     expect(result).toEqual({ currentPage: 2, totalPages: 2 })
   })
 })

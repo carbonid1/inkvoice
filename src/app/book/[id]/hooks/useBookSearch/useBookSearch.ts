@@ -68,11 +68,13 @@ export const useBookSearch = (bookId: string, currentChapter: number): UseBookSe
       }
 
       const controller = new AbortController()
+
       abortControllerRef.current = controller
       setLoading(true)
 
       try {
         const params = new URLSearchParams({ q: searchQuery })
+
         if (scopeRef.current === 'chapter') {
           params.set('chapter', String(currentChapterRef.current))
         }
@@ -130,12 +132,14 @@ export const useBookSearch = (bookId: string, currentChapter: number): UseBookSe
 
   const highlightNext = useCallback(() => {
     const len = resultsLengthRef.current
+
     if (len === 0) return
     setHighlightedIndexState(prev => (prev + 1) % len)
   }, [])
 
   const highlightPrevious = useCallback(() => {
     const len = resultsLengthRef.current
+
     if (len === 0) return
     setHighlightedIndexState(prev => (prev - 1 + len) % len)
   }, [])

@@ -4,14 +4,17 @@ export const getInnerHtml = (node: Node): string => {
   if (node.nodeType === 3) {
     // Text node - escape HTML
     const text = node.textContent || ''
+
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   }
   if (isElement(node)) {
     const el = node
     const tag = el.tagName.toLowerCase()
+
     if (tag === 'script' || tag === 'style') return ''
 
     const voidElements = ['br', 'hr']
+
     if (voidElements.includes(tag)) {
       return `<${tag}/>`
     }
@@ -22,6 +25,7 @@ export const getInnerHtml = (node: Node): string => {
 
     if (tag === 'a') {
       const href = el.getAttribute('href')
+
       if (href?.startsWith('http')) {
         return `<a href="${href}">${childHtml}</a>`
       }

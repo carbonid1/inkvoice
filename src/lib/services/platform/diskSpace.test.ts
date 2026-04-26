@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { DiskSpaceInfo } from './diskSpace.types'
-
 const mockStatfs = vi.hoisted(() => vi.fn())
+
 vi.mock('fs/promises', () => ({ default: { statfs: mockStatfs } }))
 
 import { diskSpaceService } from './diskSpace'
+import type { DiskSpaceInfo } from './diskSpace.types'
 
 describe('diskSpaceService', () => {
   describe('getAvailableSpace', () => {

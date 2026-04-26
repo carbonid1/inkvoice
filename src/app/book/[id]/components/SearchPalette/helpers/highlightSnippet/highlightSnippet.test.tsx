@@ -13,6 +13,7 @@ describe('highlightSnippet', () => {
     // "hello world", query "world" at position 6
     const { container } = render(<span>{highlightSnippet('hello world', 'world', [6])}</span>)
     const marks = container.querySelectorAll('mark')
+
     expect(marks).toHaveLength(1)
     expect(marks[0]!.textContent).toBe('world')
   })
@@ -23,6 +24,7 @@ describe('highlightSnippet', () => {
       <span>{highlightSnippet('the cat and the dog', 'the', [0, 12])}</span>,
     )
     const marks = container.querySelectorAll('mark')
+
     expect(marks).toHaveLength(2)
     expect(marks[0]!.textContent).toBe('the')
     expect(marks[1]!.textContent).toBe('the')
@@ -31,6 +33,7 @@ describe('highlightSnippet', () => {
   it('handles match at start of string', () => {
     const { container } = render(<span>{highlightSnippet('hello world', 'hello', [0])}</span>)
     const marks = container.querySelectorAll('mark')
+
     expect(marks).toHaveLength(1)
     expect(marks[0]!.textContent).toBe('hello')
   })
@@ -38,6 +41,7 @@ describe('highlightSnippet', () => {
   it('handles match at end of string', () => {
     const { container } = render(<span>{highlightSnippet('say hello', 'hello', [4])}</span>)
     const marks = container.querySelectorAll('mark')
+
     expect(marks).toHaveLength(1)
     expect(marks[0]!.textContent).toBe('hello')
   })
@@ -45,6 +49,7 @@ describe('highlightSnippet', () => {
   it('applies highlight classes to mark elements', () => {
     const { container } = render(<span>{highlightSnippet('test text', 'test', [0])}</span>)
     const mark = container.querySelector('mark')
+
     expect(mark!.className).toContain('bg-attention-muted')
   })
 })

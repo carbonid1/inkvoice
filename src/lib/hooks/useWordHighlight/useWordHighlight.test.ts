@@ -1,9 +1,9 @@
 /**
  * @vitest-environment jsdom
  */
-import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 import { useWordHighlight } from './useWordHighlight'
 
 // --- CSS Highlight API mock ---
@@ -45,6 +45,7 @@ const makeTimestamps = (): WordTimestamp[] => [
 
 const makeParagraph = (text: string): HTMLSpanElement => {
   const el = document.createElement('span')
+
   el.textContent = text
   document.body.appendChild(el)
   return el
@@ -52,6 +53,7 @@ const makeParagraph = (text: string): HTMLSpanElement => {
 
 const makeAudio = (currentTime = 0.5): HTMLAudioElement => {
   const audio = document.createElement('audio')
+
   Object.defineProperty(audio, 'currentTime', { value: currentTime, writable: true })
   Object.defineProperty(audio, 'paused', { value: true, writable: true })
   return audio

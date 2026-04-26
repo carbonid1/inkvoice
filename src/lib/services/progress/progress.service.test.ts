@@ -19,6 +19,7 @@ describe('progressService', () => {
   it('returns empty record when no progress exists', async () => {
     mockPrisma.readingProgress.findMany.mockResolvedValue([])
     const result = await progressService.getAll()
+
     expect(result).toEqual({})
   })
 
@@ -65,6 +66,7 @@ describe('progressService', () => {
   it('returns null for unknown book', async () => {
     mockPrisma.readingProgress.findUnique.mockResolvedValue(null)
     const result = await progressService.get('unknown')
+
     expect(result).toBeNull()
     expect(mockPrisma.readingProgress.findUnique).toHaveBeenCalledWith({
       where: { bookId: 'unknown' },
@@ -83,6 +85,7 @@ describe('progressService', () => {
     })
 
     const result = await progressService.get('book-1')
+
     expect(result).toEqual({
       chapter: 2,
       paragraph: 5,
@@ -128,6 +131,7 @@ describe('progressService', () => {
   it('removes progress and returns true when found', async () => {
     mockPrisma.readingProgress.deleteMany.mockResolvedValue({ count: 1 })
     const result = await progressService.remove('book-1')
+
     expect(result).toBe(true)
     expect(mockPrisma.readingProgress.deleteMany).toHaveBeenCalledWith({
       where: { bookId: 'book-1' },
@@ -137,6 +141,7 @@ describe('progressService', () => {
   it('returns false when removing non-existent progress', async () => {
     mockPrisma.readingProgress.deleteMany.mockResolvedValue({ count: 0 })
     const result = await progressService.remove('unknown')
+
     expect(result).toBe(false)
   })
 })

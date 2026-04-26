@@ -1,4 +1,4 @@
-type ChapterProgressInput = {
+interface ChapterProgressInput {
   paragraph: number
   paragraphsInChapter: number
 }

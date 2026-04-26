@@ -1,13 +1,14 @@
-import { expect, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { expect, test, type Page } from '@playwright/test'
 import { mockVoiceManagement } from './helpers/mockVoiceManagement'
 import { navigateToSettings } from './helpers/navigateToSettings'
 
 const uploadFixturePath = path.resolve(__dirname, '../fixtures/silence-10s.wav')
 
-const setUploadFile = async (page: import('@playwright/test').Page) => {
+const setUploadFile = async (page: Page) => {
   const fileInput = page.locator('input[type="file"]')
+
   await fileInput.setInputFiles({
     name: 'recording.wav',
     mimeType: 'audio/wav',
@@ -67,6 +68,7 @@ test.describe('voice upload', () => {
     page,
   }) => {
     const { getUploadedVoices } = await mockVoiceManagement(page)
+
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -125,6 +127,7 @@ test.describe('voice upload', () => {
 
     // The new voice row should have a disabled pulsing sample button
     const sampleButton = page.getByRole('button', { name: /Generating sample for New Voice/ })
+
     await expect(sampleButton).toBeVisible()
     await expect(sampleButton).toBeDisabled()
   })
@@ -132,6 +135,7 @@ test.describe('voice upload', () => {
   /** Once the server finishes generating the sample, the button becomes playable. */
   test('sample button becomes interactive when sample is ready', async ({ page }) => {
     const { markSampleReady } = await mockVoiceManagement(page)
+
     await navigateToSettings(page)
 
     await page.getByText('Add Voice').click()
@@ -149,6 +153,7 @@ test.describe('voice upload', () => {
 
     // Button should become interactive (polling refetches voice list)
     const playButton = page.getByRole('button', { name: /Play voice sample for New Voice/ })
+
     await expect(playButton).toBeVisible({ timeout: 10000 })
     await expect(playButton).toBeEnabled()
   })

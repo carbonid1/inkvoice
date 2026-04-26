@@ -11,6 +11,7 @@ const globalSetup = () => {
 
   // Symlink instead of copy — tests only read voice files, never write
   const voicesLink = resolve(E2E_DATA_DIR, 'voices')
+
   symlinkSync(relative(E2E_DATA_DIR, resolve('data/voices')), voicesLink)
 
   copyFileSync(
@@ -19,6 +20,7 @@ const globalSetup = () => {
   )
 
   const dbPath = resolve(E2E_DATA_DIR, 'test.db')
+
   execSync('pnpx prisma migrate deploy', {
     env: { ...process.env, INKVOICE_DB_PATH: dbPath },
     stdio: 'pipe',

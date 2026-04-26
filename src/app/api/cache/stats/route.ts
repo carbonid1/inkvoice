@@ -1,8 +1,8 @@
+import { NextResponse } from 'next/server'
 import { env } from '@/lib/config/env'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { diskSpaceService } from '@/lib/services/platform/diskSpace'
-import { NextResponse } from 'next/server'
 
 export const GET = async () => {
   try {
@@ -21,6 +21,7 @@ export const GET = async () => {
     const metadataResults = await Promise.all(
       cachedBookIds.map(async id => {
         const meta = await bookService.getMetadata(id)
+
         return { id, title: meta?.title ?? 'Unknown Book' }
       }),
     )

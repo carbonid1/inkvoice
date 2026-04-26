@@ -40,6 +40,7 @@ describe('pythonClient', () => {
       .mockResolvedValue(new Response('ok'))
 
     const client = createPythonClient({ controlUrl: 'http://127.0.0.1:9999', devBaseUrl: 'unused' })
+
     await client.fetch('/tts')
     await client.fetch('/transcribe')
 
@@ -68,6 +69,7 @@ describe('pythonClient', () => {
 
     const client = createPythonClient({ controlUrl: 'http://127.0.0.1:9999', devBaseUrl: 'unused' })
     const res = await client.fetch('/tts')
+
     expect(res.status).toBe(200)
     expect(client.getCurrentInstanceId()).toBe(2)
   })
@@ -76,6 +78,7 @@ describe('pythonClient', () => {
     fetchSpy.mockResolvedValueOnce(new Response('ok'))
 
     const client = createPythonClient({ controlUrl: null, devBaseUrl: 'http://localhost:8000' })
+
     await client.fetch('/tts', { method: 'POST' })
 
     expect(fetchSpy).toHaveBeenCalledTimes(1)
@@ -85,6 +88,7 @@ describe('pythonClient', () => {
   it('returns ready status in dev mode without contacting control plane', async () => {
     const client = createPythonClient({ controlUrl: null, devBaseUrl: 'http://localhost:8000' })
     const status = await client.getStatus()
+
     expect(status.state).toBe('ready')
     expect(fetchSpy).not.toHaveBeenCalled()
   })

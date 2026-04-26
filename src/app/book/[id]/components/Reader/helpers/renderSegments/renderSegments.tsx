@@ -1,11 +1,11 @@
 'use client'
 
-import type { TextSegment } from '@/lib/types/book'
 import type { RefObject } from 'react'
+import type { TextSegment } from '@/lib/types/book'
 import { ParagraphContextMenu } from '../../../ParagraphContextMenu/ParagraphContextMenu'
 import { ACTIVE_PARAGRAPH_HIGHLIGHT } from '../../Reader.consts'
 
-export type RenderSegmentsParams = {
+export interface RenderSegmentsParams {
   segments: TextSegment[] | undefined
   currentParagraph: number
   onParagraphClick: ((chapter: number, paragraph: number) => void) | undefined

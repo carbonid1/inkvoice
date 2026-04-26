@@ -1,6 +1,6 @@
 const DEFAULT_PADDING = 0.15
 
-type CheckBudgetArgs = {
+interface CheckBudgetArgs {
   usedBytes: number
   maxBytes: number
   estimatedBytes: number
@@ -25,6 +25,7 @@ export const checkBudget = ({
 }: CheckBudgetArgs): BudgetCheck => {
   const requiredBytes = Math.ceil(estimatedBytes * (1 + padding))
   const projected = usedBytes + requiredBytes
+
   if (projected <= maxBytes) return { ok: true }
   return {
     ok: false,
