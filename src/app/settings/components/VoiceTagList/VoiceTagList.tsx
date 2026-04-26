@@ -1,4 +1,4 @@
-import { TagBadge } from '../TagBadge/TagBadge'
+import { Badge } from '@carbonid1/design-system'
 
 interface VoiceTagListProps {
   tags: string[]
@@ -10,7 +10,9 @@ export const VoiceTagList = ({ tags }: VoiceTagListProps) => {
   return (
     <div className="flex min-w-0 flex-nowrap gap-1 overflow-hidden">
       {tags.map(tag => (
-        <TagBadge key={tag} tag={tag} />
+        <Badge key={tag} variant="primary">
+          {tag}
+        </Badge>
       ))}
     </div>
   )

@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { TTSStatusPill } from '@/components/TTSStatusPill/TTSStatusPill'
 import { usePregenSSE } from '@/lib/hooks/usePregenSSE/usePregenSSE'
 import { useSleepPrevention } from '@/lib/hooks/useSleepPrevention/useSleepPrevention'
 import { useTTSLifecycle } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
@@ -19,7 +18,6 @@ export const PregenSSEProvider = ({ children }: Props) => {
     <>
       {children}
       <DebugPanel />
-      <TTSStatusPill />
     </>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
+import { Badge } from '@carbonid1/design-system'
 import { useState } from 'react'
-import { TagBadge } from '../TagBadge/TagBadge'
 
 interface VoiceTagEditorProps {
   tags: string[]
@@ -35,7 +35,9 @@ export const VoiceTagEditor = ({ tags, onTagsChanged, saving }: VoiceTagEditorPr
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {tags.map(tag => (
-            <TagBadge key={tag} tag={tag} onRemove={() => handleRemove(tag)} />
+            <Badge key={tag} variant="primary" onRemove={() => handleRemove(tag)}>
+              {tag}
+            </Badge>
           ))}
         </div>
       )}
