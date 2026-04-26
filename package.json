@@ -15,7 +15,7 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:electron": "playwright test --config playwright.electron.config.ts",
-    "prepare": "husky",
+    "prepare": "test ! -d .git || lefthook install",
     "postinstall": "prisma generate && playwright-cli install --skills",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -81,8 +81,7 @@
     "@vitest/browser-playwright": "^4.1.4",
     "electron": "^41.2.1",
     "electron-builder": "^26.8.1",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lefthook": "^1.10.0",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
@@ -93,16 +92,13 @@
     "vite": "^8.0.9",
     "vitest": "^4.1.4"
   },
-  "lint-staged": {
-    "*.{js,mjs,ts,tsx,css,json,md,mdx,yaml,yml}": "prettier --write",
-    "*.{js,mjs,ts,tsx}": "eslint --fix"
-  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@carbonid1/design-system",
       "@prisma/engines",
       "better-sqlite3",
       "electron",
+      "lefthook",
       "prisma"
     ]
   }
