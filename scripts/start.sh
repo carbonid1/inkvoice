@@ -65,25 +65,27 @@ pnpx prisma generate 2>&1 > /dev/null
 # Function to cleanup background processes on exit
 cleanup() {
     printf "\n${YELLOW}Shutting down...${NC}\n"
-    # Signal parents first — let uvicorn/next handle child cleanup
-    kill $PYTHON_PID $NEXT_PID 2>/dev/null || true
+    # Signal parents first — control plane handles Python cleanup, next handles its own children
+    kill $CONTROL_PID $NEXT_PID 2>/dev/null || true
     wait 2>/dev/null
     exit 0
 }
 
 trap cleanup SIGINT SIGTERM
 
-# Start Python API
-printf "${GREEN}Starting Python TTS API on :8000...${NC}\n"
-source venv/bin/activate
-# Suppress false-positive semaphore leak warning from Python 3.11 resource_tracker
-# during uvicorn --reload shutdown (known multiprocessing race condition)
-PYTHONWARNINGS="ignore::UserWarning:multiprocessing.resource_tracker" \
-    uvicorn api.app.main:app --reload --port 8000 &
-PYTHON_PID=$!
+# Build the dev control-plane runner (bundles electron/lib/* — no Electron dep at runtime)
+printf "${GREEN}Building dev control-plane...${NC}\n"
+pnpm exec tsup scripts/dev-control-plane.ts --outDir dist-electron --format cjs --external electron > /dev/null 2>&1
 
-# Wait a moment for Python to start
-sleep 2
+# Pick a free port for the control plane
+CONTROL_PORT=$(node -e "const n=require('net'),s=n.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>console.log(p))})")
+export INKVOICE_PYTHON_CONTROL_URL="http://127.0.0.1:${CONTROL_PORT}"
+export INKVOICE_PROJECT_ROOT="$PROJECT_DIR"
+
+# Start the control plane (owns Python lifecycle: lazy-spawn, idle-shutdown after 5 min)
+printf "${GREEN}Starting Python TTS control plane on :${CONTROL_PORT}...${NC}\n"
+node dist-electron/dev-control-plane.js --control-port "$CONTROL_PORT" &
+CONTROL_PID=$!
 
 # Start Next.js
 printf "${GREEN}Starting Next.js via portless...${NC}\n"
@@ -92,7 +94,7 @@ NEXT_PID=$!
 
 printf "\n${GREEN}InkVoice is running!${NC}\n"
 printf "  Frontend: ${YELLOW}%s${NC} (branch-prefixed in worktrees)\n" "$PORTLESS_URL"
-printf "  TTS API:  ${YELLOW}http://localhost:8000${NC}\n"
+printf "  Control:  ${YELLOW}%s${NC} (Python TTS lazy-spawned on demand)\n" "$INKVOICE_PYTHON_CONTROL_URL"
 printf "\nPress Ctrl+C to stop both servers.\n"
 
 # Wait for either process to exit

@@ -16,6 +16,7 @@ const config = [
       'electron/**',
       'dist-electron/**',
       'scripts/after-pack.js',
+      'scripts/dev-control-plane.ts',
       'dist/**',
       'dist-*/**',
       '.claude/worktrees/**',

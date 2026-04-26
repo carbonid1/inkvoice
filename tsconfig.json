@@ -19,6 +19,7 @@
     "generated",
     "prisma.config.ts",
     "electron",
+    "scripts/dev-control-plane.ts",
     "dist",
     "dist-electron",
     "dist-nextjs",
