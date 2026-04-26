@@ -1,32 +1,33 @@
 import { ChildProcess, spawn, spawnSync } from 'child_process'
 import path from 'path'
+import { startControlServer, type ControlServer } from './controlServer'
 import { paths } from './paths'
-import { Ports } from './ports'
+import { findAvailablePort, Ports } from './ports'
+import { createPythonLifecycle, PythonLifecycle } from './pythonLifecycle'
 
 const LOCALHOST = '127.0.0.1'
 const HEALTH_POLL_INTERVAL_MS = 2_000
 const STARTUP_TIMEOUT_MS = 5 * 60 * 1_000 // 5 minutes
-const SHUTDOWN_GRACE_MS = 5_000
+const SHUTDOWN_GRACE_MS = 60_000 // tolerate in-flight TTS generation
+const DEFAULT_IDLE_TIMEOUT_MS = 5 * 60 * 1_000
 
-type ServerProcesses = {
-  python: ChildProcess
-  nextJs: ChildProcess
+type State = {
+  nextJs: ChildProcess | null
+  pythonLifecycle: PythonLifecycle | null
+  controlServer: ControlServer | null
 }
 
-let processes: ServerProcesses | null = null
+const state: State = { nextJs: null, pythonLifecycle: null, controlServer: null }
 
-// macOS GUI apps get a minimal PATH that excludes Homebrew.
-// Prepend common paths so spawned servers can find ffmpeg, etc.
 const extendedPath = ['/opt/homebrew/bin', '/usr/local/bin', process.env.PATH].join(':')
 
-const buildEnv = (ports: Ports): NodeJS.ProcessEnv => ({
+const buildBaseEnv = (): NodeJS.ProcessEnv => ({
   ...process.env,
   PATH: extendedPath,
   INKVOICE_BOOKS_DIR: paths.booksDir,
   INKVOICE_VOICES_DIR: paths.voicesDir,
   INKVOICE_CACHE_DIR: paths.cacheDir,
   INKVOICE_DB_PATH: paths.dbPath,
-  INKVOICE_TTS_API_URL: `http://${LOCALHOST}:${ports.python}/tts`,
   INKVOICE_DEVICE: 'mps',
 })
 
@@ -41,11 +42,7 @@ const runMigrations = (env: NodeJS.ProcessEnv): void => {
   const result = spawnSync(
     paths.bundledPython,
     [paths.bundledMigrateScript, paths.dbPath, paths.bundledMigrations],
-    {
-      env,
-      stdio: 'pipe',
-      timeout: 30_000,
-    },
+    { env, stdio: 'pipe', timeout: 30_000 },
   )
 
   if (result.status !== 0) {
@@ -55,9 +52,8 @@ const runMigrations = (env: NodeJS.ProcessEnv): void => {
   console.log('[servers] Migrations complete.')
 }
 
-const spawnPython = (env: NodeJS.ProcessEnv, port: number): ChildProcess => {
+const spawnPython = (port: number, env: NodeJS.ProcessEnv): ChildProcess => {
   console.log(`[servers] Starting Python TTS on port ${port}...`)
-
   const proc = spawn(
     paths.bundledPython,
     ['-m', 'uvicorn', 'api.app.main:app', '--host', LOCALHOST, '--port', port.toString()],
@@ -67,99 +63,118 @@ const spawnPython = (env: NodeJS.ProcessEnv, port: number): ChildProcess => {
       stdio: ['pipe', 'pipe', 'pipe'],
     },
   )
-
   pipeProcessLogs(proc, 'python')
   return proc
 }
 
 const spawnNextJs = (env: NodeJS.ProcessEnv, port: number): ChildProcess => {
   console.log(`[servers] Starting Next.js on port ${port}...`)
-
   const proc = spawn(paths.bundledNode, [paths.nextJsServer], {
     env: { ...env, PORT: port.toString(), HOSTNAME: LOCALHOST },
     stdio: ['pipe', 'pipe', 'pipe'],
   })
-
   pipeProcessLogs(proc, 'nextjs')
   return proc
 }
 
+const pollHealthOnce = async (url: string, signal: AbortSignal): Promise<boolean> => {
+  try {
+    const res = await fetch(url, { signal })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 const pollHealth = async (url: string, label: string, timeoutMs: number): Promise<boolean> => {
   const deadline = Date.now() + timeoutMs
-
   while (Date.now() < deadline) {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3_000)
     try {
-      const res = await fetch(url, { signal: controller.signal })
-      if (res.ok) {
+      const ok = await pollHealthOnce(url, controller.signal)
+      if (ok) {
         console.log(`[servers] ${label} is ready.`)
         return true
       }
-    } catch {
-      // Not ready yet
     } finally {
       clearTimeout(timeout)
     }
     await new Promise(r => setTimeout(r, HEALTH_POLL_INTERVAL_MS))
   }
-
   return false
 }
 
 export type StartResult = { ok: true; appUrl: string } | { ok: false; error: string }
 
+const getIdleTimeoutMs = (): number => {
+  const raw = process.env.INKVOICE_PYTHON_IDLE_MS
+  if (!raw) return DEFAULT_IDLE_TIMEOUT_MS
+  const n = parseInt(raw, 10)
+  return Number.isFinite(n) && n > 0 ? n : DEFAULT_IDLE_TIMEOUT_MS
+}
+
 export const startServers = async (ports: Ports): Promise<StartResult> => {
-  const env = buildEnv(ports)
+  const baseEnv = buildBaseEnv()
 
   try {
-    runMigrations(env)
+    runMigrations(baseEnv)
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     return { ok: false, error: `Migration failed: ${message}` }
   }
 
-  const python = spawnPython(env, ports.python)
-  const nextJs = spawnNextJs(env, ports.nextJs)
-  processes = { python, nextJs }
+  const lifecycle = createPythonLifecycle({
+    spawn: port => spawnPython(port, baseEnv),
+    findAvailablePort,
+    pollHealth: pollHealthOnce,
+    idleTimeoutMs: getIdleTimeoutMs(),
+    shutdownGraceMs: SHUTDOWN_GRACE_MS,
+    startupTimeoutMs: STARTUP_TIMEOUT_MS,
+    healthPollIntervalMs: HEALTH_POLL_INTERVAL_MS,
+  })
 
-  const [pythonReady, nextReady] = await Promise.all([
-    pollHealth(`http://${LOCALHOST}:${ports.python}/health`, 'Python TTS', STARTUP_TIMEOUT_MS),
-    pollHealth(`http://${LOCALHOST}:${ports.nextJs}`, 'Next.js', STARTUP_TIMEOUT_MS),
-  ])
+  let controlServer: ControlServer
+  try {
+    controlServer = await startControlServer(lifecycle, ports.controlServer)
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e)
+    return { ok: false, error: `Control server failed: ${message}` }
+  }
 
-  if (!pythonReady || !nextReady) {
-    const failed = [
-      !pythonReady && 'TTS server (may need internet for first-launch model download)',
-      !nextReady && 'Next.js server',
-    ].filter(Boolean)
-    return { ok: false, error: `Failed to start: ${failed.join(', ')}` }
+  const nextJsEnv = { ...baseEnv, INKVOICE_PYTHON_CONTROL_URL: controlServer.url }
+  const nextJs = spawnNextJs(nextJsEnv, ports.nextJs)
+
+  state.nextJs = nextJs
+  state.pythonLifecycle = lifecycle
+  state.controlServer = controlServer
+
+  const nextReady = await pollHealth(`http://${LOCALHOST}:${ports.nextJs}`, 'Next.js', STARTUP_TIMEOUT_MS)
+  if (!nextReady) {
+    return { ok: false, error: 'Failed to start: Next.js server' }
   }
 
   return { ok: true, appUrl: `http://${LOCALHOST}:${ports.nextJs}` }
 }
 
 export const stopServers = (): void => {
-  if (!processes) return
   console.log('[servers] Shutting down...')
 
-  const { python, nextJs } = processes
+  if (state.pythonLifecycle) state.pythonLifecycle.forceStop()
+  if (state.controlServer) state.controlServer.close()
 
-  for (const proc of [python, nextJs]) {
-    if (proc.exitCode === null) {
-      proc.kill('SIGTERM')
-    }
+  if (state.nextJs && state.nextJs.exitCode === null) {
+    state.nextJs.kill('SIGTERM')
+    const killTimer = setTimeout(() => {
+      if (state.nextJs && state.nextJs.exitCode === null) {
+        console.log('[servers] Force killing Next.js...')
+        state.nextJs.kill('SIGKILL')
+      }
+    }, 5_000)
+    killTimer.unref()
   }
 
-  const killTimer = setTimeout(() => {
-    for (const proc of [python, nextJs]) {
-      if (proc.exitCode === null) {
-        console.log('[servers] Force killing remaining process...')
-        proc.kill('SIGKILL')
-      }
-    }
-  }, SHUTDOWN_GRACE_MS)
-  killTimer.unref()
-
-  processes = null
+  state.nextJs = null
+  state.pythonLifecycle = null
+  state.controlServer = null
 }

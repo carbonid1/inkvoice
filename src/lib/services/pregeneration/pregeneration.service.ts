@@ -4,6 +4,7 @@ import { getCacheService } from '@/lib/services/cache/cache.service'
 import { diskSpaceService } from '@/lib/services/platform/diskSpace'
 import { pregenEvents } from '@/lib/services/pregenEvents/pregenEvents.service'
 import { pregenQueueService } from '@/lib/services/pregenQueue/pregenQueue.service'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { getTTSService } from '@/lib/services/tts/tts.server'
 
 import { PREGEN_JOB_STATUS, type PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
@@ -27,7 +28,7 @@ const getBackoffMs = (attempt: number): number =>
 type PregenWorkerState = {
   running: boolean
   loopId: number
-  ttsWarmedUp: boolean
+  warmedUpInstanceId: number
   stoppedJobIds: Set<string>
 }
 
@@ -38,7 +39,7 @@ declare global {
 const createPregenWorkerState = (): PregenWorkerState => ({
   running: false,
   loopId: 0,
-  ttsWarmedUp: false,
+  warmedUpInstanceId: -1,
   stoppedJobIds: new Set(),
 })
 
@@ -79,13 +80,15 @@ const logVanished = (jobId: string, stage: string): void => {
 }
 
 const warmUpTTS = async (bookId: string): Promise<void> => {
-  if (state.ttsWarmedUp) return
+  const client = getPythonClient()
+  // Reset warmup tracking when Python instance changes (model is gone after restart)
+  if (state.warmedUpInstanceId === client.getCurrentInstanceId()) return
   console.warn('[pregen] Warming up TTS model...')
   const start = Date.now()
   pregenEvents.emit({ type: 'warmup_start', bookId })
-  while (!state.ttsWarmedUp) {
+  while (state.warmedUpInstanceId !== client.getCurrentInstanceId()) {
     try {
-      const response = await fetch(env.ttsApiUrl, {
+      const response = await client.fetch('/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -96,7 +99,7 @@ const warmUpTTS = async (bookId: string): Promise<void> => {
       })
       await response.arrayBuffer()
       if (!response.ok) throw new Error(`${response.status}`)
-      state.ttsWarmedUp = true
+      state.warmedUpInstanceId = client.getCurrentInstanceId()
     } catch {
       await sleep(5_000)
     }
@@ -299,7 +302,7 @@ export const pregenWorker = {
 export const resetPregenWorker = (): void => {
   state.running = false
   state.loopId++
-  state.ttsWarmedUp = false
+  state.warmedUpInstanceId = -1
   state.stoppedJobIds.clear()
 }
 

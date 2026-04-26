@@ -1,4 +1,4 @@
-import { env } from '@/lib/config/env'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { NextResponse } from 'next/server'
 import { validateVoiceParam } from '../helpers/validateVoiceParam/validateVoiceParam'
 
@@ -14,7 +14,7 @@ export const POST = async (request: Request, { params }: { params: Promise<{ nam
       return NextResponse.json({ error: 'Text is required' }, { status: 400 })
     }
 
-    const response = await fetch(env.ttsApiUrl, {
+    const response = await getPythonClient().fetch('/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: text.trim(), voice: name }),

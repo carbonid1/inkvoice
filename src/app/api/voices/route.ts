@@ -1,4 +1,4 @@
-import { env } from '@/lib/config/env'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { voiceService } from '@/lib/services/voice/voice.service'
 import { NextResponse } from 'next/server'
 
@@ -76,10 +76,11 @@ const SAMPLE_TEXT =
   'I am the shield that guards the realms of men.'
 
 const generateSampleInBackground = async (voiceName: string) => {
-  const response = await fetch(env.ttsApiUrl, {
+  const response = await getPythonClient().fetch('/tts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text: SAMPLE_TEXT, voice: voiceName }),
+    signal: AbortSignal.timeout(300_000),
   })
 
   if (!response.ok) {

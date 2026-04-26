@@ -1,4 +1,4 @@
-import { env } from '@/lib/config/env'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parseTimestampsHeader'
 import type { TTSService } from './tts.types'
 import { TTSError } from './tts.types'
@@ -7,14 +7,21 @@ const TTS_TIMEOUT_MS = 180_000
 const TTS_COLD_TIMEOUT_MS = 300_000
 const COLD_GENERATION_COUNT = 3
 
+let lastInstanceId = -1
 let generationCount = 0
 
 class TTSServiceImpl implements TTSService {
   async generate(text: string, voice: string) {
+    const client = getPythonClient()
+    const instanceId = client.getCurrentInstanceId()
+    if (instanceId !== lastInstanceId) {
+      lastInstanceId = instanceId
+      generationCount = 0
+    }
     const timeout = generationCount < COLD_GENERATION_COUNT ? TTS_COLD_TIMEOUT_MS : TTS_TIMEOUT_MS
     generationCount++
 
-    const response = await fetch(env.ttsApiUrl, {
+    const response = await client.fetch('/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, voice }),

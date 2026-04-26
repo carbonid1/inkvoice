@@ -74,7 +74,7 @@ const startProduction = async (): Promise<void> => {
       sendStatus('Allocating ports...')
       const ports = await allocatePorts()
 
-      sendStatus('Warming up the narrator...')
+      sendStatus('Starting reader...')
       const result = await startServers(ports)
 
       if (result.ok) {

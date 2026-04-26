@@ -1,4 +1,5 @@
 import { env } from '@/lib/config/env'
+import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { mkdir, readdir, rename, rm, stat, writeFile } from 'fs/promises'
 import path from 'path'
 import { z } from 'zod'
@@ -241,10 +242,11 @@ export const createVoiceService = (voicesDir: string) => {
     let transcription: string | null = null
     try {
       const langParam = language ? `?language=${language}` : ''
-      const response = await fetch(`${env.ttsApiBaseUrl}/transcribe${langParam}`, {
+      const response = await getPythonClient().fetch(`/transcribe${langParam}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/octet-stream' },
         body: new Uint8Array(convertResult.buffer),
+        signal: AbortSignal.timeout(300_000),
       })
       if (response.ok) {
         const { text } = await response.json()

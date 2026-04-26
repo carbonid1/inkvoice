@@ -1,5 +1,6 @@
 'use client'
 
+import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
 import { Button, toast } from '@carbonid1/design-system'
 import { Play } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -59,6 +60,14 @@ export const TranscriptionReview = ({
   const [previewing, setPreviewing] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const previewUrlRef = useRef<string | null>(null)
+  const lifecycleState = useTTSLifecycleStore(s => s.state)
+
+  const previewLabel =
+    !previewing
+      ? 'Preview'
+      : lifecycleState === 'starting' || lifecycleState === 'stopped'
+        ? 'Starting voice engine…'
+        : 'Generating…'
 
   // Revoke any pending blob URL if the form closes without Save
   useEffect(
@@ -196,7 +205,7 @@ export const TranscriptionReview = ({
           loading={previewing}
         >
           <Play className="size-3" />
-          {previewing ? 'Generating...' : 'Preview'}
+          {previewLabel}
         </Button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import net from 'net'
 
-const findAvailablePort = (): Promise<number> =>
+export const findAvailablePort = (): Promise<number> =>
   new Promise((resolve, reject) => {
     const server = net.createServer()
     server.listen(0, '127.0.0.1', () => {
@@ -17,11 +17,11 @@ const findAvailablePort = (): Promise<number> =>
 
 export type Ports = {
   nextJs: number
-  python: number
+  controlServer: number
 }
 
 export const allocatePorts = async (): Promise<Ports> => {
   const nextJs = await findAvailablePort()
-  const python = await findAvailablePort()
-  return { nextJs, python }
+  const controlServer = await findAvailablePort()
+  return { nextJs, controlServer }
 }

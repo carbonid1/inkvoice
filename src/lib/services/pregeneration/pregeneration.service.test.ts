@@ -62,6 +62,15 @@ vi.mock('@/lib/services/book/book.service', () => ({
 vi.mock('@/lib/services/tts/tts.server', () => ({
   getTTSService: () => mockTtsService,
 }))
+
+const mockPythonClient = vi.hoisted(() => ({
+  fetch: vi.fn(),
+  getStatus: vi.fn(),
+  getCurrentInstanceId: vi.fn().mockReturnValue(1),
+}))
+vi.mock('@/lib/services/pythonClient/pythonClient', () => ({
+  getPythonClient: () => mockPythonClient,
+}))
 vi.mock('@/lib/services/cache/cache.service', () => ({
   getCacheService: () => mockCacheService,
 }))
@@ -95,6 +104,11 @@ describe('pregenWorker', () => {
       ok: true,
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
     })
+    mockPythonClient.fetch.mockResolvedValue({
+      ok: true,
+      arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+    })
+    mockPythonClient.getCurrentInstanceId.mockReturnValue(1)
     resetPregenWorker()
     // Default: getJob returns in_progress (inner loop DB check)
     mockPregenQueue.getJob.mockResolvedValue(makeJobResult({ status: 'in_progress' }))
