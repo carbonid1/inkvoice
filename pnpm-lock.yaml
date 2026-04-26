@@ -70,8 +70,8 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0(@stylistic/eslint-plugin@3.1.0(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint-config-next@16.2.2(@typescript-eslint/parser@8.59.0(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.4(jiti@2.6.1))
       '@carbonid1/tsconfig':
-        specifier: ^0.2.1
-        version: 0.2.1(typescript@6.0.2)
+        specifier: ^0.3.0
+        version: 0.3.0(typescript@6.0.2)
       '@playwright/cli':
         specifier: ^0.1.8
         version: 0.1.8
@@ -377,8 +377,8 @@ packages:
       eslint-plugin-storybook:
         optional: true
 
-  '@carbonid1/tsconfig@0.2.1':
-    resolution: {integrity: sha512-ttBPqTf0h3qC2U5vbuGs8NguYW6OJ2UlfEDx5ehFSGNvS/4xlZcWIVeErVGkKxshPQkmafaKH8Do4Ai+GXMUbQ==}
+  '@carbonid1/tsconfig@0.3.0':
+    resolution: {integrity: sha512-n4QjRRfQI2YMAxeWdCLS74YWXKARJ80RShBpnoUdL4ydXfIT7jpZpTtTvkc4vd0GWOjpVk6/cPpSOfTQ2O7SKQ==}
     peerDependencies:
       typescript: ^5.0.0 || ^6.0.0
 
@@ -6244,7 +6244,7 @@ snapshots:
       eslint-config-prettier: 10.1.8(eslint@9.39.4(jiti@2.6.1))
       eslint-import-resolver-typescript: 4.4.4(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1))
 
-  '@carbonid1/tsconfig@0.2.1(typescript@6.0.2)':
+  '@carbonid1/tsconfig@0.3.0(typescript@6.0.2)':
     dependencies:
       typescript: 6.0.2
 
