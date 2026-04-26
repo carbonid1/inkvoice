@@ -1,0 +1,7 @@
+onlyBuiltDependencies:
+  - '@carbonid1/design-system'
+  - '@prisma/engines'
+  - better-sqlite3
+  - electron
+  - lefthook
+  - prisma

@@ -2,6 +2,7 @@
   "name": "inkvoice",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.28.1",
   "scripts": {
     "dev": "./scripts/start.sh",
     "dev:next": "portless run next dev",
@@ -91,15 +92,5 @@
     "tsup": "^8.5.1",
     "vite": "^8.0.9",
     "vitest": "^4.1.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@carbonid1/design-system",
-      "@prisma/engines",
-      "better-sqlite3",
-      "electron",
-      "lefthook",
-      "prisma"
-    ]
   }
 }
