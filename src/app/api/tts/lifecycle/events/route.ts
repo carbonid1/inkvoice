@@ -1,5 +1,4 @@
 import { makeSSEResponse } from '@/lib/helpers/sseResponse/sseResponse'
-import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,9 +8,10 @@ export const GET = async () => {
   const url = controlUrl()
 
   if (!url) {
-    const status = await getPythonClient().getStatus()
+    // Dev mode: Python is always-on, so the pill should stay hidden.
+    // Emit a single 'stopped' snapshot so the hook treats this as no-chrome.
     return makeSSEResponse(enqueue => {
-      enqueue.data(status)
+      enqueue.data({ state: 'stopped', instanceId: 0 })
     })
   }
 
