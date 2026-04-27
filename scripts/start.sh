@@ -93,7 +93,7 @@ pnpm dev:next &
 NEXT_PID=$!
 
 printf "\n${GREEN}InkVoice is running!${NC}\n"
-printf "  Frontend: ${YELLOW}%s${NC} (branch-prefixed in worktrees)\n" "$PORTLESS_URL"
+printf "  Frontend: ${YELLOW}%s${NC}\n" "$PORTLESS_URL"
 printf "  Control:  ${YELLOW}%s${NC} (Python TTS lazy-spawned on demand)\n" "$INKVOICE_PYTHON_CONTROL_URL"
 printf "\nPress Ctrl+C to stop both servers.\n"
 

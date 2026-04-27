@@ -35,7 +35,6 @@ const config = [
       'scripts/dev-control-plane.ts',
       'dist/**',
       'dist-*/**',
-      '.claude/worktrees/**',
     ],
   },
 ]

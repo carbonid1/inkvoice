@@ -1,6 +1,5 @@
 @import '@carbonid1/design-system/themes/reader';
 @import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
 
 /* InkVoice-specific keyframes */
 @keyframes fade-scale-in {
