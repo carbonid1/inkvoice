@@ -88,7 +88,6 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "prisma": "^7.7.0",
-    "shadcn": "^4.3.1",
     "storybook": "^10.3.5",
     "tsup": "^8.5.1",
     "vite": "^8.0.9",
