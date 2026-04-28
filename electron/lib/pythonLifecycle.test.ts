@@ -1,11 +1,7 @@
 import { ChildProcess } from 'child_process'
 import { EventEmitter } from 'events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  createPythonLifecycle,
-  PythonLifecycleDeps,
-  StateChangeEvent,
-} from './pythonLifecycle'
+import { createPythonLifecycle, PythonLifecycleDeps, StateChangeEvent } from './pythonLifecycle'
 
 type FakeProc = EventEmitter & { kill: ReturnType<typeof vi.fn>; killed: boolean }
 

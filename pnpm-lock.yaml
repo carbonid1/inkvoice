@@ -138,9 +138,6 @@ importers:
       prettier:
         specifier: ^3.8.3
         version: 3.8.3
-      prettier-plugin-organize-imports:
-        specifier: ^4.3.0
-        version: 4.3.0(prettier@3.8.3)(typescript@6.0.2)
       prettier-plugin-tailwindcss:
         specifier: ^0.7.2
         version: 0.7.2(prettier-plugin-organize-imports@4.3.0(prettier@3.8.3)(typescript@6.0.2))(prettier@3.8.3)
@@ -9683,6 +9680,7 @@ snapshots:
     dependencies:
       prettier: 3.8.3
       typescript: 6.0.2
+    optional: true
 
   prettier-plugin-tailwindcss@0.7.2(prettier-plugin-organize-imports@4.3.0(prettier@3.8.3)(typescript@6.0.2))(prettier@3.8.3):
     dependencies:

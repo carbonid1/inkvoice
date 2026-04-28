@@ -149,7 +149,11 @@ export const startServers = async (ports: Ports): Promise<StartResult> => {
   state.pythonLifecycle = lifecycle
   state.controlServer = controlServer
 
-  const nextReady = await pollHealth(`http://${LOCALHOST}:${ports.nextJs}`, 'Next.js', STARTUP_TIMEOUT_MS)
+  const nextReady = await pollHealth(
+    `http://${LOCALHOST}:${ports.nextJs}`,
+    'Next.js',
+    STARTUP_TIMEOUT_MS,
+  )
   if (!nextReady) {
     return { ok: false, error: 'Failed to start: Next.js server' }
   }

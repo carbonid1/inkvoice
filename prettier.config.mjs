@@ -5,8 +5,7 @@ const config = {
   trailingComma: 'all',
   jsxSingleQuote: false,
   semi: false,
-  plugins: ['prettier-plugin-organize-imports', 'prettier-plugin-tailwindcss'],
-  organizeImportsSkipDestructiveCodeActions: true,
+  plugins: ['prettier-plugin-tailwindcss'],
 }
 
 export default config
