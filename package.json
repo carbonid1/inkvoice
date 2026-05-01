@@ -29,7 +29,7 @@
     "electron:dev": "pnpm run build:electron && electron dist-electron/main.js",
     "electron:build": "./scripts/build-electron.sh",
     "build:electron": "tsup electron/main.ts electron/preload.ts --outDir dist-electron --format cjs --clean --external electron",
-    "electron:reinstall": "rm -rf /Applications/InkVoice.app && open dist/InkVoice-1.0.0-arm64.dmg"
+    "electron:reinstall": "pkill -f InkVoice; rm -rf ~/Applications/InkVoice.app && cp -R dist/mac-arm64/InkVoice.app ~/Applications/ && open ~/Applications/InkVoice.app"
   },
   "main": "dist-electron/main.js",
   "imports": {
