@@ -4,8 +4,8 @@ import time
 from pathlib import Path
 from typing import Optional, Tuple
 
+import soundfile as sf
 import torch
-import torchaudio
 
 from api.app.config import settings
 from api.services.alignment_service import get_alignment_service
@@ -101,9 +101,12 @@ class TTSService:
 
             duration_ms = int(wav.shape[1] / OMNIVOICE_SAMPLE_RATE * 1000)
 
-            # Convert tensor to WAV bytes, then encode to Opus
+            # Convert tensor to WAV bytes, then encode to Opus.
+            # torchaudio>=2.10 routes save() through torchcodec, which rejects
+            # unnamed BytesIO ("check the desired extension"). Use soundfile
+            # directly — it accepts BytesIO when format is passed explicitly.
             buffer = io.BytesIO()
-            torchaudio.save(buffer, wav, OMNIVOICE_SAMPLE_RATE, format="wav")
+            sf.write(buffer, wav.squeeze(0).cpu().numpy(), OMNIVOICE_SAMPLE_RATE, format="WAV")
             buffer.seek(0)
             opus_bytes = encode_wav_to_opus(buffer.read())
 
