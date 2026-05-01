@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import threading
+import traceback
 import warnings
 
 # Suppress non-actionable library warnings:
@@ -75,6 +76,7 @@ def text_to_speech(request: TTSRequest) -> Response:
     except FileNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        traceback.print_exc(file=sys.stderr)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -100,6 +102,7 @@ async def transcribe_audio(request: Request, language: str | None = None):
         del model
         return {"text": result["text"].strip()}
     except Exception as e:
+        traceback.print_exc(file=sys.stderr)
         raise HTTPException(status_code=500, detail=str(e))
 
 

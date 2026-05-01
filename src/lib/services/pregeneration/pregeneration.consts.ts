@@ -1,10 +1,10 @@
 export const WARMUP_TIMEOUT_MS = 180_000
 
-// Long enough (~500 chars) to exercise the full inference path, not just weight
-// loading — a short string can return before the model is actually ready for
-// realistic paragraph-sized requests.
-export const WARMUP_TEXT =
-  'The morning sun cast long shadows across the cobblestone street as the old merchant opened his shop for the first time in years. Dust motes danced in the golden light that streamed through the windows, illuminating rows of forgotten treasures on the shelves. He paused for a moment, breathing in the familiar scent of aged wood and leather, remembering the countless customers who had once filled this space with laughter and conversation. Today would be different, he told himself, adjusting the sign that hung crookedly above the door.'
+// One realistic sentence: long enough that OmniVoice returns a normal 2-D
+// torch tensor (very short inputs return 1-D numpy and crash post-processing),
+// short enough to stay under the 30 s audio_chunk_threshold that puts inference
+// on the chunked-generate path (its peak MPS allocation OOMs on 24 GB Macs).
+export const WARMUP_TEXT = 'This is a short sample sentence used to warm up the model.'
 
 export const POLL_INTERVAL_MS = 5000
 export const MIN_DISK_FREE_BYTES = 2 * 1024 * 1024 * 1024 // 2 GB

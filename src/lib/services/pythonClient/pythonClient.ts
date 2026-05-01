@@ -48,6 +48,10 @@ export interface PythonClientDeps {
   devBaseUrl: string
 }
 
+// Idle is 5 min on the lifecycle; touch every minute keeps it alive without
+// hugging the timer boundary.
+const TOUCH_INTERVAL_MS = 60_000
+
 export const createPythonClient = (deps: PythonClientDeps): PythonClient => {
   let cachedUrl: string | null = null
   let currentInstanceId = 0
@@ -73,7 +77,20 @@ export const createPythonClient = (deps: PythonClientDeps): PythonClient => {
     return body.url
   }
 
+  // Cached URLs bypass /ensure, which means the lifecycle's idle timer can fire
+  // mid-generation and SIGTERM Python while it's still on MPS — old + new
+  // processes briefly co-exist on unified memory, blowing the budget. Heartbeat
+  // resets the idle timer for as long as a request is in flight.
+  const touchControl = (): void => {
+    if (deps.controlUrl === null) return
+    fetch(`${deps.controlUrl}/touch`, { method: 'POST' }).catch(() => {})
+  }
+
   const clientFetch = async (path: string, init?: RequestInit): Promise<Response> => {
+    // /ensure already touches the lifecycle; skip the upfront touch on cache miss.
+    if (cachedUrl !== null) touchControl()
+    const heartbeat = deps.controlUrl !== null ? setInterval(touchControl, TOUCH_INTERVAL_MS) : null
+
     const attempt = async (): Promise<Response> => {
       const baseUrl = await ensureUrl()
 
@@ -86,6 +103,8 @@ export const createPythonClient = (deps: PythonClientDeps): PythonClient => {
       if (!isConnRefused(e)) throw e
       cachedUrl = null
       return await attempt()
+    } finally {
+      if (heartbeat) clearInterval(heartbeat)
     }
   }
 

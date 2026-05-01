@@ -74,6 +74,11 @@ const route = async (
   if (method === 'POST' && url === '/ensure') return handleEnsure(req, lifecycle, res)
   if (method === 'GET' && url === '/status') return handleStatus(lifecycle, res)
   if (method === 'GET' && url === '/events') return handleEvents(lifecycle, res)
+  if (method === 'POST' && url === '/touch') {
+    lifecycle.touch()
+    writeJson(res, 200, {})
+    return
+  }
   if (method === 'POST' && url === '/release') {
     // Intentional no-op — idle timer handles teardown
     writeJson(res, 200, {})

@@ -1,7 +1,25 @@
-omnivoice
-fastapi
-uvicorn[standard]
-python-multipart
-pydantic-settings
-pytest
-uroman
+# Versions pinned to ~2026-04-01 — fresh `pip install` previously pulled
+# transformers 5.7 + omnivoice 0.1.5, which OOM on 24 GB MPS unified memory.
+# The values below were the latest releases on/before 2026-04-01 (or, for
+# omnivoice which didn't exist before Apr 2, the version current when the
+# OmniVoice migration commit was authored).
+#
+# Heavy ML deps — these dominate MPS memory and must be reproducible across
+# builds. Pinned in addition to the top-level packages because they're
+# transitively pulled by omnivoice with loose constraints.
+torch==2.11.0
+torchaudio==2.11.0
+torchcodec==0.11.0
+transformers==5.4.0
+numpy==2.4.4
+safetensors==0.7.0
+accelerate==1.13.0
+
+# App deps
+omnivoice==0.1.3
+fastapi==0.135.2
+uvicorn[standard]==0.42.0
+python-multipart==0.0.22
+pydantic-settings==2.13.1
+pytest==9.0.2
+uroman==1.3.1.1

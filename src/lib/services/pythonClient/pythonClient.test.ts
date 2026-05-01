@@ -30,7 +30,7 @@ describe('pythonClient', () => {
     expect(res.status).toBe(200)
   })
 
-  it('caches the URL across calls', async () => {
+  it('caches the URL across calls and touches the lifecycle on cache hits', async () => {
     fetchSpy
       .mockResolvedValueOnce(
         new Response(
@@ -44,8 +44,10 @@ describe('pythonClient', () => {
     await client.fetch('/tts')
     await client.fetch('/transcribe')
 
-    expect(fetchSpy).toHaveBeenCalledTimes(3)
+    // ensure + /tts (cache miss), then touch + /transcribe (cache hit) = 4 calls
+    expect(fetchSpy).toHaveBeenCalledTimes(4)
     expect(fetchSpy.mock.calls[0]?.[0]).toBe('http://127.0.0.1:9999/ensure')
+    expect(fetchSpy.mock.calls[2]?.[0]).toBe('http://127.0.0.1:9999/touch')
   })
 
   it('re-ensures on ECONNREFUSED', async () => {
