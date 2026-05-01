@@ -4,7 +4,7 @@ Local EPUB reader with TTS voice generation.
 
 ## Run
 
-Prereqs: Node 20+, pnpm 9+, Python 3.11+, [portless](https://github.com/vercel-labs/portless) (`npm i -g portless`).
+Prereqs: Node 20+, pnpm 9+, Python 3.11+.
 
 ```bash
 pnpm install

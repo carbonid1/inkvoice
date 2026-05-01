@@ -10,8 +10,8 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_DIR"
 
-PORTLESS_PORT=1355
-PORTLESS_URL="https://inkvoice.localhost:${PORTLESS_PORT}"
+NEXT_PORT=49813
+NEXT_URL="http://localhost:${NEXT_PORT}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -20,17 +20,6 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 printf "${GREEN}Starting InkVoice...${NC}\n"
-
-# Check if portless is installed
-if ! command -v portless >/dev/null 2>&1; then
-    printf "${RED}portless is not installed.${NC}\n"
-    printf "InkVoice uses portless to serve the app at a stable %s URL.\n" "$PORTLESS_URL"
-    printf "Install it globally (a single shared daemon serves every project on the machine):\n"
-    printf "  ${YELLOW}npm install -g portless${NC}\n"
-    printf "Then start the proxy once:\n"
-    printf "  ${YELLOW}portless proxy start --port %s --https${NC}\n" "$PORTLESS_PORT"
-    exit 1
-fi
 
 # Check if venv exists
 if [ ! -d "venv" ]; then
@@ -88,12 +77,12 @@ node dist-electron/dev-control-plane.js --control-port "$CONTROL_PORT" &
 CONTROL_PID=$!
 
 # Start Next.js
-printf "${GREEN}Starting Next.js via portless...${NC}\n"
+printf "${GREEN}Starting Next.js on :${NEXT_PORT}...${NC}\n"
 pnpm dev:next &
 NEXT_PID=$!
 
 printf "\n${GREEN}InkVoice is running!${NC}\n"
-printf "  Frontend: ${YELLOW}%s${NC}\n" "$PORTLESS_URL"
+printf "  Frontend: ${YELLOW}%s${NC}\n" "$NEXT_URL"
 printf "  Control:  ${YELLOW}%s${NC} (Python TTS lazy-spawned on demand)\n" "$INKVOICE_PYTHON_CONTROL_URL"
 printf "\nPress Ctrl+C to stop both servers.\n"
 
