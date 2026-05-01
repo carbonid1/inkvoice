@@ -1,15 +1,11 @@
-# Versions pinned to ~2026-04-01 — fresh `pip install` previously pulled
-# transformers 5.7 + omnivoice 0.1.5, which OOM on 24 GB MPS unified memory.
-# The values below were the latest releases on/before 2026-04-01 (or, for
-# omnivoice which didn't exist before Apr 2, the version current when the
-# OmniVoice migration commit was authored).
-#
-# Heavy ML deps — these dominate MPS memory and must be reproducible across
-# builds. Pinned in addition to the top-level packages because they're
-# transitively pulled by omnivoice with loose constraints.
-torch==2.11.0
-torchaudio==2.11.0
-torchcodec==0.11.0
+# torch >= 2.9.0 has an MPS allocator regression that balloons driver memory
+# to the watermark cap (~27 GiB on a 32 GB Mac) on the first OmniVoice forward
+# pass, independent of input length. Bisected: 2.8 OK, 2.9/2.10/2.11 OOM.
+# Retest with `dist-python/bin/python3.11 -c "..."` against a real paragraph
+# before bumping. torchcodec is intentionally absent — it only sits on
+# torchaudio>=2.10's save() dispatch, bypassed via soundfile.write.
+torch==2.8.0
+torchaudio==2.8.0
 transformers==5.4.0
 numpy==2.4.4
 safetensors==0.7.0
