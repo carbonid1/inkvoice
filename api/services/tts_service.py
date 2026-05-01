@@ -92,7 +92,10 @@ class TTSService:
                     language=language,
                     class_temperature=0.3,
                 )
-            wav = audio_list[0]  # First tensor from the list, shape (1, T) at 24kHz
+            # OmniVoice returns ndarray for very short input; normalize to (1, T) tensor.
+            wav = torch.as_tensor(audio_list[0])
+            if wav.dim() == 1:
+                wav = wav.unsqueeze(0)
             gen_time_ms = int((time.time() - start) * 1000)
 
             # Run forced alignment to get word-level timestamps
