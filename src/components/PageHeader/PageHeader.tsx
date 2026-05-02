@@ -6,7 +6,7 @@ interface PageHeaderProps {
   noBorder?: boolean
 }
 
-const BASE_CLASSES = 'sticky top-0 z-10 shrink-0 bg-background'
+const BASE_CLASSES = 'shrink-0 bg-background'
 const BORDER_CLASSES = 'border-b border-border'
 
 export const PageHeader = ({ children, className, noBorder }: PageHeaderProps) => {

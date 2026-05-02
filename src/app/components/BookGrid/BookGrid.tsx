@@ -1,13 +1,22 @@
 'use client'
 
-import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import { Fragment, type ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import {
+  Fragment,
+  type ReactNode,
+  type RefObject,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import type { Book } from '@/lib/types/book'
 import { BookCard } from '../BookCard/BookCard'
 
 interface BookGridProps {
   books: Book[]
   onRemove: (bookId: string) => void
+  scrollElementRef: RefObject<HTMLElement | null>
   // Optional cell rendered as the first item (used for the "Add book" tile).
   // Hidden when a search query is active so it doesn't compete with results.
   firstCell?: ReactNode
@@ -36,25 +45,29 @@ const colsForWidth = (width: number): number => {
 
 type GridItem = { kind: 'first-cell' } | { kind: 'book'; book: Book }
 
-export const BookGrid = ({ books, onRemove, firstCell }: BookGridProps) => {
+export const BookGrid = ({ books, onRemove, scrollElementRef, firstCell }: BookGridProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [cols, setCols] = useState(5)
   const [scrollMargin, setScrollMargin] = useState(0)
 
   // One observer drives both: column count derives from container width, and
-  // scrollMargin pins the virtualizer's origin to the grid container's top so
-  // the first row renders below the page header rather than under it.
+  // scrollMargin offsets the virtualizer's origin so rows align with the grid
+  // container's actual position inside the scroll element (e.g. accounts for
+  // sibling content above the grid). The math stays stable across scroll
+  // because (container.top - scrollEl.top) shrinks by exactly scrollEl.scrollTop.
   useLayoutEffect(() => {
     const node = containerRef.current
+    const scrollEl = scrollElementRef.current
 
-    if (!node) return
+    if (!node || !scrollEl) return
 
     const update = (): void => {
       const nextCols = colsForWidth(node.clientWidth)
 
       setCols(prev => (prev === nextCols ? prev : nextCols))
 
-      const top = node.getBoundingClientRect().top + window.scrollY
+      const top =
+        node.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top + scrollEl.scrollTop
 
       setScrollMargin(prev => (prev === top ? prev : top))
     }
@@ -64,8 +77,9 @@ export const BookGrid = ({ books, onRemove, firstCell }: BookGridProps) => {
     const observer = new ResizeObserver(update)
 
     observer.observe(node)
+    observer.observe(scrollEl)
     return () => observer.disconnect()
-  }, [])
+  }, [scrollElementRef])
 
   const items = useMemo<GridItem[]>(
     () =>
@@ -77,8 +91,10 @@ export const BookGrid = ({ books, onRemove, firstCell }: BookGridProps) => {
 
   const rowCount = Math.ceil(items.length / cols)
 
-  const rowVirtualizer = useWindowVirtualizer({
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual returns unstable functions; nothing actionable
+  const rowVirtualizer = useVirtualizer({
     count: rowCount,
+    getScrollElement: () => scrollElementRef.current,
     estimateSize: () => ROW_HEIGHT_ESTIMATE_PX,
     overscan: 3,
     scrollMargin,

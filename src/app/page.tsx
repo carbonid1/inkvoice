@@ -32,6 +32,7 @@ export default function Library() {
   const dragCounterRef = useRef(0)
   const lastDeletedRef = useRef<UndoState | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
   const mounted = useMounted()
 
   const books = useLibraryStore(s => s.books)
@@ -322,7 +323,7 @@ export default function Library() {
         </div>
       </PageHeader>
 
-      <main className="flex-1 overflow-y-auto">
+      <main ref={mainRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl px-4 py-8">
           {(loading || !progressLoaded || !pregenLoaded) && (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -364,6 +365,7 @@ export default function Library() {
                 <BookGrid
                   books={visibleBooks}
                   onRemove={handleRemove}
+                  scrollElementRef={mainRef}
                   firstCell={
                     isSearching ? undefined : (
                       <AddBookCard
