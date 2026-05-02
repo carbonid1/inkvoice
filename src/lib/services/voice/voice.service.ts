@@ -5,13 +5,14 @@ import { env } from '@/lib/config/env'
 import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
 import { swallowRecordNotFound } from '../../helpers/swallowRecordNotFound/swallowRecordNotFound'
 import { prisma } from '../db/db.service'
+import { voicePreferenceService } from '../voice-preference/voice-preference.service'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
 import { normalizeTags } from './helpers/normalizeTags/normalizeTags'
 import { prettifyVoiceName } from './helpers/prettifyVoiceName/prettifyVoiceName'
 import { slugifyVoiceName } from './helpers/slugifyVoiceName/slugifyVoiceName'
 import { validateVoiceName } from './helpers/validateVoiceName/validateVoiceName'
 import { validateWav } from './helpers/validateWav/validateWav'
-import { APP_VOICES, isAppVoice } from './voice.consts'
+import { APP_VOICES, isAppVoice, UNDO_WINDOW_MS } from './voice.consts'
 import type { VoiceEntry, VoiceMetadata, VoiceType } from './voice.types'
 
 interface UploadSuccess {
@@ -292,7 +293,7 @@ export const createVoiceService = (voicesDir: string) => {
 
     if (!(await dirExists(customPath))) return { ok: false, reason: 'not_found' }
 
-    await markVoiceDeleted(name)
+    await Promise.all([markVoiceDeleted(name), voicePreferenceService.removeByVoiceName(name)])
 
     return { ok: true }
   }
@@ -318,6 +319,8 @@ export const createVoiceService = (voicesDir: string) => {
   }
 
   const resolveVoicePath = async (name: string): Promise<string | null> => {
+    if (!isAppVoice(name) && (await isDeleted(name))) return null
+
     const appPath = path.join(voicesDir, name, 'source.wav')
 
     if (await fileExists(appPath)) return appPath
@@ -330,6 +333,8 @@ export const createVoiceService = (voicesDir: string) => {
   }
 
   const resolveSamplePath = async (name: string): Promise<string | null> => {
+    if (!isAppVoice(name) && (await isDeleted(name))) return null
+
     const appPath = path.join(voicesDir, name, 'sample.wav')
 
     if (await fileExists(appPath)) return appPath
@@ -339,6 +344,32 @@ export const createVoiceService = (voicesDir: string) => {
     if (await fileExists(customPath)) return customPath
 
     return null
+  }
+
+  const hardDeleteVoice = async (name: string): Promise<boolean> => {
+    try {
+      await Promise.all([
+        rm(path.join(customDir, name), { recursive: true, force: true }),
+        voicePreferenceService.removeByVoiceName(name),
+      ])
+      await swallowRecordNotFound(() => prisma.voiceMetadata.delete({ where: { name } }))
+      return true
+    } catch (error) {
+      console.warn(`[voice] Failed to hard-delete ${name}:`, error)
+      return false
+    }
+  }
+
+  const cleanupExpiredDeletedVoices = async (): Promise<{ removed: number }> => {
+    const cutoff = Date.now() - UNDO_WINDOW_MS
+    const expired = await prisma.voiceMetadata.findMany({
+      where: { deletedAt: { not: null, lt: cutoff } },
+      select: { name: true },
+    })
+
+    const results = await Promise.all(expired.map(({ name }) => hardDeleteVoice(name)))
+
+    return { removed: results.filter(Boolean).length }
   }
 
   const saveSample = async (name: string, buffer: Buffer): Promise<void> => {
@@ -384,6 +415,7 @@ export const createVoiceService = (voicesDir: string) => {
     saveSample,
     saveTranscript,
     updateVoiceTags,
+    cleanupExpiredDeletedVoices,
   }
 }
 

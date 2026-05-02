@@ -1,9 +1,10 @@
 'use client'
 
 import { getModKey, toast } from '@carbonid1/design-system'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
+import { UNDO_WINDOW_MS } from '@/lib/services/voice/voice.consts'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { VoiceList } from './components/VoiceList'
@@ -33,6 +34,20 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
 
   const [hiddenVoices, setHiddenVoices] = useState<Set<string>>(new Set())
   const lastDeletedRef = useRef<UndoState | null>(null)
+  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearUndoTimeout = useCallback(() => {
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current)
+      undoTimeoutRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/voices/cleanup-expired', { method: 'POST' }).catch(() => {})
+
+    return clearUndoTimeout
+  }, [clearUndoTimeout])
 
   const unhideVoice = useCallback((name: string) => {
     setHiddenVoices(prev => {
@@ -58,6 +73,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
 
     if (!undoState) return
     lastDeletedRef.current = null
+    clearUndoTimeout()
 
     unhideVoice(undoState.voiceName)
     toast.dismiss()
@@ -70,7 +86,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
     }
     restoreVoiceAssignments(undoState)
     onVoicesChanged()
-  }, [unhideVoice, restoreVoice, restoreVoiceAssignments, onVoicesChanged])
+  }, [unhideVoice, clearUndoTimeout, restoreVoice, restoreVoiceAssignments, onVoicesChanged])
 
   useHotkeys('mod+z', handleUndo)
 
@@ -86,6 +102,11 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
       const undoState: UndoState = { voiceName, previousVoice, previousBookVoices }
 
       lastDeletedRef.current = undoState
+      clearUndoTimeout()
+      undoTimeoutRef.current = setTimeout(() => {
+        lastDeletedRef.current = null
+        undoTimeoutRef.current = null
+      }, UNDO_WINDOW_MS)
 
       toast.dismiss()
       toast('Voice removed', {
@@ -96,7 +117,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
             handleUndo()
           },
         },
-        duration: 5000,
+        duration: UNDO_WINDOW_MS,
       })
 
       deleteVoice(voiceName).then(deleted => {
@@ -111,6 +132,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
     },
     [
       clearVoiceFromAllBooks,
+      clearUndoTimeout,
       deleteVoice,
       handleUndo,
       unhideVoice,

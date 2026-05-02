@@ -2,6 +2,8 @@ import type { VoiceMetadata } from './voice.types'
 
 export const DEFAULT_VOICE = 'clara'
 
+export const UNDO_WINDOW_MS = 30_000
+
 export const APP_VOICES: Record<string, VoiceMetadata> = {
   celine: { displayName: 'Celine', tags: ['american', 'deliberate', 'female'] },
   clara: { displayName: 'Clara', tags: ['british', 'clear', 'female', 'warm'] },

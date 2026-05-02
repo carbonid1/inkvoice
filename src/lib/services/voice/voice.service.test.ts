@@ -9,6 +9,10 @@ const mockPrisma = vi.hoisted(() => ({
     findMany: vi.fn().mockResolvedValue([]),
     upsert: vi.fn().mockResolvedValue({}),
     update: vi.fn().mockResolvedValue({}),
+    delete: vi.fn().mockResolvedValue({}),
+  },
+  voicePreference: {
+    deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
   },
 }))
 
@@ -52,6 +56,8 @@ describe('voiceService', () => {
     mockPrisma.voiceMetadata.findMany.mockResolvedValue([])
     mockPrisma.voiceMetadata.upsert.mockResolvedValue({})
     mockPrisma.voiceMetadata.update.mockResolvedValue({})
+    mockPrisma.voiceMetadata.delete.mockResolvedValue({})
+    mockPrisma.voicePreference.deleteMany.mockResolvedValue({ count: 0 })
 
     voicesDir = await fs.mkdtemp(path.join(os.tmpdir(), 'voices-'))
 
@@ -224,6 +230,10 @@ describe('voiceService', () => {
         update: expect.objectContaining({ deletedAt: expect.any(Number) }),
       }),
     )
+
+    expect(mockPrisma.voicePreference.deleteMany).toHaveBeenCalledWith({
+      where: { voiceName: 'my-voice' },
+    })
   })
 
   it('refuses to delete an app voice', async () => {
@@ -356,5 +366,49 @@ describe('voiceService', () => {
     const voicePath = await service.resolveVoicePath('nope')
 
     expect(voicePath).toBeNull()
+  })
+
+  it('returns null from resolveVoicePath when voice is soft-deleted', async () => {
+    const service = createVoiceService(voicesDir)
+
+    mockPrisma.voiceMetadata.findUnique.mockResolvedValueOnce({ deletedAt: Date.now() })
+    const voicePath = await service.resolveVoicePath('my-voice')
+
+    expect(voicePath).toBeNull()
+  })
+
+  it('cleanup skips voices still inside the undo window', async () => {
+    const service = createVoiceService(voicesDir)
+
+    mockPrisma.voiceMetadata.findMany.mockResolvedValueOnce([])
+
+    const result = await service.cleanupExpiredDeletedVoices()
+
+    expect(result).toEqual({ removed: 0 })
+    const dirStat = await fs.stat(path.join(voicesDir, 'custom', 'my-voice'))
+
+    expect(dirStat.isDirectory()).toBe(true)
+    expect(mockPrisma.voiceMetadata.delete).not.toHaveBeenCalled()
+    expect(mockPrisma.voicePreference.deleteMany).not.toHaveBeenCalled()
+  })
+
+  it('cleanup hard-deletes voices past the undo window', async () => {
+    const service = createVoiceService(voicesDir)
+
+    mockPrisma.voiceMetadata.findMany.mockResolvedValueOnce([{ name: 'my-voice' }])
+
+    const result = await service.cleanupExpiredDeletedVoices()
+
+    expect(result).toEqual({ removed: 1 })
+
+    await expect(fs.stat(path.join(voicesDir, 'custom', 'my-voice'))).rejects.toThrow()
+
+    expect(mockPrisma.voicePreference.deleteMany).toHaveBeenCalledWith({
+      where: { voiceName: 'my-voice' },
+    })
+
+    expect(mockPrisma.voiceMetadata.delete).toHaveBeenCalledWith({
+      where: { name: 'my-voice' },
+    })
   })
 })
