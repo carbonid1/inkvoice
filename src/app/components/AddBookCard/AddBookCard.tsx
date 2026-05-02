@@ -6,9 +6,13 @@ import { useRef } from 'react'
 interface AddBookCardProps {
   onUpload: (files: FileList) => void
   uploading: boolean
+  progress?: { current: number; total: number } | null
 }
 
-export const AddBookCard = ({ onUpload, uploading }: AddBookCardProps) => {
+export const AddBookCard = ({ onUpload, uploading, progress }: AddBookCardProps) => {
+  const showCount = progress && progress.total > 1
+  const label = showCount ? `Uploading ${progress.current} / ${progress.total}` : 'Uploading...'
+
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleClick = () => {
@@ -40,11 +44,11 @@ export const AddBookCard = ({ onUpload, uploading }: AddBookCardProps) => {
       }}
       className="border-border bg-background hover:border-primary-border flex h-full cursor-pointer flex-col rounded-lg border-2 border-dashed p-4 transition-colors"
     >
-      <div className="mb-3 flex aspect-[2/3] w-full flex-col items-center justify-center gap-2 rounded-sm">
+      <div className="mb-3 flex aspect-2/3 w-full flex-col items-center justify-center gap-2 rounded-sm">
         {uploading ? (
           <>
             <Loader2 className="text-muted-foreground size-10 animate-spin" />
-            <span className="text-muted-foreground text-sm">Uploading...</span>
+            <span className="text-muted-foreground text-sm">{label}</span>
           </>
         ) : (
           <>

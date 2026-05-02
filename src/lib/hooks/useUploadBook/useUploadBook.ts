@@ -3,61 +3,81 @@
 import { useCallback, useMemo, useState } from 'react'
 import { type Book, bookSchema } from '@/lib/types/book'
 
+export interface UploadFailure {
+  filename: string
+  error: string
+  code?: string
+}
+
+export interface UploadResult {
+  successes: Book[]
+  failures: UploadFailure[]
+}
+
+export interface UploadProgress {
+  current: number
+  total: number
+}
+
 interface UploadBookState {
   uploading: boolean
-  error: string | null
-  upload: (files: File[]) => Promise<Book[]>
-  reset: () => void
+  progress: UploadProgress | null
+  upload: (files: File[], onBookUploaded?: (book: Book) => void) => Promise<UploadResult>
 }
 
 export const useUploadBook = (): UploadBookState => {
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [progress, setProgress] = useState<UploadProgress | null>(null)
 
-  const upload = useCallback(async (files: File[]): Promise<Book[]> => {
-    setUploading(true)
-    setError(null)
+  const upload = useCallback(
+    async (files: File[], onBookUploaded?: (book: Book) => void): Promise<UploadResult> => {
+      setUploading(true)
+      setProgress({ current: 0, total: files.length })
 
-    const results: Book[] = []
+      const successes: Book[] = []
+      const failures: UploadFailure[] = []
 
-    try {
-      for (const file of files) {
-        const formData = new FormData()
+      for (const [index, file] of files.entries()) {
+        setProgress({ current: index + 1, total: files.length })
 
-        formData.append('file', file)
+        try {
+          const formData = new FormData()
 
-        const response = await fetch('/api/books', {
-          method: 'POST',
-          body: formData,
-        })
+          formData.append('file', file)
 
-        const data = await response.json()
+          const response = await fetch('/api/books', { method: 'POST', body: formData })
+          const data = await response.json().catch(() => null)
 
-        if (!response.ok) {
-          setError(data.error ?? 'Upload failed')
-          break
+          if (!response.ok) {
+            failures.push({
+              filename: file.name,
+              error: data?.error ?? `Upload failed (${response.status})`,
+              code: data?.code,
+            })
+            continue
+          }
+
+          const parsed = bookSchema.safeParse(data)
+
+          if (!parsed.success) {
+            failures.push({ filename: file.name, error: 'Invalid server response' })
+            continue
+          }
+
+          successes.push(parsed.data)
+          onBookUploaded?.(parsed.data)
+        } catch {
+          failures.push({ filename: file.name, error: 'Network error' })
         }
-
-        const parsed = bookSchema.safeParse(data)
-
-        if (!parsed.success) {
-          setError('Invalid server response')
-          break
-        }
-        results.push(parsed.data)
       }
-    } catch {
-      setError('Failed to upload book')
-    } finally {
+
       setUploading(false)
-    }
+      setProgress(null)
 
-    return results
-  }, [])
+      return { successes, failures }
+    },
+    [],
+  )
 
-  const reset = useCallback(() => {
-    setError(null)
-  }, [])
-
-  return useMemo(() => ({ uploading, error, upload, reset }), [uploading, error, upload, reset])
+  return useMemo(() => ({ uploading, progress, upload }), [uploading, progress, upload])
 }

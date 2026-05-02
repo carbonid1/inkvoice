@@ -38,7 +38,7 @@ export default function Library() {
   const pregenLoaded = usePregenStore(s => s.loaded)
   const setEstimates = usePregenStore(s => s.setEstimates)
 
-  const { uploading, error: uploadError, upload, reset: resetUpload } = useUploadBook()
+  const { uploading, progress: uploadProgress, upload } = useUploadBook()
   const { deleteBook, restoreBook } = useDeleteBook()
 
   const fetchBooks = useCallback(async () => {
@@ -122,30 +122,30 @@ export default function Library() {
     }
   }, [books, setEstimates])
 
-  useEffect(() => {
-    if (uploadError) {
-      toast.error(uploadError)
-      resetUpload()
-    }
-  }, [uploadError, resetUpload])
-
   const handleUpload = useCallback(
     async (files: FileList) => {
       const fileArray = Array.from(files).filter(f => f.name.endsWith('.epub'))
 
       if (fileArray.length === 0) return
 
-      const uploaded = await upload(fileArray)
-
-      if (uploaded.length > 0) {
-        addBooks(uploaded)
+      const { failures } = await upload(fileArray, book => {
+        addBooks([book])
         setHiddenBooks(prev => {
+          if (!prev.has(book.id)) return prev
           const next = new Set(prev)
 
-          uploaded.forEach(b => next.delete(b.id))
+          next.delete(book.id)
           return next
         })
-      }
+      })
+
+      failures.forEach(failure => {
+        toast.error(failure.filename, {
+          description: failure.error,
+          duration: Infinity,
+          closeButton: true,
+        })
+      })
     },
     [upload, addBooks],
   )
@@ -307,7 +307,7 @@ export default function Library() {
             {sortedBooks.map(book => (
               <BookCard key={book.id} book={book} onRemove={handleRemove} />
             ))}
-            <AddBookCard onUpload={handleUpload} uploading={uploading} />
+            <AddBookCard onUpload={handleUpload} uploading={uploading} progress={uploadProgress} />
           </div>
         )}
       </main>

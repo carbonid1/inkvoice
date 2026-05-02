@@ -11,18 +11,10 @@ describe('useUploadBook', () => {
     expect(result.current.upload).toBe(first)
   })
 
-  it('reset callback is stable across rerenders', () => {
-    const { result, rerender } = renderHook(() => useUploadBook())
-    const first = result.current.reset
-
-    rerender()
-    expect(result.current.reset).toBe(first)
-  })
-
   it('initializes with correct defaults', () => {
     const { result } = renderHook(() => useUploadBook())
 
     expect(result.current.uploading).toBe(false)
-    expect(result.current.error).toBeNull()
+    expect(result.current.progress).toBeNull()
   })
 })
