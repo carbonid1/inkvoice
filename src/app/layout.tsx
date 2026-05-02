@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={literata.variable} suppressHydrationWarning>
-      <body className="min-h-screen">
+      <body className="h-screen overflow-hidden">
         <ThemeProvider>
           <PregenSSEProvider>{children}</PregenSSEProvider>
           <BuildInfo />

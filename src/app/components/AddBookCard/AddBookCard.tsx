@@ -52,7 +52,7 @@ export const AddBookCard = ({ onUpload, uploading, progress }: AddBookCardProps)
           </>
         ) : (
           <>
-            <Plus className="text-muted-foreground size-10" />
+            <Plus className="text-primary size-10" />
             <span className="text-muted-foreground text-sm">Add Book</span>
           </>
         )}

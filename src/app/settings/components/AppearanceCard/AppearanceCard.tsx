@@ -8,7 +8,7 @@ import {
   useTheme,
 } from '@carbonid1/design-system'
 import { Monitor, Moon, Sun } from 'lucide-react'
-import { useSyncExternalStore } from 'react'
+import { useMounted } from '@/lib/hooks/useMounted/useMounted'
 
 type ThemeOption = SelectOption & { icon: typeof Sun }
 
@@ -17,10 +17,6 @@ const THEME_OPTIONS: ThemeOption[] = [
   { value: 'dark', label: 'Dark', icon: Moon },
   { value: 'system', label: 'System', icon: Monitor },
 ]
-
-const emptySubscribe = () => () => {}
-const getSnapshot = () => true
-const getServerSnapshot = () => false
 
 const renderThemeOption = (option: SelectOption, state: SelectOptionState) => {
   const match = THEME_OPTIONS.find(t => t.value === option.value)
@@ -38,7 +34,7 @@ const renderThemeOption = (option: SelectOption, state: SelectOptionState) => {
 
 export const AppearanceCard = () => {
   const { theme, setTheme } = useTheme()
-  const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot)
+  const mounted = useMounted()
 
   return (
     <section className="border-border bg-background rounded-lg border p-6 shadow-xs">

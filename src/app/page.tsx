@@ -1,13 +1,15 @@
 'use client'
 
-import { buttonVariants, getModKey, toast, Tooltip } from '@carbonid1/design-system'
-import { Search, Settings, Upload } from 'lucide-react'
+import { buttonVariants, getModKey, Kbd, toast, Tooltip } from '@carbonid1/design-system'
+import { Settings, Upload, X } from 'lucide-react'
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { SearchInput } from '@/components/ui/SearchInput/SearchInput'
 import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
 import { useLibrarySearch } from '@/lib/hooks/useLibrarySearch/useLibrarySearch'
+import { useMounted } from '@/lib/hooks/useMounted/useMounted'
 import { useUploadBook } from '@/lib/hooks/useUploadBook/useUploadBook'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
@@ -29,6 +31,8 @@ export default function Library() {
   const [searchQuery, setSearchQuery] = useState('')
   const dragCounterRef = useRef(0)
   const lastDeletedRef = useRef<UndoState | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const mounted = useMounted()
 
   const books = useLibraryStore(s => s.books)
   const setBooks = useLibraryStore(s => s.setBooks)
@@ -162,6 +166,33 @@ export default function Library() {
 
   useHotkeys('mod+z', handleUndo)
 
+  useHotkeys(
+    'mod+f',
+    () => {
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select()
+    },
+    { preventDefault: true, enableOnFormTags: ['input'] },
+  )
+
+  const handleSearchKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key !== 'Escape') return
+      if (searchQuery) {
+        e.preventDefault()
+        setSearchQuery('')
+      } else {
+        e.currentTarget.blur()
+      }
+    },
+    [searchQuery],
+  )
+
+  const clearSearch = useCallback(() => {
+    setSearchQuery('')
+    searchInputRef.current?.focus()
+  }, [])
+
   const handleRemove = useCallback(
     (bookId: string) => {
       const book = books.find(b => b.id === bookId)
@@ -247,26 +278,38 @@ export default function Library() {
 
   return (
     <div
-      className="min-h-screen"
+      className="flex h-full flex-col"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <PageHeader>
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
           <h1 className="font-semibold">Library</h1>
-          <div className="border-border bg-background flex flex-1 items-center gap-2 rounded-md border px-3 py-1.5">
-            <Search className="text-muted-foreground size-4 shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search by title or author"
-              className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-hidden"
-              aria-label="Search library"
-            />
-          </div>
+          <SearchInput
+            ref={searchInputRef}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Search by title or author"
+            aria-label="Search library"
+            className="flex-1"
+            trailing={
+              searchQuery ? (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="text-muted-foreground hover:text-foreground -mr-1 rounded-sm p-0.5 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="size-4" />
+                </button>
+              ) : (
+                mounted && <Kbd keys={['mod', 'F']} size="sm" className="hidden sm:inline-flex" />
+              )
+            }
+          />
           <Tooltip label="Settings" position="bottom">
             <Link
               href="/settings"
@@ -279,48 +322,62 @@ export default function Library() {
         </div>
       </PageHeader>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        {(loading || !progressLoaded || !pregenLoaded) && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {Array.from({ length: 5 }, (_, i) => (
-              <div
-                key={i}
-                className="border-border bg-background flex flex-col rounded-lg border p-4"
-              >
-                <div className="bg-muted mb-3 aspect-2/3 w-full animate-pulse rounded-sm" />
-                <div className="bg-muted mb-2 h-4 w-3/4 animate-pulse rounded-sm" />
-                <div className="bg-muted h-3 w-1/2 animate-pulse rounded-sm" />
-                <div className="bg-muted mt-1 h-3 w-2/5 animate-pulse rounded-sm" />
-              </div>
-            ))}
-          </div>
-        )}
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-6xl px-4 py-8">
+          {(loading || !progressLoaded || !pregenLoaded) && (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {Array.from({ length: 10 }, (_, i) => (
+                <div
+                  key={i}
+                  className="border-border bg-background flex flex-col rounded-lg border p-4"
+                >
+                  <div className="bg-muted mb-3 aspect-2/3 w-full animate-pulse rounded-sm" />
+                  <div className="bg-muted mb-2 h-4 w-3/4 animate-pulse rounded-sm" />
+                  <div className="bg-muted h-3 w-1/2 animate-pulse rounded-sm" />
+                  <div className="bg-muted mt-1 h-3 w-2/5 animate-pulse rounded-sm" />
+                </div>
+              ))}
+            </div>
+          )}
 
-        {error && <div className="text-destructive py-12 text-center">{error}</div>}
+          {error && <div className="text-destructive py-12 text-center">{error}</div>}
 
-        {!loading && progressLoaded && pregenLoaded && !error && (
-          <>
-            {isSearching && visibleBooks.length === 0 ? (
-              <div className="text-muted-foreground py-12 text-center text-sm">
-                No books match “{searchQuery}”
+          {!loading && progressLoaded && pregenLoaded && !error && (
+            <>
+              <div aria-live="polite" className="sr-only">
+                {isSearching
+                  ? `${visibleBooks.length} ${visibleBooks.length === 1 ? 'book' : 'books'} match ${searchQuery}`
+                  : ''}
               </div>
-            ) : (
-              <BookGrid
-                books={visibleBooks}
-                onRemove={handleRemove}
-                firstCell={
-                  isSearching ? undefined : (
-                    <AddBookCard
-                      onUpload={handleUpload}
-                      uploading={uploading}
-                      progress={uploadProgress}
-                    />
-                  )
-                }
-              />
-            )}
-          </>
-        )}
+              {isSearching && visibleBooks.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-muted-foreground text-sm">No books match “{searchQuery}”</p>
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="text-primary mt-2 text-xs hover:underline"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              ) : (
+                <BookGrid
+                  books={visibleBooks}
+                  onRemove={handleRemove}
+                  firstCell={
+                    isSearching ? undefined : (
+                      <AddBookCard
+                        onUpload={handleUpload}
+                        uploading={uploading}
+                        progress={uploadProgress}
+                      />
+                    )
+                  }
+                />
+              )}
+            </>
+          )}
+        </div>
       </main>
 
       {isDragging && (

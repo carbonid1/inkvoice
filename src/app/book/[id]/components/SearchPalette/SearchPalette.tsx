@@ -1,8 +1,10 @@
 'use client'
 
-import { Loader2, Search, X } from 'lucide-react'
+import { cn } from '@carbonid1/design-system'
+import { Loader2, X } from 'lucide-react'
 import { type KeyboardEvent, useEffect, useRef } from 'react'
 import type { SearchScope } from '@/app/book/[id]/hooks/useBookSearch/useBookSearch.types'
+import { SearchInput } from '@/components/ui/SearchInput/SearchInput'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { SearchPaletteProps } from './SearchPalette.types'
 import { SearchResultsPanel } from './components/SearchResultsPanel/SearchResultsPanel'
@@ -80,50 +82,51 @@ export const SearchPalette = ({
         ref={panelRef}
         className="animate-in fade-in-0 slide-in-from-top-2 border-border bg-background mx-auto mt-[15vh] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-xl border shadow-2xl duration-150"
       >
-        <div className="border-border flex items-center gap-2 border-b px-4 py-3">
-          <Search className="text-muted-foreground size-4 shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={e => onQueryChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-hidden"
-            aria-label={placeholder}
-          />
-          <div className="bg-muted flex shrink-0 rounded-md p-0.5">
-            {SCOPE_OPTIONS.map(option => (
-              <button
-                key={option.value}
-                className={`rounded px-2 py-0.5 text-xs transition-colors ${
-                  scope === option.value
-                    ? 'bg-accent text-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                onClick={() => onScopeChange(option.value)}
-                aria-pressed={scope === option.value}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <span className="flex min-w-18 shrink-0 items-center justify-end">
-            {showSpinner && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
-            {showMatchCount && results.length > 0 && (
-              <span className="text-muted-foreground text-xs tabular-nums">
-                {results.length} {results.length === 1 ? 'result' : 'results'}
+        <SearchInput
+          ref={inputRef}
+          value={query}
+          onChange={e => onQueryChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          aria-label={placeholder}
+          className="focus-within:border-border rounded-none border-x-0 border-t-0 px-4 py-3 focus-within:ring-0"
+          trailing={
+            <>
+              <div className="bg-muted flex shrink-0 rounded-md p-0.5">
+                {SCOPE_OPTIONS.map(option => (
+                  <button
+                    key={option.value}
+                    className={cn(
+                      'rounded px-2 py-0.5 text-xs transition-colors',
+                      scope === option.value
+                        ? 'bg-accent text-foreground font-medium'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                    onClick={() => onScopeChange(option.value)}
+                    aria-pressed={scope === option.value}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <span className="flex min-w-18 shrink-0 items-center justify-end">
+                {showSpinner && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
+                {showMatchCount && results.length > 0 && (
+                  <span className="text-muted-foreground text-xs tabular-nums">
+                    {results.length} {results.length === 1 ? 'result' : 'results'}
+                  </span>
+                )}
               </span>
-            )}
-          </span>
-          <button
-            onClick={onClose}
-            className="hover:bg-accent shrink-0 rounded-sm p-1 transition-colors"
-            aria-label="Close search"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
+              <button
+                onClick={onClose}
+                className="hover:bg-accent shrink-0 rounded-sm p-1 transition-colors"
+                aria-label="Close search"
+              >
+                <X className="size-4" />
+              </button>
+            </>
+          }
+        />
         {showNoResults && (
           <div className="px-4 py-6 text-center">
             <p className="text-muted-foreground text-sm">

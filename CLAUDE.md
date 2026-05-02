@@ -1,5 +1,7 @@
 # InkVoice
 
+Dev Next.js runs on `http://localhost:49813`.
+
 ## Design System (Aspirational)
 
 Zero raw HTML in feature code. Use `src/components/ui/` first; extend when close; native tag only as last resort and flag it as a future component.
