@@ -1,12 +1,13 @@
 'use client'
 
 import { buttonVariants, getModKey, toast, Tooltip } from '@carbonid1/design-system'
-import { Settings, Upload } from 'lucide-react'
+import { Search, Settings, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
 import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
+import { useLibrarySearch } from '@/lib/hooks/useLibrarySearch/useLibrarySearch'
 import { useUploadBook } from '@/lib/hooks/useUploadBook/useUploadBook'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
@@ -14,7 +15,7 @@ import { type Estimate, usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { AddBookCard } from './components/AddBookCard/AddBookCard'
-import { BookCard } from './components/BookCard/BookCard'
+import { BookGrid } from './components/BookGrid/BookGrid'
 
 interface UndoState {
   book: Book
@@ -25,6 +26,7 @@ export default function Library() {
   const [error, setError] = useState<string | null>(null)
   const [hiddenBooks, setHiddenBooks] = useState<Set<string>>(new Set())
   const [isDragging, setIsDragging] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const dragCounterRef = useRef(0)
   const lastDeletedRef = useRef<UndoState | null>(null)
 
@@ -87,33 +89,13 @@ export default function Library() {
 
     let cancelled = false
     const fetchEstimates = async () => {
-      const results = await Promise.all(
-        books.map(async book => {
-          const response = await fetch(`/api/pregenerate/estimate/${book.id}`)
+      const response = await fetch('/api/pregenerate/estimate')
 
-          if (!response.ok) return null
-          const data = await response.json()
+      if (!response.ok || cancelled) return
 
-          return {
-            bookId: book.id,
-            estimate: {
-              totalParagraphs: data.totalParagraphs,
-              cachedParagraphs: data.cachedParagraphs,
-              estimatedSizeBytes: data.estimatedSizeBytes,
-              estimatedGenerationMinutes: data.estimatedGenerationMinutes,
-              budget: data.budget,
-            },
-          }
-        }),
-      )
+      const data: Record<string, Estimate> = await response.json()
 
-      if (cancelled) return
-      const map: Record<string, Estimate> = {}
-
-      for (const result of results) {
-        if (result) map[result.bookId] = result.estimate
-      }
-      setEstimates(map)
+      if (!cancelled) setEstimates(data)
     }
 
     fetchEstimates().catch(() => {})
@@ -260,6 +242,9 @@ export default function Library() {
     })
   }, [books, hiddenBooks, progress])
 
+  const visibleBooks = useLibrarySearch({ books: sortedBooks, query: searchQuery })
+  const isSearching = searchQuery.trim() !== ''
+
   return (
     <div
       className="min-h-screen"
@@ -269,8 +254,19 @@ export default function Library() {
       onDrop={handleDrop}
     >
       <PageHeader>
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
           <h1 className="font-semibold">Library</h1>
+          <div className="border-border bg-background flex flex-1 items-center gap-2 rounded-md border px-3 py-1.5">
+            <Search className="text-muted-foreground size-4 shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search by title or author"
+              className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-hidden"
+              aria-label="Search library"
+            />
+          </div>
           <Tooltip label="Settings" position="bottom">
             <Link
               href="/settings"
@@ -303,12 +299,27 @@ export default function Library() {
         {error && <div className="text-destructive py-12 text-center">{error}</div>}
 
         {!loading && progressLoaded && pregenLoaded && !error && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {sortedBooks.map(book => (
-              <BookCard key={book.id} book={book} onRemove={handleRemove} />
-            ))}
-            <AddBookCard onUpload={handleUpload} uploading={uploading} progress={uploadProgress} />
-          </div>
+          <>
+            {isSearching && visibleBooks.length === 0 ? (
+              <div className="text-muted-foreground py-12 text-center text-sm">
+                No books match “{searchQuery}”
+              </div>
+            ) : (
+              <BookGrid
+                books={visibleBooks}
+                onRemove={handleRemove}
+                firstCell={
+                  isSearching ? undefined : (
+                    <AddBookCard
+                      onUpload={handleUpload}
+                      uploading={uploading}
+                      progress={uploadProgress}
+                    />
+                  )
+                }
+              />
+            )}
+          </>
         )}
       </main>
 

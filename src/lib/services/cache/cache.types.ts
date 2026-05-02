@@ -46,4 +46,10 @@ export interface CacheService {
 
   /** Count cached entries for a specific book + voice combination */
   countBookVoiceEntries(bookId: string, voice: string): Promise<number>
+
+  /**
+   * One pass over the metadata building per-(bookId, voice) counts.
+   * Avoids the N×M scan of calling countBookVoiceEntries per book.
+   */
+  countAllBookVoiceEntries(): Promise<Map<string, number>>
 }

@@ -29,17 +29,16 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
     }
 
     // Parallel reads
-    const [overview, voicePrefs] = await Promise.all([
-      getBookService().getBookOverview(bookId),
+    const [bookStats, voicePrefs] = await Promise.all([
+      getBookService().getBookStats(bookId),
       voicePreferenceService.getAll(),
     ])
 
-    if (!overview) {
+    if (!bookStats) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 })
     }
 
-    const totalParagraphs = overview.chapters.reduce((sum, ch) => sum + ch.paragraphCount, 0)
-    const totalWords = overview.chapters.reduce((sum, ch) => sum + ch.wordCount, 0)
+    const { totalParagraphs, totalWords } = bookStats
     const voice = voicePrefs.bookVoices[bookId] ?? voicePrefs.voice
 
     const cacheService = getCacheService()

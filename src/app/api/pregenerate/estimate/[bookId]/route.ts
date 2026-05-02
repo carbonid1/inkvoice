@@ -13,17 +13,16 @@ export const GET = async (_request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
   const bookService = getBookService()
-  const [overview, voicePrefs] = await Promise.all([
-    bookService.getBookOverview(bookId),
+  const [bookStats, voicePrefs] = await Promise.all([
+    bookService.getBookStats(bookId),
     voicePreferenceService.getAll(),
   ])
 
-  if (!overview) {
+  if (!bookStats) {
     return NextResponse.json({ error: 'Book not found' }, { status: 404 })
   }
 
-  const totalParagraphs = overview.chapters.reduce((sum, ch) => sum + ch.paragraphCount, 0)
-  const totalWords = overview.chapters.reduce((sum, ch) => sum + ch.wordCount, 0)
+  const { totalParagraphs, totalWords } = bookStats
 
   const voice = voicePrefs.bookVoices[bookId] ?? voicePrefs.voice
   const cacheService = getCacheService()

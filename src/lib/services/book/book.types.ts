@@ -10,6 +10,14 @@ export interface BookService {
   /** Get book overview with chapter info (no paragraph data) */
   getBookOverview(bookId: string): Promise<BookOverview | null>
 
+  /**
+   * Get persisted paragraph + word totals. Reads from DB; if not yet computed,
+   * parses the EPUB once and persists. Returns null only when the book itself
+   * cannot be located. A parse failure persists null stats and returns null
+   * so callers can decide whether to surface the book without an estimate.
+   */
+  getBookStats(bookId: string): Promise<{ totalParagraphs: number; totalWords: number } | null>
+
   /** Get a single parsed chapter */
   getChapter(bookId: string, chapterIndex: number): Promise<ParsedChapter | null>
 

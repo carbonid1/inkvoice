@@ -266,6 +266,19 @@ class TTSCacheService implements CacheService {
     return count
   }
 
+  async countAllBookVoiceEntries(): Promise<Map<string, number>> {
+    await this.ensureInitialized()
+    const counts = new Map<string, number>()
+
+    for (const entry of Object.values(this.metadata.entries)) {
+      if (!entry.bookId) continue
+      const key = `${entry.bookId}|${entry.voice}`
+
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    return counts
+  }
+
   async setMaxSizeMB(megabytes: number): Promise<void> {
     await this.ensureInitialized()
     this.effectiveMaxBytes = await this.clampToDisk(megabytes * 1024 * 1024)

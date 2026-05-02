@@ -14,7 +14,7 @@ description: InkVoice Electron desktop app context. Use when working on anything
 5. Polls `/health` (Python) and root (Next.js) every 2s
 6. Ready → swaps window to the app. 5 min timeout → error screen with retry/quit.
 
-**Dev:** `pnpm dev` + `pnpm electron:dev` in separate terminals. Dev server must be running first — Electron just opens a window pointing at `localhost:3000`.
+**Dev:** `pnpm dev` + `pnpm electron:dev` in separate terminals. Dev server must be running first — Next.js is on `localhost:49813` (set by `pnpm dev:next` / `scripts/start.sh`). Note: `electron/main.ts` currently still hardcodes `localhost:3000` for `startDev`, which is a latent bug — `pnpm electron:dev` against the dev server loads an empty window until that's fixed.
 
 ## Key Decisions
 
