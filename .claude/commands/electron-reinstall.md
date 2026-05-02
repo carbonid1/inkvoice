@@ -1,3 +1,8 @@
+---
+description: Quick-build and reinstall the InkVoice Electron app (skips DMG for speed)
+disable-model-invocation: true
+---
+
 Quick-build and reinstall the InkVoice Electron app (skips DMG for speed):
 
 1. Quit any running InkVoice instance (`pkill -f InkVoice`)

@@ -63,7 +63,6 @@ storybook-static/
 test-results/
 playwright-report/
 .playwright/
-.claude/skills/playwright-cli/
 .claude/skills/design-system
 
 # E2E test data

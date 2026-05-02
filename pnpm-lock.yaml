@@ -75,9 +75,6 @@ importers:
       '@carbonid1/tsconfig':
         specifier: ^0.3.0
         version: 0.3.0(typescript@6.0.2)
-      '@playwright/cli':
-        specifier: ^0.1.8
-        version: 0.1.8
       '@playwright/test':
         specifier: ^1.59.1
         version: 1.59.1
@@ -1022,11 +1019,6 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
-
-  '@playwright/cli@0.1.8':
-    resolution: {integrity: sha512-z1oo8VewG3IevpiUd9+2OMa157yd9i9vQ+q3DUlYCk1Tb2oZ3mp2piyQbFH0j+msOQK5qLYSBgK6+wPlHZFXKA==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   '@playwright/test@1.59.1':
     resolution: {integrity: sha512-PG6q63nQg5c9rIi4/Z5lR5IVF7yU5MqmKaPOe0HSc0O2cX1fPi96sUQu5j7eo4gKCkB2AnNGoWt7y4/Xx3Kcqg==}
@@ -6204,10 +6196,6 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
-
-  '@playwright/cli@0.1.8':
-    dependencies:
-      playwright: 1.60.0-alpha-2026-04-14
 
   '@playwright/test@1.59.1':
     dependencies:

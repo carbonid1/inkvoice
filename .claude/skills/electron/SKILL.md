@@ -42,7 +42,7 @@ description: InkVoice Electron desktop app context. Use when working on anything
 
 Steps 1-2 are cached. Delete `dist-python/` or `dist-node/` to force rebuild.
 
-**Reinstall shortcut:** `pnpm electron:reinstall` (or `/electron-reinstall` in Claude Code) — kills running app, copies fresh build into `~/Applications/`, relaunches. No admin prompt (per-user folder, unlike `/Applications/`).
+**Reinstall shortcut:** `pnpm electron:reinstall` — kills running app, copies fresh build into `~/Applications/`, relaunches. No admin prompt (per-user folder, unlike `/Applications/`).
 
 **No existing source code was modified** except adding `output: 'standalone'` to `next.config.mjs`.
 
