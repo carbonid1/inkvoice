@@ -10,8 +10,30 @@ const baseStats = {
   diskTotalBytes: 500 * GB,
   diskAvailableBytes: 200 * GB,
   books: [
-    { bookId: 'book-1', title: 'Jekyll & Hyde', usedBytes: 1.5 * GB, entryCount: 400 },
-    { bookId: 'book-2', title: 'Pride and Prejudice', usedBytes: 0.5 * GB, entryCount: 200 },
+    {
+      bookId: 'book-1',
+      title: 'Jekyll & Hyde',
+      voice: 'clara',
+      voiceDisplayName: 'Clara',
+      usedBytes: GB,
+      entryCount: 280,
+    },
+    {
+      bookId: 'book-1',
+      title: 'Jekyll & Hyde',
+      voice: 'jonathan',
+      voiceDisplayName: 'Jonathan',
+      usedBytes: 0.5 * GB,
+      entryCount: 120,
+    },
+    {
+      bookId: 'book-2',
+      title: 'Pride and Prejudice',
+      voice: 'clara',
+      voiceDisplayName: 'Clara',
+      usedBytes: 0.5 * GB,
+      entryCount: 200,
+    },
   ],
 }
 
@@ -57,30 +79,33 @@ const meta = preview.meta({
   ],
 })
 
-/** Cache populated with two books — the typical state of the Storage settings card. */
+/** Cache populated with one multi-voice book and one single-voice book — the canonical Storage settings state. */
 export const Loaded = meta.story({
   beforeEach: () => stubFetch(baseStats),
 })
 
-Loaded.test('lists each cached book and the total cache usage', async ({ canvas }) => {
+Loaded.test('shows the voice name beside each cached audio entry', async ({ canvas }) => {
   await waitFor(() => {
-    expect(canvas.getByText('Jekyll & Hyde')).toBeInTheDocument()
+    expect(canvas.getAllByText('Jekyll & Hyde')).toHaveLength(2)
   })
+  // Multi-voice book: each voice gets its own row with a Clara/Jonathan badge.
+  expect(canvas.getAllByText('Clara')).toHaveLength(2)
+  expect(canvas.getByText('Jonathan')).toBeInTheDocument()
   expect(canvas.getByText('Pride and Prejudice')).toBeInTheDocument()
   expect(canvas.getByText(/2\.0 GB of 10\.0 GB used/)).toBeInTheDocument()
 })
 
 Loaded.test(
-  'clicking the per-book trash icon calls the delete API',
+  'per-voice trash icon deletes only that voice via the voice query param',
   async ({ canvas, userEvent }) => {
     await waitFor(() => {
-      expect(canvas.getByText('Jekyll & Hyde')).toBeInTheDocument()
+      expect(canvas.getAllByText('Jekyll & Hyde')).toHaveLength(2)
     })
 
-    await userEvent.click(canvas.getByLabelText('Delete cache for Jekyll & Hyde'))
+    await userEvent.click(canvas.getByLabelText('Delete Jonathan cache for Jekyll & Hyde'))
 
     await waitFor(() => {
-      expect(fetchCalls.deletes).toContain('/api/cache/tts/book-1')
+      expect(fetchCalls.deletes).toContain('/api/cache/tts/book-1?voice=jonathan')
     })
   },
 )

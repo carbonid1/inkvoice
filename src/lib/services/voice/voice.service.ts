@@ -444,6 +444,15 @@ export const createVoiceService = (voicesDir: string) => {
     return { ok: true, tags: normalized }
   }
 
+  const getDisplayName = async (name: string): Promise<string> => {
+    const appVoice = APP_VOICES[name]
+
+    if (appVoice) return appVoice.displayName
+    const meta = await getMetadata(name)
+
+    return meta?.displayName ?? prettifyVoiceName(name)
+  }
+
   const saveTranscript = async (name: string, text: string): Promise<{ ok: boolean }> => {
     const voiceDir = await resolveVoiceDir(name)
 
@@ -465,6 +474,7 @@ export const createVoiceService = (voicesDir: string) => {
     saveTranscript,
     updateVoiceTags,
     cleanupExpiredDeletedVoices,
+    getDisplayName,
   }
 }
 

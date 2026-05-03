@@ -1,11 +1,12 @@
 'use client'
 
-import { Button, Slider, toast } from '@carbonid1/design-system'
+import { Badge, Button, Slider, toast } from '@carbonid1/design-system'
 import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
 import { useCacheStats } from './hooks/useCacheStats/useCacheStats'
+import type { BookCacheStat } from './hooks/useCacheStats/useCacheStats.types'
 
 const GB = 1024 * 1024 * 1024
 const MIN_CACHE_GB = 1
@@ -55,13 +56,16 @@ export const StorageCard = () => {
   )
 
   const handleDeleteBookCache = useCallback(
-    async (bookId: string, title: string) => {
-      const response = await fetch(`/api/cache/tts/${bookId}`, { method: 'DELETE' })
+    async (book: BookCacheStat) => {
+      const url = `/api/cache/tts/${book.bookId}?voice=${encodeURIComponent(book.voice)}`
+      const response = await fetch(url, { method: 'DELETE' })
 
       if (response.ok) {
         const { freedBytes } = await response.json()
 
-        toast(`Removed ${formatBytes(freedBytes)} of cached audio for "${title}"`)
+        toast(
+          `Removed ${formatBytes(freedBytes)} of cached audio for "${book.title}" (${book.voiceDisplayName})`,
+        )
         refetch()
       }
     },
@@ -131,19 +135,22 @@ export const StorageCard = () => {
               <div className="space-y-1">
                 {stats.books.map(book => (
                   <div
-                    key={book.bookId}
-                    className="group hover:bg-accent flex items-center justify-between rounded-lg px-3 py-2"
+                    key={`${book.bookId}|${book.voice}`}
+                    className="group hover:bg-accent flex items-center justify-between gap-2 rounded-lg px-3 py-2"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm">{book.title}</p>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate text-sm">{book.title}</p>
+                        <Badge className="shrink-0">{book.voiceDisplayName}</Badge>
+                      </div>
                       <p className="text-muted-foreground text-xs">{formatBytes(book.usedBytes)}</p>
                     </div>
                     <Button
                       variant="danger"
                       size="smallIcon"
                       className="opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
-                      onClick={() => handleDeleteBookCache(book.bookId, book.title)}
-                      aria-label={`Delete cache for ${book.title}`}
+                      onClick={() => handleDeleteBookCache(book)}
+                      aria-label={`Delete ${book.voiceDisplayName} cache for ${book.title}`}
                     >
                       <Trash2 className="size-3.5" />
                     </Button>

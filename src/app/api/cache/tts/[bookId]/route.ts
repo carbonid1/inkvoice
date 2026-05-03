@@ -8,18 +8,22 @@ interface RouteParams {
   params: Promise<{ bookId: string }>
 }
 
-export const DELETE = async (_request: NextRequest, { params }: RouteParams) => {
+export const DELETE = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
+  const voice = request.nextUrl.searchParams.get('voice')
 
   try {
     const cacheService = getCacheService()
-    const freedBytes = await cacheService.deleteByBookId(bookId)
+    const freedBytes = voice
+      ? await cacheService.deleteByBookIdAndVoice(bookId, voice)
+      : await cacheService.deleteByBookId(bookId)
 
     // Pregen progress is a derived view of cache coverage — if the cache is
     // gone, the job record must go with it or the ring lies to the user.
+    // When deleting a single voice, only cancel pregen if it targets that voice.
     const job = await pregenQueueService.getAnyByBookId(bookId)
 
-    if (job) {
+    if (job && (!voice || job.voice === voice)) {
       signalStop(job.id)
       const { deleted } = await pregenQueueService.cancel(job.id)
 

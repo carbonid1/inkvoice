@@ -38,8 +38,11 @@ export interface CacheService {
   /** Get per-book cache usage breakdown */
   getBookStats(): Promise<BookCacheStats[]>
 
-  /** Delete all cached entries for a specific book */
+  /** Delete all cached entries for a specific book (across all voices) */
   deleteByBookId(bookId: string): Promise<number>
+
+  /** Delete cached entries for a specific (book, voice) pair */
+  deleteByBookIdAndVoice(bookId: string, voice: string): Promise<number>
 
   /** Update the maximum cache size and persist to settings */
   setMaxSizeMB(megabytes: number): Promise<void>

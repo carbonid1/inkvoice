@@ -239,21 +239,20 @@ class TTSCacheService implements CacheService {
   async getBookStats(): Promise<BookCacheStats[]> {
     await this.ensureInitialized()
 
-    const groups: Record<string, { usedBytes: number; entryCount: number }> = {}
+    const groups = new Map<string, BookCacheStats>()
 
     for (const entry of Object.values(this.metadata.entries)) {
       const bookId = entry.bookId ?? 'unknown'
-      const group = groups[bookId] ?? { usedBytes: 0, entryCount: 0 }
+      const voice = entry.voice || DEFAULT_VOICE
+      const key = `${bookId}|${voice}`
+      const group = groups.get(key) ?? { bookId, voice, usedBytes: 0, entryCount: 0 }
 
       group.usedBytes += entry.size
       group.entryCount++
-      groups[bookId] = group
+      groups.set(key, group)
     }
 
-    return Object.entries(groups).map(([bookId, stats]) => ({
-      bookId,
-      ...stats,
-    }))
+    return [...groups.values()]
   }
 
   async countBookVoiceEntries(bookId: string, voice: string): Promise<number> {
@@ -288,6 +287,15 @@ class TTSCacheService implements CacheService {
   async deleteByBookId(bookId: string): Promise<number> {
     await this.ensureInitialized()
     return this.deleteEntriesMatching(entry => entry.bookId === bookId)
+  }
+
+  async deleteByBookIdAndVoice(bookId: string, voice: string): Promise<number> {
+    await this.ensureInitialized()
+    const normalizedVoice = voice || DEFAULT_VOICE
+
+    return this.deleteEntriesMatching(
+      entry => entry.bookId === bookId && (entry.voice || DEFAULT_VOICE) === normalizedVoice,
+    )
   }
 
   private async deleteEntriesMatching(predicate: (entry: CacheEntry) => boolean): Promise<number> {

@@ -15,6 +15,7 @@ export interface CacheStats {
 
 export interface BookCacheStats {
   bookId: string
+  voice: string
   usedBytes: number
   entryCount: number
 }

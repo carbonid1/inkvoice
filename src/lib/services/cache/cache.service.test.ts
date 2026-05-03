@@ -72,7 +72,7 @@ describe('TTSCacheService', () => {
   })
 
   describe('getBookStats', () => {
-    it('groups entries by bookId and sums sizes', async () => {
+    it('groups entries by (bookId, voice) and sums sizes', async () => {
       mockDiskSpace.getAvailableSpace.mockResolvedValue({
         available: 100_000_000_000,
         total: 500_000_000_000,
@@ -81,17 +81,31 @@ describe('TTSCacheService', () => {
 
       const service = getCacheService()
 
-      await service.set('text 1', 'voice', Buffer.alloc(100), 'book-a')
-      await service.set('text 2', 'voice', Buffer.alloc(200), 'book-a')
-      await service.set('text 3', 'voice', Buffer.alloc(300), 'book-b')
+      await service.set('text 1', 'clara', Buffer.alloc(100), 'book-a')
+      await service.set('text 2', 'clara', Buffer.alloc(200), 'book-a')
+      await service.set('text 3', 'jonathan', Buffer.alloc(150), 'book-a')
+      await service.set('text 4', 'clara', Buffer.alloc(300), 'book-b')
 
       const stats = await service.getBookStats()
 
-      const bookA = stats.find(s => s.bookId === 'book-a')
-      const bookB = stats.find(s => s.bookId === 'book-b')
-
-      expect(bookA).toEqual({ bookId: 'book-a', usedBytes: 300, entryCount: 2 })
-      expect(bookB).toEqual({ bookId: 'book-b', usedBytes: 300, entryCount: 1 })
+      expect(stats).toContainEqual({
+        bookId: 'book-a',
+        voice: 'clara',
+        usedBytes: 300,
+        entryCount: 2,
+      })
+      expect(stats).toContainEqual({
+        bookId: 'book-a',
+        voice: 'jonathan',
+        usedBytes: 150,
+        entryCount: 1,
+      })
+      expect(stats).toContainEqual({
+        bookId: 'book-b',
+        voice: 'clara',
+        usedBytes: 300,
+        entryCount: 1,
+      })
     })
 
     it('groups entries without bookId under "unknown"', async () => {
@@ -103,13 +117,18 @@ describe('TTSCacheService', () => {
 
       const service = getCacheService()
 
-      await service.set('orphan text', 'voice', Buffer.alloc(50))
+      await service.set('orphan text', 'clara', Buffer.alloc(50))
 
       const stats = await service.getBookStats()
 
       const unknown = stats.find(s => s.bookId === 'unknown')
 
-      expect(unknown).toEqual({ bookId: 'unknown', usedBytes: 50, entryCount: 1 })
+      expect(unknown).toEqual({
+        bookId: 'unknown',
+        voice: 'clara',
+        usedBytes: 50,
+        entryCount: 1,
+      })
     })
   })
 
@@ -216,6 +235,7 @@ describe('TTSCacheService', () => {
       const bookStats = await service.getBookStats()
 
       expect(bookStats.map(s => s.bookId).sort()).toEqual(['book-a', 'book-b', 'book-c'])
+      expect(bookStats.every(s => s.voice === 'voice')).toBe(true)
     })
   })
 })
