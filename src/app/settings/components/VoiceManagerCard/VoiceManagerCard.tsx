@@ -4,6 +4,7 @@ import { getModKey, toast } from '@carbonid1/design-system'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
+import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoiceTags'
 import { UNDO_WINDOW_MS } from '@/lib/services/voice/voice.consts'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useVoiceStore } from '@/store/useVoiceStore'
@@ -31,6 +32,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   const clearVoiceFromAllBooks = useVoiceStore(s => s.clearVoiceFromAllBooks)
   const { playing, error: previewError, play } = useVoicePreview()
   const { deleteVoice, restoreVoice } = useDeleteVoice()
+  const { saving: tagsSaving, updateTags } = useUpdateVoiceTags()
 
   const [hiddenVoices, setHiddenVoices] = useState<Set<string>>(new Set())
   const lastDeletedRef = useRef<UndoState | null>(null)
@@ -178,6 +180,8 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
               onPlay={play}
               onDelete={handleDelete}
               uploadSection={<VoiceUploadSection onVoicesChanged={onVoicesChanged} />}
+              tagsSaving={tagsSaving}
+              updateTags={updateTags}
             />
 
             {previewError && <p className="text-attention-foreground text-sm">{previewError}</p>}

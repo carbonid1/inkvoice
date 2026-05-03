@@ -2,7 +2,6 @@
 
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
-import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoiceTags'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import type { AudioType, PlayingState } from '../hooks/useVoicePreview/useVoicePreview.types'
 import { VoiceRow } from './VoiceRow'
@@ -15,6 +14,8 @@ interface VoiceListProps {
   onPlay: (name: string, type: AudioType) => void
   onDelete: (name: string) => void
   uploadSection?: ReactNode
+  tagsSaving: boolean
+  updateTags: (voiceName: string, tags: string[]) => Promise<string[] | null>
 }
 
 export const VoiceList = ({
@@ -25,12 +26,13 @@ export const VoiceList = ({
   onPlay,
   onDelete,
   uploadSection,
+  tagsSaving,
+  updateTags,
 }: VoiceListProps) => {
   const [customParent] = useAutoAnimate()
   const [appParent] = useAutoAnimate()
   const [editingTagsVoice, setEditingTagsVoice] = useState<string | null>(null)
   const [tagOverrides, setTagOverrides] = useState<Record<string, string[]>>({})
-  const { saving, updateTags } = useUpdateVoiceTags()
 
   const localVoices = useMemo(
     () =>
@@ -87,7 +89,7 @@ export const VoiceList = ({
               onPlay={onPlay}
               onDelete={onDelete}
               onTagsChanged={handleTagsChanged}
-              tagsSaving={saving}
+              tagsSaving={tagsSaving}
             />
           ))}
           {uploadSection}
@@ -112,7 +114,7 @@ export const VoiceList = ({
                 playing={playing}
                 onPlay={onPlay}
                 onTagsChanged={handleTagsChanged}
-                tagsSaving={saving}
+                tagsSaving={tagsSaving}
               />
             ))}
           </div>
