@@ -11,5 +11,4 @@ export interface VoiceEntry {
 export interface VoiceMetadata {
   displayName: string
   tags: string[]
-  language?: string
 }

@@ -52,7 +52,6 @@ def text_to_speech(request: TTSRequest) -> Response:
         audio_bytes, gen_time_ms, timestamps, duration_ms, sampling_rate = service.generate(
             text=text,
             voice=request.voice,
-            language=request.language,
         )
         print(f"[tts] Done in {gen_time_ms}ms ({duration_ms}ms audio)")
 

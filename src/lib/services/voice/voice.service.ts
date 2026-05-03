@@ -68,7 +68,6 @@ export const createVoiceService = (voicesDir: string) => {
     return {
       displayName: row.displayName,
       tags: parsedTags.success ? parsedTags.data : [],
-      language: row.language ?? undefined,
     }
   }
 
@@ -80,7 +79,6 @@ export const createVoiceService = (voicesDir: string) => {
     const fields = {
       displayName: meta.displayName,
       tags: JSON.stringify(meta.tags),
-      language: meta.language ?? null,
     }
 
     await prisma.voiceMetadata.upsert({
@@ -251,7 +249,7 @@ export const createVoiceService = (voicesDir: string) => {
     await writeFile(path.join(voiceDir, 'source.wav'), convertResult.buffer)
 
     // Save metadata to DB
-    await upsertMetadata(slug, 'custom', { displayName, tags: [], language })
+    await upsertMetadata(slug, 'custom', { displayName, tags: [] })
 
     // Transcribe voice reference for OmniVoice
     let transcription: string | null = null
@@ -391,7 +389,6 @@ export const createVoiceService = (voicesDir: string) => {
     await upsertMetadata(name, 'custom', {
       displayName: dbMeta?.displayName ?? prettifyVoiceName(name),
       tags: normalized,
-      language: dbMeta?.language,
     })
 
     return { ok: true, tags: normalized }

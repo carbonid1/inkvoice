@@ -25,12 +25,6 @@ export interface VoiceInfo {
   hasSample: boolean
 }
 
-export interface TTSRequest {
-  text: string
-  voice?: string
-  exaggeration?: number
-}
-
 export interface ErrorResponse {
   error: string
 }

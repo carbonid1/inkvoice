@@ -7,7 +7,6 @@ class TTSRequest(BaseModel):
 
     text: str
     voice: Optional[str] = None  # voice directory name in data/voices/
-    language: Optional[str] = None  # language hint for OmniVoice (e.g. "en", "ru")
 
 
 class HealthResponse(BaseModel):

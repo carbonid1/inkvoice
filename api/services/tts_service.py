@@ -66,7 +66,6 @@ class TTSService:
         self,
         text: str,
         voice: str | None = None,
-        language: str | None = None,
     ) -> Tuple[bytes, int, Optional[list[dict]], int, Optional[float]]:
         """
         Generate speech audio from text with optional word-level timestamps.
@@ -89,7 +88,6 @@ class TTSService:
                     text=text,
                     ref_audio=str(voice_path),
                     ref_text=ref_text,
-                    language=language,
                     class_temperature=0.3,
                 )
             # OmniVoice returns ndarray for very short input; normalize to (1, T) tensor.
