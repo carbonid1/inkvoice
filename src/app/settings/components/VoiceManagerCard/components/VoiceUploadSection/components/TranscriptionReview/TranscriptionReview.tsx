@@ -1,10 +1,13 @@
 'use client'
 
-import { Button, toast } from '@carbonid1/design-system'
-import { Play } from 'lucide-react'
+import { Button, Tooltip, toast } from '@carbonid1/design-system'
+import { Info, Play } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs/Tabs'
+import { Textarea } from '@/components/ui/Textarea/Textarea'
 import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
 
+const MAX_TRANSCRIPTION_CHARS = 600
 const MAX_CUSTOM_CHARS = 500
 
 type PresetLanguage = 'en' | 'ru' | 'uk'
@@ -35,38 +38,48 @@ const isPresetLanguage = (language: string): language is PresetLanguage => langu
 
 type TextSource = 'transcription' | 'preset' | 'custom'
 
-const SOURCE_OPTIONS: Array<{ value: TextSource; label: string }> = [
+const SOURCE_OPTIONS: ReadonlyArray<{ value: TextSource; label: string }> = [
   { value: 'transcription', label: 'Transcription' },
   { value: 'preset', label: 'Preset' },
   { value: 'custom', label: 'Custom' },
 ]
 
+const isTextSource = (value: string): value is TextSource =>
+  SOURCE_OPTIONS.some(option => option.value === value)
+
 interface TranscriptionReviewProps {
   voiceName: string
   language: string
+  languageWasAutoDetected: boolean
   initialTranscription: string
-  onDone: () => void
+  onClose: () => void
 }
 
 export const TranscriptionReview = ({
   voiceName,
   language,
+  languageWasAutoDetected,
   initialTranscription,
-  onDone,
+  onClose,
 }: TranscriptionReviewProps) => {
   const [transcription, setTranscription] = useState(initialTranscription)
   const [customText, setCustomText] = useState('')
   const [textSource, setTextSource] = useState<TextSource>('transcription')
   const [previewing, setPreviewing] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null)
   const previewUrlRef = useRef<string | null>(null)
   const lifecycleState = useTTSLifecycleStore(s => s.state)
+
+  const sourceAudioUrl = `/api/voices/${voiceName}/source?v=1`
+
+  const isEdited = transcription.trim() !== initialTranscription.trim()
 
   const activePreviewLabel =
     lifecycleState === 'starting' || lifecycleState === 'stopped'
       ? 'Starting voice engine…'
       : 'Generating…'
-  const previewLabel = !previewing ? 'Preview' : activePreviewLabel
+  const previewLabel = !previewing ? 'Try it' : activePreviewLabel
 
   // Revoke any pending blob URL if the form closes without Save
   useEffect(
@@ -87,6 +100,7 @@ export const TranscriptionReview = ({
   const handlePreview = async () => {
     if (!activeText.trim()) return
     setPreviewing(true)
+    setPreviewError(null)
 
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current)
@@ -108,11 +122,12 @@ export const TranscriptionReview = ({
 
       previewUrlRef.current = url
 
-      if (audioRef.current) {
-        audioRef.current.src = url
-        audioRef.current.play()
+      if (previewAudioRef.current) {
+        previewAudioRef.current.src = url
+        previewAudioRef.current.play()
       }
     } catch {
+      setPreviewError('Preview failed. The voice engine may still be warming up — try again.')
       toast('Preview failed', { description: 'Could not generate audio preview' })
     } finally {
       setPreviewing(false)
@@ -120,8 +135,8 @@ export const TranscriptionReview = ({
   }
 
   const handleSave = () => {
-    // Persist the edited transcription — only what the user typed, never the preview/custom text,
-    // since OmniVoice uses this as the reference text for the voice sample
+    // OmniVoice reads source.txt as the reference text for cloning, so persist only the
+    // edited transcription — never the preset/custom text used for previews.
     fetch(`/api/voices/${voiceName}/transcript`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -130,82 +145,148 @@ export const TranscriptionReview = ({
       // Non-fatal — OmniVoice will re-transcribe on first use if source.txt is missing
     })
 
-    onDone()
+    onClose()
+  }
+
+  const handleDiscardClick = () => {
+    const confirmed = window.confirm(
+      'Discard your transcription edits? The auto-transcription will be kept.',
+    )
+
+    if (!confirmed) return
+    onClose()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault()
       handleSave()
     }
   }
 
-  return (
-    <div className="mt-3 space-y-3">
-      <audio ref={audioRef} className="hidden" />
+  const charCount = textSource === 'custom' ? customText.length : transcription.length
+  const charLimit = textSource === 'custom' ? MAX_CUSTOM_CHARS : MAX_TRANSCRIPTION_CHARS
 
-      <div className="flex items-center gap-1">
-        {SOURCE_OPTIONS.map(({ value, label }) => (
-          <Button
-            key={value}
-            variant={textSource === value ? 'primary' : 'ghost'}
-            size="small"
-            onClick={() => setTextSource(value)}
-          >
-            {label}
-          </Button>
-        ))}
+  return (
+    <div className="space-y-4">
+      <div className="border-border bg-background space-y-2 rounded-lg border p-3">
+        <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+          Source audio
+        </p>
+        <audio
+          src={sourceAudioUrl}
+          controls
+          preload="metadata"
+          className="w-full"
+          aria-label="Source recording for this voice"
+        />
+        {languageWasAutoDetected && (
+          <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
+            <Info className="mt-0.5 size-3 shrink-0" />
+            Auto-detected — listen and confirm the transcription matches what you hear. If it&apos;s
+            badly wrong, cancel and re-upload with the right language picked.
+          </p>
+        )}
       </div>
 
-      {textSource === 'transcription' && (
-        <textarea
-          value={transcription}
-          onChange={e => setTranscription(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Enter the spoken text from your voice sample"
-          rows={3}
-          className="border-border bg-background text-foreground focus:ring-primary w-full rounded-lg border p-2 text-sm focus:border-transparent focus:ring-2"
-        />
-      )}
+      <audio ref={previewAudioRef} className="hidden" />
 
-      {textSource === 'preset' && (
-        <p className="text-muted-foreground border-border bg-accent/50 rounded-lg border p-2 text-sm">
-          {presetText}
-        </p>
-      )}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <Tabs
+            value={textSource}
+            onValueChange={value => {
+              if (isTextSource(value)) setTextSource(value)
+            }}
+            aria-label="Preview text source"
+          >
+            <TabsList>
+              {SOURCE_OPTIONS.map(option => (
+                <TabsTrigger key={option.value} value={option.value}>
+                  {option.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <span
+            className={`text-xs ${
+              charCount > charLimit ? 'text-destructive' : 'text-muted-foreground'
+            }`}
+            aria-live="polite"
+          >
+            {charCount}/{charLimit}
+          </span>
+        </div>
 
-      {textSource === 'custom' && (
-        <div>
-          <textarea
+        {textSource === 'transcription' && (
+          <Textarea
+            value={transcription}
+            onChange={e => setTranscription(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter the spoken text from your voice sample"
+            rows={3}
+            aria-label="Voice transcription"
+          />
+        )}
+
+        {textSource === 'preset' && (
+          <p className="text-muted-foreground border-border bg-muted/40 rounded-md border p-3 text-sm leading-relaxed">
+            {presetText}
+          </p>
+        )}
+
+        {textSource === 'custom' && (
+          <Textarea
             value={customText}
             onChange={e => {
               if (e.target.value.length <= MAX_CUSTOM_CHARS) setCustomText(e.target.value)
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Type any text to preview"
+            placeholder="Type any text to preview the new voice"
             rows={3}
-            className="border-border bg-background text-foreground focus:ring-primary w-full rounded-lg border p-2 text-sm focus:border-transparent focus:ring-2"
+            aria-label="Custom preview text"
           />
-          <p className="text-muted-foreground mt-1 text-xs">
-            {customText.length}/{MAX_CUSTOM_CHARS}
-          </p>
-        </div>
+        )}
+      </div>
+
+      {previewError && (
+        <p className="text-destructive text-sm" role="alert">
+          {previewError}
+        </p>
       )}
 
       <div className="flex items-center gap-2">
-        <Button variant="primary" size="small" onClick={handleSave}>
-          Save
-        </Button>
-        <Button
-          variant="outline"
-          size="small"
-          onClick={handlePreview}
-          disabled={!activeText.trim()}
-          loading={previewing}
+        {isEdited ? (
+          <Button variant="primary" size="default" onClick={handleSave}>
+            Save voice
+          </Button>
+        ) : (
+          <Button variant="primary" size="default" onClick={onClose}>
+            Done
+          </Button>
+        )}
+        <Tooltip
+          label="Hear this voice read the text above. Switch tabs to use the auto-transcription, a literary preset, or your own line."
+          maxWidth={300}
         >
-          <Play className="size-3" />
-          {previewLabel}
-        </Button>
+          <Button
+            variant="outline"
+            size="default"
+            onClick={handlePreview}
+            disabled={!activeText.trim() || previewing}
+            loading={previewing}
+          >
+            {!previewing && <Play />}
+            {previewLabel}
+          </Button>
+        </Tooltip>
+        {isEdited && (
+          <Tooltip label="Discard your edits and keep the auto-transcription">
+            <Button variant="ghost" size="default" onClick={handleDiscardClick}>
+              Discard
+            </Button>
+          </Tooltip>
+        )}
       </div>
     </div>
   )

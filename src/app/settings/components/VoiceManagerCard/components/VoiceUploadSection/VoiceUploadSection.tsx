@@ -1,9 +1,11 @@
 'use client'
 
 import { Button, Select, toast } from '@carbonid1/design-system'
-import { Plus } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { Plus, X } from 'lucide-react'
+import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { AudioDropZone } from '@/components/ui/AudioDropZone/AudioDropZone'
+import { Input } from '@/components/ui/Input/Input'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { TranscriptionReview } from './components/TranscriptionReview/TranscriptionReview'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
@@ -15,12 +17,17 @@ const ACCEPTED_FORMATS =
 const MIN_DURATION = 10
 const MAX_DURATION = 20
 
-const LANGUAGE_OPTIONS = [
+type LanguageValue = '' | 'en' | 'ru' | 'uk'
+
+const LANGUAGE_OPTIONS: { value: LanguageValue; label: string }[] = [
   { value: '', label: 'Auto-detect' },
   { value: 'en', label: 'English' },
   { value: 'ru', label: 'Russian' },
   { value: 'uk', label: 'Ukrainian' },
 ]
+
+const isLanguageValue = (value: string): value is LanguageValue =>
+  LANGUAGE_OPTIONS.some(option => option.value === value)
 
 interface UploadFormValues {
   name: string
@@ -36,27 +43,37 @@ interface VoiceUploadSectionProps {
 }
 
 export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps) => {
+  const nameFieldId = useId()
+  const languageFieldId = useId()
   const { uploading, error: uploadError, upload, reset: resetUpload } = useUploadVoice()
   const { startPolling } = useSamplePolling({ onSampleReady: onVoicesChanged })
   const {
     register,
     handleSubmit,
-    setError,
-    clearErrors,
     reset: resetForm,
     formState: { errors },
   } = useForm<UploadFormValues>({ mode: 'onSubmit' })
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
-  const [language, setLanguage] = useState('')
+  const [language, setLanguage] = useState<LanguageValue>('')
   const [fileDuration, setFileDuration] = useState<number | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
   const [uploadedVoice, setUploadedVoice] = useState<UploadedVoice | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const resetEverything = () => {
+    resetForm()
+    resetUpload()
+    setFile(null)
+    setFileDuration(null)
+    setFileError(null)
+    setLanguage('')
+    setUploadedVoice(null)
+  }
 
   const handleFileChange = async (selectedFile: File | null) => {
     setFile(selectedFile)
     setFileDuration(null)
-    clearErrors('root')
+    setFileError(null)
     resetUpload()
 
     if (!selectedFile) return
@@ -66,25 +83,16 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
 
       setFileDuration(duration)
     } catch {
-      setError('root', { message: 'Could not read audio file' })
+      setFileError('Could not read this audio file. Try a WAV, MP3, M4A, OGG, or FLAC.')
     }
   }
 
+  const durationValid =
+    fileDuration !== null && fileDuration >= MIN_DURATION && fileDuration <= MAX_DURATION
+  const canSubmit = Boolean(file) && durationValid && !uploading
+
   const onSubmit = handleSubmit(async data => {
-    if (!file) {
-      setError('root', { message: 'Audio file is required' })
-      return
-    }
-    if (fileDuration === null) {
-      setError('root', { message: 'Could not read audio duration' })
-      return
-    }
-    if (fileDuration < MIN_DURATION || fileDuration > MAX_DURATION) {
-      setError('root', {
-        message: `Audio must be ${MIN_DURATION}–${MAX_DURATION} seconds (got ${fileDuration.toFixed(1)}s)`,
-      })
-      return
-    }
+    if (!canSubmit || !file) return
 
     const result = await upload(file, data.name.trim(), language || undefined)
 
@@ -95,94 +103,126 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
     }
   })
 
-  const handleDone = () => {
-    resetForm()
-    setFile(null)
-    setFileDuration(null)
-    setLanguage('')
-    setUploadedVoice(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
+  const handleClose = () => {
+    resetEverything()
     setOpen(false)
+  }
+
+  const handleReviewDone = () => {
+    handleClose()
     onVoicesChanged()
-    toast('Voice added', { description: 'Open a book to start listening' })
+    toast('Voice added', { description: 'Sample is generating in the background.' })
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      onSubmit()
-    }
+  if (!open) {
+    return (
+      <Button
+        variant="outline"
+        fullWidth
+        size="large"
+        onClick={() => setOpen(true)}
+        aria-expanded={false}
+      >
+        <Plus />
+        Add Voice
+      </Button>
+    )
   }
-
-  const errorMessage = errors.name?.message ?? uploadError ?? errors.root?.message ?? null
-
-  const durationText = fileDuration !== null ? `${fileDuration.toFixed(1)}s` : null
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen(prev => !prev)}
-        className={`flex w-full items-center justify-center gap-2 rounded-lg px-3 py-4 text-sm ring-1 transition-colors ${
-          open
-            ? 'ring-primary-border bg-primary-muted text-primary'
-            : 'ring-border text-muted-foreground hover:ring-primary-border hover:text-primary'
-        }`}
-      >
-        <Plus className="size-4" />
-        {open ? 'Hide Upload' : 'Add Voice'}
-      </button>
+    <div className="border-border bg-accent/30 space-y-4 rounded-lg border p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">
+          {uploadedVoice ? 'Review transcription' : 'Add a voice'}
+        </h3>
+        <Button variant="ghost" size="icon" onClick={handleClose} aria-label="Close upload form">
+          <X />
+        </Button>
+      </div>
 
-      {open && !uploadedVoice && (
-        <div className="mt-3 space-y-3">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              {...register('name', { required: 'Voice name is required' })}
-              onKeyDown={handleKeyDown}
-              placeholder="Voice name"
-              aria-label="Voice name"
-              className="border-border bg-background text-foreground focus:ring-primary flex-1 rounded-lg border p-2 text-sm focus:border-transparent focus:ring-2"
-            />
-            <div className="w-36">
+      {!uploadedVoice && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem]">
+            <div className="space-y-1">
+              <label htmlFor={nameFieldId} className="text-muted-foreground text-xs font-medium">
+                Voice name
+              </label>
+              <Input
+                id={nameFieldId}
+                {...register('name', { required: 'Voice name is required' })}
+                placeholder="e.g. Marusia"
+                aria-invalid={errors.name ? true : undefined}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+            <div className="space-y-1">
+              <label
+                htmlFor={languageFieldId}
+                className="text-muted-foreground text-xs font-medium"
+              >
+                Language
+              </label>
               <Select
+                id={languageFieldId}
                 value={language}
-                onChange={setLanguage}
+                onChange={value => {
+                  if (isLanguageValue(value)) setLanguage(value)
+                }}
                 options={LANGUAGE_OPTIONS}
                 aria-label="Voice language"
-                className="h-full"
               />
             </div>
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_FORMATS}
-            onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
-            className="border-border bg-background text-foreground file:bg-primary-muted file:text-primary w-full rounded-lg border p-2 text-sm file:mr-2 file:rounded file:border-0 file:px-2 file:py-1 file:text-xs"
-          />
-          {durationText && (
-            <p className="text-muted-foreground text-sm">Duration: {durationText}</p>
-          )}
-          <div className="flex items-center gap-2">
-            <Button variant="primary" size="small" onClick={onSubmit} loading={uploading}>
-              {uploading ? 'Uploading...' : 'Upload'}
-            </Button>
-            {errorMessage && <p className="text-destructive text-sm">{errorMessage}</p>}
+
+          <div className="space-y-1">
+            <p className="text-muted-foreground text-xs font-medium">Audio sample</p>
+            <AudioDropZone
+              file={file}
+              onFileChange={handleFileChange}
+              accept={ACCEPTED_FORMATS}
+              acceptHint={`WAV, MP3, M4A, OGG, FLAC · ${MIN_DURATION}–${MAX_DURATION} seconds`}
+              durationSeconds={fileDuration}
+              minSeconds={MIN_DURATION}
+              maxSeconds={MAX_DURATION}
+              durationError={fileError}
+              disabled={uploading}
+            />
+            <p className="text-muted-foreground text-xs">
+              A clean recording of one speaker, no music, in a quiet room. Better recordings produce
+              better narration.
+            </p>
           </div>
-          <p className="text-muted-foreground text-sm">
-            Upload a WAV, MP3, M4A, OGG, or FLAC file (10–20 seconds). A TTS sample will be
-            generated automatically.
-          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="primary"
+              size="default"
+              onClick={onSubmit}
+              loading={uploading}
+              disabled={!canSubmit}
+            >
+              {uploading ? 'Uploading & transcribing…' : 'Upload'}
+            </Button>
+            <Button variant="ghost" size="default" onClick={handleClose} disabled={uploading}>
+              Cancel
+            </Button>
+            {(errors.name?.message || uploadError) && (
+              <p className="text-destructive text-sm" role="alert">
+                {errors.name?.message ?? uploadError}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
-      {open && uploadedVoice && (
+      {uploadedVoice && (
         <TranscriptionReview
           voiceName={uploadedVoice.name}
           language={language}
+          languageWasAutoDetected={language === ''}
           initialTranscription={uploadedVoice.transcription}
-          onDone={handleDone}
+          onClose={handleReviewDone}
         />
       )}
     </div>
