@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import type { Page } from '@playwright/test'
+import { slugifyVoiceName } from '@/lib/services/voice/helpers/slugifyVoiceName/slugifyVoiceName'
 
 interface Voice {
   name: string
@@ -38,15 +39,18 @@ const silencePath = path.resolve(__dirname, '../../fixtures/silence.wav')
 
 export const mockVoiceManagement = async (page: Page) => {
   const uploadedVoices: Voice[] = []
+  const designedVoices: Voice[] = []
   const deletedNames = new Set<string>()
   const samplesReady = new Set<string>()
   const silenceBuffer = fs.readFileSync(silencePath)
+  const allVoices = () => [...MOCK_VOICES, ...uploadedVoices, ...designedVoices]
+  const findVoice = (name: string) => allVoices().find(v => v.name === name)
 
   await page.route('**/api/voices', (route, request) => {
     const method = request.method()
 
     if (method === 'GET') {
-      const visible = [...MOCK_VOICES, ...uploadedVoices]
+      const visible = allVoices()
         .filter(v => !deletedNames.has(v.name))
         .map(v => ({ ...v, hasSample: v.hasSample || samplesReady.has(v.name) }))
 
@@ -62,9 +66,9 @@ export const mockVoiceManagement = async (page: Page) => {
       const postData = request.postData() ?? ''
       const nameMatch = postData.match(/name="name"\r?\n\r?\n([^\r\n]+)/)
       const displayName = nameMatch?.[1]?.trim() ?? 'Unknown'
-      const name = displayName.toLowerCase().replace(/\s+/g, '-')
+      const name = slugifyVoiceName(displayName)
 
-      const existing = [...MOCK_VOICES, ...uploadedVoices].find(v => v.name === name)
+      const existing = findVoice(name)
 
       if (existing && !deletedNames.has(name)) {
         route.fulfill({
@@ -99,6 +103,54 @@ export const mockVoiceManagement = async (page: Page) => {
       return
     }
 
+    route.fallback()
+  })
+
+  await page.route('**/api/voices/design', (route, request) => {
+    if (request.method() === 'POST') {
+      route.fulfill({
+        status: 200,
+        contentType: 'audio/wav',
+        body: silenceBuffer,
+      })
+      return
+    }
+    route.fallback()
+  })
+
+  await page.route('**/api/voices/design/save', (route, request) => {
+    if (request.method() === 'POST') {
+      const postData = request.postData() ?? ''
+      const nameMatch = postData.match(/name="name"\r?\n\r?\n([^\r\n]+)/)
+      const displayName = nameMatch?.[1]?.trim() ?? 'Designed Voice'
+      const name = slugifyVoiceName(displayName)
+
+      const existing = findVoice(name)
+
+      if (existing && !deletedNames.has(name)) {
+        route.fulfill({
+          status: 409,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Voice name already taken', code: 'NAME_TAKEN' }),
+        })
+        return
+      }
+
+      designedVoices.push({
+        name,
+        displayName,
+        type: 'custom',
+        hasSample: false,
+        tags: [],
+      })
+
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ name, displayName }),
+      })
+      return
+    }
     route.fallback()
   })
 
@@ -179,8 +231,7 @@ export const mockVoiceManagement = async (page: Page) => {
     const voiceName = segments[segments.length - 2] ?? ''
     const method = request.method()
 
-    const allVoices = [...MOCK_VOICES, ...uploadedVoices]
-    const voice = allVoices.find(v => v.name === voiceName)
+    const voice = findVoice(voiceName)
     const hasSample = voice?.hasSample || samplesReady.has(voiceName)
 
     if (method === 'HEAD') {
@@ -210,6 +261,7 @@ export const mockVoiceManagement = async (page: Page) => {
 
   return {
     getUploadedVoices: () => [...uploadedVoices],
+    getDesignedVoices: () => [...designedVoices],
     getDeletedNames: () => new Set(deletedNames),
     markSampleReady: (voiceName: string) => {
       samplesReady.add(voiceName)

@@ -141,7 +141,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
       </div>
 
       {!uploadedVoice && (
-        <div className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem]">
             <div className="space-y-1">
               <label htmlFor={nameFieldId} className="text-muted-foreground text-xs font-medium">
@@ -196,15 +196,21 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
 
           <div className="flex items-center gap-2">
             <Button
+              type="submit"
               variant="primary"
               size="default"
-              onClick={onSubmit}
               loading={uploading}
               disabled={!canSubmit}
             >
               {uploading ? 'Uploading & transcribing…' : 'Upload'}
             </Button>
-            <Button variant="ghost" size="default" onClick={handleClose} disabled={uploading}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="default"
+              onClick={handleClose}
+              disabled={uploading}
+            >
               Cancel
             </Button>
             {(errors.name?.message || uploadError) && (
@@ -213,7 +219,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               </p>
             )}
           </div>
-        </div>
+        </form>
       )}
 
       {uploadedVoice && (
