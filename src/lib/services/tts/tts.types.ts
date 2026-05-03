@@ -1,5 +1,19 @@
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
 
+export interface DesignResult {
+  audio: Buffer
+  generationTimeMs: number
+  durationMs: number
+}
+
+export type DesignFormat = 'opus' | 'wav'
+
+export interface DesignOptions {
+  format?: DesignFormat
+  classTemperature?: number
+  seed?: number
+}
+
 export interface TTSService {
   generate(
     text: string,
@@ -11,6 +25,7 @@ export interface TTSService {
     durationMs: number
     samplingRate: number | null
   }>
+  design(text: string, instruct: string, options?: DesignOptions): Promise<DesignResult>
 }
 
 export type TTSErrorCode = 'VOICE_NOT_FOUND' | 'TTS_FAILED'

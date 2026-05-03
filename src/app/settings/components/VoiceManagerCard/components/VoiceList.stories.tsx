@@ -7,6 +7,7 @@ const appVoice: VoiceEntry = {
   name: 'clara',
   displayName: 'Clara',
   type: 'app',
+  source: 'upload',
   hasSample: true,
   tags: ['female', 'british'],
 }
@@ -15,6 +16,7 @@ const customVoice: VoiceEntry = {
   name: 'my-voice',
   displayName: 'My Voice',
   type: 'custom',
+  source: 'upload',
   hasSample: false,
   tags: ['male'],
 }

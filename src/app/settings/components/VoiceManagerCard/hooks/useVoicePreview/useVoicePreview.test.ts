@@ -128,4 +128,31 @@ describe('useVoicePreview', () => {
     rerender()
     expect(result.current.play).toBe(first)
   })
+
+  it('stop pauses playback and clears playing state', async () => {
+    const { result } = renderHook(() => useVoicePreview())
+
+    await act(() => result.current.play('narrator', 'sample'))
+    expect(result.current.playing).toEqual({ name: 'narrator', type: 'sample' })
+
+    act(() => result.current.stop())
+
+    expect(getMockAudio(0).pause).toHaveBeenCalled()
+    expect(result.current.playing).toBeNull()
+  })
+
+  it('stop is a no-op when nothing is playing', () => {
+    const { result } = renderHook(() => useVoicePreview())
+
+    expect(() => act(() => result.current.stop())).not.toThrow()
+    expect(result.current.playing).toBeNull()
+  })
+
+  it('keeps stop callback stable across rerenders', () => {
+    const { result, rerender } = renderHook(() => useVoicePreview())
+    const first = result.current.stop
+
+    rerender()
+    expect(result.current.stop).toBe(first)
+  })
 })

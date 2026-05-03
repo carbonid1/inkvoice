@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", message="pkg_resources is deprecated")
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response
 
-from api.models.requests import TTSRequest, HealthResponse
+from api.models.requests import TTSRequest, TTSDesignRequest, HealthResponse
 from api.services.text_preprocessing import normalize_ellipsis
 from api.services.tts_service import get_tts_service
 
@@ -74,6 +74,55 @@ def text_to_speech(request: TTSRequest) -> Response:
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        traceback.print_exc(file=sys.stderr)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/tts/design")
+def text_to_speech_design(request: TTSDesignRequest) -> Response:
+    """Generate speech audio in a designed voice (no reference audio)."""
+    text = request.text.strip() if request.text else ""
+    text = normalize_ellipsis(text)
+    instruct = request.instruct.strip() if request.instruct else ""
+
+    if not text:
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if not instruct:
+        raise HTTPException(status_code=400, detail="Instruct cannot be empty")
+
+    try:
+        preview = text[:80] + ("..." if len(text) > 80 else "")
+        print(f"[tts/design] [{instruct}] Generating: \"{preview}\"")
+        service = get_tts_service()
+
+        kwargs = {}
+        if request.class_temperature is not None:
+            kwargs["class_temperature"] = request.class_temperature
+        if request.seed is not None:
+            kwargs["seed"] = request.seed
+
+        as_wav = request.format == "wav"
+        audio_bytes, gen_time_ms, duration_ms = service.design(
+            text=text,
+            instruct=instruct,
+            as_wav=as_wav,
+            **kwargs,
+        )
+        media_type = "audio/wav" if as_wav else "audio/ogg"
+        filename = "voice.wav" if as_wav else "voice.ogg"
+
+        print(f"[tts/design] Done in {gen_time_ms}ms ({duration_ms}ms audio)")
+
+        return Response(
+            content=audio_bytes,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "X-Generation-Time-Ms": str(gen_time_ms),
+                "X-Audio-Duration-Ms": str(duration_ms),
+            },
+        )
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
         raise HTTPException(status_code=500, detail=str(e))

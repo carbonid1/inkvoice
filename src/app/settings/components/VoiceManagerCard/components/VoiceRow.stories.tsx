@@ -11,6 +11,7 @@ const customVoice: VoiceEntry = {
   name: 'clara',
   displayName: 'Clara',
   type: 'custom',
+  source: 'upload',
   hasSample: true,
   tags: ['female', 'british'],
 }
@@ -19,8 +20,18 @@ const appVoice: VoiceEntry = {
   name: 'narrator',
   displayName: 'Narrator',
   type: 'app',
+  source: 'upload',
   hasSample: true,
   tags: ['neutral'],
+}
+
+const designedVoice: VoiceEntry = {
+  name: 'velvet-otter',
+  displayName: 'Velvet Otter',
+  type: 'custom',
+  source: 'design',
+  hasSample: true,
+  tags: ['en'],
 }
 
 const meta = preview.meta({
@@ -103,6 +114,10 @@ Default.test('row is not aria-current when unselected', ({ canvas }) => {
   expect(canvas.getByRole('button', { name: /^Clara/ })).not.toHaveAttribute('aria-current', 'true')
 })
 
+Default.test('uploaded voice does not show the AI-designed indicator', ({ canvas }) => {
+  expect(canvas.queryByLabelText('Designed with AI')).not.toBeInTheDocument()
+})
+
 /** Selected row — primary background and aria-current; persists action visibility. */
 export const Selected = meta.story({
   args: { selected: true },
@@ -156,6 +171,7 @@ export const CustomGenerating = meta.story({
       name: 'my-voice',
       displayName: 'My Voice',
       type: 'custom',
+      source: 'upload',
       hasSample: false,
       tags: ['male'],
     },
@@ -164,6 +180,33 @@ export const CustomGenerating = meta.story({
 
 CustomGenerating.test('sample button is disabled while generating', ({ canvas }) => {
   expect(canvas.getByRole('button', { name: /Generating sample for My Voice/ })).toBeDisabled()
+})
+
+/** AI-designed custom voice — sparkle badge appears next to the name. */
+export const AIDesigned = meta.story({
+  args: { voice: designedVoice },
+})
+
+AIDesigned.test('shows the AI-designed indicator', ({ canvas }) => {
+  expect(canvas.getByLabelText('Designed with AI')).toBeInTheDocument()
+})
+
+/** AI-designed voice carrying the descriptive tags derived from the design attributes. */
+export const AIDesignedWithDescriptorTags = meta.story({
+  args: {
+    voice: {
+      ...designedVoice,
+      tags: ['en', 'female', 'young-adult', 'low-pitch', 'british', 'whisper'],
+    },
+  },
+})
+
+AIDesignedWithDescriptorTags.test('renders each descriptor tag', ({ canvas }) => {
+  expect(canvas.getByText('female')).toBeInTheDocument()
+  expect(canvas.getByText('young-adult')).toBeInTheDocument()
+  expect(canvas.getByText('low-pitch')).toBeInTheDocument()
+  expect(canvas.getByText('british')).toBeInTheDocument()
+  expect(canvas.getByText('whisper')).toBeInTheDocument()
 })
 
 /** Source audio is playing — source button toggles to a Stop label. */

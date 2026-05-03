@@ -62,6 +62,67 @@ class TTSService:
             return txt_path.read_text().strip()
         return None
 
+    def design(
+        self,
+        text: str,
+        instruct: str,
+        class_temperature: float = 0.3,
+        seed: Optional[int] = None,
+        as_wav: bool = False,
+    ) -> Tuple[bytes, int, int]:
+        """
+        Generate speech audio in a designed (synthesized) voice from a speaker
+        description string (no reference audio).
+
+        `instruct` is OmniVoice's speaker-attribute syntax — e.g.
+        "female, young adult, high pitch, british accent". See
+        https://github.com/k2-fsa/OmniVoice/blob/master/docs/voice-design.md
+
+        Set `as_wav=True` to return raw WAV bytes (used when the result must
+        be persisted as data/voices/<name>/source.wav for later cloning).
+
+        Returns:
+            Tuple of (audio_bytes, generation_time_ms, duration_ms)
+        """
+        tts_model = self._get_model()
+        wav = None
+        buffer = None
+
+        try:
+            if seed is not None:
+                _set_torch_seed(seed)
+
+            start = time.time()
+            with torch.inference_mode():
+                audio_list = tts_model.generate(
+                    text=text,
+                    instruct=instruct,
+                    class_temperature=class_temperature,
+                )
+            wav = torch.as_tensor(audio_list[0])
+            if wav.dim() == 1:
+                wav = wav.unsqueeze(0)
+            gen_time_ms = int((time.time() - start) * 1000)
+
+            duration_ms = int(wav.shape[1] / OMNIVOICE_SAMPLE_RATE * 1000)
+
+            buffer = io.BytesIO()
+            sf.write(buffer, wav.squeeze(0).cpu().numpy(), OMNIVOICE_SAMPLE_RATE, format="WAV")
+            buffer.seek(0)
+            wav_bytes = buffer.read()
+            audio_bytes = wav_bytes if as_wav else encode_wav_to_opus(wav_bytes)
+
+            return audio_bytes, gen_time_ms, duration_ms
+        finally:
+            del wav, buffer
+            self._generation_count += 1
+            if self._generation_count % CLEANUP_INTERVAL == 0:
+                gc.collect()
+                if settings.device == "mps":
+                    torch.mps.empty_cache()
+                elif settings.device == "cuda":
+                    torch.cuda.empty_cache()
+
     def generate(
         self,
         text: str,
@@ -121,6 +182,15 @@ class TTSService:
                     torch.mps.empty_cache()
                 elif settings.device == "cuda":
                     torch.cuda.empty_cache()
+
+
+def _set_torch_seed(seed: int) -> None:
+    """Seed every backend torch may use so design() is reproducible across MPS/CUDA/CPU."""
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    if hasattr(torch, "mps") and torch.backends.mps.is_available():
+        torch.mps.manual_seed(seed)
 
 
 # Singleton instance

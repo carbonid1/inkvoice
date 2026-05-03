@@ -1,6 +1,6 @@
 import { parseTimestampsHeader } from '@/lib/helpers/parseTimestampsHeader/parseTimestampsHeader'
 import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
-import { type TTSService, TTSError } from './tts.types'
+import { type DesignOptions, type TTSService, TTSError } from './tts.types'
 
 const TTS_TIMEOUT_MS = 180_000
 const TTS_COLD_TIMEOUT_MS = 300_000
@@ -51,6 +51,49 @@ class TTSServiceImpl implements TTSService {
       timestamps,
       durationMs,
       samplingRate,
+    }
+  }
+
+  async design(text: string, instruct: string, options: DesignOptions = {}) {
+    const client = getPythonClient()
+    const instanceId = client.getCurrentInstanceId()
+
+    if (instanceId !== lastInstanceId) {
+      lastInstanceId = instanceId
+      generationCount = 0
+    }
+    const timeout = generationCount < COLD_GENERATION_COUNT ? TTS_COLD_TIMEOUT_MS : TTS_TIMEOUT_MS
+
+    generationCount++
+
+    const { format = 'opus', classTemperature, seed } = options
+    const response = await client.fetch('/tts/design', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        instruct,
+        format,
+        class_temperature: classTemperature,
+        seed,
+      }),
+      signal: AbortSignal.timeout(timeout),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+
+      throw new TTSError('TTS_FAILED', errorText, response.status)
+    }
+
+    const generationTimeMs = parseInt(response.headers.get('X-Generation-Time-Ms') ?? '0', 10) || 0
+    const durationMs = parseInt(response.headers.get('X-Audio-Duration-Ms') ?? '0', 10) || 0
+    const audioBuffer = await response.arrayBuffer()
+
+    return {
+      audio: Buffer.from(audioBuffer),
+      generationTimeMs,
+      durationMs,
     }
   }
 }

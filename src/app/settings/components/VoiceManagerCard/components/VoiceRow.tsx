@@ -2,6 +2,7 @@
 
 import { Button, Tooltip } from '@carbonid1/design-system'
 import { Pencil, Play, Square, Volume2, X } from 'lucide-react'
+import { VoiceSourceBadge } from '@/components/VoiceSourceBadge/VoiceSourceBadge'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { VoiceTagEditor } from '../../VoiceTagEditor/VoiceTagEditor'
 import { VoiceTagList } from '../../VoiceTagList/VoiceTagList'
@@ -57,6 +58,7 @@ export const VoiceRow = ({
           <span data-voice-name className="shrink-0 text-sm font-medium whitespace-nowrap">
             {voice.displayName}
           </span>
+          <VoiceSourceBadge source={voice.source} />
           {voice.tags.length > 0 && <VoiceTagList tags={voice.tags} />}
         </button>
 

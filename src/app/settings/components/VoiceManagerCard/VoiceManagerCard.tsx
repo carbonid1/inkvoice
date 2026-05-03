@@ -8,6 +8,7 @@ import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoic
 import { UNDO_WINDOW_MS } from '@/lib/services/voice/voice.consts'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { useVoiceStore } from '@/store/useVoiceStore'
+import { VoiceDesignSection } from './components/VoiceDesignSection/VoiceDesignSection'
 import { VoiceList } from './components/VoiceList'
 import { VoiceListSkeleton } from './components/VoiceListSkeleton'
 import { VoiceUploadSection } from './components/VoiceUploadSection/VoiceUploadSection'
@@ -30,7 +31,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   const setVoice = useVoiceStore(s => s.setVoice)
   const setBookVoice = useVoiceStore(s => s.setBookVoice)
   const clearVoiceFromAllBooks = useVoiceStore(s => s.clearVoiceFromAllBooks)
-  const { playing, error: previewError, play } = useVoicePreview()
+  const { playing, error: previewError, play, stop } = useVoicePreview()
   const { deleteVoice, restoreVoice } = useDeleteVoice()
   const { saving: tagsSaving, updateTags } = useUpdateVoiceTags()
 
@@ -94,6 +95,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
 
   const handleDelete = useCallback(
     (voiceName: string) => {
+      if (playing?.name === voiceName) stop()
       setHiddenVoices(prev => new Set(prev).add(voiceName))
 
       const previousVoice = useVoiceStore.getState().voice
@@ -133,6 +135,8 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
       })
     },
     [
+      playing,
+      stop,
       clearVoiceFromAllBooks,
       clearUndoTimeout,
       deleteVoice,
@@ -179,7 +183,12 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
               playing={playing}
               onPlay={play}
               onDelete={handleDelete}
-              uploadSection={<VoiceUploadSection onVoicesChanged={onVoicesChanged} />}
+              uploadSection={
+                <>
+                  <VoiceUploadSection onVoicesChanged={onVoicesChanged} />
+                  <VoiceDesignSection onVoicesChanged={onVoicesChanged} />
+                </>
+              }
               tagsSaving={tagsSaving}
               updateTags={updateTags}
             />

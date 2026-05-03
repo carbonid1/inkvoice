@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, Select, toast } from '@carbonid1/design-system'
-import { Plus, X } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AudioDropZone } from '@/components/ui/AudioDropZone/AudioDropZone'
@@ -17,13 +17,13 @@ const ACCEPTED_FORMATS =
 const MIN_DURATION = 10
 const MAX_DURATION = 20
 
-type LanguageValue = '' | 'en' | 'ru' | 'uk'
+type LanguageValue = '' | 'en' | 'uk' | 'ru'
 
 const LANGUAGE_OPTIONS: { value: LanguageValue; label: string }[] = [
   { value: '', label: 'Auto-detect' },
   { value: 'en', label: 'English' },
-  { value: 'ru', label: 'Russian' },
   { value: 'uk', label: 'Ukrainian' },
+  { value: 'ru', label: 'Russian' },
 ]
 
 const isLanguageValue = (value: string): value is LanguageValue =>
@@ -111,7 +111,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
   const handleReviewDone = () => {
     handleClose()
     onVoicesChanged()
-    toast('Voice added', { description: 'Sample is generating in the background.' })
+    toast('Voice uploaded', { description: 'Sample is generating in the background.' })
   }
 
   if (!open) {
@@ -123,8 +123,8 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
         onClick={() => setOpen(true)}
         aria-expanded={false}
       >
-        <Plus />
-        Add Voice
+        <Upload />
+        Upload voice
       </Button>
     )
   }
@@ -133,7 +133,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
     <div className="border-border bg-accent/30 space-y-4 rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">
-          {uploadedVoice ? 'Review transcription' : 'Add a voice'}
+          {uploadedVoice ? 'Review transcription' : 'Upload a voice'}
         </h3>
         <Button variant="ghost" size="icon" onClick={handleClose} aria-label="Close upload form">
           <X />

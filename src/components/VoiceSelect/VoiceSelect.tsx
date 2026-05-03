@@ -3,6 +3,7 @@
 import { type SelectGroup, type SelectOption, Select } from '@carbonid1/design-system'
 import { useCallback, useMemo } from 'react'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
+import { VoiceSourceBadge } from '../VoiceSourceBadge/VoiceSourceBadge'
 
 interface VoiceSelectProps {
   voices: VoiceEntry[]
@@ -62,7 +63,10 @@ export const VoiceSelect = ({
       if (!voice) return <span>{option.label}</span>
       return (
         <>
-          <span>{voice.displayName}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <span>{voice.displayName}</span>
+            <VoiceSourceBadge source={voice.source} />
+          </span>
           {voice.tags.length > 0 && (
             <span className="text-muted-foreground mt-0.5 block text-xs">
               {voice.tags.join(', ')}

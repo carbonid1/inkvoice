@@ -55,6 +55,7 @@ model VoiceMetadata {
   name        String  @id // slugified directory name
   displayName String
   type        String  // 'app' | 'custom'
+  source      String  @default("upload") // 'upload' | 'design'
   tags        String  @default("[]") // JSON: string[]
   deletedAt   Int? // Unix timestamp ms, null = active
 }

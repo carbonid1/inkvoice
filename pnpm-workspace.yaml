@@ -5,3 +5,11 @@ onlyBuiltDependencies:
   - electron
   - lefthook
   - prisma
+
+# Pin transitive playwright to match @playwright/test. @vitest/browser-playwright
+# declares `playwright: "*"` as a peer; without this pin pnpm auto-installs the
+# latest (currently a 1.60 alpha), hoists its bin to node_modules/.bin/playwright,
+# and `playwright test` then refuses to collect specs that import 1.59.x.
+overrides:
+  playwright: 1.59.1
+  playwright-core: 1.59.1

@@ -26,6 +26,11 @@ export const useVoicePreview = () => {
     }
   }, [])
 
+  const stop = useCallback(() => {
+    stopPlayback()
+    setPlaying(null)
+  }, [stopPlayback])
+
   const cleanup = useCallback(() => {
     stopPlayback()
     for (const url of blobCacheRef.current.values()) {
@@ -93,5 +98,5 @@ export const useVoicePreview = () => {
     [stopPlayback],
   )
 
-  return useMemo(() => ({ playing, error, play }), [playing, error, play])
+  return useMemo(() => ({ playing, error, play, stop }), [playing, error, play, stop])
 }

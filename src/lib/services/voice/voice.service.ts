@@ -7,13 +7,14 @@ import { swallowRecordNotFound } from '../../helpers/swallowRecordNotFound/swall
 import { prisma } from '../db/db.service'
 import { voicePreferenceService } from '../voice-preference/voice-preference.service'
 import { convertToWav } from './helpers/convertToWav/convertToWav'
+import { getWavDurationSeconds } from './helpers/getWavDuration/getWavDuration'
 import { normalizeTags } from './helpers/normalizeTags/normalizeTags'
 import { prettifyVoiceName } from './helpers/prettifyVoiceName/prettifyVoiceName'
 import { slugifyVoiceName } from './helpers/slugifyVoiceName/slugifyVoiceName'
 import { validateVoiceName } from './helpers/validateVoiceName/validateVoiceName'
 import { validateWav } from './helpers/validateWav/validateWav'
 import { APP_VOICES, isAppVoice, UNDO_WINDOW_MS } from './voice.consts'
-import type { VoiceEntry, VoiceMetadata, VoiceType } from './voice.types'
+import type { VoiceEntry, VoiceMetadata, VoiceSource, VoiceType } from './voice.types'
 
 interface UploadSuccess {
   ok: true
@@ -67,14 +68,18 @@ export const createVoiceService = (voicesDir: string) => {
     }
     return {
       displayName: row.displayName,
+      source: row.source === 'design' ? 'design' : 'upload',
       tags: parsedTags.success ? parsedTags.data : [],
     }
   }
 
+  // `source` is set on insert and never overwritten on update — provenance is
+  // immutable once the voice exists.
   const upsertMetadata = async (
     name: string,
     type: VoiceType,
-    meta: VoiceMetadata,
+    source: VoiceSource,
+    meta: { displayName: string; tags: ReadonlyArray<string> },
   ): Promise<void> => {
     const fields = {
       displayName: meta.displayName,
@@ -83,7 +88,7 @@ export const createVoiceService = (voicesDir: string) => {
 
     await prisma.voiceMetadata.upsert({
       where: { name },
-      create: { name, type, ...fields },
+      create: { name, type, source, ...fields },
       update: { ...fields, deletedAt: null },
     })
   }
@@ -109,11 +114,13 @@ export const createVoiceService = (voicesDir: string) => {
 
           const displayName = meta?.displayName ?? prettifyVoiceName(entry)
           const tags = meta?.tags ?? []
+          const source: VoiceSource = meta?.source ?? 'upload'
 
           return {
             name: entry,
             displayName,
             type,
+            source,
             hasSample,
             tags,
           } satisfies VoiceEntry
@@ -249,7 +256,7 @@ export const createVoiceService = (voicesDir: string) => {
     await writeFile(path.join(voiceDir, 'source.wav'), convertResult.buffer)
 
     // Save metadata to DB
-    await upsertMetadata(slug, 'custom', { displayName, tags: [] })
+    await upsertMetadata(slug, 'custom', 'upload', { displayName, tags: [] })
 
     // Transcribe voice reference for OmniVoice
     let transcription: string | null = null
@@ -281,6 +288,49 @@ export const createVoiceService = (voicesDir: string) => {
       displayName,
       durationSeconds: wavResult.durationSeconds,
       transcription,
+    }
+  }
+
+  const saveDesignedVoice = async (
+    displayName: string,
+    wavBuffer: Buffer,
+    refText: string,
+    tags: ReadonlyArray<string> = [],
+  ): Promise<UploadResult> => {
+    const slug = slugifyVoiceName(displayName)
+    const exists = await voiceNameExists(slug)
+    const nameError = validateVoiceName(slug, exists ? [slug] : [])
+
+    if (nameError) {
+      const code = nameError.includes('already exists') ? 'NAME_TAKEN' : 'INVALID_NAME'
+
+      return { ok: false, code, message: nameError }
+    }
+
+    // OmniVoice produces standard 24 kHz mono WAV — no upload-style duration
+    // bounds, but parse the header to confirm it's well-formed.
+    const durationSeconds = getWavDurationSeconds(wavBuffer)
+
+    if (durationSeconds === null) {
+      return { ok: false, code: 'INVALID_FORMAT', message: 'Generated audio is not a valid WAV' }
+    }
+
+    const voiceDir = path.join(customDir, slug)
+
+    await mkdir(voiceDir, { recursive: true })
+    await Promise.all([
+      writeFile(path.join(voiceDir, 'source.wav'), wavBuffer),
+      writeFile(path.join(voiceDir, 'source.txt'), refText.trim()),
+    ])
+
+    await upsertMetadata(slug, 'custom', 'design', { displayName, tags: [...tags] })
+
+    return {
+      ok: true,
+      name: slug,
+      displayName,
+      durationSeconds,
+      transcription: refText.trim(),
     }
   }
 
@@ -386,7 +436,7 @@ export const createVoiceService = (voicesDir: string) => {
     const normalized = normalizeTags(tags)
     const dbMeta = await getMetadata(name)
 
-    await upsertMetadata(name, 'custom', {
+    await upsertMetadata(name, 'custom', dbMeta?.source ?? 'upload', {
       displayName: dbMeta?.displayName ?? prettifyVoiceName(name),
       tags: normalized,
     })
@@ -405,6 +455,8 @@ export const createVoiceService = (voicesDir: string) => {
   return {
     listVoices,
     uploadVoice,
+    saveDesignedVoice,
+    voiceNameExists,
     deleteVoice,
     restoreVoice,
     resolveVoicePath,

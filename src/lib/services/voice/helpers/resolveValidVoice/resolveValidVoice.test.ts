@@ -3,7 +3,14 @@ import type { VoiceEntry } from '../../voice.types'
 import { resolveValidVoice } from './resolveValidVoice'
 
 const makeVoices = (...names: string[]): VoiceEntry[] =>
-  names.map(name => ({ name, displayName: name, type: 'app', hasSample: false, tags: [] }))
+  names.map(name => ({
+    name,
+    displayName: name,
+    type: 'app',
+    source: 'upload',
+    hasSample: false,
+    tags: [],
+  }))
 
 const resolveFound =
   (...existing: string[]) =>

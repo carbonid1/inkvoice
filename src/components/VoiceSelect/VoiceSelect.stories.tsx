@@ -6,11 +6,19 @@ import type { VoiceEntry } from '@/lib/services/voice/voice.types'
 import { VoiceSelect } from './VoiceSelect'
 
 const VOICES: VoiceEntry[] = [
-  { name: 'narrator', displayName: 'Narrator', type: 'app', hasSample: false, tags: [] },
+  {
+    name: 'narrator',
+    displayName: 'Narrator',
+    type: 'app',
+    source: 'upload',
+    hasSample: false,
+    tags: [],
+  },
   {
     name: 'casual',
     displayName: 'Casual',
     type: 'app',
+    source: 'upload',
     hasSample: true,
     tags: ['warm', 'friendly'],
   },
@@ -18,8 +26,17 @@ const VOICES: VoiceEntry[] = [
     name: 'alex',
     displayName: 'Alex',
     type: 'custom',
+    source: 'upload',
     hasSample: false,
     tags: ['male', 'british'],
+  },
+  {
+    name: 'velvet-otter',
+    displayName: 'Velvet Otter',
+    type: 'custom',
+    source: 'design',
+    hasSample: true,
+    tags: ['en'],
   },
 ]
 
