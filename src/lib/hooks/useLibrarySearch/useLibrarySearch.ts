@@ -12,10 +12,11 @@ const FUSE_OPTIONS: IFuseOptions<Book> = {
     { name: 'title', weight: 0.7 },
     { name: 'author', weight: 0.3 },
   ],
-  // 0.3 keeps single-typo tolerance ("tolkein" → "tolkien") without matching
-  // unrelated titles on letter-overlap noise. minMatchCharLength: 2 prevents
-  // single-char queries from returning everything.
-  threshold: 0.3,
+  // 0.4 allows a single edit through on short queries ("may" → "Mary",
+  // "tolkein" → "tolkien"). 0.3 was too strict for 3-char patterns where one
+  // error already scores 0.33. minMatchCharLength: 2 prevents single-char
+  // queries from returning everything.
+  threshold: 0.4,
   ignoreLocation: true,
   minMatchCharLength: 2,
 }
