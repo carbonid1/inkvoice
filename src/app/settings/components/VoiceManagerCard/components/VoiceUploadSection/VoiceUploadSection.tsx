@@ -6,7 +6,6 @@ import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AudioDropZone } from '@/components/ui/AudioDropZone/AudioDropZone'
 import { Input } from '@/components/ui/Input/Input'
-import { useSamplePolling } from '@/lib/hooks/useSamplePolling/useSamplePolling'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { TranscriptionReview } from './components/TranscriptionReview/TranscriptionReview'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
@@ -40,13 +39,16 @@ interface UploadedVoice {
 
 interface VoiceUploadSectionProps {
   onVoicesChanged: () => void
+  onSampleStarted: (voiceName: string) => void
 }
 
-export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps) => {
+export const VoiceUploadSection = ({
+  onVoicesChanged,
+  onSampleStarted,
+}: VoiceUploadSectionProps) => {
   const nameFieldId = useId()
   const languageFieldId = useId()
   const { uploading, error: uploadError, upload, reset: resetUpload } = useUploadVoice()
-  const { startPolling } = useSamplePolling({ onSampleReady: onVoicesChanged })
   const {
     register,
     handleSubmit,
@@ -99,7 +101,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
     if (result) {
       setUploadedVoice({ name: result.name, transcription: result.transcription ?? '' })
       onVoicesChanged()
-      startPolling(result.name)
+      onSampleStarted(result.name)
     }
   })
 

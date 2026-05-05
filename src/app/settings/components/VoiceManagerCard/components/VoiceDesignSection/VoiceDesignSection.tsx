@@ -10,7 +10,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs/Tabs'
 import { Textarea } from '@/components/ui/Textarea/Textarea'
 import { VOICE_PRESET_TEXTS } from '@/lib/consts/voicePresetTexts/voicePresetTexts'
 import { generateRandomVoiceName } from '@/lib/helpers/generateRandomVoiceName/generateRandomVoiceName'
-import { useSamplePolling } from '@/lib/hooks/useSamplePolling/useSamplePolling'
 import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
 import {
   ATTRIBUTE_LABELS,
@@ -61,6 +60,7 @@ interface CachedTake {
 
 interface VoiceDesignSectionProps {
   onVoicesChanged: () => void
+  onSampleStarted: (voiceName: string) => void
 }
 
 const buildInstruct = (attributes: AttributeValues): string =>
@@ -70,10 +70,12 @@ const buildInstruct = (attributes: AttributeValues): string =>
 
 const generateRandomSeed = (): number => Math.floor(Math.random() * SEED_MAX)
 
-export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps) => {
+export const VoiceDesignSection = ({
+  onVoicesChanged,
+  onSampleStarted,
+}: VoiceDesignSectionProps) => {
   const nameFieldId = useId()
   const lifecycleState = useTTSLifecycleStore(s => s.state)
-  const { startPolling } = useSamplePolling({ onSampleReady: onVoicesChanged })
 
   const [open, setOpen] = useState(false)
   const [attributes, setAttributes] = useState<AttributeValues>(EMPTY_ATTRIBUTES)
@@ -282,7 +284,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
       }
 
       onVoicesChanged()
-      startPolling(savedName)
+      onSampleStarted(savedName)
       toast('Voice designed', { description: 'Sample is generating in the background.' })
       handleClose()
     } catch {

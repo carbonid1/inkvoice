@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
-import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
+import { generateAndSaveSample } from '@/lib/services/voice/helpers/generateAndSaveSample/generateAndSaveSample'
 import { voiceService } from '@/lib/services/voice/voice.service'
+import { voiceSampleEvents } from '@/lib/services/voiceSampleEvents/voiceSampleEvents.service'
+
+const PREVIEW_TEXT =
+  'The library was hushed at this hour, and only the slow turning of pages broke the quiet. ' +
+  'Outside, a lamp burned low against the long blue evening, and somewhere a clock counted off the minutes.'
 
 export const POST = async (request: Request) => {
   try {
@@ -40,8 +45,9 @@ export const POST = async (request: Request) => {
       return NextResponse.json({ error: result.message, code: result.code }, { status })
     }
 
-    generateNarratorPreview(result.name).catch(error => {
+    generateAndSaveSample(result.name, PREVIEW_TEXT).catch(error => {
       console.error(`Failed to generate preview for "${result.name}":`, error)
+      voiceSampleEvents.publish(result.name, 'failed')
     })
 
     return NextResponse.json({
@@ -53,26 +59,4 @@ export const POST = async (request: Request) => {
     console.error('Error saving designed narrator:', error)
     return NextResponse.json({ error: 'Internal server error', code: 'INTERNAL' }, { status: 500 })
   }
-}
-
-const PREVIEW_TEXT =
-  'The library was hushed at this hour, and only the slow turning of pages broke the quiet. ' +
-  'Outside, a lamp burned low against the long blue evening, and somewhere a clock counted off the minutes.'
-
-const generateNarratorPreview = async (voiceName: string) => {
-  const response = await getPythonClient().fetch('/tts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: PREVIEW_TEXT, voice: voiceName }),
-    signal: AbortSignal.timeout(300_000),
-  })
-
-  if (!response.ok) {
-    throw new Error(`TTS API returned ${response.status}`)
-  }
-
-  const arrayBuffer = await response.arrayBuffer()
-
-  await voiceService.saveSample(voiceName, Buffer.from(arrayBuffer))
-  console.warn(`Generated preview clip for narrator "${voiceName}"`)
 }

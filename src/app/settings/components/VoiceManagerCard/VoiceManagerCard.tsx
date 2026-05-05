@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Card } from '@/components/ui/Card/Card'
 import { useDeleteVoice } from '@/lib/hooks/useDeleteVoice/useDeleteVoice'
+import { useSampleSSE } from '@/lib/hooks/useSampleSSE/useSampleSSE'
 import { useUpdateVoiceTags } from '@/lib/hooks/useUpdateVoiceTags/useUpdateVoiceTags'
 import { UNDO_WINDOW_MS } from '@/lib/services/voice/voice.consts'
 import type { VoiceEntry } from '@/lib/services/voice/voice.types'
@@ -35,6 +36,15 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   const { playing, error: previewError, play, stop } = useVoicePreview()
   const { deleteVoice, restoreVoice } = useDeleteVoice()
   const { saving: tagsSaving, updateTags } = useUpdateVoiceTags()
+  const handleSampleFailed = useCallback((voiceName: string) => {
+    toast('Sample generation failed', {
+      description: `Could not generate a sample for "${voiceName}". You can still use the voice.`,
+    })
+  }, [])
+  const { startListening } = useSampleSSE({
+    onSampleReady: onVoicesChanged,
+    onSampleFailed: handleSampleFailed,
+  })
 
   const [hiddenVoices, setHiddenVoices] = useState<Set<string>>(new Set())
   const lastDeletedRef = useRef<UndoState | null>(null)
@@ -186,8 +196,14 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
               onDelete={handleDelete}
               uploadSection={
                 <>
-                  <VoiceUploadSection onVoicesChanged={onVoicesChanged} />
-                  <VoiceDesignSection onVoicesChanged={onVoicesChanged} />
+                  <VoiceUploadSection
+                    onVoicesChanged={onVoicesChanged}
+                    onSampleStarted={startListening}
+                  />
+                  <VoiceDesignSection
+                    onVoicesChanged={onVoicesChanged}
+                    onSampleStarted={startListening}
+                  />
                 </>
               }
               tagsSaving={tagsSaving}

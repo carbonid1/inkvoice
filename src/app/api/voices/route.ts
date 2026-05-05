@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server'
-import { getPythonClient } from '@/lib/services/pythonClient/pythonClient'
+import { generateAndSaveSample } from '@/lib/services/voice/helpers/generateAndSaveSample/generateAndSaveSample'
 import { voiceService } from '@/lib/services/voice/voice.service'
+import { voiceSampleEvents } from '@/lib/services/voiceSampleEvents/voiceSampleEvents.service'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
+const SAMPLE_TEXT =
+  'Night gathers, and now my watch begins. It shall not end until my death. ' +
+  'I shall take no wife, hold no lands, father no children. I shall wear no crowns and win no glory. ' +
+  'I shall live and die at my post. I am the sword in the darkness. I am the watcher on the walls. ' +
+  'I am the shield that guards the realms of men.'
 
 export const GET = async () => {
   try {
@@ -54,9 +61,9 @@ export const POST = async (request: Request) => {
       return NextResponse.json({ error: result.message, code: result.code }, { status })
     }
 
-    // Fire background sample generation (don't await)
-    generateSampleInBackground(result.name).catch(error => {
+    generateAndSaveSample(result.name, SAMPLE_TEXT).catch(error => {
       console.error(`Failed to generate sample for "${result.name}":`, error)
+      voiceSampleEvents.publish(result.name, 'failed')
     })
 
     return NextResponse.json({
@@ -70,28 +77,4 @@ export const POST = async (request: Request) => {
     console.error('Error uploading voice:', error)
     return NextResponse.json({ error: 'Internal server error', code: 'INTERNAL' }, { status: 500 })
   }
-}
-
-const SAMPLE_TEXT =
-  'Night gathers, and now my watch begins. It shall not end until my death. ' +
-  'I shall take no wife, hold no lands, father no children. I shall wear no crowns and win no glory. ' +
-  'I shall live and die at my post. I am the sword in the darkness. I am the watcher on the walls. ' +
-  'I am the shield that guards the realms of men.'
-
-const generateSampleInBackground = async (voiceName: string) => {
-  const response = await getPythonClient().fetch('/tts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: SAMPLE_TEXT, voice: voiceName }),
-    signal: AbortSignal.timeout(300_000),
-  })
-
-  if (!response.ok) {
-    throw new Error(`TTS API returned ${response.status}`)
-  }
-
-  const arrayBuffer = await response.arrayBuffer()
-
-  await voiceService.saveSample(voiceName, Buffer.from(arrayBuffer))
-  console.warn(`Generated sample for custom voice "${voiceName}"`)
 }
