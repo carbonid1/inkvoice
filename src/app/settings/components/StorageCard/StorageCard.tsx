@@ -76,8 +76,8 @@ export const StorageCard = () => {
   const usedPercent = Math.min(Math.round(usedRatio * 100), 100)
 
   return (
-    <section className="border-border bg-background rounded-lg border p-6 shadow-xs">
-      <h2 className="mb-4 text-lg font-semibold">Storage</h2>
+    <section className="border-border bg-background rounded-lg border p-5 shadow-xs">
+      <h2 className="mb-3 text-base font-semibold">Storage</h2>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">

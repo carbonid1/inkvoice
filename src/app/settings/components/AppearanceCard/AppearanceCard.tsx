@@ -37,8 +37,8 @@ export const AppearanceCard = () => {
   const mounted = useMounted()
 
   return (
-    <section className="border-border bg-background rounded-lg border p-6 shadow-xs">
-      <h2 className="mb-4 text-lg font-semibold">Appearance</h2>
+    <section className="border-border bg-background rounded-lg border p-5 shadow-xs">
+      <h2 className="mb-3 text-base font-semibold">Appearance</h2>
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground flex items-center gap-2 text-sm">
           Theme

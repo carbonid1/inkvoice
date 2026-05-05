@@ -130,7 +130,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
   }
 
   return (
-    <div className="border-border bg-accent/30 space-y-4 rounded-lg border p-4">
+    <div className="bg-accent/40 space-y-3 rounded-lg p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">
           {uploadedVoice ? 'Review transcription' : 'Upload a voice'}
@@ -141,7 +141,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
       </div>
 
       {!uploadedVoice && (
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem]">
             <div className="space-y-1">
               <label htmlFor={nameFieldId} className="text-muted-foreground text-xs font-medium">
@@ -176,7 +176,12 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
           </div>
 
           <div className="space-y-1">
-            <p className="text-muted-foreground text-xs font-medium">Audio sample</p>
+            <p className="text-muted-foreground text-xs font-medium">
+              Audio sample
+              <span className="text-muted-foreground/70 ml-2 font-normal">
+                One speaker, quiet room, no music
+              </span>
+            </p>
             <AudioDropZone
               file={file}
               onFileChange={handleFileChange}
@@ -188,10 +193,6 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
               durationError={fileError}
               disabled={uploading}
             />
-            <p className="text-muted-foreground text-xs">
-              A clean recording of one speaker, no music, in a quiet room. Better recordings produce
-              better narration.
-            </p>
           </div>
 
           <div className="flex items-center gap-2">

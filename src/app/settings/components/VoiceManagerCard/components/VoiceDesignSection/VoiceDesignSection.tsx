@@ -302,7 +302,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
   const customOverLimit = customCharCount > MAX_CUSTOM_CHARS
 
   return (
-    <div className="border-border bg-accent/30 space-y-4 rounded-lg border p-4">
+    <div className="bg-accent/40 space-y-3 rounded-lg p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Design a voice</h3>
         <Button
@@ -385,9 +385,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
       </div>
 
       {/* Generation knobs — variation (class_temperature) + reproducibility seed */}
-      <div className="space-y-3">
-        <p className="text-muted-foreground text-xs font-medium">Generation</p>
-
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs">
@@ -408,10 +406,6 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
             step={VARIATION_STEP}
             aria-label="Variation"
           />
-          <div className="text-muted-foreground/70 flex justify-between text-[10px]">
-            <span>Strict match</span>
-            <span>Loose match</span>
-          </div>
         </div>
 
         <div className="space-y-1.5">
@@ -492,14 +486,6 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
             aria-label="Custom preview text"
           />
         )}
-
-        {previewSource === 'uk' || previewSource === 'ru' ? (
-          <p className="text-muted-foreground/80 text-xs">
-            The accent attribute is English-only — for{' '}
-            {previewSource === 'uk' ? 'Ukrainian' : 'Russian'} the model picks a native voice
-            matching the other characteristics. Save uses whichever take you last heard.
-          </p>
-        ) : null}
       </div>
 
       {/* Audio player slot — three states: idle / generating / ready.
@@ -521,9 +507,8 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
           </div>
         )}
         {!generating && !hasGenerated && (
-          <div className="border-border/60 flex h-12 items-center justify-center gap-2 rounded-md border border-dashed">
-            <AudioLines className="text-muted-foreground/60 h-4 w-4" />
-            <span className="text-muted-foreground/80 text-xs">Preview audio will appear here</span>
+          <div className="bg-muted/30 flex h-12 items-center justify-center rounded-md">
+            <AudioLines className="text-muted-foreground/50 h-4 w-4" />
           </div>
         )}
       </div>

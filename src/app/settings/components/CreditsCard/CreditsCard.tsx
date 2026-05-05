@@ -1,9 +1,9 @@
 const LINK_CLASSES = 'text-primary hover:underline'
 
 export const CreditsCard = () => (
-  <section className="border-border bg-background rounded-lg border p-6 shadow-xs">
-    <h2 className="mb-4 text-lg font-semibold">Voice Credits</h2>
-    <div className="text-muted-foreground space-y-4 text-sm leading-relaxed">
+  <section className="border-border bg-background rounded-lg border p-5 shadow-xs">
+    <h2 className="mb-3 text-base font-semibold">Voice Credits</h2>
+    <div className="text-muted-foreground space-y-3 text-xs leading-relaxed">
       <p>
         Bundled voice references derived from the Hi-Fi Multi-Speaker English TTS Dataset
         (Bakhturina et al., 2021), available at{' '}

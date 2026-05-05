@@ -35,7 +35,7 @@ export default function Settings() {
   return (
     <div className="flex h-full flex-col">
       <PageHeader>
-        <div className="mx-auto flex max-w-2xl items-center gap-4 px-4 py-2">
+        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2">
           <Tooltip label="Back to Library" position="bottom">
             <Link
               href="/"
@@ -50,11 +50,13 @@ export default function Settings() {
       </PageHeader>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 py-8 lg:grid-cols-[2fr_1fr] lg:gap-6">
           <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
-          <StorageCard />
-          <AppearanceCard />
-          <CreditsCard />
+          <div className="space-y-4 lg:space-y-6">
+            <StorageCard />
+            <AppearanceCard />
+            <CreditsCard />
+          </div>
         </div>
       </main>
     </div>
