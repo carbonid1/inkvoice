@@ -130,7 +130,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
   }
 
   return (
-    <div className="bg-accent/40 space-y-3 rounded-lg p-4">
+    <div className="bg-surface-inset inset-shadow-surface space-y-3 rounded-lg p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">
           {uploadedVoice ? 'Review transcription' : 'Upload a voice'}

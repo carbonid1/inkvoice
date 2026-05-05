@@ -61,7 +61,7 @@ export const FontSizePopover = () => {
       </Tooltip>
 
       {open && (
-        <div className="border-border bg-background absolute right-0 z-50 mt-1 flex gap-1 rounded-lg border p-1 shadow-lg">
+        <div className="bg-popover shadow-popover absolute right-0 z-50 mt-1 flex gap-1 rounded-lg p-1">
           {FONT_SIZE_OPTIONS.map(option => (
             <button
               key={option.value}

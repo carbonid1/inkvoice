@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { Card } from '@/components/ui/Card/Card'
 import { SearchInput } from '@/components/ui/SearchInput/SearchInput'
 import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
 import { useLibrarySearch } from '@/lib/hooks/useLibrarySearch/useLibrarySearch'
@@ -328,15 +329,12 @@ export default function Library() {
           {(loading || !progressLoaded || !pregenLoaded) && (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {Array.from({ length: 10 }, (_, i) => (
-                <div
-                  key={i}
-                  className="border-border bg-background flex flex-col rounded-lg border p-4"
-                >
+                <Card key={i} className="flex flex-col p-4">
                   <div className="bg-muted mb-3 aspect-2/3 w-full animate-pulse rounded-sm" />
                   <div className="bg-muted mb-2 h-4 w-3/4 animate-pulse rounded-sm" />
                   <div className="bg-muted h-3 w-1/2 animate-pulse rounded-sm" />
                   <div className="bg-muted mt-1 h-3 w-2/5 animate-pulse rounded-sm" />
-                </div>
+                </Card>
               ))}
             </div>
           )}

@@ -3,6 +3,7 @@
 import { Badge, Button, Slider, toast } from '@carbonid1/design-system'
 import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { Card } from '@/components/ui/Card/Card'
 import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
 import { useCacheStats } from './hooks/useCacheStats/useCacheStats'
@@ -76,7 +77,7 @@ export const StorageCard = () => {
   const usedPercent = Math.min(Math.round(usedRatio * 100), 100)
 
   return (
-    <section className="border-border bg-card rounded-lg border p-5 shadow-xs">
+    <Card as="section" className="p-5">
       <h2 className="mb-3 text-base font-semibold">Storage</h2>
 
       <div className="space-y-2">
@@ -162,6 +163,6 @@ export const StorageCard = () => {
           return <p className="text-muted-foreground text-sm">No cached audio.</p>
         })()}
       </div>
-    </section>
+    </Card>
   )
 }

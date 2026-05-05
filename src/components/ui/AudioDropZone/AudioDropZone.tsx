@@ -3,6 +3,7 @@
 import { Button, cn } from '@carbonid1/design-system'
 import { AlertCircle, FileAudio, UploadCloud, X } from 'lucide-react'
 import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Card } from '@/components/ui/Card/Card'
 
 interface Props {
   file: File | null
@@ -124,12 +125,7 @@ export const AudioDropZone = ({
       )}
 
       {file && (
-        <div
-          className={cn(
-            'border-border bg-background flex flex-col gap-3 rounded-lg border p-3',
-            showError && 'border-destructive/50',
-          )}
-        >
+        <Card className={cn('flex flex-col gap-3 p-3', showError && 'ring-destructive/50 ring-1')}>
           <div className="flex items-start gap-3">
             <FileAudio
               className={cn(
@@ -196,7 +192,7 @@ export const AudioDropZone = ({
               aria-label={`Preview of ${file.name}`}
             />
           )}
-        </div>
+        </Card>
       )}
     </div>
   )

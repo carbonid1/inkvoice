@@ -149,7 +149,7 @@ export const TranscriptionReview = ({
 
   return (
     <div className="space-y-4">
-      <div className="border-border bg-muted space-y-2 rounded-lg border p-3">
+      <div className="bg-surface-inset inset-shadow-surface space-y-2 rounded-lg p-3">
         <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
           Source audio
         </p>
@@ -210,7 +210,7 @@ export const TranscriptionReview = ({
         )}
 
         {textSource === 'preset' && (
-          <p className="text-muted-foreground border-border bg-muted/40 rounded-md border p-3 text-sm leading-relaxed">
+          <p className="text-muted-foreground bg-surface-inset inset-shadow-surface rounded-md p-3 text-sm leading-relaxed">
             {presetText}
           </p>
         )}

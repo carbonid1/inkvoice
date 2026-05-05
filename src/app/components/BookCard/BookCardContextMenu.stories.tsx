@@ -1,5 +1,6 @@
 import { expect, fn, waitFor, within } from 'storybook/test'
 import preview from '#.storybook/preview'
+import { Card } from '@/components/ui/Card/Card'
 import { PREGEN_JOB_STATUS, type PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
@@ -34,9 +35,7 @@ const meta = preview.meta({
     bookId: BOOK_ID,
     onRemove: fn(),
     children: (
-      <div className="border-border bg-background flex h-40 w-56 items-center justify-center rounded-lg border p-4 select-none">
-        Book card
-      </div>
+      <Card className="flex h-40 w-56 items-center justify-center p-4 select-none">Book card</Card>
     ),
   },
   decorators: [

@@ -8,6 +8,7 @@ import {
   useTheme,
 } from '@carbonid1/design-system'
 import { Monitor, Moon, Sun } from 'lucide-react'
+import { Card } from '@/components/ui/Card/Card'
 import { useMounted } from '@/lib/hooks/useMounted/useMounted'
 
 type ThemeOption = SelectOption & { icon: typeof Sun }
@@ -37,7 +38,7 @@ export const AppearanceCard = () => {
   const mounted = useMounted()
 
   return (
-    <section className="border-border bg-card rounded-lg border p-5 shadow-xs">
+    <Card as="section" className="p-5">
       <h2 className="mb-3 text-base font-semibold">Appearance</h2>
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -50,16 +51,16 @@ export const AppearanceCard = () => {
             onChange={setTheme}
             options={THEME_OPTIONS}
             renderOption={renderThemeOption}
-            className="bg-muted rounded-sm px-3 py-1.5 text-sm"
+            className="bg-surface-inset inset-shadow-surface rounded-sm px-3 py-1.5 text-sm"
             aria-label="Theme"
           />
         ) : (
-          <div className="bg-muted flex items-center justify-between gap-2 rounded-sm px-3 py-1.5 text-sm">
+          <div className="bg-surface-inset inset-shadow-surface flex items-center justify-between gap-2 rounded-sm px-3 py-1.5 text-sm">
             <span className="bg-muted-foreground/20 h-4 w-12 rounded-sm" />
             <span className="size-4 shrink-0" />
           </div>
         )}
       </div>
-    </section>
+    </Card>
   )
 }

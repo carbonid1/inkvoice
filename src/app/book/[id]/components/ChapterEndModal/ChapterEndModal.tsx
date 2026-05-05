@@ -44,7 +44,7 @@ export const ChapterEndModal = ({
         aria-labelledby="chapter-end-title"
         className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center"
       >
-        <div className="bg-background pointer-events-auto mx-4 w-full max-w-sm rounded-xl p-8 text-center shadow-xl motion-safe:animate-[fade-scale-in_200ms_ease-out]">
+        <div className="bg-popover shadow-popover pointer-events-auto mx-4 w-full max-w-sm rounded-xl p-8 text-center motion-safe:animate-[fade-scale-in_200ms_ease-out]">
           {/* Section break ornament */}
           <div className="text-muted-foreground mb-6 text-lg tracking-[0.5em]">* * *</div>
 

@@ -80,7 +80,7 @@ export const SearchPalette = ({
     <div className="fixed inset-0 z-50 bg-black/30" onClick={handleBackdropClick}>
       <div
         ref={panelRef}
-        className="animate-in fade-in-0 slide-in-from-top-2 border-border bg-background mx-auto mt-[15vh] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-xl border shadow-2xl duration-150"
+        className="animate-in fade-in-0 slide-in-from-top-2 bg-popover shadow-popover mx-auto mt-[15vh] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-xl duration-150"
       >
         <SearchInput
           ref={inputRef}

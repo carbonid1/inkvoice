@@ -15,7 +15,7 @@ export const ReturnPill = ({ chapterName, onNavigate, onDismiss }: ReturnPillPro
       role="status"
       className="animate-in fade-in slide-in-from-bottom-4 fixed bottom-20 left-1/2 z-30 -translate-x-1/2 duration-200"
     >
-      <div className="border-border bg-background flex items-center gap-2 rounded-full border py-2 pr-2 pl-4 shadow-lg">
+      <div className="bg-popover shadow-popover flex items-center gap-2 rounded-full py-2 pr-2 pl-4">
         <button
           onClick={onNavigate}
           className="hover:text-foreground flex items-center gap-2 transition-colors"

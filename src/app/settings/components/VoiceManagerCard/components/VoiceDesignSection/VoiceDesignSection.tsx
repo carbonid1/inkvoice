@@ -311,7 +311,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
   const customOverLimit = customCharCount > MAX_CUSTOM_CHARS
 
   return (
-    <div className="bg-accent/40 space-y-3 rounded-lg p-4">
+    <div className="bg-surface-inset inset-shadow-surface space-y-3 rounded-lg p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Design a voice</h3>
         <Button
@@ -483,7 +483,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
         </div>
 
         {previewSource !== 'custom' && (
-          <p className="text-muted-foreground border-border bg-muted/40 rounded-md border p-3 text-sm leading-relaxed">
+          <p className="text-muted-foreground bg-surface-inset inset-shadow-surface rounded-md p-3 text-sm leading-relaxed">
             {VOICE_PRESET_TEXTS[previewSource]}
           </p>
         )}
@@ -510,7 +510,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
         />
         {generating && (
           <div
-            className="border-border bg-muted/40 flex h-12 items-center justify-center rounded-md border"
+            className="border-border flex h-12 items-center justify-center rounded-md border"
             role="status"
             aria-label={generatingLabel}
           >
@@ -518,7 +518,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
           </div>
         )}
         {!generating && !hasGenerated && (
-          <div className="bg-muted/30 flex h-12 items-center justify-center rounded-md">
+          <div className="border-border/60 flex h-12 items-center justify-center rounded-md border border-dashed">
             <AudioLines className="text-muted-foreground h-4 w-4" />
           </div>
         )}
