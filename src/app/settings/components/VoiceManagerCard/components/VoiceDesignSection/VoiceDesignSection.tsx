@@ -374,20 +374,20 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
         </div>
 
         {/* Whisper modifier — only Style attribute the model supports */}
-        <label className="border-border bg-background mt-2 flex cursor-pointer items-center justify-between rounded-md border px-3 py-2">
-          <span className="flex items-baseline gap-2">
-            <span className="text-sm font-medium">Whisper</span>
-            <span className="text-muted-foreground text-xs">Hushed, breathy delivery</span>
-          </span>
+        <label className="mt-2 flex cursor-pointer items-center gap-3 py-1">
           <Switch
             checked={attributes.style === 'whisper'}
             onCheckedChange={checked => handleAttributeChange('style', checked ? 'whisper' : '')}
             aria-label="Whisper"
           />
+          <span className="flex items-baseline gap-2">
+            <span className="text-sm font-medium">Whisper</span>
+            <span className="text-muted-foreground text-xs">Hushed, breathy delivery</span>
+          </span>
         </label>
 
         <p
-          className="text-muted-foreground/80 mt-1 font-mono text-xs"
+          className="text-muted-foreground mt-1 font-mono text-xs"
           aria-label="Description sent to the model"
         >
           {instruct || 'Pick at least one characteristic'}
@@ -401,7 +401,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
             <span className="flex items-center gap-1.5 text-xs">
               <span className="text-muted-foreground">Variation</span>
               <Tooltip label={VARIATION_TOOLTIP} maxWidth={300}>
-                <HelpCircle className="text-muted-foreground/70 h-3.5 w-3.5" />
+                <HelpCircle className="text-muted-foreground h-3.5 w-3.5" />
               </Tooltip>
             </span>
             <span className="text-muted-foreground font-mono text-xs tabular-nums">
@@ -422,7 +422,7 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
           <label className="flex items-center gap-1.5 text-xs" htmlFor="voice-design-seed">
             <span className="text-muted-foreground">Seed</span>
             <Tooltip label={SEED_TOOLTIP} maxWidth={300}>
-              <HelpCircle className="text-muted-foreground/70 h-3.5 w-3.5" />
+              <HelpCircle className="text-muted-foreground h-3.5 w-3.5" />
             </Tooltip>
           </label>
           <div className="flex gap-2">
@@ -513,12 +513,12 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
             role="status"
             aria-label={generatingLabel}
           >
-            <AudioLines className="text-muted-foreground/70 h-5 w-5 animate-pulse" />
+            <AudioLines className="text-muted-foreground h-5 w-5 animate-pulse" />
           </div>
         )}
         {!generating && !hasGenerated && (
           <div className="bg-muted/30 flex h-12 items-center justify-center rounded-md">
-            <AudioLines className="text-muted-foreground/50 h-4 w-4" />
+            <AudioLines className="text-muted-foreground h-4 w-4" />
           </div>
         )}
       </div>

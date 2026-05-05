@@ -149,7 +149,7 @@ export const TranscriptionReview = ({
 
   return (
     <div className="space-y-4">
-      <div className="border-border bg-background space-y-2 rounded-lg border p-3">
+      <div className="border-border bg-muted space-y-2 rounded-lg border p-3">
         <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
           Source audio
         </p>

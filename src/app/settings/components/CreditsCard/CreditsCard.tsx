@@ -1,7 +1,7 @@
 const LINK_CLASSES = 'text-primary hover:underline'
 
 export const CreditsCard = () => (
-  <section className="border-border bg-background rounded-lg border p-5 shadow-xs">
+  <section className="border-border bg-card rounded-lg border p-5 shadow-xs">
     <h2 className="mb-3 text-base font-semibold">Voice Credits</h2>
     <div className="text-muted-foreground space-y-3 text-xs leading-relaxed">
       <p>

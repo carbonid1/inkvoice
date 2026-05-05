@@ -153,7 +153,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
   )
 
   return (
-    <div className="border-border bg-background rounded-lg border p-5 shadow-xs">
+    <div className="border-border bg-card rounded-lg border p-5 shadow-xs">
       <h2 className="mb-1 text-base font-semibold">Voices</h2>
       <p className="text-muted-foreground mb-4 text-xs">
         Pick a voice for narration. Switching re-generates any unheard audio.
@@ -193,7 +193,7 @@ export const VoiceManagerCard = ({ voices, loading, onVoicesChanged }: VoiceMana
               updateTags={updateTags}
             />
 
-            {previewError && <p className="text-attention-foreground text-sm">{previewError}</p>}
+            {previewError && <p className="text-destructive text-sm">{previewError}</p>}
           </div>
         )
       })()}

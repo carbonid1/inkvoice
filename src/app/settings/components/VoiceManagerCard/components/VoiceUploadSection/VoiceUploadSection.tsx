@@ -178,7 +178,7 @@ export const VoiceUploadSection = ({ onVoicesChanged }: VoiceUploadSectionProps)
           <div className="space-y-1">
             <p className="text-muted-foreground text-xs font-medium">
               Audio sample
-              <span className="text-muted-foreground/70 ml-2 font-normal">
+              <span className="text-muted-foreground ml-2 font-normal">
                 One speaker, quiet room, no music
               </span>
             </p>
