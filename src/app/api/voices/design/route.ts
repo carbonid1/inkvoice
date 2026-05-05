@@ -32,12 +32,6 @@ export const POST = async (request: Request) => {
   if (text.length > MAX_TEXT_LENGTH) {
     return NextResponse.json({ error: 'Text is too long', code: 'TEXT_TOO_LONG' }, { status: 400 })
   }
-  if (!instruct) {
-    return NextResponse.json(
-      { error: 'Voice description is required', code: 'MISSING_INSTRUCT' },
-      { status: 400 },
-    )
-  }
   if (instruct.length > MAX_INSTRUCT_LENGTH) {
     return NextResponse.json(
       { error: 'Voice description is too long', code: 'INSTRUCT_TOO_LONG' },

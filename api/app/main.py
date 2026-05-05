@@ -88,8 +88,6 @@ def text_to_speech_design(request: TTSDesignRequest) -> Response:
 
     if not text:
         raise HTTPException(status_code=400, detail="Text cannot be empty")
-    if not instruct:
-        raise HTTPException(status_code=400, detail="Instruct cannot be empty")
 
     try:
         preview = text[:80] + ("..." if len(text) > 80 else "")

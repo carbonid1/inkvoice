@@ -155,7 +155,6 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
 
     const validationErrors: string[] = []
 
-    if (!instruct) validationErrors.push('Pick at least one characteristic.')
     if (!activeText.trim()) validationErrors.push('Add some preview text.')
 
     const trimmedSeed = seedText.trim()
@@ -386,12 +385,14 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
           </span>
         </label>
 
-        <p
-          className="text-muted-foreground mt-1 font-mono text-xs"
-          aria-label="Description sent to the model"
-        >
-          {instruct || 'Pick at least one characteristic'}
-        </p>
+        {instruct && (
+          <p
+            className="text-muted-foreground mt-1 font-mono text-xs"
+            aria-label="Description sent to the model"
+          >
+            {instruct}
+          </p>
+        )}
       </div>
 
       {/* Generation knobs — variation (class_temperature) + reproducibility seed */}
