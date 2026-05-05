@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs/Tabs'
 import { Textarea } from '@/components/ui/Textarea/Textarea'
 import { VOICE_PRESET_TEXTS } from '@/lib/consts/voicePresetTexts/voicePresetTexts'
 import { generateRandomVoiceName } from '@/lib/helpers/generateRandomVoiceName/generateRandomVoiceName'
+import { useSamplePolling } from '@/lib/hooks/useSamplePolling/useSamplePolling'
 import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
 import {
   ATTRIBUTE_LABELS,
@@ -72,6 +73,7 @@ const generateRandomSeed = (): number => Math.floor(Math.random() * SEED_MAX)
 export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps) => {
   const nameFieldId = useId()
   const lifecycleState = useTTSLifecycleStore(s => s.state)
+  const { startPolling } = useSamplePolling({ onSampleReady: onVoicesChanged })
 
   const [open, setOpen] = useState(false)
   const [attributes, setAttributes] = useState<AttributeValues>(EMPTY_ATTRIBUTES)
@@ -273,7 +275,15 @@ export const VoiceDesignSection = ({ onVoicesChanged }: VoiceDesignSectionProps)
         return
       }
 
+      const savedName = typeof data?.name === 'string' ? data.name : null
+
+      if (!savedName) {
+        setSaveError('Save succeeded but the response was malformed. Please try again.')
+        return
+      }
+
       onVoicesChanged()
+      startPolling(savedName)
       toast('Voice designed', { description: 'Sample is generating in the background.' })
       handleClose()
     } catch {

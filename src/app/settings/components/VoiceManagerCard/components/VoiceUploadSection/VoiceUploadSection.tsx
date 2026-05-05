@@ -6,10 +6,10 @@ import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AudioDropZone } from '@/components/ui/AudioDropZone/AudioDropZone'
 import { Input } from '@/components/ui/Input/Input'
+import { useSamplePolling } from '@/lib/hooks/useSamplePolling/useSamplePolling'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { TranscriptionReview } from './components/TranscriptionReview/TranscriptionReview'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
-import { useSamplePolling } from './hooks/useSamplePolling/useSamplePolling'
 
 const ACCEPTED_FORMATS =
   'audio/wav,audio/mpeg,audio/mp4,audio/ogg,audio/flac,.wav,.mp3,.m4a,.ogg,.flac'
