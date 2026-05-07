@@ -1,5 +1,117 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+interface CacheRow {
+  hash: string
+  bookId: string | null
+  voice: string
+  sizeBytes: number
+  durationMs: number | null
+  createdAt: number
+}
+
+interface WhereMatcher {
+  hash?: string | { in: string[] }
+  bookId?: string | { not: null }
+  voice?: string
+}
+
+const matchesWhere = (row: CacheRow, where: WhereMatcher | undefined): boolean => {
+  if (!where) return true
+  if (typeof where.hash === 'string' && row.hash !== where.hash) return false
+  if (where.hash && typeof where.hash === 'object' && !where.hash.in.includes(row.hash))
+    return false
+  if (typeof where.bookId === 'string' && row.bookId !== where.bookId) return false
+  if (where.bookId && typeof where.bookId === 'object' && row.bookId === null) return false
+  if (where.voice !== undefined && row.voice !== where.voice) return false
+  return true
+}
+
+/* eslint-disable require-await */
+const mockPrisma = vi.hoisted(() => {
+  const rows = new Map<string, CacheRow>()
+
+  return {
+    __rows: rows,
+    cacheEntry: {
+      count: vi.fn(async (args?: { where?: WhereMatcher }) => {
+        if (!args?.where) return rows.size
+        return [...rows.values()].filter(r => matchesWhere(r, args.where)).length
+      }),
+      findUnique: vi.fn(async (args: { where: { hash: string } }) => {
+        return rows.get(args.where.hash) ?? null
+      }),
+      findMany: vi.fn(async (args?: { where?: WhereMatcher }) => {
+        return [...rows.values()].filter(r => matchesWhere(r, args?.where))
+      }),
+      upsert: vi.fn(
+        async (args: { where: { hash: string }; create: CacheRow; update: Partial<CacheRow> }) => {
+          const existing = rows.get(args.where.hash)
+
+          if (existing) {
+            const merged = { ...existing, ...args.update }
+
+            rows.set(args.where.hash, merged)
+            return merged
+          }
+          rows.set(args.where.hash, args.create)
+          return args.create
+        },
+      ),
+      delete: vi.fn(async (args: { where: { hash: string } }) => {
+        const existing = rows.get(args.where.hash)
+
+        if (!existing) throw new Error('Record not found')
+        rows.delete(args.where.hash)
+        return existing
+      }),
+      deleteMany: vi.fn(async (args?: { where?: WhereMatcher }) => {
+        let count = 0
+
+        for (const row of [...rows.values()]) {
+          if (matchesWhere(row, args?.where)) {
+            rows.delete(row.hash)
+            count++
+          }
+        }
+        return { count }
+      }),
+      aggregate: vi.fn(async () => {
+        const sum = [...rows.values()].reduce((acc, r) => acc + r.sizeBytes, 0)
+
+        return { _sum: { sizeBytes: rows.size === 0 ? null : sum } }
+      }),
+      groupBy: vi.fn(async (args: { by: ('bookId' | 'voice')[]; where?: WhereMatcher }) => {
+        const filtered = [...rows.values()].filter(r => matchesWhere(r, args.where))
+        const groups = new Map<
+          string,
+          { bookId: string | null; voice: string; sum: number; count: number }
+        >()
+
+        for (const row of filtered) {
+          const key = `${row.bookId ?? '__null__'}|${row.voice}`
+          const group = groups.get(key) ?? {
+            bookId: row.bookId,
+            voice: row.voice,
+            sum: 0,
+            count: 0,
+          }
+
+          group.sum += row.sizeBytes
+          group.count++
+          groups.set(key, group)
+        }
+        return [...groups.values()].map(g => ({
+          bookId: g.bookId,
+          voice: g.voice,
+          _sum: { sizeBytes: g.sum },
+          _count: { _all: g.count },
+        }))
+      }),
+    },
+  }
+})
+/* eslint-enable require-await */
+
 const mockFs = vi.hoisted(() => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
   readFile: vi.fn().mockRejectedValue(new Error('ENOENT')),
@@ -17,6 +129,7 @@ const mockSettingsService = vi.hoisted(() => ({
 }))
 
 vi.mock('fs/promises', () => ({ default: mockFs }))
+vi.mock('@/lib/services/db/db.service', () => ({ prisma: mockPrisma }))
 vi.mock('@/lib/services/platform/diskSpace', () => ({ diskSpaceService: mockDiskSpace }))
 vi.mock('@/lib/services/settings/settings.service', () => ({
   settingsService: mockSettingsService,
@@ -33,6 +146,7 @@ import { getCacheService, resetCacheService } from './cache.service'
 describe('TTSCacheService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockPrisma.__rows.clear()
     resetCacheService()
     mockFs.readFile.mockRejectedValue(new Error('ENOENT'))
   })

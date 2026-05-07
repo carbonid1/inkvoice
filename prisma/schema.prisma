@@ -82,3 +82,15 @@ model PregenJob {
   @@index([status])
   @@index([bookId])
 }
+
+model CacheEntry {
+  hash       String  @id // sha256(text|voice)
+  bookId     String? // null = entry written without book attribution
+  voice      String // normalized to DEFAULT_VOICE if empty
+  sizeBytes  Int
+  durationMs Int?
+  createdAt  Int // Unix timestamp ms
+
+  @@index([bookId, voice])
+  @@index([bookId])
+}

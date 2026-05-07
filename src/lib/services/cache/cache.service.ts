@@ -2,6 +2,7 @@ import { createHash } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
 import { env } from '@/lib/config/env'
+import { prisma } from '@/lib/services/db/db.service'
 import { diskSpaceService } from '@/lib/services/platform/diskSpace'
 import { SETTINGS_KEYS } from '@/lib/services/settings/settings.keys'
 import { settingsService } from '@/lib/services/settings/settings.service'
@@ -10,30 +11,17 @@ import type { BookCacheStats, CacheStats } from '@/lib/types/api'
 import { type WordTimestamp, wordTimestampArraySchema } from '@/lib/types/wordTimestamp'
 import type { CacheService } from './cache.types'
 
-const METADATA_FILE = 'metadata.json'
 const DISK_SAFETY_MARGIN = 0.1
 
-interface CacheEntry {
-  size: number
-  createdAt: number
-  bookId?: string
-  voice?: string
-  durationMs?: number
-}
-
-interface CacheMetadata {
-  totalSize: number
-  entries: Record<string, CacheEntry>
-}
+const normalizeVoice = (voice: string): string => voice || DEFAULT_VOICE
 
 const getCacheHash = (text: string, voice: string): string => {
-  const input = `${text.trim()}|${voice || DEFAULT_VOICE}`
+  const input = `${text.trim()}|${normalizeVoice(voice)}`
 
   return createHash('sha256').update(input).digest('hex')
 }
 
 class TTSCacheService implements CacheService {
-  private metadata: CacheMetadata = { totalSize: 0, entries: {} }
   private initialized = false
   private initPromise: Promise<void> | null = null
   private cacheDir: string
@@ -55,12 +43,10 @@ class TTSCacheService implements CacheService {
   private async initialize(): Promise<void> {
     try {
       await fs.mkdir(this.cacheDir, { recursive: true })
-      await this.loadMetadata()
       await this.computeEffectiveMax()
       this.initialized = true
     } catch (error) {
       console.error('Failed to initialize TTS cache:', error)
-      this.metadata = { totalSize: 0, entries: {} }
       this.initialized = true
     }
   }
@@ -81,57 +67,39 @@ class TTSCacheService implements CacheService {
     this.effectiveMaxBytes = await this.clampToDisk(configuredMax)
   }
 
-  private async loadMetadata(): Promise<void> {
-    try {
-      const metadataPath = path.join(this.cacheDir, METADATA_FILE)
-      const data = await fs.readFile(metadataPath, 'utf-8')
-
-      this.metadata = JSON.parse(data)
-    } catch {
-      this.metadata = { totalSize: 0, entries: {} }
-    }
-  }
-
-  private async saveMetadata(): Promise<void> {
-    try {
-      const metadataPath = path.join(this.cacheDir, METADATA_FILE)
-
-      await fs.writeFile(metadataPath, JSON.stringify(this.metadata, null, 2))
-    } catch (error) {
-      console.error('Failed to save cache metadata:', error)
-    }
-  }
-
   async has(text: string, voice: string): Promise<boolean> {
     await this.ensureInitialized()
     const hash = getCacheHash(text, voice)
+    const row = await prisma.cacheEntry.findUnique({
+      where: { hash },
+      select: { hash: true },
+    })
 
-    return hash in this.metadata.entries
+    return row !== null
   }
 
   async getDurationMs(text: string, voice: string): Promise<number> {
     await this.ensureInitialized()
     const hash = getCacheHash(text, voice)
+    const row = await prisma.cacheEntry.findUnique({
+      where: { hash },
+      select: { durationMs: true },
+    })
 
-    return this.metadata.entries[hash]?.durationMs ?? 0
+    return row?.durationMs ?? 0
   }
 
   async get(text: string, voice: string): Promise<Buffer | null> {
     await this.ensureInitialized()
 
     const hash = getCacheHash(text, voice)
-    const entry = this.metadata.entries[hash]
-
-    if (!entry) return null
-
     const filePath = path.join(this.cacheDir, `${hash}.opus`)
 
     try {
       return await fs.readFile(filePath)
     } catch {
-      delete this.metadata.entries[hash]
-      this.metadata.totalSize -= entry.size
-      this.saveMetadata()
+      // File missing — purge any orphan DB row so future has() returns false.
+      await prisma.cacheEntry.delete({ where: { hash } }).catch(() => {})
       return null
     }
   }
@@ -147,21 +115,29 @@ class TTSCacheService implements CacheService {
 
     const hash = getCacheHash(text, voice)
     const filePath = path.join(this.cacheDir, `${hash}.opus`)
-    const size = audio.length
+    const sizeBytes = audio.length
+    const normalizedVoice = normalizeVoice(voice)
 
     try {
       await fs.writeFile(filePath, audio)
 
-      this.metadata.entries[hash] = {
-        size,
-        createdAt: Date.now(),
-        bookId,
-        voice,
-        ...(durationMs !== undefined && { durationMs }),
-      }
-      this.metadata.totalSize += size
-
-      await this.saveMetadata()
+      await prisma.cacheEntry.upsert({
+        where: { hash },
+        create: {
+          hash,
+          bookId: bookId ?? null,
+          voice: normalizedVoice,
+          sizeBytes,
+          durationMs: durationMs ?? null,
+          createdAt: Date.now(),
+        },
+        update: {
+          bookId: bookId ?? null,
+          voice: normalizedVoice,
+          sizeBytes,
+          durationMs: durationMs ?? null,
+        },
+      })
     } catch (error) {
       console.error('Failed to write cache file:', error)
     }
@@ -169,8 +145,10 @@ class TTSCacheService implements CacheService {
 
   async getStats(): Promise<CacheStats> {
     await this.ensureInitialized()
+    const agg = await prisma.cacheEntry.aggregate({ _sum: { sizeBytes: true } })
+
     return {
-      usedBytes: this.metadata.totalSize,
+      usedBytes: agg._sum.sizeBytes ?? 0,
       maxBytes: this.effectiveMaxBytes,
     }
   }
@@ -212,15 +190,11 @@ class TTSCacheService implements CacheService {
     await this.ensureInitialized()
 
     const hash = getCacheHash(text, voice)
-    const entry = this.metadata.entries[hash]
+    const result = await prisma.cacheEntry.deleteMany({ where: { hash } })
 
-    if (!entry) return false
+    if (result.count === 0) return false
 
     await this.deleteFiles(hash)
-
-    this.metadata.totalSize -= entry.size
-    delete this.metadata.entries[hash]
-    await this.saveMetadata()
     return true
   }
 
@@ -239,41 +213,39 @@ class TTSCacheService implements CacheService {
   async getBookStats(): Promise<BookCacheStats[]> {
     await this.ensureInitialized()
 
-    const groups = new Map<string, BookCacheStats>()
+    const groups = await prisma.cacheEntry.groupBy({
+      by: ['bookId', 'voice'],
+      _sum: { sizeBytes: true },
+      _count: { _all: true },
+    })
 
-    for (const entry of Object.values(this.metadata.entries)) {
-      const bookId = entry.bookId ?? 'unknown'
-      const voice = entry.voice || DEFAULT_VOICE
-      const key = `${bookId}|${voice}`
-      const group = groups.get(key) ?? { bookId, voice, usedBytes: 0, entryCount: 0 }
-
-      group.usedBytes += entry.size
-      group.entryCount++
-      groups.set(key, group)
-    }
-
-    return [...groups.values()]
+    return groups.map(group => ({
+      bookId: group.bookId ?? 'unknown',
+      voice: normalizeVoice(group.voice),
+      usedBytes: group._sum.sizeBytes ?? 0,
+      entryCount: group._count._all,
+    }))
   }
 
   async countBookVoiceEntries(bookId: string, voice: string): Promise<number> {
     await this.ensureInitialized()
-    let count = 0
-
-    for (const entry of Object.values(this.metadata.entries)) {
-      if (entry.bookId === bookId && entry.voice === voice) count++
-    }
-    return count
+    return prisma.cacheEntry.count({ where: { bookId, voice: normalizeVoice(voice) } })
   }
 
   async countAllBookVoiceEntries(): Promise<Map<string, number>> {
     await this.ensureInitialized()
+
+    const groups = await prisma.cacheEntry.groupBy({
+      by: ['bookId', 'voice'],
+      where: { bookId: { not: null } },
+      _count: { _all: true },
+    })
+
     const counts = new Map<string, number>()
 
-    for (const entry of Object.values(this.metadata.entries)) {
-      if (!entry.bookId) continue
-      const key = `${entry.bookId}|${entry.voice}`
-
-      counts.set(key, (counts.get(key) ?? 0) + 1)
+    for (const group of groups) {
+      if (!group.bookId) continue // type narrowing — runtime filter already applied via `where`
+      counts.set(`${group.bookId}|${group.voice}`, group._count._all)
     }
     return counts
   }
@@ -286,34 +258,26 @@ class TTSCacheService implements CacheService {
 
   async deleteByBookId(bookId: string): Promise<number> {
     await this.ensureInitialized()
-    return this.deleteEntriesMatching(entry => entry.bookId === bookId)
+    return this.deleteEntriesMatching({ bookId })
   }
 
   async deleteByBookIdAndVoice(bookId: string, voice: string): Promise<number> {
     await this.ensureInitialized()
-    const normalizedVoice = voice || DEFAULT_VOICE
-
-    return this.deleteEntriesMatching(
-      entry => entry.bookId === bookId && (entry.voice || DEFAULT_VOICE) === normalizedVoice,
-    )
+    return this.deleteEntriesMatching({ bookId, voice: normalizeVoice(voice) })
   }
 
-  private async deleteEntriesMatching(predicate: (entry: CacheEntry) => boolean): Promise<number> {
-    let freed = 0
-    const deletions: Promise<void>[] = []
+  private async deleteEntriesMatching(where: { bookId: string; voice?: string }): Promise<number> {
+    const matches = await prisma.cacheEntry.findMany({
+      where,
+      select: { hash: true, sizeBytes: true },
+    })
 
-    for (const [hash, entry] of Object.entries(this.metadata.entries)) {
-      if (predicate(entry)) {
-        deletions.push(this.deleteFiles(hash))
-        freed += entry.size
-        delete this.metadata.entries[hash]
-      }
-    }
+    if (matches.length === 0) return 0
 
-    await Promise.all(deletions)
-    this.metadata.totalSize -= freed
-    if (freed > 0) await this.saveMetadata()
-    return freed
+    await Promise.all(matches.map(({ hash }) => this.deleteFiles(hash)))
+    await prisma.cacheEntry.deleteMany({ where: { hash: { in: matches.map(m => m.hash) } } })
+
+    return matches.reduce((sum, m) => sum + m.sizeBytes, 0)
   }
 
   private async clampToDisk(requestedBytes: number): Promise<number> {
@@ -330,14 +294,13 @@ class TTSCacheService implements CacheService {
   async clear(): Promise<void> {
     await this.ensureInitialized()
 
-    await Promise.all(Object.keys(this.metadata.entries).map(hash => this.deleteFiles(hash)))
+    const all = await prisma.cacheEntry.findMany({ select: { hash: true } })
 
-    this.metadata = { totalSize: 0, entries: {} }
-    await this.saveMetadata()
+    await Promise.all(all.map(({ hash }) => this.deleteFiles(hash)))
+    await prisma.cacheEntry.deleteMany({})
   }
 }
 
-// Singleton instance
 let _cacheService: CacheService | null = null
 
 export const getCacheService = (): CacheService => {
