@@ -6,7 +6,7 @@
     "skill-creator@claude-plugins-official": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
     "core@carbonid1": true,
-    "tdd@carbonid1": true,
+    "tdd@carbonid1": false,
     "todo@carbonid1": true,
     "grill-me@carbonid1": true
   }

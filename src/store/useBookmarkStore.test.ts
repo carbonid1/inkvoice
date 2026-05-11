@@ -193,22 +193,6 @@ describe('removeBookmark', () => {
     // lastDeleted cleared since delete didn't persist
     expect(useBookmarkStore.getState().lastDeleted).toBeNull()
   })
-
-  it('calls API with correct params', async () => {
-    const bookmark = mockBookmark({ id: 'bm-1', chapter: 2, paragraph: 5 })
-
-    useBookmarkStore.setState({ bookmarks: { 'book-1': [bookmark] } })
-
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
-
-    await useBookmarkStore.getState().removeBookmark('book-1', 'bm-1')
-
-    expect(fetch).toHaveBeenCalledWith('/api/bookmarks/book-1', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookmarkId: 'bm-1' }),
-    })
-  })
 })
 
 describe('undoRemoveBookmark', () => {

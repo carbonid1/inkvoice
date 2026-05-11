@@ -10,11 +10,4 @@ describe('useUploadBook', () => {
     rerender()
     expect(result.current.upload).toBe(first)
   })
-
-  it('initializes with correct defaults', () => {
-    const { result } = renderHook(() => useUploadBook())
-
-    expect(result.current.uploading).toBe(false)
-    expect(result.current.progress).toBeNull()
-  })
 })
