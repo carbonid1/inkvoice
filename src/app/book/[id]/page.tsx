@@ -3,10 +3,14 @@
 import { Button, Tooltip, buttonVariants, toast } from '@carbonid1/design-system'
 import { BookMarked, ChevronLeft, List, Loader2, Search } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import {
+  ONBOARDING_PREGEN_VALUE,
+  ONBOARDING_QUERY_PARAM,
+} from '@/lib/consts/onboarding/onboarding.consts'
 import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
@@ -19,6 +23,7 @@ import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
 import { ChapterEndModal } from './components/ChapterEndModal/ChapterEndModal'
 import { FontSizePopover } from './components/FontSizePopover/FontSizePopover'
 import { PageSkeleton } from './components/PageSkeleton/PageSkeleton'
+import { PregenOnboardingPanel } from './components/PregenOnboardingPanel/PregenOnboardingPanel'
 import { ProgressIndicator } from './components/ProgressIndicator/ProgressIndicator'
 import { Reader } from './components/Reader/Reader'
 import { ReaderSkeleton } from './components/ReaderSkeleton/ReaderSkeleton'
@@ -42,6 +47,18 @@ const EMPTY_BOOKMARKS: Bookmark[] = []
 export default function BookReader() {
   const params = useParams<{ id: string }>()
   const bookId = params.id
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const showPregenOnboarding = searchParams.get(ONBOARDING_QUERY_PARAM) === ONBOARDING_PREGEN_VALUE
+
+  const closePregenOnboarding = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString())
+
+    next.delete(ONBOARDING_QUERY_PARAM)
+    const queryString = next.toString()
+
+    router.replace(`/book/${bookId}${queryString ? `?${queryString}` : ''}`)
+  }, [router, searchParams, bookId])
 
   const { effectiveVoice } = useBookVoice(bookId)
   const { overview, loading, error, initialChapter, initialParagraph } = useBookOverview(bookId)
@@ -165,6 +182,9 @@ export default function BookReader() {
     { preventDefault: true },
   )
   useHotkeys('escape', () => search.close(), { enabled: search.isOpen })
+  useHotkeys('escape', closePregenOnboarding, {
+    enabled: showPregenOnboarding && !search.isOpen,
+  })
   useHotkeys('mod+z', () => {
     const { lastDeleted, undoRemoveBookmark } = useBookmarkStore.getState()
 
@@ -325,6 +345,13 @@ export default function BookReader() {
 
       <main className="focus-visible:ring-primary/40 min-h-0 flex-1 overflow-y-auto focus-visible:ring-2 focus-visible:outline-hidden focus-visible:ring-inset">
         <div className="mx-auto max-w-3xl">
+          {showPregenOnboarding && (
+            <PregenOnboardingPanel
+              bookId={bookId}
+              bookTitle={overview.title}
+              onClose={closePregenOnboarding}
+            />
+          )}
           {showRecoveryBanner && recoveryBookmark && (
             <RecoveryBanner
               chapterName={
@@ -347,6 +374,7 @@ export default function BookReader() {
               onRegenerate={handleRegenerate}
               bookmarkedParagraphs={bookmarkedParagraphs}
               activeParagraphRef={activeParagraphRef}
+              autoScroll={!showPregenOnboarding}
             />
           ) : (
             <ReaderSkeleton />

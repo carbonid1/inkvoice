@@ -86,3 +86,58 @@ export const ATTRIBUTE_ORDER: ReadonlyArray<AttributeKey> = [
   'accent',
   'style',
 ]
+
+export interface DesignPreset {
+  id: string
+  label: string
+  attrs: AttributeValues
+}
+
+// One-tap warm starts above the Characteristics dropdowns. Each preset fills
+// all five attributes; the user can still tweak individual dropdowns after.
+export const DESIGN_PRESETS: ReadonlyArray<DesignPreset> = [
+  {
+    id: 'calm-narrator',
+    label: 'Calm narrator',
+    attrs: {
+      gender: 'female',
+      age: 'middle-aged',
+      pitch: 'moderate pitch',
+      accent: 'british accent',
+      style: '',
+    },
+  },
+  {
+    id: 'gruff-detective',
+    label: 'Gruff detective',
+    attrs: {
+      gender: 'male',
+      age: 'middle-aged',
+      pitch: 'low pitch',
+      accent: 'american accent',
+      style: '',
+    },
+  },
+  {
+    id: 'cheerful-young',
+    label: 'Cheerful young',
+    attrs: {
+      gender: 'female',
+      age: 'young adult',
+      pitch: 'high pitch',
+      accent: 'american accent',
+      style: '',
+    },
+  },
+  {
+    id: 'storyteller-elder',
+    label: 'Storyteller elder',
+    attrs: {
+      gender: 'male',
+      age: 'elderly',
+      pitch: 'low pitch',
+      accent: 'british accent',
+      style: '',
+    },
+  },
+]

@@ -20,6 +20,8 @@ interface ReaderProps {
   onRegenerate?: (chapter: number, paragraph: number) => void | Promise<void>
   bookmarkedParagraphs?: Set<number>
   activeParagraphRef?: RefObject<HTMLSpanElement | null>
+  /** When false, the active paragraph is not scrolled into view (e.g. while the onboarding panel owns the viewport). */
+  autoScroll?: boolean
 }
 
 const normalizeCaps = (block: ContentBlockType): ContentBlockType => {
@@ -44,11 +46,22 @@ export const Reader = ({
   onRegenerate,
   bookmarkedParagraphs,
   activeParagraphRef: externalParagraphRef,
+  autoScroll = true,
 }: ReaderProps) => {
   const internalParagraphRef = useRef<HTMLSpanElement>(null)
   const currentParagraphRef = externalParagraphRef ?? internalParagraphRef
 
+  // autoScroll gates the scroll but must not trigger one — toggling it (the
+  // onboarding panel opening/closing) should re-run nothing. Held in a ref so
+  // only a position change drives the scroll effect below.
+  const autoScrollRef = useRef(autoScroll)
+
   useEffect(() => {
+    autoScrollRef.current = autoScroll
+  }, [autoScroll])
+
+  useEffect(() => {
+    if (!autoScrollRef.current) return
     if (currentParagraphRef.current) {
       currentParagraphRef.current.scrollIntoView({
         behavior: 'smooth',

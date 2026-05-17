@@ -1,0 +1,28 @@
+import { toast } from '@carbonid1/design-system'
+import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
+import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
+import { usePregenStore } from '@/store/usePregenStore'
+
+export const startPregeneration = async (bookId: string): Promise<PregenJob | null> => {
+  const response = await fetch(`/api/pregenerate/${bookId}`, { method: 'POST' })
+
+  if (response.ok) {
+    const newJob: PregenJob = await response.json()
+
+    usePregenStore.getState().updateJob(newJob)
+    return newJob
+  }
+
+  if (response.status === 409) {
+    const body = await response.json().catch(() => ({}))
+    const shortfall = body?.budget?.shortfallBytes
+
+    if (body?.budget?.ok === false && typeof shortfall === 'number') {
+      toast('Cache full', {
+        description: `Free ${formatBytes(shortfall)} in Settings or raise the cache limit.`,
+      })
+    }
+  }
+
+  return null
+}

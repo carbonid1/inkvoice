@@ -8,6 +8,7 @@ import { AudioDropZone } from '@/components/ui/AudioDropZone/AudioDropZone'
 import { Input } from '@/components/ui/Input/Input'
 import { useUploadVoice } from '@/lib/hooks/useUploadVoice/useUploadVoice'
 import { TranscriptionReview } from './components/TranscriptionReview/TranscriptionReview'
+import { UploadTips } from './components/UploadTips/UploadTips'
 import { getAudioDuration } from './helpers/getAudioDuration/getAudioDuration'
 
 const ACCEPTED_FORMATS =
@@ -143,86 +144,84 @@ export const VoiceUploadSection = ({
       </div>
 
       {!uploadedVoice && (
-        <form onSubmit={onSubmit} className="space-y-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem]">
+        <>
+          <UploadTips minSeconds={MIN_DURATION} maxSeconds={MAX_DURATION} />
+          <form onSubmit={onSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_10rem]">
+              <div className="space-y-1">
+                <label htmlFor={nameFieldId} className="text-muted-foreground text-xs font-medium">
+                  Voice name
+                </label>
+                <Input
+                  id={nameFieldId}
+                  {...register('name', { required: 'Voice name is required' })}
+                  placeholder="e.g. Marusia"
+                  aria-invalid={errors.name ? true : undefined}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
+              <div className="space-y-1">
+                <label
+                  htmlFor={languageFieldId}
+                  className="text-muted-foreground text-xs font-medium"
+                >
+                  Language
+                </label>
+                <Select
+                  id={languageFieldId}
+                  value={language}
+                  onChange={value => {
+                    if (isLanguageValue(value)) setLanguage(value)
+                  }}
+                  options={LANGUAGE_OPTIONS}
+                  aria-label="Voice language"
+                />
+              </div>
+            </div>
+
             <div className="space-y-1">
-              <label htmlFor={nameFieldId} className="text-muted-foreground text-xs font-medium">
-                Voice name
-              </label>
-              <Input
-                id={nameFieldId}
-                {...register('name', { required: 'Voice name is required' })}
-                placeholder="e.g. Marusia"
-                aria-invalid={errors.name ? true : undefined}
-                autoComplete="off"
-                spellCheck={false}
+              <p className="text-muted-foreground text-xs font-medium">Audio sample</p>
+              <AudioDropZone
+                file={file}
+                onFileChange={handleFileChange}
+                accept={ACCEPTED_FORMATS}
+                acceptHint={`WAV, MP3, M4A, OGG, FLAC · ${MIN_DURATION}–${MAX_DURATION} seconds`}
+                durationSeconds={fileDuration}
+                minSeconds={MIN_DURATION}
+                maxSeconds={MAX_DURATION}
+                durationError={fileError}
+                disabled={uploading}
               />
             </div>
-            <div className="space-y-1">
-              <label
-                htmlFor={languageFieldId}
-                className="text-muted-foreground text-xs font-medium"
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="submit"
+                variant="primary"
+                size="default"
+                loading={uploading}
+                disabled={!canSubmit}
               >
-                Language
-              </label>
-              <Select
-                id={languageFieldId}
-                value={language}
-                onChange={value => {
-                  if (isLanguageValue(value)) setLanguage(value)
-                }}
-                options={LANGUAGE_OPTIONS}
-                aria-label="Voice language"
-              />
+                {uploading ? 'Uploading & transcribing…' : 'Upload'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="default"
+                onClick={handleClose}
+                disabled={uploading}
+              >
+                Cancel
+              </Button>
+              {(errors.name?.message || uploadError) && (
+                <p className="text-destructive text-sm" role="alert">
+                  {errors.name?.message ?? uploadError}
+                </p>
+              )}
             </div>
-          </div>
-
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-xs font-medium">
-              Audio sample
-              <span className="text-muted-foreground ml-2 font-normal">
-                One speaker, quiet room, no music
-              </span>
-            </p>
-            <AudioDropZone
-              file={file}
-              onFileChange={handleFileChange}
-              accept={ACCEPTED_FORMATS}
-              acceptHint={`WAV, MP3, M4A, OGG, FLAC · ${MIN_DURATION}–${MAX_DURATION} seconds`}
-              durationSeconds={fileDuration}
-              minSeconds={MIN_DURATION}
-              maxSeconds={MAX_DURATION}
-              durationError={fileError}
-              disabled={uploading}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="submit"
-              variant="primary"
-              size="default"
-              loading={uploading}
-              disabled={!canSubmit}
-            >
-              {uploading ? 'Uploading & transcribing…' : 'Upload'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="default"
-              onClick={handleClose}
-              disabled={uploading}
-            >
-              Cancel
-            </Button>
-            {(errors.name?.message || uploadError) && (
-              <p className="text-destructive text-sm" role="alert">
-                {errors.name?.message ?? uploadError}
-              </p>
-            )}
-          </div>
-        </form>
+          </form>
+        </>
       )}
 
       {uploadedVoice && (

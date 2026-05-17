@@ -14,11 +14,13 @@ import { useMounted } from '@/lib/hooks/useMounted/useMounted'
 import { useUploadBook } from '@/lib/hooks/useUploadBook/useUploadBook'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
+import { useOnboardingStore } from '@/store/useOnboardingStore'
 import { type Estimate, usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { useVoiceStore } from '@/store/useVoiceStore'
 import { AddBookCard } from './components/AddBookCard/AddBookCard'
 import { BookGrid } from './components/BookGrid/BookGrid'
+import { OnboardingChecklist } from './components/OnboardingChecklist/OnboardingChecklist'
 
 interface UndoState {
   book: Book
@@ -45,6 +47,8 @@ export default function Library() {
   const loadAllVoices = useVoiceStore(s => s.loadAll)
   const pregenLoaded = usePregenStore(s => s.loaded)
   const setEstimates = usePregenStore(s => s.setEstimates)
+  const loadOnboarding = useOnboardingStore(s => s.loadFromApi)
+  const onboardingLoaded = useOnboardingStore(s => s.loaded)
 
   const { uploading, progress: uploadProgress, upload } = useUploadBook()
   const { deleteBook, restoreBook } = useDeleteBook()
@@ -84,10 +88,11 @@ export default function Library() {
     loadBooks()
     loadAllProgress()
     loadAllVoices()
+    loadOnboarding()
     return () => {
       cancelled = true
     }
-  }, [setBooks, loadAllProgress, loadAllVoices])
+  }, [setBooks, loadAllProgress, loadAllVoices, loadOnboarding])
 
   // Fetch estimates for all books once library is loaded
   useEffect(() => {
@@ -326,7 +331,7 @@ export default function Library() {
 
       <main ref={mainRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl px-4 py-8">
-          {(loading || !progressLoaded || !pregenLoaded) && (
+          {(loading || !progressLoaded || !pregenLoaded || !onboardingLoaded) && (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {Array.from({ length: 10 }, (_, i) => (
                 <Card key={i} className="flex flex-col p-4">
@@ -341,8 +346,9 @@ export default function Library() {
 
           {error && <div className="text-destructive py-12 text-center">{error}</div>}
 
-          {!loading && progressLoaded && pregenLoaded && !error && (
+          {!loading && progressLoaded && pregenLoaded && onboardingLoaded && !error && (
             <>
+              <OnboardingChecklist />
               <div aria-live="polite" className="sr-only">
                 {isSearching
                   ? `${visibleBooks.length} ${visibleBooks.length === 1 ? 'book' : 'books'} match ${searchQuery}`

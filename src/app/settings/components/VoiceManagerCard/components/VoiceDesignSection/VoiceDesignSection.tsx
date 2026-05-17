@@ -19,6 +19,7 @@ import {
   type AttributeValues,
   EMPTY_ATTRIBUTES,
 } from './VoiceDesignSection.consts'
+import { DesignPresets } from './components/DesignPresets/DesignPresets'
 import { getVoiceDesignTags } from './helpers/getVoiceDesignTags/getVoiceDesignTags'
 
 const MAX_CUSTOM_CHARS = 500
@@ -356,6 +357,8 @@ export const VoiceDesignSection = ({
           </Tooltip>
         </div>
       </div>
+
+      <DesignPresets attributes={attributes} onSelect={setAttributes} />
 
       {/* Attribute dropdowns — Style is handled separately as a Switch below */}
       <div className="space-y-1">
