@@ -7,6 +7,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { PregenPanelButton } from '@/components/PregenPanelButton/PregenPanelButton'
 import {
   ONBOARDING_PREGEN_VALUE,
   ONBOARDING_QUERY_PARAM,
@@ -301,8 +302,14 @@ export default function BookReader() {
               <Search />
             </Button>
           </Tooltip>
+          <PregenPanelButton />
           <Tooltip label="Bookmarks" shortcut={['shift', 'B']} position="bottom">
-            <Button size="icon" onClick={() => setActiveDrawer('bookmark')} className="-mr-2">
+            <Button
+              size="icon"
+              onClick={() => setActiveDrawer('bookmark')}
+              aria-label="Bookmarks"
+              className="-mr-2"
+            >
               <BookMarked />
             </Button>
           </Tooltip>

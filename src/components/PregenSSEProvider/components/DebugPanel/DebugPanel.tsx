@@ -2,7 +2,7 @@
 
 import { Badge, type BadgeProps } from '@carbonid1/design-system'
 import { X } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
@@ -33,7 +33,8 @@ const TTS_LIFECYCLE_BADGES: Record<LifecycleState, StatusBadge> = {
 }
 
 export const DebugPanel = () => {
-  const [open, setOpen] = useState(false)
+  const open = usePregenStore(s => s.panelOpen)
+  const togglePanel = usePregenStore(s => s.togglePanel)
   const jobs = usePregenStore(s => s.jobs)
   const samplingRates = usePregenStore(s => s.samplingRates)
   const warmingUpBookId = usePregenStore(s => s.warmingUpBookId)
@@ -41,9 +42,7 @@ export const DebugPanel = () => {
   const ttsLifecycleState = useTTSLifecycleStore(s => s.state)
   const ttsBadge = TTS_LIFECYCLE_BADGES[ttsLifecycleState]
 
-  const toggle = useCallback(() => setOpen(prev => !prev), [])
-
-  useHotkeys('d', toggle)
+  useHotkeys('d', togglePanel)
 
   const bookTitles = useMemo(() => {
     const map: Record<string, string> = {}
@@ -59,23 +58,20 @@ export const DebugPanel = () => {
   if (!open) return null
 
   return (
-    <div className="fixed right-4 bottom-4 z-50 w-96 max-w-[calc(100vw-2rem)] rounded-lg border border-neutral-300 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
-      <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 dark:border-neutral-700">
+    <div className="border-border bg-popover shadow-popover fixed right-4 bottom-4 z-50 w-96 max-w-[calc(100vw-2rem)] rounded-lg border">
+      <div className="border-border flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold">Generation Queue</h2>
           <Badge variant={ttsBadge.variant}>TTS · {ttsBadge.label}</Badge>
         </div>
-        <button
-          onClick={toggle}
-          className="rounded p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-        >
+        <button onClick={togglePanel} aria-label="Close" className="hover:bg-accent rounded p-1">
           <X className="size-4" />
         </button>
       </div>
 
       <div className="max-h-80 overflow-y-auto p-2">
         {jobList.length === 0 ? (
-          <p className="py-4 text-center text-sm text-neutral-500">No generation jobs</p>
+          <p className="text-muted-foreground py-4 text-center text-sm">No generation jobs</p>
         ) : (
           <div className="space-y-1">
             {jobList.map(job => {
@@ -85,7 +81,7 @@ export const DebugPanel = () => {
               return (
                 <div
                   key={job.id}
-                  className="rounded-md bg-neutral-50 px-3 py-2 dark:bg-neutral-800"
+                  className="bg-surface-inset inset-shadow-surface rounded-md px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="min-w-0 truncate text-sm font-medium">
@@ -95,7 +91,7 @@ export const DebugPanel = () => {
                       {status.label}
                     </Badge>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+                  <div className="text-muted-foreground mt-1 flex items-center justify-between text-xs">
                     <span>
                       {job.completedParagraphs} / {job.totalParagraphs}
                       {job.generatedDurationMs > 0 &&

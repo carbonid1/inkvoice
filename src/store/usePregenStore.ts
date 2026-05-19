@@ -16,6 +16,7 @@ interface PregenState {
   samplingRates: Record<string, number>
   loaded: boolean
   warmingUpBookId: string | null
+  panelOpen: boolean
   setJobs: (jobs: PregenJob[]) => void
   updateJob: (job: PregenJob) => void
   removeJob: (bookId: string) => void
@@ -23,6 +24,8 @@ interface PregenState {
   updateEstimate: (bookId: string, estimate: Estimate) => void
   setSamplingRate: (bookId: string, rate: number) => void
   setWarmingUp: (bookId: string | null) => void
+  setPanelOpen: (open: boolean) => void
+  togglePanel: () => void
 }
 
 export const usePregenStore = create<PregenState>(set => ({
@@ -31,6 +34,7 @@ export const usePregenStore = create<PregenState>(set => ({
   samplingRates: {},
   loaded: false,
   warmingUpBookId: null,
+  panelOpen: false,
 
   setJobs: jobs => {
     const map: Record<string, PregenJob> = {}
@@ -66,4 +70,8 @@ export const usePregenStore = create<PregenState>(set => ({
     })),
 
   setWarmingUp: bookId => set({ warmingUpBookId: bookId }),
+
+  setPanelOpen: open => set({ panelOpen: open }),
+
+  togglePanel: () => set(state => ({ panelOpen: !state.panelOpen })),
 }))

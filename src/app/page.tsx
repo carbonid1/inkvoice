@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { PregenPanelButton } from '@/components/PregenPanelButton/PregenPanelButton'
 import { Card } from '@/components/ui/Card/Card'
 import { SearchInput } from '@/components/ui/SearchInput/SearchInput'
 import { useDeleteBook } from '@/lib/hooks/useDeleteBook/useDeleteBook'
@@ -317,6 +318,7 @@ export default function Library() {
               )
             }
           />
+          <PregenPanelButton />
           <Tooltip label="Settings" position="bottom">
             <Link
               href="/settings"

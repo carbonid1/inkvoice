@@ -20,7 +20,13 @@ const buildJob = (overrides: Partial<PregenJob> = {}): PregenJob => ({
 })
 
 beforeEach(() => {
-  usePregenStore.setState({ jobs: {}, estimates: {}, warmingUpBookId: null, loaded: true })
+  usePregenStore.setState({
+    jobs: {},
+    estimates: {},
+    warmingUpBookId: null,
+    loaded: true,
+    panelOpen: false,
+  })
 })
 
 afterEach(() => {
@@ -40,6 +46,32 @@ describe('startPregeneration', () => {
 
     expect(result).toEqual(job)
     expect(usePregenStore.getState().jobs['book-1']).toEqual(job)
+  })
+
+  it('opens the progress panel on success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(buildJob()) }),
+    )
+
+    await startPregeneration('book-1')
+
+    expect(usePregenStore.getState().panelOpen).toBe(true)
+  })
+
+  it('leaves the progress panel closed when the API returns 409 over budget', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        json: () => Promise.resolve({ budget: { ok: false, shortfallBytes: 2_000_000_000 } }),
+      }),
+    )
+
+    await startPregeneration('book-1')
+
+    expect(usePregenStore.getState().panelOpen).toBe(false)
   })
 
   it('returns null and skips store update when the API returns 409 over budget', async () => {

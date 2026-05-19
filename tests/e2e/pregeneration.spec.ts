@@ -30,6 +30,9 @@ test.describe('pre-generation', () => {
     await expect(menu).toBeVisible()
     await menu.locator('[role="menuitem"]', { hasText: 'Pre-generate Audio' }).click()
 
+    // Starting generation surfaces the progress panel automatically
+    await expect(page.getByRole('heading', { name: 'Generation Queue' })).toBeVisible()
+
     // Wait for generation to complete (may pass through Queued/Generating states too fast to observe)
     const ring = bookCard.locator('svg[role="img"]')
 

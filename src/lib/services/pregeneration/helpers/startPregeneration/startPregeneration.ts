@@ -10,6 +10,9 @@ export const startPregeneration = async (bookId: string): Promise<PregenJob | nu
     const newJob: PregenJob = await response.json()
 
     usePregenStore.getState().updateJob(newJob)
+    // Open the panel here — the one path both generation triggers (onboarding
+    // panel, book context menu) share — so neither caller has to remember to.
+    usePregenStore.getState().setPanelOpen(true)
     return newJob
   }
 

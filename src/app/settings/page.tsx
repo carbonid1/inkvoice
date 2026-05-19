@@ -5,6 +5,7 @@ import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { PageHeader } from '@/components/PageHeader/PageHeader'
+import { PregenPanelButton } from '@/components/PregenPanelButton/PregenPanelButton'
 import { useVoices } from '@/lib/hooks/useVoices/useVoices'
 import { getVoiceFallback } from '@/lib/services/voice/helpers/getVoiceFallback/getVoiceFallback'
 import { useVoiceStore } from '@/store/useVoiceStore'
@@ -46,6 +47,7 @@ export default function Settings() {
             </Link>
           </Tooltip>
           <h1 className="font-semibold">Settings</h1>
+          <PregenPanelButton className="ml-auto" />
         </div>
       </PageHeader>
 

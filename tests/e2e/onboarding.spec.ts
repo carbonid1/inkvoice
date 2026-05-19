@@ -21,8 +21,9 @@ test.describe('onboarding', () => {
   /**
    * Walks the full gestalt: fresh load shows "0 of 2", picking a non-default
    * voice ticks to "1 of 2", the pregen action opens the inline panel on the
-   * book page, Start generation fires the job and closes the panel, and the
-   * checklist no longer renders on the Library — even after a hard reload.
+   * book page, Start generation fires the job, closes the inline panel, opens
+   * the progress panel, and the checklist no longer renders on the Library —
+   * even after a hard reload.
    */
   test('completing each step ticks the checklist and hides it once both are done', async ({
     page,
@@ -58,6 +59,9 @@ test.describe('onboarding', () => {
 
     await expect(page.getByText('Generation started')).toBeVisible()
     await expect(panelHeading).not.toBeVisible()
+
+    // Starting generation surfaces the progress panel automatically
+    await expect(page.getByRole('heading', { name: 'Generation Queue' })).toBeVisible()
 
     // Both steps done → checklist no longer renders
     await page.goto('/')
