@@ -10,7 +10,7 @@ export const VoiceTagList = ({ tags }: VoiceTagListProps) => {
   return (
     <div className="flex min-w-0 flex-nowrap gap-1 overflow-hidden">
       {tags.map(tag => (
-        <Badge key={tag} variant="primary">
+        <Badge key={tag} variant="primary" className="shrink-0 whitespace-nowrap">
           {tag}
         </Badge>
       ))}

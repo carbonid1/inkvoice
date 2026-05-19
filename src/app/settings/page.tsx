@@ -53,10 +53,10 @@ export default function Settings() {
 
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 py-8 lg:grid-cols-[2fr_1fr] lg:gap-6">
-          <section id="voices" className="scroll-mt-20">
+          <section id="voices" className="min-w-0 scroll-mt-20">
             <VoiceManagerCard voices={voices} loading={loading} onVoicesChanged={refetch} />
           </section>
-          <div className="space-y-4 lg:space-y-6">
+          <div className="min-w-0 space-y-4 lg:space-y-6">
             <StorageCard />
             <AppearanceCard />
             <CreditsCard />
