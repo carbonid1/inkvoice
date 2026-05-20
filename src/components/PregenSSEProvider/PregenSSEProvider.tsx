@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { usePregenSSE } from '@/lib/hooks/usePregenSSE/usePregenSSE'
 import { useSleepPrevention } from '@/lib/hooks/useSleepPrevention/useSleepPrevention'
 import { useTTSLifecycle } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
-import { DebugPanel } from './components/DebugPanel/DebugPanel'
+import { GenerationQueuePanel } from './components/GenerationQueuePanel/GenerationQueuePanel'
 
 interface Props {
   children: ReactNode
@@ -17,7 +17,7 @@ export const PregenSSEProvider = ({ children }: Props) => {
   return (
     <>
       {children}
-      <DebugPanel />
+      <GenerationQueuePanel />
     </>
   )
 }

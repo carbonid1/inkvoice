@@ -32,7 +32,7 @@ const TTS_LIFECYCLE_BADGES: Record<LifecycleState, StatusBadge> = {
   stopping: { label: 'Stopping', variant: 'attention' },
 }
 
-export const DebugPanel = () => {
+export const GenerationQueuePanel = () => {
   const open = usePregenStore(s => s.panelOpen)
   const togglePanel = usePregenStore(s => s.togglePanel)
   const jobs = usePregenStore(s => s.jobs)
