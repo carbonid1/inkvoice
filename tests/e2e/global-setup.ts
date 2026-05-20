@@ -21,7 +21,7 @@ const globalSetup = () => {
 
   const dbPath = resolve(E2E_DATA_DIR, 'test.db')
 
-  execSync('pnpx prisma migrate deploy', {
+  execSync('pnpm db:deploy', {
     env: { ...process.env, INKVOICE_DB_PATH: dbPath },
     stdio: 'pipe',
   })

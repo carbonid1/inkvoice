@@ -45,11 +45,11 @@ export INKVOICE_DB_PATH="${INKVOICE_DB_PATH:-data/inkvoice-dev.db}"
 
 # Run database migrations
 printf "${GREEN}Running database migrations...${NC}\n"
-pnpx prisma migrate deploy 2>&1 || {
+pnpm db:deploy 2>&1 || {
     printf "${RED}Database migration failed. Run 'pnpm db:migrate' to debug.${NC}\n"
     exit 1
 }
-pnpx prisma generate 2>&1 > /dev/null
+pnpm db:generate 2>&1 > /dev/null
 
 # Function to cleanup background processes on exit
 cleanup() {

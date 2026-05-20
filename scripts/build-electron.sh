@@ -21,7 +21,7 @@ bash scripts/build-python.sh
 
 # Step 3: Build Next.js standalone
 echo -e "\n${YELLOW}[3/5] Building Next.js...${NC}"
-pnpx prisma generate
+pnpm db:generate
 
 # Nuke all caches and prior build outputs before building.
 # Without this, Next.js output file tracing picks up the previous dist-nextjs/
