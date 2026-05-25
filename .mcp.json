@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "storybook-mcp": {
+    "inkvoice-storybook": {
       "type": "http",
-      "url": "http://localhost:6006/mcp"
+      "url": "http://localhost:7007/mcp"
     }
   }
 }
