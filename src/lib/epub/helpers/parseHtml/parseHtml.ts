@@ -11,6 +11,51 @@ import { splitNodeIntoChunks } from './helpers/splitNodeIntoChunks/splitNodeInto
 export { getInnerHtml } from './helpers/getInnerHtml/getInnerHtml'
 export { getPlainText } from './helpers/getPlainText/getPlainText'
 
+const BLOCK_LEVEL_TAGS = new Set([
+  'p',
+  'div',
+  'section',
+  'article',
+  'figure',
+  'blockquote',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'ul',
+  'ol',
+  'li',
+  'table',
+  'hr',
+  'pre',
+])
+
+const MEDIA_TAGS = new Set(['img', 'image', 'svg'])
+
+const isBlockOrMedia = (node: Node): boolean => {
+  if (!isElement(node)) return false
+  const tag = node.tagName.toLowerCase()
+
+  return BLOCK_LEVEL_TAGS.has(tag) || MEDIA_TAGS.has(tag)
+}
+
+// A self-closing landmark anchor like <a id="chap01"/> is valid XHTML, but when
+// the file is parsed as HTML5 the <a> stays open; HTML5's adoption-agency
+// algorithm then reconstructs it around every following block. Project Gutenberg
+// "Ebookmaker" files use these anchors in headings, so a whole chapter ends up
+// nested inside one stray <a>. Detect any inline wrapper that swallowed
+// block-level or media children so we can walk into it (see processElement)
+// instead of flattening the chapter into a single paragraph.
+const hasBlockOrMediaChildren = (el: Element): boolean =>
+  Array.from(el.children).some(isBlockOrMedia)
+
+// An element worth descending into: a block/media element, or an inline element
+// that (via the misnesting above) wraps block/media children. Everything else is
+// inline/text content that should be flushed into a paragraph, not dropped.
+const shouldDescend = (el: Element): boolean => isBlockOrMedia(el) || hasBlockOrMediaChildren(el)
+
 const isLinkListParagraph = (el: Element): boolean => {
   const children = Array.from(el.childNodes)
   let linkCount = 0
@@ -173,14 +218,34 @@ const parseHtmlContentSync = async (
       return
     }
 
-    if (
-      tag === 'div' ||
-      tag === 'section' ||
-      tag === 'article' ||
-      tag === 'figure' ||
-      tag === 'svg'
-    ) {
-      Array.from(el.children).forEach(child => processElement(child))
+    // Containers (div/section/article/figure/svg are all block/media tags) and any
+    // element that — validly, or via HTML5 parser misnesting — wraps block-level or
+    // media children are walked node-by-node: block/media children recurse, while
+    // runs of inline or text content (e.g. the <br>-separated lines of poetry
+    // inside a <div class="pgmonospaced">) are flushed as their own paragraph.
+    // Recursing only into element children would silently drop those direct text
+    // nodes. (Earlier branches already claim p/blockquote/h*/ul/ol/hr/img.)
+    if (shouldDescend(el)) {
+      const inlineRun: Node[] = []
+      const flushInlineRun = (): void => {
+        if (inlineRun.length === 0) return
+        const wrapper = doc.createElement('div')
+
+        inlineRun.splice(0).forEach(node => wrapper.appendChild(node.cloneNode(true)))
+        const segments = toSegments(wrapper)
+
+        if (segments) content.push({ type: 'paragraph', segments })
+      }
+
+      Array.from(el.childNodes).forEach(node => {
+        if (isElement(node) && shouldDescend(node)) {
+          flushInlineRun()
+          processElement(node)
+        } else {
+          inlineRun.push(node)
+        }
+      })
+      flushInlineRun()
       return
     }
 

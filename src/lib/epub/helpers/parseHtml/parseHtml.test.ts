@@ -269,6 +269,86 @@ describe('link-list paragraph splitting', () => {
   })
 })
 
+describe('misnested landmark anchor (Project Gutenberg)', () => {
+  // Gutenberg "Ebookmaker" headings use self-closing landmark anchors like
+  // <a id="chap04"/>. Valid XHTML, but HTML5 parsing leaves the <a> open and
+  // reconstructs it around every following <p>, trapping the whole chapter in
+  // one anchor. Without unwrapping, the chapter collapses into one paragraph.
+  const gutenbergHtml = `<body><div class="chapter">
+    <h2><a id="chap04"/>IV.<br/>THE CYLINDER OPENS.</h2>
+    <p>When I returned to the common the sun was setting.</p>
+    <p>&#8220;Keep back! Keep back!&#8221;</p>
+    <p>A boy came running towards me.</p>
+  </div></body>`
+
+  it('should keep each trapped paragraph as its own block', async () => {
+    const { content } = await parseHtmlContent(gutenbergHtml, noopGetImage)
+    const paragraphs = content.filter(block => block.type === 'paragraph')
+
+    expect(paragraphs).toHaveLength(3)
+  })
+
+  it('should still produce the chapter heading', async () => {
+    const { content } = await parseHtmlContent(gutenbergHtml, noopGetImage)
+
+    expect(content[0]?.type).toBe('heading')
+  })
+
+  it('should keep paragraph indices sequential after unwrapping', async () => {
+    const { content, paragraphs } = await parseHtmlContent(gutenbergHtml, noopGetImage)
+    const allSegments = getAllSegments(content)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
+
+    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
+    expect(allSegments.length).toBe(paragraphs.length)
+  })
+})
+
+describe('container direct-text preservation', () => {
+  // Gutenberg poetry (e.g. Leaves of Grass) puts verse lines in DIRECT text
+  // nodes of a <div class="pgmonospaced">, separated by <br/>. Descending only
+  // into element children would drop every line (they are text nodes, not
+  // elements). The container walk must flush inline/text runs as a paragraph.
+  it('should preserve <br>-separated direct text inside a div', async () => {
+    const html =
+      '<body><div class="pgmonospaced">First line<br/>Second line<br/>Third line</div></body>'
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content.some(b => b.type === 'paragraph')).toBe(true)
+    const text = paragraphs.join(' ')
+
+    expect(text).toContain('First line')
+    expect(text).toContain('Second line')
+    expect(text).toContain('Third line')
+  })
+
+  it('should preserve poetry text trapped in a misnested anchor', async () => {
+    // Combined real-world shape: self-closing anchor in the heading wraps the
+    // following <p> and the <br>-separated verse div.
+    const html = `<body><div class="chapter">
+      <h2><a id="book03"/>BOOK III</h2>
+      <p>Song of Myself</p>
+      <div class="pgmonospaced">I celebrate myself<br/>and sing myself</div>
+    </div></body>`
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
+    const text = paragraphs.join(' ')
+
+    expect(text).toContain('Song of Myself')
+    expect(text).toContain('I celebrate myself')
+    expect(text).toContain('and sing myself')
+  })
+
+  it('should not drop direct text that sits between block children', async () => {
+    const html = '<body><div>Intro prose.<p>A block.</p>Tail prose.</div></body>'
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
+    const text = paragraphs.join(' ')
+
+    expect(text).toContain('Intro prose.')
+    expect(text).toContain('A block.')
+    expect(text).toContain('Tail prose.')
+  })
+})
+
 describe('image parsing', () => {
   it('should detect images with src and alt', async () => {
     const html = '<body><img src="map.png" alt="A detailed map"/></body>'
