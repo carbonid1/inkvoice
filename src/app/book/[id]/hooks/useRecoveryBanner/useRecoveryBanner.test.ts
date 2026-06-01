@@ -12,7 +12,7 @@ const bookmark = (overrides: Partial<Bookmark> = {}): Bookmark => ({
 })
 
 describe('useRecoveryBanner', () => {
-  it('shows banner when bookmark exists at different position', () => {
+  it('shows banner when the furthest bookmark is ahead of the current position', () => {
     const { result } = renderHook(() =>
       useRecoveryBanner({
         bookmarks: [bookmark()],
@@ -48,6 +48,42 @@ describe('useRecoveryBanner', () => {
     )
 
     expect(result.current.showBanner).toBe(false)
+  })
+
+  it('hides banner when reading position has passed the bookmark (same chapter)', () => {
+    const { result } = renderHook(() =>
+      useRecoveryBanner({
+        bookmarks: [bookmark({ chapter: 7, paragraph: 0 })],
+        currentChapter: 7,
+        currentParagraph: 5,
+      }),
+    )
+
+    expect(result.current.showBanner).toBe(false)
+  })
+
+  it('hides banner when reading position is in a later chapter than the bookmark', () => {
+    const { result } = renderHook(() =>
+      useRecoveryBanner({
+        bookmarks: [bookmark({ chapter: 3, paragraph: 9 })],
+        currentChapter: 7,
+        currentParagraph: 0,
+      }),
+    )
+
+    expect(result.current.showBanner).toBe(false)
+  })
+
+  it('shows banner when bookmark is ahead within the same chapter', () => {
+    const { result } = renderHook(() =>
+      useRecoveryBanner({
+        bookmarks: [bookmark({ chapter: 7, paragraph: 10 })],
+        currentChapter: 7,
+        currentParagraph: 3,
+      }),
+    )
+
+    expect(result.current.showBanner).toBe(true)
   })
 
   it('hides banner after dismiss', () => {

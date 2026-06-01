@@ -1,7 +1,11 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import type { BookPosition } from '@/lib/types/book'
 import type { UseRecoveryBannerParams, UseRecoveryBannerResult } from './useRecoveryBanner.types'
+
+const isAhead = (a: BookPosition, b: BookPosition) =>
+  a.chapter > b.chapter || (a.chapter === b.chapter && a.paragraph > b.paragraph)
 
 export const useRecoveryBanner = ({
   bookmarks,
@@ -13,12 +17,7 @@ export const useRecoveryBanner = ({
   const recoveryBookmark = useMemo(
     () =>
       bookmarks.length > 0
-        ? bookmarks.reduce((furthest, b) =>
-            b.chapter > furthest.chapter ||
-            (b.chapter === furthest.chapter && b.paragraph > furthest.paragraph)
-              ? b
-              : furthest,
-          )
+        ? bookmarks.reduce((furthest, b) => (isAhead(b, furthest) ? b : furthest))
         : undefined,
     [bookmarks],
   )
@@ -26,7 +25,7 @@ export const useRecoveryBanner = ({
   const showBanner =
     !dismissed &&
     recoveryBookmark !== undefined &&
-    (recoveryBookmark.chapter !== currentChapter || recoveryBookmark.paragraph !== currentParagraph)
+    isAhead(recoveryBookmark, { chapter: currentChapter, paragraph: currentParagraph })
 
   const dismissBanner = useCallback(() => {
     setDismissed(true)
