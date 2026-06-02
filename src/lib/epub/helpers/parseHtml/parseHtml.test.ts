@@ -434,3 +434,55 @@ describe('scene break detection', () => {
     expect(paragraphs).toHaveLength(2)
   })
 })
+
+describe('blockquote with nested structure preservation', () => {
+  // KNOWN BUG — Notion EP-630. Standard Ebooks wraps structured quotations in a
+  // <blockquote> that holds a <header> title plus a nested <ul>. The parser's
+  // blockquote branch is a leaf (toSegments over the whole element), so the
+  // header and every list item collapse into ONE run-on segment and ONE spoken
+  // paragraph — wrong both visually and for TTS/highlighting.
+  //
+  // Real fixture: data/starter-books/the-great-gatsby.epub →
+  // epub/text/chapter-9.xhtml lines 173-196 (Gatsby's "General Resolves").
+  //
+  // This asserts the user-facing contract only — each resolve is its own spoken
+  // unit, none merged — and intentionally does NOT prescribe how the parser
+  // should represent the result (heading vs list vs quoted block, the block
+  // types, the header's spoken-or-not status). That is a separate investigation.
+  //
+  // Marked `it.fails` because the bug is unfixed: it passes today *because* the
+  // body throws. Once the parser is fixed the assertions pass, the body stops
+  // throwing, and `it.fails` flips to RED — remove `.fails` then to lock in the
+  // regression guard.
+  const html = `<body>
+    <blockquote>
+      <header role="presentation">
+        <p class="first-child">General Resolves</p>
+      </header>
+      <ul>
+        <li><p class="first-child">No wasting time at Shafters or [a name, indecipherable]</p></li>
+        <li><p class="first-child">No more smokeing or chewing.</p></li>
+        <li><p class="first-child">Bath every other day</p></li>
+        <li><p class="first-child">Read one improving book or magazine per week</p></li>
+        <li><p class="first-child">Save $5.00 [crossed out] $3.00 per week</p></li>
+        <li><p class="first-child">Be better to parents</p></li>
+      </ul>
+    </blockquote>
+  </body>`
+
+  it.fails('should keep each resolve as its own spoken paragraph, not one run-on', async () => {
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    // The six resolves are six distinct spoken units (currently collapsed to 1).
+    expect(paragraphs.length).toBeGreaterThanOrEqual(6)
+    // Each resolve stands alone, addressable for narration and highlighting.
+    expect(paragraphs).toContain('Bath every other day')
+    expect(paragraphs).toContain('Be better to parents')
+    // No single entry swallows the whole list into one run-on string.
+    const merged = paragraphs.some(
+      p => p.includes('Bath every other day') && p.includes('Be better to parents'),
+    )
+
+    expect(merged).toBe(false)
+  })
+})
