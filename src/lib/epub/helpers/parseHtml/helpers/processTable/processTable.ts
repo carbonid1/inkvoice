@@ -9,12 +9,13 @@ import { getPlainText } from '../getPlainText/getPlainText'
 const DITTO_ONLY = /^[“”"″'']+$/u
 
 // A cell whose entire visible text lives inside <a> tags — e.g. a table-of-
-// contents entry or a Project Gutenberg "other eBooks" catalog row. Empty cells
-// count as link-only so spacer cells don't disqualify a navigation table.
+// contents entry or a Project Gutenberg "other eBooks" catalog row. An empty
+// cell is NOT a link cell: a spacer must never, on its own, make a row look like
+// navigation.
 const collapseWhitespace = (text: string): string => text.replace(/\s+/g, '')
 
-const isLinkOnlyCell = (cell: Element, text: string): boolean => {
-  if (!text) return true
+const isLinkCell = (cell: Element, text: string): boolean => {
+  if (!text) return false
 
   const links = Array.from(cell.querySelectorAll('a'))
 
@@ -40,10 +41,13 @@ export interface ProcessedTable {
 //
 // Returns null when there is nothing to render as a data table:
 //   - no rows carry spoken content, or
-//   - every non-empty cell is just links (a TOC / PG catalog). Most EPUB <table>
-//     usage in practice is this kind of navigation, not reading content; rendering
-//     it as a grid and narrating the links would be a regression. A genuine data
-//     table always has at least one prose/number cell, so this never drops one.
+//   - every spoken row carries a link cell. EPUB tables of contents and Project
+//     Gutenberg catalogs put a chapter/title hyperlink in every row — usually
+//     beside a plain label cell (a roman numeral, "CHAPTER I.", or a page
+//     number), so checking "is EVERY cell a link" misses them. Rendering one of
+//     these as a grid and narrating the link text is the regression this guards
+//     against. A genuine data table (schedule, timetable, prescription, ledger)
+//     never makes every row a hyperlink, so this never drops one.
 export const processTable = (tableEl: Element, startIndex: number): ProcessedTable | null => {
   const rowEls = tableEl.querySelectorAll(
     ':scope > tbody > tr, :scope > thead > tr, :scope > tfoot > tr, :scope > tr',
@@ -51,7 +55,7 @@ export const processTable = (tableEl: Element, startIndex: number): ProcessedTab
 
   const rows: TableRow[] = []
   const paragraphs: string[] = []
-  let everyCellIsLink = true
+  let everyRowIsNavigation = true
 
   rowEls.forEach(tr => {
     const cellEls = Array.from(tr.querySelectorAll(':scope > td, :scope > th'))
@@ -62,12 +66,12 @@ export const processTable = (tableEl: Element, startIndex: number): ProcessedTab
     const spoken = cellTexts.filter(text => text && !DITTO_ONLY.test(text)).join(', ')
 
     // Discard rows with no spoken content (all-ditto or empty spacer rows) BEFORE
-    // the navigation check — otherwise a discarded row could flip everyCellIsLink
-    // and falsely admit a TOC/catalog table that happens to contain a ditto cell.
+    // the navigation check — a row that never renders must not decide whether the
+    // whole table counts as navigation.
     if (!spoken) return
 
-    if (!cellEls.every((cell, index) => isLinkOnlyCell(cell, cellTexts[index] ?? ''))) {
-      everyCellIsLink = false
+    if (!cellEls.some((cell, index) => isLinkCell(cell, cellTexts[index] ?? ''))) {
+      everyRowIsNavigation = false
     }
 
     const cells = cellEls.map(cell => getInnerHtml(cell).trim())
@@ -79,7 +83,7 @@ export const processTable = (tableEl: Element, startIndex: number): ProcessedTab
     paragraphs.push(spoken)
   })
 
-  if (rows.length === 0 || everyCellIsLink) return null
+  if (rows.length === 0 || everyRowIsNavigation) return null
 
   return { block: { type: 'table', rows }, paragraphs }
 }

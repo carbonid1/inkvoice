@@ -56,6 +56,49 @@ describe('processTable', () => {
     expect(processTable(table, 0)).toBeNull()
   })
 
+  it('returns null for a contents table that pairs a plain label with a chapter link', () => {
+    // The Mysterious Affair at Styles TOC: a "CHAPTER I." label beside the linked
+    // title. The label cell is not a link, so an every-cell check would wrongly
+    // render and narrate it; every ROW still carries one link cell.
+    const table = makeTable(
+      '<table>' +
+        '<tr><td>CHAPTER I.</td><td><a href="c1">I GO TO STYLES</a></td></tr>' +
+        '<tr><td>CHAPTER II.</td><td><a href="c2">THE 16TH AND 17TH OF JULY</a></td></tr>' +
+        '</table>',
+    )
+
+    expect(processTable(table, 0)).toBeNull()
+  })
+
+  it('returns null for a contents table where the label cell is itself the link', () => {
+    // Alice in Wonderland TOC: the "CHAPTER I." cell is the link, the title sits
+    // plain beside it — the mirror image of the layout above.
+    const table = makeTable(
+      '<table>' +
+        '<tr><td><a href="c1">CHAPTER I.</a></td><td>Down the Rabbit-Hole</td></tr>' +
+        '<tr><td><a href="c2">CHAPTER II.</a></td><td>The Pool of Tears</td></tr>' +
+        '</table>',
+    )
+
+    expect(processTable(table, 0)).toBeNull()
+  })
+
+  it('keeps a data table whose rows lead with an empty cell (does not read empty as a link)', () => {
+    // Moby-Dick's Etymology: a blank first column, then the word and its language.
+    // Empty cells must not count toward the navigation guard, or this data table
+    // would be dropped.
+    const table = makeTable(
+      '<table>' +
+        '<tr><td></td><td>κῆτος,</td><td>Greek.</td></tr>' +
+        '<tr><td></td><td>WHŒL,</td><td>Anglo-Saxon.</td></tr>' +
+        '</table>',
+    )
+    const result = processTable(table, 0)
+
+    expect(result?.block.rows).toHaveLength(2)
+    expect(result?.paragraphs).toEqual(['κῆτος,, Greek.', 'WHŒL,, Anglo-Saxon.'])
+  })
+
   it('still suppresses a navigation table that also contains a ditto-mark row', () => {
     // The ditto row has no spoken content, so it must not flip the all-links guard.
     const table = makeTable(

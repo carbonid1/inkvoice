@@ -22,6 +22,17 @@ export default defineConfig({
           exclude: ['**/*.integration.test.{ts,tsx}', '**/node_modules/**'],
           environment: 'jsdom',
           setupFiles: ['./src/test/setup.ts'],
+          // @carbonid1/design-system ships an ESM build with extensionless
+          // relative imports (export … from './Badge/Badge'). Node's native ESM
+          // resolver rejects those, so the externalized dep crashes any unit test
+          // that transitively imports it. Inlining routes it through Vite's
+          // resolver (which fills in the extension) until the package ships a
+          // spec-compliant build.
+          server: {
+            deps: {
+              inline: [/@carbonid1\/design-system/],
+            },
+          },
         },
       },
       {
