@@ -68,6 +68,25 @@ const isLinkListParagraph = (el: Element): boolean => {
   return linkCount > 1
 }
 
+// A blockquote that carries real internal structure — a title <header>/<h*>, a
+// nested list or table, or several block-level children — rather than a single
+// run of prose. Standard Ebooks wraps letters, inscriptions, and titled lists
+// this way; flattening one to a single segment loses both the visual layout and
+// the per-line TTS/highlighting boundaries. A plain-text or single-paragraph
+// quote returns false and keeps the cheap leaf path.
+const isStructuredBlockquote = (el: Element): boolean => {
+  const children = Array.from(el.children)
+  const hasStructuralChild = children.some(child => {
+    const tag = child.tagName.toLowerCase()
+
+    return (
+      tag === 'ul' || tag === 'ol' || tag === 'table' || tag === 'header' || /^h[1-6]$/.test(tag)
+    )
+  })
+
+  return hasStructuralChild || children.filter(isBlockOrMedia).length >= 2
+}
+
 // The EPUB parsing engine: walk a parsed DOM Document into the reader's
 // ContentBlock model. Pure DOM — no jsdom — so the same logic runs server-side
 // (parseHtml.ts feeds a jsdom document) and in the browser (Storybook fixtures
@@ -140,6 +159,27 @@ export const parseDocument = async (
     }
   }
 
+  // Clone a structured blockquote's interior into a plain container, unwrapping
+  // any <header>/<footer> into its children. Inside a quote a <header> is the
+  // quote's own title (Standard Ebooks marks it role="presentation"), not page
+  // furniture — so it must survive the page-furniture skip in processElement.
+  // Feeding the container back through processElement reuses the container walk,
+  // so direct text, lists, and nested blocks are all handled the same way.
+  const buildQuoteInterior = (quote: Element): Element => {
+    const container = doc.createElement('div')
+
+    Array.from(quote.childNodes).forEach(node => {
+      const tag = isElement(node) ? node.tagName.toLowerCase() : ''
+
+      if (tag === 'header' || tag === 'footer') {
+        Array.from(node.childNodes).forEach(inner => container.appendChild(inner.cloneNode(true)))
+      } else {
+        container.appendChild(node.cloneNode(true))
+      }
+    })
+    return container
+  }
+
   const processElement = (el: Element): void => {
     const tag = el.tagName.toLowerCase()
 
@@ -168,6 +208,22 @@ export const parseDocument = async (
     }
 
     if (tag === 'blockquote') {
+      if (isStructuredBlockquote(el)) {
+        // Walk the interior through the same engine, then lift the blocks it
+        // produced out of `content` and into the quote's children — so the
+        // header and each list item stay distinct spoken/highlight units inside
+        // one quote frame instead of collapsing into a single segment.
+        const start = content.length
+
+        processElement(buildQuoteInterior(el))
+        const children = content.splice(start)
+
+        if (children.length > 0) {
+          content.push({ type: 'blockquote', children })
+          return
+        }
+      }
+
       const segments = toSegments(el)
 
       if (segments) content.push({ type: 'blockquote', segments })
@@ -271,11 +327,15 @@ export const parseDocument = async (
   // Debug: Verify sentence indices match array positions. Guarded on `process`
   // so the browser (Storybook) never trips over an undefined global.
   if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-    content.forEach(block => {
-      const segments =
-        block.segments ?? block.items?.flat() ?? block.rows?.flatMap(row => row.segments) ?? []
+    const collectSegments = (block: ContentBlock): TextSegment[] => [
+      ...(block.segments ?? []),
+      ...(block.items?.flat() ?? []),
+      ...(block.rows?.flatMap(row => row.segments) ?? []),
+      ...(block.children?.flatMap(collectSegments) ?? []),
+    ]
 
-      segments.forEach(seg => {
+    content.forEach(block => {
+      collectSegments(block).forEach(seg => {
         if (paragraphs[seg.paragraphIndex] === undefined) {
           console.error(
             `[epub] Index mismatch: paragraphIndex ${seg.paragraphIndex} out of bounds (paragraphs.length: ${paragraphs.length})`,

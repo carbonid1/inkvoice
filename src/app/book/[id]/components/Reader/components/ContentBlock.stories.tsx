@@ -74,6 +74,26 @@ const STYLES_CONTENTS = `<h2>Contents</h2>
   </tbody>
 </table>`
 
+// Verbatim from data/starter-books/the-great-gatsby.epub →
+// epub/text/chapter-9.xhtml lines 173-196: Gatsby's boyhood "General Resolves",
+// the <blockquote> directly after the SCHEDULE table. A <header> title plus a
+// 6-item <ul> of <li><p>. This is the EP-630 repro — the parser used to flatten
+// the whole quote into one grey run-on line; now the title and each resolve are
+// distinct units inside the quote frame.
+const GENERAL_RESOLVES = `<blockquote>
+  <header role="presentation">
+    <p class="first-child">General Resolves</p>
+  </header>
+  <ul>
+    <li><p class="first-child">No wasting time at Shafters or [a name, indecipherable]</p></li>
+    <li><p class="first-child">No more smokeing or chewing.</p></li>
+    <li><p class="first-child">Bath every other day</p></li>
+    <li><p class="first-child">Read one improving book or magazine per week</p></li>
+    <li><p class="first-child">Save $5.00 [crossed out] $3.00 per week</p></li>
+    <li><p class="first-child">Be better to parents</p></li>
+  </ul>
+</blockquote>`
+
 const noImage = (): Promise<string | null> => Promise.resolve(null)
 
 // Render an EPUB HTML fragment exactly as the reader does: parse it in the browser
@@ -204,5 +224,31 @@ ContentsTableIgnored.test(
     expect(canvas.getByText('Contents')).toBeInTheDocument()
     expect(canvas.queryAllByRole('table')).toHaveLength(0)
     expect(canvas.queryAllByRole('row')).toHaveLength(0)
+  },
+)
+
+/** Gatsby's "General Resolves" (ch. IX), verbatim epub markup: a structured
+ *  blockquote with a title and a 6-item list. Renders inside the quote frame
+ *  with the title and each resolve as distinct lines — the EP-630 run-on bug is
+ *  gone. Switch the toolbar theme to check light/dark. */
+export const GeneralResolves = meta.story({
+  render: () => <EpubFixture html={GENERAL_RESOLVES} />,
+})
+
+GeneralResolves.test(
+  'preserves the title and each resolve as distinct units inside the quote',
+  async ({ canvas, canvasElement }) => {
+    const items = await canvas.findAllByRole('listitem')
+
+    expect(items).toHaveLength(6)
+    // Title and resolves are addressable on their own, not fused into one line.
+    expect(canvas.getByText('General Resolves')).toBeInTheDocument()
+    expect(canvas.getByText('Bath every other day')).toBeInTheDocument()
+    expect(canvas.getByText('Be better to parents')).toBeInTheDocument()
+    // The whole structure stays wrapped in one quote frame.
+    const quote = canvasElement.querySelector('blockquote')
+
+    expect(quote).not.toBeNull()
+    expect(quote?.querySelectorAll('li')).toHaveLength(6)
   },
 )

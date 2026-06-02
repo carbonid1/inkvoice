@@ -37,6 +37,13 @@ export interface ContentBlock {
   alt?: string // For images
   items?: TextSegment[][] // For list items
   rows?: TableRow[] // For tables (row → { spoken segments, visual cells })
+  // A structured blockquote (a Standard Ebooks letter, inscription, or titled
+  // list) keeps its interior as nested blocks instead of one flattened segment,
+  // so the header and each list item stay distinct spoken/highlight units inside
+  // the quote frame. Mutually exclusive with `segments` on a blockquote: a
+  // plain-text quote carries `segments`, a structured one carries `children`.
+  // Consumers that flatten a block to its segments must recurse `children`.
+  children?: ContentBlock[]
 }
 
 export interface ParsedChapter {

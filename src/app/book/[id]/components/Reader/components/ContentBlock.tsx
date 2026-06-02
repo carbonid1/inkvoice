@@ -90,12 +90,40 @@ export const ContentBlock = ({
       }
       return <p className="mb-4 leading-relaxed">{segments(block.segments)}</p>
 
-    case 'blockquote':
+    case 'blockquote': {
+      // A structured quote (Standard Ebooks letter / titled list) keeps its
+      // interior as nested blocks so the title and each list item stay distinct
+      // highlight/tap units; a plain quote renders its flattened segments. Both
+      // share the one quote frame.
+      //
+      // A structured quote is a standalone multi-line block, so it gets
+      // block-level separation matching the table/figure rhythm. The leaf quote
+      // keeps tight margins so an epigraph clusters with its attribution line
+      // inside the epigraph wrapper (see Reader.tsx).
+      const verticalMargin = block.children ? 'my-6' : 'my-1'
+
       return (
-        <blockquote className="border-border text-muted-foreground my-1 border-l-2 pl-5 text-[0.95rem] leading-relaxed italic">
-          {segments(block.segments)}
+        <blockquote
+          className={`border-border text-muted-foreground ${verticalMargin} border-l-2 pl-5 text-[0.95rem] leading-relaxed italic`}
+        >
+          {block.children
+            ? block.children.map((child, idx) => (
+                <ContentBlock
+                  key={idx}
+                  block={child}
+                  currentParagraph={currentParagraph}
+                  onParagraphClick={onParagraphClick}
+                  onCopyText={onCopyText}
+                  onRegenerate={onRegenerate}
+                  currentChapter={currentChapter}
+                  paragraphRef={paragraphRef}
+                  bookmarkedParagraphs={bookmarkedParagraphs}
+                />
+              ))
+            : segments(block.segments)}
         </blockquote>
       )
+    }
 
     case 'attribution':
       return (

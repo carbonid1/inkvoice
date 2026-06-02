@@ -9,6 +9,7 @@ const getAllSegments = (content: ContentBlock[]): TextSegment[] =>
     ...(block.segments ?? []),
     ...(block.items?.flat() ?? []),
     ...(block.rows?.flatMap(row => row.segments) ?? []),
+    ...(block.children ? getAllSegments(block.children) : []),
   ])
 
 describe('structural invariants', () => {
@@ -456,24 +457,14 @@ describe('table parsing', () => {
 })
 
 describe('blockquote with nested structure preservation', () => {
-  // KNOWN BUG — Notion EP-630. Standard Ebooks wraps structured quotations in a
-  // <blockquote> that holds a <header> title plus a nested <ul>. The parser's
-  // blockquote branch is a leaf (toSegments over the whole element), so the
-  // header and every list item collapse into ONE run-on segment and ONE spoken
-  // paragraph — wrong both visually and for TTS/highlighting.
+  // Regression guard — Notion EP-630. Standard Ebooks wraps structured
+  // quotations in a <blockquote> that holds a <header> title plus a nested <ul>.
+  // The parser used to flatten the whole element to ONE segment / ONE spoken
+  // paragraph (toSegments over the blockquote), losing both layout and per-line
+  // TTS/highlighting. The fix keeps the quote's interior as nested blocks.
   //
   // Real fixture: data/starter-books/the-great-gatsby.epub →
   // epub/text/chapter-9.xhtml lines 173-196 (Gatsby's "General Resolves").
-  //
-  // This asserts the user-facing contract only — each resolve is its own spoken
-  // unit, none merged — and intentionally does NOT prescribe how the parser
-  // should represent the result (heading vs list vs quoted block, the block
-  // types, the header's spoken-or-not status). That is a separate investigation.
-  //
-  // Marked `it.fails` because the bug is unfixed: it passes today *because* the
-  // body throws. Once the parser is fixed the assertions pass, the body stops
-  // throwing, and `it.fails` flips to RED — remove `.fails` then to lock in the
-  // regression guard.
   const html = `<body>
     <blockquote>
       <header role="presentation">
@@ -490,10 +481,10 @@ describe('blockquote with nested structure preservation', () => {
     </blockquote>
   </body>`
 
-  it.fails('should keep each resolve as its own spoken paragraph, not one run-on', async () => {
+  it('should keep each resolve as its own spoken paragraph, not one run-on', async () => {
     const { paragraphs } = await parseHtmlContent(html, noopGetImage)
 
-    // The six resolves are six distinct spoken units (currently collapsed to 1).
+    // The six resolves are six distinct spoken units, plus the "General Resolves" title.
     expect(paragraphs.length).toBeGreaterThanOrEqual(6)
     // Each resolve stands alone, addressable for narration and highlighting.
     expect(paragraphs).toContain('Bath every other day')
@@ -504,5 +495,38 @@ describe('blockquote with nested structure preservation', () => {
     )
 
     expect(merged).toBe(false)
+  })
+
+  it('should keep the quote frame and expose the title + list as nested children', async () => {
+    const { content } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    const quote = content[0]
+
+    expect(quote?.type).toBe('blockquote')
+    // The structured quote nests blocks rather than carrying flat segments.
+    expect(quote?.segments).toBeUndefined()
+    expect(quote?.children?.map(child => child.type)).toEqual(['paragraph', 'list'])
+    expect(quote?.children?.find(child => child.type === 'list')?.items).toHaveLength(6)
+  })
+
+  it('should keep paragraph indices sequential across the nested quote', async () => {
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
+    const allSegments = getAllSegments(content)
+    const indices = allSegments.map(segment => segment.paragraphIndex).sort((a, b) => a - b)
+
+    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
+    expect(allSegments.length).toBe(paragraphs.length)
+  })
+
+  it('should leave a plain-text blockquote as a flat leaf (no children)', async () => {
+    const plain =
+      '<body><blockquote>A single quoted passage with no inner structure.</blockquote></body>'
+    const { content } = await parseHtmlContent(plain, noopGetImage)
+
+    expect(content).toHaveLength(1)
+    expect(content[0]?.type).toBe('blockquote')
+    expect(content[0]?.children).toBeUndefined()
+    expect(content[0]?.segments?.length).toBeGreaterThan(0)
   })
 })
