@@ -5,7 +5,11 @@ import { parseHtmlContent } from './parseHtml'
 const noopGetImage = (): Promise<null> => Promise.resolve(null)
 
 const getAllSegments = (content: ContentBlock[]): TextSegment[] =>
-  content.flatMap(block => [...(block.segments ?? []), ...(block.items?.flat() ?? [])])
+  content.flatMap(block => [
+    ...(block.segments ?? []),
+    ...(block.items?.flat() ?? []),
+    ...(block.rows?.flatMap(row => row.segments) ?? []),
+  ])
 
 describe('structural invariants', () => {
   const mixedHtml = `<body>
@@ -432,6 +436,22 @@ describe('scene break detection', () => {
 
     expect(indices).toEqual([0, 1])
     expect(paragraphs).toHaveLength(2)
+  })
+})
+
+describe('table parsing', () => {
+  it('should emit a table block whose rows keep paragraph indices sequential', async () => {
+    const html =
+      '<body><p>Intro.</p><table><tr><td>Rise from bed</td><td>6:00 a.m.</td></tr><tr><td>Work</td><td>8:30 p.m.</td></tr></table></body>'
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content.some(block => block.type === 'table')).toBe(true)
+    const allSegments = getAllSegments(content)
+
+    expect(allSegments).toHaveLength(paragraphs.length)
+    const indices = allSegments.map(segment => segment.paragraphIndex).sort((a, b) => a - b)
+
+    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 })
 

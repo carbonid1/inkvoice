@@ -9,13 +9,34 @@ export interface TextSegment {
   html: string
 }
 
+// A table row carries TWO views of itself, intentionally decoupled:
+// - `segments`: the spoken/highlight/tap unit — ONE entry per row whose
+//   paragraphIndex points at the row's joined plain text in `paragraphs[]`.
+//   An audiobook reads a schedule row as one utterance ("Rise from bed, 6 a.m."),
+//   not as disconnected per-cell clips.
+// - `cells`: per-cell inner HTML, presentation-only, kept faithful to print
+//   (italics, ditto marks). Used to lay the row out in aligned columns.
+export interface TableRow {
+  segments: TextSegment[]
+  cells: string[]
+}
+
 export interface ContentBlock {
-  type: 'paragraph' | 'heading' | 'blockquote' | 'attribution' | 'list' | 'image' | 'scene-break'
+  type:
+    | 'paragraph'
+    | 'heading'
+    | 'blockquote'
+    | 'attribution'
+    | 'list'
+    | 'image'
+    | 'scene-break'
+    | 'table'
   level?: number // For headings (1-6)
   segments?: TextSegment[] // Paragraph-aligned segments within block
   src?: string // For images (base64 data URL)
   alt?: string // For images
   items?: TextSegment[][] // For list items
+  rows?: TableRow[] // For tables (row → { spoken segments, visual cells })
 }
 
 export interface ParsedChapter {

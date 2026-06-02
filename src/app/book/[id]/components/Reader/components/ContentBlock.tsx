@@ -2,6 +2,8 @@
 
 import type { RefObject } from 'react'
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
+import { ParagraphContextMenu } from '../../ParagraphContextMenu/ParagraphContextMenu'
+import { ACTIVE_PARAGRAPH_HIGHLIGHT } from '../Reader.consts'
 import { isFilenameAlt } from '../helpers/isFilenameAlt/isFilenameAlt'
 import { renderSegments } from '../helpers/renderSegments/renderSegments'
 
@@ -135,6 +137,69 @@ export const ContentBlock = ({
             </figcaption>
           )}
         </figure>
+      )
+    }
+
+    case 'table': {
+      // Row is the unit: the whole <tr> is the play/highlight/tap target (the
+      // narrator speaks one row as one utterance), while cells lay out as aligned
+      // columns. Highlight + bookmark mirror the prose conventions in
+      // renderSegments, lifted from the span up to the row.
+      return (
+        <div className="bg-surface-inset inset-shadow-surface my-6 overflow-x-auto rounded-lg">
+          <table className="w-full text-sm">
+            <tbody>
+              {block.rows?.map((row, rowIndex) => {
+                const paragraphIndex = row.segments[0]?.paragraphIndex ?? -1
+                const isActive = paragraphIndex === currentParagraph
+                const isBookmarked = bookmarkedParagraphs?.has(paragraphIndex) ?? false
+
+                const tableRow = (
+                  <tr
+                    key={rowIndex}
+                    onClick={() => {
+                      if (window.getSelection()?.isCollapsed === false) return
+                      onParagraphClick?.(currentChapter, paragraphIndex)
+                    }}
+                    className={`border-border cursor-pointer border-b transition-colors last:border-0 ${
+                      isActive ? ACTIVE_PARAGRAPH_HIGHLIGHT : 'hover:bg-accent'
+                    }`}
+                  >
+                    {row.cells.map((cell, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        className={`px-4 py-2 align-top tabular-nums ${
+                          isBookmarked && cellIndex === 0 ? 'border-attention border-l-2' : ''
+                        }`}
+                      >
+                        <span
+                          ref={isActive && cellIndex === 0 ? paragraphRef : undefined}
+                          data-paragraph={cellIndex === 0 ? true : undefined}
+                          data-active-paragraph={isActive && cellIndex === 0 ? true : undefined}
+                          dangerouslySetInnerHTML={{ __html: cell }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                )
+
+                return onCopyText && onRegenerate ? (
+                  <ParagraphContextMenu
+                    key={rowIndex}
+                    chapter={currentChapter}
+                    paragraph={paragraphIndex}
+                    onCopyText={onCopyText}
+                    onRegenerate={onRegenerate}
+                  >
+                    {tableRow}
+                  </ParagraphContextMenu>
+                ) : (
+                  tableRow
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       )
     }
 
