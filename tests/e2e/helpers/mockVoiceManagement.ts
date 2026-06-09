@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import type { Page } from '@playwright/test'
 import { slugifyVoiceName } from '@/lib/services/voice/helpers/slugifyVoiceName/slugifyVoiceName'
+import type { VoiceSampleEvent } from '@/lib/services/voiceSampleEvents/voiceSampleEvents.types'
 
 interface Voice {
   name: string
@@ -42,6 +43,7 @@ export const mockVoiceManagement = async (page: Page) => {
   const designedVoices: Voice[] = []
   const deletedNames = new Set<string>()
   const samplesReady = new Set<string>()
+  const sampleEvents: VoiceSampleEvent[] = []
   const silenceBuffer = fs.readFileSync(silencePath)
   const allVoices = () => [...MOCK_VOICES, ...uploadedVoices, ...designedVoices]
   const findVoice = (name: string) => allVoices().find(v => v.name === name)
@@ -216,6 +218,21 @@ export const mockVoiceManagement = async (page: Page) => {
     route.fallback()
   })
 
+  // route.fulfill can't hold a stream open, so the EventSource sees a complete
+  // body and reconnects after `retry`. Each connect replays every event so far
+  // (the real endpoint replays recent outcomes too); the client dedupes.
+  await page.route('**/api/voices/sample-events', route => {
+    const frames = sampleEvents
+      .map(event => `event: sample\ndata: ${JSON.stringify(event)}\n\n`)
+      .join('')
+
+    route.fulfill({
+      status: 200,
+      contentType: 'text/event-stream',
+      body: `retry: 100\n\n${frames}`,
+    })
+  })
+
   // Mock voice audio routes
   await page.route('**/api/voices/*/source', route => {
     route.fulfill({
@@ -265,6 +282,7 @@ export const mockVoiceManagement = async (page: Page) => {
     getDeletedNames: () => new Set(deletedNames),
     markSampleReady: (voiceName: string) => {
       samplesReady.add(voiceName)
+      sampleEvents.push({ type: 'sample', voiceName, status: 'ready' })
     },
   }
 }

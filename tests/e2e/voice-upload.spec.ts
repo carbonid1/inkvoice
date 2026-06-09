@@ -175,10 +175,10 @@ test.describe('voice upload', () => {
       page.getByRole('button', { name: /Generating sample for New Voice/ }),
     ).toBeVisible()
 
-    // Mark sample as ready — polling will pick it up
+    // Mark sample as ready — the SSE stream announces it and the client refetches
     markSampleReady('new-voice')
 
-    // Button should become interactive (polling refetches voice list)
+    // Button should become interactive after the voice list refetch
     const playButton = page.getByRole('button', { name: /Play voice sample for New Voice/ })
 
     await expect(playButton).toBeVisible({ timeout: 10000 })
