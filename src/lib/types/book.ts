@@ -44,6 +44,10 @@ export interface ContentBlock {
   // plain-text quote carries `segments`, a structured one carries `children`.
   // Consumers that flatten a block to its segments must recurse `children`.
   children?: ContentBlock[]
+  // Set on a structured blockquote's child that came from the quote's own
+  // <header> — its title line, which the renderer emphasizes. Provenance-based
+  // on purpose: a letter's dateline is a plain first <p> and must not match.
+  isQuoteTitle?: boolean
 }
 
 export interface ParsedChapter {

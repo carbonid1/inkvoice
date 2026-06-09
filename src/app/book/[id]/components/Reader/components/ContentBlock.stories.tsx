@@ -94,6 +94,26 @@ const GENERAL_RESOLVES = `<blockquote>
   </ul>
 </blockquote>`
 
+// Verbatim from data/starter-books/the-strange-case-of-dr-jekyll-and-mr-hyde.epub →
+// epub/text/chapter-9.xhtml: Jekyll's letter inside Dr. Lanyon's narrative — a
+// dateline, four body paragraphs, and a <footer> holding the valediction,
+// signature and postscript. This is the EP-632 multi-paragraph fixture (the
+// widespread letter/diary shape, 21 of the 22 structured quotes in the library);
+// each paragraph is its own spoken/highlight unit instead of one run-on. Only
+// the invisible word-joiners around the em-dashes are dropped.
+const LANYON_LETTER = `<blockquote class="epub-type-contains-word-z3998-letter" epub:type="z3998:letter">
+  <p class="epub-type-contains-word-se-letter-dateline first-child" epub:type="se:letter.dateline">“10th December, 18—.</p>
+  <p>“Dear Lanyon—You are one of my oldest friends; and although we may have differed at times on scientific questions, I cannot remember, at least on my side, any break in our affection. There was never a day when, if you had said to me, ‘Jekyll, my life, my honour, my reason, depend upon you,’ I would not have sacrificed my left hand to help you. Lanyon, my life, my honour, my reason, are all at your mercy; if you fail me tonight, I am lost. You might suppose, after this preface, that I am going to ask you for something dishonourable to grant. Judge for yourself.</p>
+  <p>“I want you to postpone all other engagements for tonight—aye, even if you were summoned to the bedside of an emperor; to take a cab, unless your carriage should be actually at the door; and with this letter in your hand for consultation, to drive straight to my house. Poole, my butler, has his orders; you will find him waiting your arrival with a locksmith. The door of my cabinet is then to be forced: and you are to go in alone; to open the glazed press (letter E) on the left hand, breaking the lock if it be shut; and to draw out, <em>with all its contents as they stand</em>, the fourth drawer from the top or (which is the same thing) the third from the bottom. In my extreme distress of mind, I have a morbid fear of misdirecting you; but even if I am in error, you may know the right drawer by its contents: some powders, a phial and a paper book. This drawer I beg of you to carry back with you to Cavendish Square exactly as it stands.</p>
+  <p>“That is the first part of the service: now for the second. You should be back, if you set out at once on the receipt of this, long before midnight; but I will leave you that amount of margin, not only in the fear of one of those obstacles that can neither be prevented nor foreseen, but because an hour when your servants are in bed is to be preferred for what will then remain to do. At midnight, then, I have to ask you to be alone in your consulting room, to admit with your own hand into the house a man who will present himself in my name, and to place in his hands the drawer that you will have brought with you from my cabinet. Then you will have played your part and earned my gratitude completely. Five minutes afterwards, if you insist upon an explanation, you will have understood that these arrangements are of capital importance; and that by the neglect of one of them, fantastic as they must appear, you might have charged your conscience with my death or the shipwreck of my reason.</p>
+  <p>“Confident as I am that you will not trifle with this appeal, my heart sinks and my hand trembles at the bare thought of such a possibility. Think of me at this hour, in a strange place, labouring under a blackness of distress that no fancy can exaggerate, and yet well aware that, if you will but punctually serve me, my troubles will roll away like a story that is told. Serve me, my dear Lanyon, and save</p>
+  <footer role="presentation">
+    <p class="first-child" epub:type="z3998:valediction">“Your friend,</p>
+    <p class="epub-type-contains-word-z3998-signature" epub:type="z3998:signature">“<abbr epub:type="z3998:given-name">H. J.</abbr></p>
+    <p class="epub-type-contains-word-z3998-postscript" epub:type="z3998:postscript">“<abbr epub:type="z3998:initialism">P.S.</abbr>—I had already sealed this up when a fresh terror struck upon my soul. It is possible that the post-office may fail me, and this letter not come into your hands until tomorrow morning. In that case, dear Lanyon, do my errand when it shall be most convenient for you in the course of the day; and once more expect my messenger at midnight. It may then already be too late; and if that night passes without event, you will know that you have seen the last of Henry Jekyll.”</p>
+  </footer>
+</blockquote>`
+
 const noImage = (): Promise<string | null> => Promise.resolve(null)
 
 // Render an EPUB HTML fragment exactly as the reader does: parse it in the browser
@@ -230,9 +250,9 @@ ContentsTableIgnored.test(
 )
 
 /** Gatsby's "General Resolves" (ch. IX), verbatim epub markup: a structured
- *  blockquote with a title and a 6-item list. Renders inside the quote frame
- *  with the title and each resolve as distinct lines — the EP-630 run-on bug is
- *  gone. Switch the toolbar theme to check light/dark. */
+ *  blockquote with a <header> title and a 6-item list. Renders inside the quote
+ *  frame with the title emphasized as a label and each resolve a distinct line —
+ *  the EP-630 run-on bug is gone. Switch the toolbar theme to check light/dark. */
 export const GeneralResolves = meta.story({
   render: () => <EpubFixture html={GENERAL_RESOLVES} />,
 })
@@ -252,6 +272,50 @@ GeneralResolves.test(
 
     expect(quote).not.toBeNull()
     expect(quote?.querySelectorAll('li')).toHaveLength(6)
+  },
+)
+
+GeneralResolves.test(
+  'emphasizes the header-derived title as a non-italic label',
+  async ({ canvas }) => {
+    const title = await canvas.findByText('General Resolves')
+    const titleParagraph = title.closest('p')
+
+    expect(titleParagraph?.className).toContain('font-semibold')
+    expect(titleParagraph?.className).toContain('not-italic')
+  },
+)
+
+/** Jekyll's letter to Lanyon (ch. 9 of Dr. Jekyll & Mr. Hyde), verbatim epub
+ *  markup: dateline, four body paragraphs, valediction, signature and P.S.
+ *  inside one quote frame — each its own highlight/tap unit, the letter/diary
+ *  shape EP-632 locks in. Switch the toolbar theme to check light/dark. */
+export const StructuredLetter = meta.story({
+  render: () => <EpubFixture html={LANYON_LETTER} />,
+})
+
+StructuredLetter.test(
+  'renders all eight letter paragraphs as distinct units in one quote frame',
+  async ({ canvas, canvasElement }) => {
+    await canvas.findByText(/Dear Lanyon/)
+    const quote = canvasElement.querySelector('blockquote')
+
+    expect(quote).not.toBeNull()
+    // Dateline + 4 body paragraphs + valediction + signature + postscript,
+    // each its own paragraph — not one run-on unit.
+    expect(quote?.querySelectorAll('p')).toHaveLength(8)
+    expect(canvas.getByText('“Your friend,')).toBeInTheDocument()
+  },
+)
+
+StructuredLetter.test(
+  'does not emphasize the dateline — title emphasis is header-only',
+  async ({ canvas }) => {
+    const dateline = await canvas.findByText(/10th December/)
+    const datelineParagraph = dateline.closest('p')
+
+    expect(datelineParagraph?.className).not.toContain('font-semibold')
+    expect(datelineParagraph?.className).not.toContain('not-italic')
   },
 )
 

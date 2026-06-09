@@ -159,25 +159,31 @@ export const parseDocument = async (
     }
   }
 
-  // Clone a structured blockquote's interior into a plain container, unwrapping
-  // any <header>/<footer> into its children. Inside a quote a <header> is the
-  // quote's own title (Standard Ebooks marks it role="presentation"), not page
-  // furniture — so it must survive the page-furniture skip in processElement.
-  // Feeding the container back through processElement reuses the container walk,
-  // so direct text, lists, and nested blocks are all handled the same way.
-  const buildQuoteInterior = (quote: Element): Element => {
-    const container = doc.createElement('div')
+  // Clone a structured blockquote's interior into two containers: the <header>
+  // contents and everything else (with <footer> unwrapped into the body).
+  // Inside a quote a <header> is the quote's own title (Standard Ebooks marks
+  // it role="presentation"), not page furniture — so it must survive the
+  // page-furniture skip in processElement, and its provenance is kept so the
+  // renderer can emphasize the title without guessing from position (a
+  // letter's dateline is a plain first <p> and must not match). Feeding the
+  // containers back through processElement reuses the container walk, so
+  // direct text, lists, and nested blocks are all handled the same way.
+  const buildQuoteInterior = (quote: Element): { title: Element; body: Element } => {
+    const title = doc.createElement('div')
+    const body = doc.createElement('div')
 
     Array.from(quote.childNodes).forEach(node => {
       const tag = isElement(node) ? node.tagName.toLowerCase() : ''
 
       if (tag === 'header' || tag === 'footer') {
-        Array.from(node.childNodes).forEach(inner => container.appendChild(inner.cloneNode(true)))
+        const target = tag === 'header' ? title : body
+
+        Array.from(node.childNodes).forEach(inner => target.appendChild(inner.cloneNode(true)))
       } else {
-        container.appendChild(node.cloneNode(true))
+        body.appendChild(node.cloneNode(true))
       }
     })
-    return container
+    return { title, body }
   }
 
   const processElement = (el: Element): void => {
@@ -213,10 +219,14 @@ export const parseDocument = async (
         // produced out of `content` and into the quote's children — so the
         // header and each list item stay distinct spoken/highlight units inside
         // one quote frame instead of collapsing into a single segment.
+        const { title, body } = buildQuoteInterior(el)
         const start = content.length
 
-        processElement(buildQuoteInterior(el))
-        const children = content.splice(start)
+        processElement(title)
+        const titleChildren = content.splice(start).map(block => ({ ...block, isQuoteTitle: true }))
+
+        processElement(body)
+        const children = [...titleChildren, ...content.splice(start)]
 
         if (children.length > 0) {
           content.push({ type: 'blockquote', children })

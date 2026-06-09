@@ -529,4 +529,37 @@ describe('blockquote with nested structure preservation', () => {
     expect(content[0]?.children).toBeUndefined()
     expect(content[0]?.segments?.length).toBeGreaterThan(0)
   })
+
+  it('should mark only header-derived children as the quote title', async () => {
+    const { content } = await parseHtmlContent(html, noopGetImage)
+    const children = content[0]?.children
+
+    expect(children?.[0]?.isQuoteTitle).toBe(true)
+    expect(children?.filter(child => child.isQuoteTitle)).toHaveLength(1)
+  })
+
+  it('should not mark any child as title in a headerless letter quote', async () => {
+    // A letter opens with a dateline <p>, not a <header> — emphasis must not
+    // fire on it. The <footer> (valediction/signature) unwraps unmarked too.
+    const letter = `<body>
+      <blockquote epub:type="z3998:letter">
+        <p class="first-child" epub:type="se:letter.dateline">“10th December, 18—.</p>
+        <p>“Dear Lanyon—You are one of my oldest friends. Judge for yourself.</p>
+        <footer role="presentation">
+          <p class="first-child" epub:type="z3998:valediction">“Your friend,</p>
+          <p epub:type="z3998:signature">“H. J.</p>
+        </footer>
+      </blockquote>
+    </body>`
+    const { content } = await parseHtmlContent(letter, noopGetImage)
+    const children = content[0]?.children
+
+    expect(children?.map(child => child.type)).toEqual([
+      'paragraph',
+      'paragraph',
+      'paragraph',
+      'paragraph',
+    ])
+    expect(children?.every(child => !child.isQuoteTitle)).toBe(true)
+  })
 })

@@ -7,6 +7,11 @@ import { ACTIVE_PARAGRAPH_HIGHLIGHT, MISSING_AUDIO_DIM } from '../Reader.consts'
 import { isFilenameAlt } from '../helpers/isFilenameAlt/isFilenameAlt'
 import { renderSegments } from '../helpers/renderSegments/renderSegments'
 
+// not-italic counters the quote frame's italic so a structured quote's title
+// reads as a label over the quote body; mb-2 clusters it with what it titles.
+// Applied whether the source marked the title as <p> or as an h-tag.
+const QUOTE_TITLE_EMPHASIS = 'mb-2 leading-relaxed font-semibold not-italic'
+
 interface ContentBlockProps {
   block: ContentBlockType
   currentParagraph: number
@@ -67,6 +72,10 @@ export const ContentBlock = ({
         return <HeadingTag className={titleClasses}>{segments(block.segments)}</HeadingTag>
       }
 
+      if (block.isQuoteTitle) {
+        return <HeadingTag className={QUOTE_TITLE_EMPHASIS}>{segments(block.segments)}</HeadingTag>
+      }
+
       const headingClasses: Record<number, string> = {
         1: 'text-3xl font-bold mt-8 mb-4',
         2: 'text-2xl font-semibold mt-6 mb-3',
@@ -90,6 +99,9 @@ export const ContentBlock = ({
           : 'text-2xl font-bold text-center mt-12 mb-2'
 
         return <p className={titleClasses}>{segments(block.segments)}</p>
+      }
+      if (block.isQuoteTitle) {
+        return <p className={QUOTE_TITLE_EMPHASIS}>{segments(block.segments)}</p>
       }
       return <p className="mb-4 leading-relaxed">{segments(block.segments)}</p>
 
