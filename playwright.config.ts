@@ -32,6 +32,7 @@ export default defineConfig({
       stdout: 'ignore',
       stderr: 'pipe',
       env: {
+        NEXT_DIST_DIR: '.next-e2e',
         INKVOICE_BOOKS_DIR: resolve(E2E_DATA_DIR, 'books'),
         INKVOICE_VOICES_DIR: resolve(E2E_DATA_DIR, 'voices'),
         INKVOICE_CACHE_DIR: resolve(E2E_DATA_DIR, 'cache', 'tts'),

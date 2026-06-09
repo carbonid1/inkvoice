@@ -20,6 +20,7 @@ const config = [
   {
     ignores: [
       '.next/**',
+      '.next-e2e/**',
       'out/**',
       'build/**',
       'next-env.d.ts',

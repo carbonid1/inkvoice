@@ -6,6 +6,9 @@ const gitMessage = execSync('git log -1 --format=%s').toString().trim()
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Next 16 allows one dev server per dist dir (.next/dev/lock); e2e sets
+  // its own dir so the suite can run alongside the regular dev server.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   allowedDevOrigins: ['inkvoice.localhost'],
   transpilePackages: ['@carbonid1/design-system'],
   serverExternalPackages: ['epub2'],
