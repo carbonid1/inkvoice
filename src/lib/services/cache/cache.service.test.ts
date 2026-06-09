@@ -246,6 +246,39 @@ describe('TTSCacheService', () => {
     })
   })
 
+  describe('hasMany', () => {
+    it('reports cache presence per text in input order', async () => {
+      mockDiskSpace.getAvailableSpace.mockResolvedValue({
+        available: 100_000_000_000,
+        total: 500_000_000_000,
+        percentFree: 20,
+      })
+
+      const service = getCacheService()
+
+      await service.set('cached one', 'clara', Buffer.alloc(10), 'book-a')
+      await service.set('cached two', 'clara', Buffer.alloc(10), 'book-a')
+
+      const result = await service.hasMany(['cached one', 'never generated', 'cached two'], 'clara')
+
+      expect(result).toEqual([true, false, true])
+    })
+
+    it('does not match entries cached under a different voice', async () => {
+      mockDiskSpace.getAvailableSpace.mockResolvedValue({
+        available: 100_000_000_000,
+        total: 500_000_000_000,
+        percentFree: 20,
+      })
+
+      const service = getCacheService()
+
+      await service.set('some text', 'clara', Buffer.alloc(10), 'book-a')
+
+      expect(await service.hasMany(['some text'], 'jonathan')).toEqual([false])
+    })
+  })
+
   describe('deleteByBookId', () => {
     it('removes all entries for a book and returns freed bytes', async () => {
       mockDiskSpace.getAvailableSpace.mockResolvedValue({

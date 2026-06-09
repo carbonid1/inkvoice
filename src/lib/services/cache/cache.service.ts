@@ -78,6 +78,18 @@ class TTSCacheService implements CacheService {
     return row !== null
   }
 
+  async hasMany(texts: string[], voice: string): Promise<boolean[]> {
+    await this.ensureInitialized()
+    const hashes = texts.map(text => getCacheHash(text, voice))
+    const rows = await prisma.cacheEntry.findMany({
+      where: { hash: { in: hashes } },
+      select: { hash: true },
+    })
+    const present = new Set(rows.map(row => row.hash))
+
+    return hashes.map(hash => present.has(hash))
+  }
+
   async getDurationMs(text: string, voice: string): Promise<number> {
     await this.ensureInitialized()
     const hash = getCacheHash(text, voice)

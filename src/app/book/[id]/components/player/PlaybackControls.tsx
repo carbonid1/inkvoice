@@ -7,6 +7,8 @@ import { useHotkeys } from 'react-hotkeys-hook'
 interface PlaybackControlsProps {
   isPlaying: boolean
   isLoading: boolean
+  /** When set, starting playback is blocked (pausing stays available) and the tooltip shows this reason. */
+  disablePlayReason?: string
   onPlayPause: () => void
   onSkipBack: () => void
   onSkipForward: () => void
@@ -15,11 +17,22 @@ interface PlaybackControlsProps {
 export const PlaybackControls = ({
   isPlaying,
   isLoading,
+  disablePlayReason,
   onPlayPause,
   onSkipBack,
   onSkipForward,
 }: PlaybackControlsProps) => {
-  useHotkeys('space', onPlayPause, { preventDefault: true })
+  const blockReason = isPlaying ? undefined : disablePlayReason
+  const playPauseAction = isPlaying ? 'Pause' : 'Play'
+  const playPauseLabel = blockReason ?? playPauseAction
+
+  useHotkeys(
+    'space',
+    () => {
+      if (!blockReason) onPlayPause()
+    },
+    { preventDefault: true },
+  )
   useHotkeys('left', onSkipBack)
   useHotkeys('right', onSkipForward)
 
@@ -31,8 +44,16 @@ export const PlaybackControls = ({
         </Button>
       </Tooltip>
 
-      <Tooltip label={isPlaying ? 'Pause' : 'Play'} shortcut="Space">
-        <Button variant="primary" size="largeIcon" onClick={onPlayPause} className="relative">
+      <Tooltip label={playPauseLabel} shortcut={blockReason ? undefined : 'Space'}>
+        {/* aria-disabled (not disabled) keeps hover/focus events flowing so the
+            tooltip can explain why playback is blocked. */}
+        <Button
+          variant="primary"
+          size="largeIcon"
+          onClick={blockReason ? undefined : onPlayPause}
+          aria-disabled={blockReason ? true : undefined}
+          className={`relative ${blockReason ? 'cursor-not-allowed opacity-50' : ''}`}
+        >
           {isLoading && <Loader2 className="absolute inset-0 m-auto animate-spin" />}
           {isPlaying ? (
             <Pause className={isLoading ? 'opacity-30' : ''} />

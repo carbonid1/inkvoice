@@ -16,8 +16,11 @@ import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
+import { PREGEN_JOB_STATUS } from '@/lib/services/pregenQueue/pregenQueue.types'
+import { startPregeneration } from '@/lib/services/pregeneration/helpers/startPregeneration/startPregeneration'
 import type { ParsedChapter } from '@/lib/types/book'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
+import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
@@ -38,6 +41,7 @@ import {
   computePagePosition,
 } from './helpers/computePagePosition/computePagePosition'
 import { shouldShowChapterProgress } from './helpers/shouldShowChapterProgress/shouldShowChapterProgress'
+import { useAudioAvailability } from './hooks/useAudioAvailability/useAudioAvailability'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 import { useBookSearch } from './hooks/useBookSearch/useBookSearch'
 import { useRecoveryBanner } from './hooks/useRecoveryBanner/useRecoveryBanner'
@@ -113,12 +117,26 @@ export default function BookReader() {
     [bookId, setProgress],
   )
 
+  const { missingAudioParagraphs, refetch: refetchAudioAvailability } = useAudioAvailability({
+    bookId,
+    chapter: currentChapter,
+    voice: effectiveVoice,
+  })
+
   const handleParagraphClick = useCallback(
     (chapter: number, paragraph: number) => {
       handleProgressChange(chapter, paragraph)
     },
     [handleProgressChange],
   )
+
+  const pregenJob = usePregenStore(s => s.jobs[bookId])
+  const currentParagraphMissingAudio = missingAudioParagraphs?.has(currentParagraph) ?? false
+  // A running job already shows progress in the panel — don't offer to start another.
+  const canSuggestGeneration = !pregenJob || pregenJob.status === PREGEN_JOB_STATUS.COMPLETED
+  const handleGenerateAudio = useCallback(() => {
+    startPregeneration(bookId).catch(console.error)
+  }, [bookId])
 
   const handleCopyText = useCallback(
     (_chapter: number, paragraph: number) => {
@@ -133,15 +151,22 @@ export default function BookReader() {
     (chapter: number, paragraph: number) => {
       const params = new URLSearchParams({ voice: effectiveVoice })
 
-      fetch(`/api/tts/${bookId}/${chapter}/${paragraph}?${params}`, { method: 'DELETE' }).catch(
-        console.error,
-      )
+      fetch(`/api/tts/${bookId}/${chapter}/${paragraph}?${params}`, { method: 'DELETE' })
+        .then(() => refetchAudioAvailability())
+        .catch(console.error)
       if (chapter !== currentChapter || paragraph !== currentParagraph) {
         handleProgressChange(chapter, paragraph)
       }
       setReplayKey(k => k + 1)
     },
-    [bookId, effectiveVoice, currentChapter, currentParagraph, handleProgressChange],
+    [
+      bookId,
+      effectiveVoice,
+      currentChapter,
+      currentParagraph,
+      handleProgressChange,
+      refetchAudioAvailability,
+    ],
   )
 
   // Chapter end interstitial
@@ -380,6 +405,9 @@ export default function BookReader() {
               onCopyText={handleCopyText}
               onRegenerate={handleRegenerate}
               bookmarkedParagraphs={bookmarkedParagraphs}
+              missingAudioParagraphs={
+                chapterLoading ? undefined : (missingAudioParagraphs ?? undefined)
+              }
               activeParagraphRef={activeParagraphRef}
               autoScroll={!showPregenOnboarding}
             />
@@ -422,6 +450,10 @@ export default function BookReader() {
         chapters={overview.chapters}
         currentChapter={currentChapter}
         currentParagraph={currentParagraph}
+        disablePlayReason={currentParagraphMissingAudio ? 'No audio for this paragraph' : undefined}
+        onGenerateAudio={
+          currentParagraphMissingAudio && canSuggestGeneration ? handleGenerateAudio : undefined
+        }
         onProgressChange={handleProgressChange}
         isCurrentBookmarked={isCurrentBookmarked}
         onBookmarkToggle={toggleBookmark}

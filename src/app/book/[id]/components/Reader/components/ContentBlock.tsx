@@ -3,7 +3,7 @@
 import type { RefObject } from 'react'
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
 import { ParagraphContextMenu } from '../../ParagraphContextMenu/ParagraphContextMenu'
-import { ACTIVE_PARAGRAPH_HIGHLIGHT } from '../Reader.consts'
+import { ACTIVE_PARAGRAPH_HIGHLIGHT, MISSING_AUDIO_DIM } from '../Reader.consts'
 import { isFilenameAlt } from '../helpers/isFilenameAlt/isFilenameAlt'
 import { renderSegments } from '../helpers/renderSegments/renderSegments'
 
@@ -18,6 +18,7 @@ interface ContentBlockProps {
   isInTitleGroup?: boolean
   isSubtitle?: boolean
   bookmarkedParagraphs?: Set<number>
+  missingAudioParagraphs?: Set<number>
 }
 
 export const ContentBlock = ({
@@ -31,6 +32,7 @@ export const ContentBlock = ({
   isInTitleGroup,
   isSubtitle,
   bookmarkedParagraphs,
+  missingAudioParagraphs,
 }: ContentBlockProps) => {
   const segments = (segs: TextSegment[] | undefined) =>
     renderSegments({
@@ -42,6 +44,7 @@ export const ContentBlock = ({
       currentChapter,
       paragraphRef,
       bookmarkedParagraphs,
+      missingAudioParagraphs,
     })
 
   switch (block.type) {
@@ -118,6 +121,7 @@ export const ContentBlock = ({
                   currentChapter={currentChapter}
                   paragraphRef={paragraphRef}
                   bookmarkedParagraphs={bookmarkedParagraphs}
+                  missingAudioParagraphs={missingAudioParagraphs}
                 />
               ))
             : segments(block.segments)}
@@ -181,6 +185,7 @@ export const ContentBlock = ({
                 const paragraphIndex = row.segments[0]?.paragraphIndex ?? -1
                 const isActive = paragraphIndex === currentParagraph
                 const isBookmarked = bookmarkedParagraphs?.has(paragraphIndex) ?? false
+                const isMissingAudio = missingAudioParagraphs?.has(paragraphIndex) ?? false
 
                 const tableRow = (
                   <tr
@@ -189,9 +194,9 @@ export const ContentBlock = ({
                       if (window.getSelection()?.isCollapsed === false) return
                       onParagraphClick?.(currentChapter, paragraphIndex)
                     }}
-                    className={`border-border cursor-pointer border-b transition-colors last:border-0 ${
+                    className={`border-border cursor-pointer border-b transition-[color,background-color,opacity] last:border-0 ${
                       isActive ? ACTIVE_PARAGRAPH_HIGHLIGHT : 'hover:bg-accent'
-                    }`}
+                    } ${isMissingAudio ? MISSING_AUDIO_DIM : ''}`}
                   >
                     {row.cells.map((cell, cellIndex) => (
                       <td

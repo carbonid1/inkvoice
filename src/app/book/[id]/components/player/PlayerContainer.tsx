@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, Tooltip } from '@carbonid1/design-system'
-import { Bookmark } from 'lucide-react'
+import { AudioLines, Bookmark } from 'lucide-react'
 import {
   type RefObject,
   useCallback,
@@ -34,6 +34,10 @@ interface PlayerContainerProps {
   onChapterEnd?: () => void
   replayKey?: number
   activeParagraphRef?: RefObject<HTMLSpanElement | null>
+  /** Forwarded to the play button: blocks starting playback and shows this reason in the tooltip. */
+  disablePlayReason?: string
+  /** When provided, a quiet Generate audio action renders in the bar (the playback dead-end's way out). */
+  onGenerateAudio?: () => void
 }
 
 export const PlayerContainer = ({
@@ -47,6 +51,8 @@ export const PlayerContainer = ({
   onChapterEnd,
   replayKey = 0,
   activeParagraphRef,
+  disablePlayReason,
+  onGenerateAudio,
 }: PlayerContainerProps) => {
   const { voices } = useVoices()
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
@@ -155,7 +161,10 @@ export const PlayerContainer = ({
       if (playIdRef.current !== myId) return
 
       if (!result) {
+        // No audio for this paragraph — reflect the stop instead of leaving a
+        // zombie "playing" state, and let the play-blocked affordance take over.
         setLoading(false)
+        setPlaying(false)
         return
       }
 
@@ -283,10 +292,20 @@ export const PlayerContainer = ({
         <PlaybackControls
           isPlaying={isPlaying}
           isLoading={debouncedLoading}
+          disablePlayReason={disablePlayReason}
           onPlayPause={togglePlay}
           onSkipBack={position.skipBack}
           onSkipForward={position.skipForward}
         />
+
+        {onGenerateAudio && (
+          <div className="absolute top-1/2 left-0 -translate-y-1/2">
+            <Button size="small" onClick={onGenerateAudio}>
+              <AudioLines />
+              Generate audio
+            </Button>
+          </div>
+        )}
 
         {onBookmarkToggle && (
           <div className="absolute top-1/2 right-0 -translate-y-1/2">

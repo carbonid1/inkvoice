@@ -5,7 +5,7 @@ import { isAllCaps, toTitleCase } from '@/lib/epub/helpers/normalizeTitle/normal
 import type { ContentBlock as ContentBlockType, ParsedChapter } from '@/lib/types/book'
 import { useDisplayStore } from '@/store/useDisplayStore'
 import { FONT_SIZE_CLASS } from '../FontSizePopover/FontSizePopover.consts'
-import { ACTIVE_PARAGRAPH_HIGHLIGHT } from './Reader.consts'
+import { ACTIVE_PARAGRAPH_HIGHLIGHT, MISSING_AUDIO_DIM } from './Reader.consts'
 import { ContentBlock } from './components/ContentBlock'
 import { findDuplicateTitleIndex } from './helpers/findDuplicateTitleIndex/findDuplicateTitleIndex'
 import { findTitleGroupMembers } from './helpers/findTitleGroupMembers/findTitleGroupMembers'
@@ -19,6 +19,7 @@ interface ReaderProps {
   onCopyText?: (chapter: number, paragraph: number) => void
   onRegenerate?: (chapter: number, paragraph: number) => void | Promise<void>
   bookmarkedParagraphs?: Set<number>
+  missingAudioParagraphs?: Set<number>
   activeParagraphRef?: RefObject<HTMLSpanElement | null>
   /** When false, the active paragraph is not scrolled into view (e.g. while the onboarding panel owns the viewport). */
   autoScroll?: boolean
@@ -45,6 +46,7 @@ export const Reader = ({
   onCopyText,
   onRegenerate,
   bookmarkedParagraphs,
+  missingAudioParagraphs,
   activeParagraphRef: externalParagraphRef,
   autoScroll = true,
 }: ReaderProps) => {
@@ -126,6 +128,7 @@ export const Reader = ({
           isInTitleGroup={titleGroupMember.has(idx)}
           isSubtitle={isSubtitle}
           bookmarkedParagraphs={bookmarkedParagraphs}
+          missingAudioParagraphs={missingAudioParagraphs}
         />
       )
     }
@@ -173,6 +176,7 @@ export const Reader = ({
               currentChapter={currentChapter}
               paragraphRef={currentParagraphRef}
               bookmarkedParagraphs={bookmarkedParagraphs}
+              missingAudioParagraphs={missingAudioParagraphs}
             />
           ) : (
             chapter.title
@@ -190,6 +194,7 @@ export const Reader = ({
       <div className="leading-relaxed">
         {chapter.paragraphs.map((paragraph, idx) => {
           const isActive = idx === currentParagraph
+          const isMissingAudio = missingAudioParagraphs?.has(idx) ?? false
 
           return (
             <span
@@ -201,9 +206,9 @@ export const Reader = ({
                 if (window.getSelection()?.isCollapsed === false) return
                 onParagraphClick?.(currentChapter, idx)
               }}
-              className={`cursor-pointer transition-colors ${
+              className={`cursor-pointer transition-[color,background-color,opacity] ${
                 isActive ? `${ACTIVE_PARAGRAPH_HIGHLIGHT} -mx-1 px-1` : 'hover:bg-accent'
-              }`}
+              } ${isMissingAudio ? MISSING_AUDIO_DIM : ''}`}
             >
               {paragraph}{' '}
             </span>

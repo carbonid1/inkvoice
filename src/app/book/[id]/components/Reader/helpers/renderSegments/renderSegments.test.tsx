@@ -94,6 +94,20 @@ describe('SegmentList', () => {
     expect(screen.getByText('Unmarked').className).not.toContain('border-attention')
   })
 
+  it('dims paragraphs whose audio is missing', () => {
+    render(
+      <SegmentList
+        {...defaultProps({
+          segments: [makeSegment(0, 'Silent'), makeSegment(1, 'Voiced')],
+          missingAudioParagraphs: new Set([0]),
+        })}
+      />,
+    )
+
+    expect(screen.getByText('Silent').className).toContain('opacity-60')
+    expect(screen.getByText('Voiced').className).not.toContain('opacity-60')
+  })
+
   it('renders nothing for undefined segments', () => {
     const { container } = render(<SegmentList {...defaultProps({ segments: undefined })} />)
 

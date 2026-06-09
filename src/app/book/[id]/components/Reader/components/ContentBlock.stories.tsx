@@ -105,9 +105,10 @@ const noImage = (): Promise<string | null> => Promise.resolve(null)
 interface EpubFixtureProps {
   html: string
   currentParagraph?: number
+  missingAudioParagraphs?: Set<number>
 }
 
-const EpubFixture = ({ html, currentParagraph = -1 }: EpubFixtureProps) => {
+const EpubFixture = ({ html, currentParagraph = -1, missingAudioParagraphs }: EpubFixtureProps) => {
   const [blocks, setBlocks] = useState<ContentBlockType[] | null>(null)
   const paragraphRef = useRef<HTMLSpanElement | null>(null)
 
@@ -133,6 +134,7 @@ const EpubFixture = ({ html, currentParagraph = -1 }: EpubFixtureProps) => {
           currentParagraph={currentParagraph}
           currentChapter={0}
           paragraphRef={paragraphRef}
+          missingAudioParagraphs={missingAudioParagraphs}
         />
       ))}
     </>
@@ -252,3 +254,24 @@ GeneralResolves.test(
     expect(quote?.querySelectorAll('li')).toHaveLength(6)
   },
 )
+
+// The opening lines of The Great Gatsby (ch. I) — plain prose paragraphs for
+// per-paragraph reader affordances the table fixtures above can't show.
+const GATSBY_OPENING = `<p>In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since.</p>
+<p>"Whenever you feel like criticising anyone," he told me, "just remember that all the people in this world haven't had the advantages that you've had."</p>
+<p>He didn't say any more, but we've always been unusually communicative in a reserved way, and I understood that he meant a great deal more than that.</p>`
+
+/** Mid-book state where only the opening paragraph has generated audio for the
+ *  current voice — the rest sit quietly dimmed until audio is generated (EP-627).
+ *  Switch the toolbar theme to check the dim reads in light/dark. */
+export const MissingAudioParagraphs = meta.story({
+  render: () => <EpubFixture html={GATSBY_OPENING} missingAudioParagraphs={new Set([1, 2])} />,
+})
+
+MissingAudioParagraphs.test('dims only the paragraphs without audio', async ({ canvas }) => {
+  const voiced = await canvas.findByText(/In my younger and more vulnerable years/)
+  const dimmed = await canvas.findByText(/Whenever you feel like criticising/)
+
+  expect(voiced.closest('span[data-paragraph]')?.className).not.toContain('opacity-60')
+  expect(dimmed.closest('span[data-paragraph]')?.className).toContain('opacity-60')
+})

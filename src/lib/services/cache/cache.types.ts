@@ -5,6 +5,9 @@ export interface CacheService {
   /** Check if audio exists in cache (metadata-only, no disk read) */
   has(text: string, voice: string): Promise<boolean>
 
+  /** Batch presence check; result aligns with `texts` order (metadata-only, no disk read) */
+  hasMany(texts: string[], voice: string): Promise<boolean[]>
+
   /** Get cached audio duration in ms (0 if not found) */
   getDurationMs(text: string, voice: string): Promise<number>
 
