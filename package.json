@@ -2,7 +2,7 @@
   "name": "inkvoice",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@10.28.1",
+  "packageManager": "pnpm@11.5.2",
   "scripts": {
     "dev": "./scripts/start.sh",
     "dev:next": "next dev -p 49813",
