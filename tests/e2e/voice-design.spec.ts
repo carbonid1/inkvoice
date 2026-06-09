@@ -37,15 +37,16 @@ test.describe('voice design', () => {
     await expect(page.getByRole('switch', { name: 'Whisper' })).not.toBeVisible()
   })
 
-  /** Generate without picking any characteristic surfaces an inline error. */
-  test('Generate requires at least one characteristic', async ({ page }) => {
+  /** Generating with no characteristics picked is allowed — the model improvises freely. */
+  test('Generate works without picking any characteristic', async ({ page }) => {
     await mockVoiceManagement(page)
     await navigateToSettings(page)
 
     await openDesignForm(page)
 
     await generateButton(page).click()
-    await expect(page.getByText('Pick at least one characteristic.', { exact: true })).toBeVisible()
+    // Save enables only once a preview take exists, i.e. generation succeeded.
+    await expect(saveVoiceButton(page)).toBeEnabled({ timeout: 10000 })
   })
 
   /**
