@@ -1,16 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { ContentBlock, TextSegment } from '@/lib/types/book'
+import { collectBlockSegments } from '../collectBlockSegments/collectBlockSegments'
 import { parseHtmlContent } from './parseHtml'
 
 const noopGetImage = (): Promise<null> => Promise.resolve(null)
-
-const getAllSegments = (content: ContentBlock[]): TextSegment[] =>
-  content.flatMap(block => [
-    ...(block.segments ?? []),
-    ...(block.items?.flat() ?? []),
-    ...(block.rows?.flatMap(row => row.segments) ?? []),
-    ...(block.children ? getAllSegments(block.children) : []),
-  ])
 
 describe('structural invariants', () => {
   const mixedHtml = `<body>
@@ -37,7 +29,7 @@ describe('structural invariants', () => {
 
   it('should produce sequential sentence indices with no gaps', async () => {
     const { content } = await parseHtmlContent(mixedHtml, noopGetImage)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
     const indices = allSegments.map(segment => segment.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
@@ -45,14 +37,14 @@ describe('structural invariants', () => {
 
   it('should have total segment count equal to total sentence count', async () => {
     const { content, paragraphs } = await parseHtmlContent(mixedHtml, noopGetImage)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
 
     expect(allSegments.length).toBe(paragraphs.length)
   })
 
   it('should have every sentence index point to a valid sentence', async () => {
     const { content, paragraphs } = await parseHtmlContent(mixedHtml, noopGetImage)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
 
     allSegments.forEach(segment => {
       expect(paragraphs[segment.paragraphIndex]).toBeDefined()
@@ -184,7 +176,7 @@ describe('br handling', () => {
   it('should keep sentence indices synchronized with br present', async () => {
     const html = '<body><p>First sentence.<br/>Second sentence.</p><p>Third sentence.</p></body>'
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
     const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
@@ -266,7 +258,7 @@ describe('link-list paragraph splitting', () => {
     const html =
       '<body><p><a href="a">First</a> <a href="b">Second</a> <a href="c">Third</a></p></body>'
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
     const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
@@ -301,7 +293,7 @@ describe('misnested landmark anchor (Project Gutenberg)', () => {
 
   it('should keep paragraph indices sequential after unwrapping', async () => {
     const { content, paragraphs } = await parseHtmlContent(gutenbergHtml, noopGetImage)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
     const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
@@ -447,7 +439,7 @@ describe('table parsing', () => {
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
     expect(content.some(block => block.type === 'table')).toBe(true)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
 
     expect(allSegments).toHaveLength(paragraphs.length)
     const indices = allSegments.map(segment => segment.paragraphIndex).sort((a, b) => a - b)
@@ -512,7 +504,7 @@ describe('blockquote with nested structure preservation', () => {
 
   it('should keep paragraph indices sequential across the nested quote', async () => {
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
-    const allSegments = getAllSegments(content)
+    const allSegments = content.flatMap(collectBlockSegments)
     const indices = allSegments.map(segment => segment.paragraphIndex).sort((a, b) => a - b)
 
     expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))

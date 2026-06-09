@@ -1,4 +1,5 @@
 import type { ContentBlock, TextSegment } from '@/lib/types/book'
+import { collectBlockSegments } from '../../../collectBlockSegments/collectBlockSegments'
 import { getPlainText } from '../getPlainText/getPlainText'
 import { isAttributionElement } from '../isAttributionElement/isAttributionElement'
 import { isChapterMarker } from '../isChapterMarker/isChapterMarker'
@@ -337,15 +338,8 @@ export const parseDocument = async (
   // Debug: Verify sentence indices match array positions. Guarded on `process`
   // so the browser (Storybook) never trips over an undefined global.
   if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-    const collectSegments = (block: ContentBlock): TextSegment[] => [
-      ...(block.segments ?? []),
-      ...(block.items?.flat() ?? []),
-      ...(block.rows?.flatMap(row => row.segments) ?? []),
-      ...(block.children?.flatMap(collectSegments) ?? []),
-    ]
-
     content.forEach(block => {
-      collectSegments(block).forEach(seg => {
+      collectBlockSegments(block).forEach(seg => {
         if (paragraphs[seg.paragraphIndex] === undefined) {
           console.error(
             `[epub] Index mismatch: paragraphIndex ${seg.paragraphIndex} out of bounds (paragraphs.length: ${paragraphs.length})`,

@@ -1,40 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import type { ContentBlock, TextSegment } from '@/lib/types/book'
+import type { ContentBlock } from '@/lib/types/book'
+import { collectBlockSegments } from './helpers/collectBlockSegments/collectBlockSegments'
 import { parseHtmlContent } from './helpers/parseHtml/parseHtml'
 
-// Helper to verify sentence index integrity
+// Asserts the bidirectional invariant: every paragraph entry is referenced by
+// exactly one segment, with indices covering 0..paragraphs.length-1 gaplessly.
 const verifySentenceIndexIntegrity = (content: ContentBlock[], paragraphs: string[]): void => {
-  content.forEach(block => {
-    if (block.segments) {
-      block.segments.forEach(segment => {
-        expect(paragraphs[segment.paragraphIndex]).toBeDefined()
-      })
-    }
-    if (block.items) {
-      block.items.forEach(itemSegments => {
-        itemSegments.forEach(segment => {
-          expect(paragraphs[segment.paragraphIndex]).toBeDefined()
-        })
-      })
-    }
-  })
-}
+  const indices = content
+    .flatMap(collectBlockSegments)
+    .map(segment => segment.paragraphIndex)
+    .sort((a, b) => a - b)
 
-// Collect all segments from content blocks
-const getAllSegments = (content: ContentBlock[]): TextSegment[] => {
-  const segments: TextSegment[] = []
-
-  content.forEach(block => {
-    if (block.segments) {
-      segments.push(...block.segments)
-    }
-    if (block.items) {
-      block.items.forEach(itemSegments => {
-        segments.push(...itemSegments)
-      })
-    }
-  })
-  return segments
+  expect(indices).toEqual(Array.from({ length: paragraphs.length }, (_, i) => i))
 }
 
 // Mock image loader that returns null
@@ -51,12 +28,6 @@ describe('parseHtmlContent sentence indexing', () => {
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
     verifySentenceIndexIntegrity(content, paragraphs)
-
-    // Each sentence index should be unique and sequential
-    const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
-
-    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
   it('should maintain index alignment with nested divs', async () => {
@@ -74,11 +45,6 @@ describe('parseHtmlContent sentence indexing', () => {
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
     verifySentenceIndexIntegrity(content, paragraphs)
-
-    const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
-
-    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
   it('should maintain index alignment with mixed content types', async () => {
@@ -97,16 +63,6 @@ describe('parseHtmlContent sentence indexing', () => {
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
     verifySentenceIndexIntegrity(content, paragraphs)
-
-    // Verify sentence count matches segment count
-    const allSegments = getAllSegments(content)
-
-    expect(allSegments.length).toBe(paragraphs.length)
-
-    // Verify indices are sequential
-    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
-
-    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
   it('should handle multi-sentence paragraphs correctly', async () => {
@@ -137,10 +93,6 @@ describe('parseHtmlContent sentence indexing', () => {
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
     verifySentenceIndexIntegrity(content, paragraphs)
-
-    const allSegments = getAllSegments(content)
-
-    expect(allSegments.length).toBe(paragraphs.length)
   })
 
   it('should maintain index alignment with inline formatting', async () => {
@@ -153,11 +105,6 @@ describe('parseHtmlContent sentence indexing', () => {
     const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
 
     verifySentenceIndexIntegrity(content, paragraphs)
-
-    const allSegments = getAllSegments(content)
-    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
-
-    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
   })
 
   it('should handle empty elements gracefully', async () => {
@@ -196,9 +143,6 @@ describe('parseHtmlContent sentence indexing', () => {
 
     verifySentenceIndexIntegrity(content, paragraphs)
 
-    const allSegments = getAllSegments(content)
-
-    expect(allSegments.length).toBe(paragraphs.length)
     expect(paragraphs.length).toBe(2)
   })
 })
