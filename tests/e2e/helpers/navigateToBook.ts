@@ -13,7 +13,10 @@ export const navigateToBook = async (page: Page, bookId?: string) => {
 
   await page.goto('/')
   await booksResponse
-  await page.locator('a[href^="/book/"]').first().waitFor()
-  await page.locator('a[href^="/book/"]').first().click()
+  // The onboarding checklist also links to /book/…; only grid cards have a title heading.
+  const bookCard = page.locator('a[href^="/book/"]:has(h3)').first()
+
+  await bookCard.waitFor()
+  await bookCard.click()
   await page.locator('header h1').waitFor()
 }

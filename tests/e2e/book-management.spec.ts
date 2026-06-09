@@ -55,7 +55,7 @@ test.describe('book management', () => {
     await waitForLibrary(page)
 
     // Right-click the first book to open context menu
-    await page.locator('a[href^="/book/"]').first().click({ button: 'right' })
+    await page.getByRole('link', { name: 'Mock Book One' }).click({ button: 'right' })
     await page.locator('[role="menuitem"]', { hasText: 'Remove Book' }).click()
 
     // Book should disappear and toast should show
@@ -76,7 +76,7 @@ test.describe('book management', () => {
     await waitForLibrary(page)
 
     // Remove the first book via context menu
-    await page.locator('a[href^="/book/"]').first().click({ button: 'right' })
+    await page.getByRole('link', { name: 'Mock Book One' }).click({ button: 'right' })
     await page.locator('[role="menuitem"]', { hasText: 'Remove Book' }).click()
     await expect(page.getByText('Book removed')).toBeVisible()
 
@@ -95,7 +95,7 @@ test.describe('book management', () => {
     await waitForLibrary(page)
 
     // Remove the first book via context menu
-    await page.locator('a[href^="/book/"]').first().click({ button: 'right' })
+    await page.getByRole('link', { name: 'Mock Book One' }).click({ button: 'right' })
     await page.locator('[role="menuitem"]', { hasText: 'Remove Book' }).click()
     await expect(page.getByText('Book removed')).toBeVisible()
 
