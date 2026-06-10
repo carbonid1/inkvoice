@@ -16,7 +16,7 @@ interface StatusBadge {
   variant: BadgeProps['variant']
 }
 
-const STATUS_BADGES: Record<PregenJobStatus, StatusBadge> = {
+const STATUS_BADGES: Partial<Record<PregenJobStatus, StatusBadge>> = {
   queued: { label: 'Queued', variant: 'default' },
   in_progress: { label: 'Generating', variant: 'primary' },
   paused: { label: 'Paused', variant: 'attention' },
@@ -24,6 +24,13 @@ const STATUS_BADGES: Record<PregenJobStatus, StatusBadge> = {
 }
 
 const WARMING_UP_BADGE: StatusBadge = { label: 'Warming up', variant: 'highlight' }
+
+// SSE job payloads are cast, not schema-validated — a server shipping a status
+// this client doesn't know must degrade to a plain badge, not crash the panel.
+const FALLBACK_BADGE: StatusBadge = { label: 'Unknown', variant: 'default' }
+
+const getStatusBadge = (status: PregenJobStatus): StatusBadge =>
+  STATUS_BADGES[status] ?? FALLBACK_BADGE
 
 const TTS_LIFECYCLE_BADGES: Record<LifecycleState, StatusBadge> = {
   stopped: { label: 'Idle', variant: 'default' },
@@ -58,13 +65,20 @@ export const GenerationQueuePanel = () => {
   if (!open) return null
 
   return (
-    <div className="border-border bg-popover shadow-popover fixed right-4 bottom-4 z-50 w-96 max-w-[calc(100vw-2rem)] rounded-lg border">
+    <section
+      aria-label="Generation Queue"
+      className="border-border bg-popover shadow-popover fixed right-4 bottom-4 z-50 w-96 max-w-[calc(100vw-2rem)] rounded-lg border"
+    >
       <div className="border-border flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold">Generation Queue</h2>
           <Badge variant={ttsBadge.variant}>TTS · {ttsBadge.label}</Badge>
         </div>
-        <button onClick={togglePanel} aria-label="Close" className="hover:bg-accent rounded p-1">
+        <button
+          onClick={togglePanel}
+          aria-label="Close generation queue"
+          className="hover:bg-accent rounded p-1"
+        >
           <X className="size-4" />
         </button>
       </div>
@@ -73,20 +87,20 @@ export const GenerationQueuePanel = () => {
         {jobList.length === 0 ? (
           <p className="text-muted-foreground py-4 text-center text-sm">No generation jobs</p>
         ) : (
-          <div className="space-y-1">
+          <ul className="space-y-1">
             {jobList.map(job => {
               const status =
-                warmingUpBookId === job.bookId ? WARMING_UP_BADGE : STATUS_BADGES[job.status]
+                warmingUpBookId === job.bookId ? WARMING_UP_BADGE : getStatusBadge(job.status)
+              const title = bookTitles[job.bookId] ?? job.bookId
 
               return (
-                <div
+                <li
                   key={job.id}
+                  aria-label={`${title}: ${status.label}, ${job.completedParagraphs} of ${job.totalParagraphs} paragraphs`}
                   className="bg-surface-inset inset-shadow-surface rounded-md px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="min-w-0 truncate text-sm font-medium">
-                      {bookTitles[job.bookId] ?? job.bookId}
-                    </span>
+                    <span className="min-w-0 truncate text-sm font-medium">{title}</span>
                     <Badge variant={status.variant} className="shrink-0">
                       {status.label}
                     </Badge>
@@ -104,12 +118,12 @@ export const GenerationQueuePanel = () => {
                       <span className="text-destructive truncate">{job.errorMessage}</span>
                     )}
                   </div>
-                </div>
+                </li>
               )
             })}
-          </div>
+          </ul>
         )}
       </div>
-    </div>
+    </section>
   )
 }

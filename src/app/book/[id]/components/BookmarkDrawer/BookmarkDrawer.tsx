@@ -98,7 +98,7 @@ export const BookmarkDrawer = ({
         <div className="border-border flex items-center justify-between border-b p-4">
           <h2 className="text-lg font-semibold">Bookmarks</h2>
           <Tooltip label="Close" shortcut="Esc" position="bottom">
-            <Button size="icon" onClick={onClose}>
+            <Button size="icon" onClick={onClose} aria-label="Close bookmarks">
               <X />
             </Button>
           </Tooltip>
