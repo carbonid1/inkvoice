@@ -372,6 +372,89 @@ describe('container direct-text preservation', () => {
   })
 })
 
+describe('strict XHTML parsing', () => {
+  // EPUB content documents are well-formed XHTML by spec (Notion EP-628). When
+  // such a file is parsed as lenient HTML5 instead, a self-closing <style/>
+  // keeps the parser in raw-text mode and silently swallows the rest of the
+  // chapter — one of several HTML5-vs-XHTML parser mismatches.
+  it('should not let a self-closing <style/> swallow the rest of the chapter', async () => {
+    const html = '<body><p>First sentence.</p><style/><p>Second sentence.</p></body>'
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(paragraphs).toEqual(['First sentence.', 'Second sentence.'])
+  })
+
+  it('should keep strict parsing for chapters using HTML named entities', async () => {
+    // XML only defines five named entities; &nbsp;/&mdash; live in XHTML's
+    // external DTD, which non-validating XML parsers never fetch. Without
+    // translation they would demote the whole chapter to lenient parsing —
+    // here that demotion would cost the second paragraph.
+    const html = '<body><p>A&nbsp;B&mdash;C</p><style/><p>Second sentence.</p></body>'
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(paragraphs).toEqual(['A B—C', 'Second sentence.'])
+  })
+
+  it('should keep strict parsing for chapters using namespace-prefixed attributes', async () => {
+    // EPUB 3 declares xmlns:epub (and SVG content xmlns:xlink) on the <html>
+    // element, which epub2's body extraction throws away — the prefixes must
+    // be re-declared on the wrapper or every EPUB 3 chapter would demote to
+    // lenient parsing over an "unbound prefix" error.
+    const html = [
+      '<body><p epub:type="z3998:letter">Letter text.</p>',
+      '<svg><image xlink:href="map.png"/></svg>',
+      '<style/><p>After the letter.</p></body>',
+    ].join('')
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(paragraphs).toEqual(['Letter text.', 'After the letter.'])
+    expect(content.some(block => block.type === 'image' && block.src === 'map.png')).toBe(true)
+  })
+
+  it('should fall back to lenient parsing for malformed chapters', async () => {
+    const html = '<body><div><p>Unclosed paragraph.</div><p>Tail paragraph.</p></body>'
+    const { paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(paragraphs).toEqual(['Unclosed paragraph.', 'Tail paragraph.'])
+  })
+})
+
+describe('misnested landmark anchor on the lenient fallback path', () => {
+  // Same Ebookmaker shape as the suite above, but with a duplicate attribute —
+  // invisible to the HTML5 parser, fatal to XML. Well-formed variants of these
+  // fixtures parse strictly and never reach the adoption-agency rewrite, so
+  // this forced-fallback twin is what actually exercises the
+  // hasBlockOrMediaChildren unwrap in parseDocument.
+  const fallbackGutenbergHtml = `<body><div class="chapter" class="chapter">
+    <h2><a id="chap04"/>IV.<br/>THE CYLINDER OPENS.</h2>
+    <p>When I returned to the common the sun was setting.</p>
+    <p>&#8220;Keep back! Keep back!&#8221;</p>
+    <p>A boy came running towards me.</p>
+  </div></body>`
+
+  it('should keep each trapped paragraph as its own block', async () => {
+    const { content } = await parseHtmlContent(fallbackGutenbergHtml, noopGetImage)
+    const paragraphs = content.filter(block => block.type === 'paragraph')
+
+    expect(paragraphs).toHaveLength(3)
+  })
+
+  it('should still produce the chapter heading', async () => {
+    const { content } = await parseHtmlContent(fallbackGutenbergHtml, noopGetImage)
+
+    expect(content[0]?.type).toBe('heading')
+  })
+
+  it('should keep paragraph indices sequential after unwrapping', async () => {
+    const { content, paragraphs } = await parseHtmlContent(fallbackGutenbergHtml, noopGetImage)
+    const allSegments = content.flatMap(collectBlockSegments)
+    const indices = allSegments.map(s => s.paragraphIndex).sort((a, b) => a - b)
+
+    expect(indices).toEqual(Array.from({ length: indices.length }, (_, i) => i))
+    expect(allSegments.length).toBe(paragraphs.length)
+  })
+})
+
 describe('image parsing', () => {
   it('should detect images with src and alt', async () => {
     const html = '<body><img src="map.png" alt="A detailed map"/></body>'
