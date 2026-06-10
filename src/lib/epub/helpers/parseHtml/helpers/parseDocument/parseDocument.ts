@@ -301,6 +301,13 @@ export const parseDocument = async (
         const wrapper = doc.createElement('div')
 
         inlineRun.splice(0).forEach(node => wrapper.appendChild(node.cloneNode(true)))
+        // Visible but unspeakable runs (a "—" transition div) become scene
+        // breaks; whitespace-only runs between block children must stay silent
+        // no-ops, hence the trim guard.
+        if (getPlainText(wrapper).trim() && isSceneBreakParagraph(wrapper)) {
+          pushSceneBreak()
+          return
+        }
         const segments = toSegments(wrapper)
 
         if (segments) content.push({ type: 'paragraph', segments })
@@ -319,6 +326,10 @@ export const parseDocument = async (
     }
 
     if (getPlainText(el).trim()) {
+      if (isSceneBreakParagraph(el)) {
+        pushSceneBreak()
+        return
+      }
       const segments = toSegments(el)
 
       if (segments) content.push({ type: 'paragraph', segments })

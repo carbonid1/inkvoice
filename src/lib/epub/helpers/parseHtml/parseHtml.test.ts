@@ -154,6 +154,32 @@ describe('empty element handling', () => {
   })
 })
 
+describe('audioless separator handling', () => {
+  it('should fold an hr plus dash-only div into one scene break with no spoken paragraph', async () => {
+    const html = `<body>
+      <p>Glad I could be a part of it.</p>
+      <hr class="transition"/>
+      <div class="transition" aria-hidden="true">—</div>
+      <p>I set the cylinder on the lab table.</p>
+    </body>`
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content.map(block => block.type)).toEqual(['paragraph', 'scene-break', 'paragraph'])
+    expect(paragraphs).toEqual([
+      'Glad I could be a part of it.',
+      'I set the cylinder on the lab table.',
+    ])
+  })
+
+  it('should treat a dash-only <p> as a scene break', async () => {
+    const html = '<body><p>Before.</p><p>—</p><p>After.</p></body>'
+    const { content, paragraphs } = await parseHtmlContent(html, noopGetImage)
+
+    expect(content.map(block => block.type)).toEqual(['paragraph', 'scene-break', 'paragraph'])
+    expect(paragraphs).toEqual(['Before.', 'After.'])
+  })
+})
+
 describe('nested container flattening', () => {
   it('should extract paragraphs from nested div/section containers', async () => {
     const html = `<body>

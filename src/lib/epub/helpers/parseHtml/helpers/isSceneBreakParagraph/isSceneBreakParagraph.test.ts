@@ -21,8 +21,20 @@ describe('isSceneBreakParagraph', () => {
     expect(isSceneBreakParagraph(makeElement('<p></p>'))).toBe(true)
   })
 
+  it('should detect a dash-only <p>', () => {
+    expect(isSceneBreakParagraph(makeElement('<p>—</p>'))).toBe(true)
+  })
+
+  it('should detect an asterism <p>', () => {
+    expect(isSceneBreakParagraph(makeElement('<p>* * *</p>'))).toBe(true)
+  })
+
   it('should reject <p> with text', () => {
     expect(isSceneBreakParagraph(makeElement('<p>Real content.</p>'))).toBe(false)
+  })
+
+  it('should reject <p> with a number', () => {
+    expect(isSceneBreakParagraph(makeElement('<p>42</p>'))).toBe(false)
   })
 
   it('should reject image-only <p>', () => {
