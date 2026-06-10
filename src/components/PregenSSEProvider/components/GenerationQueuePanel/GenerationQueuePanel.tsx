@@ -2,7 +2,7 @@
 
 import { Badge, type BadgeProps } from '@carbonid1/design-system'
 import { X } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
@@ -46,6 +46,7 @@ export const GenerationQueuePanel = () => {
   const samplingRates = usePregenStore(s => s.samplingRates)
   const warmingUpBookId = usePregenStore(s => s.warmingUpBookId)
   const books = useLibraryStore(s => s.books)
+  const loadBooks = useLibraryStore(s => s.loadBooks)
   const ttsLifecycleState = useTTSLifecycleStore(s => s.state)
   const ttsBadge = TTS_LIFECYCLE_BADGES[ttsLifecycleState]
 
@@ -61,6 +62,14 @@ export const GenerationQueuePanel = () => {
   }, [books])
 
   const jobList = useMemo(() => Object.values(jobs), [jobs])
+
+  // Only the Library page fills the library store; opened anywhere else, jobs
+  // would render as raw book IDs. Gated on open-with-jobs so idle pages never
+  // fetch; loadBooks itself is a no-op once a load attempt has settled.
+  useEffect(() => {
+    if (!open || jobList.length === 0) return
+    loadBooks()
+  }, [open, jobList.length, loadBooks])
 
   if (!open) return null
 

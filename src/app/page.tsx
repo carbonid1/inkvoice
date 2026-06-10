@@ -28,8 +28,6 @@ interface UndoState {
 }
 
 export default function Library() {
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [hiddenBooks, setHiddenBooks] = useState<Set<string>>(new Set())
   const [isDragging, setIsDragging] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,7 +38,9 @@ export default function Library() {
   const mounted = useMounted()
 
   const books = useLibraryStore(s => s.books)
-  const setBooks = useLibraryStore(s => s.setBooks)
+  const booksLoaded = useLibraryStore(s => s.loaded)
+  const error = useLibraryStore(s => s.error)
+  const refreshBooks = useLibraryStore(s => s.refreshBooks)
   const addBooks = useLibraryStore(s => s.addBooks)
   const progress = useProgressStore(s => s.progress)
   const progressLoaded = useProgressStore(s => s.loaded)
@@ -54,46 +54,12 @@ export default function Library() {
   const { uploading, progress: uploadProgress, upload } = useUploadBook()
   const { deleteBook, restoreBook } = useDeleteBook()
 
-  const fetchBooks = useCallback(async () => {
-    try {
-      const response = await fetch('/api/books')
-
-      if (!response.ok) throw new Error('Failed to fetch books')
-      const data: Book[] = await response.json()
-
-      setBooks(data)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }, [setBooks])
-
   useEffect(() => {
-    let cancelled = false
-    const loadBooks = async () => {
-      try {
-        const response = await fetch('/api/books')
-
-        if (!response.ok) throw new Error('Failed to fetch books')
-        const data: Book[] = await response.json()
-
-        if (!cancelled) setBooks(data)
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    loadBooks()
+    refreshBooks()
     loadAllProgress()
     loadAllVoices()
     loadOnboarding()
-    return () => {
-      cancelled = true
-    }
-  }, [setBooks, loadAllProgress, loadAllVoices, loadOnboarding])
+  }, [refreshBooks, loadAllProgress, loadAllVoices, loadOnboarding])
 
   // Fetch estimates for all books once library is loaded
   useEffect(() => {
@@ -169,8 +135,8 @@ export default function Library() {
       return
     }
 
-    fetchBooks()
-  }, [unhideBook, restoreBook, fetchBooks])
+    refreshBooks()
+  }, [unhideBook, restoreBook, refreshBooks])
 
   useHotkeys('mod+z', handleUndo)
 
@@ -333,7 +299,7 @@ export default function Library() {
 
       <main ref={mainRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl px-4 py-8">
-          {(loading || !progressLoaded || !pregenLoaded || !onboardingLoaded) && (
+          {(!booksLoaded || !progressLoaded || !pregenLoaded || !onboardingLoaded) && (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {Array.from({ length: 10 }, (_, i) => (
                 <Card key={i} className="flex flex-col p-4">
@@ -348,7 +314,7 @@ export default function Library() {
 
           {error && <div className="text-destructive py-12 text-center">{error}</div>}
 
-          {!loading && progressLoaded && pregenLoaded && onboardingLoaded && !error && (
+          {booksLoaded && progressLoaded && pregenLoaded && onboardingLoaded && !error && (
             <>
               <OnboardingChecklist />
               <div aria-live="polite" className="sr-only">

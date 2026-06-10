@@ -97,7 +97,7 @@ export const ChapterDrawer = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-30 bg-black/30 transition-opacity duration-200 ${
+        className={`fixed inset-0 z-30 bg-black/30 transition-opacity duration-200 motion-reduce:transition-none ${
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
@@ -110,7 +110,7 @@ export const ChapterDrawer = ({
         role="dialog"
         aria-label="Table of Contents"
         tabIndex={-1}
-        className={`bg-popover shadow-popover fixed inset-y-0 left-0 z-40 w-96 max-w-[85vw] outline-hidden transition-transform duration-200 ease-out ${
+        className={`bg-popover shadow-popover fixed inset-y-0 left-0 z-40 w-96 max-w-[85vw] outline-hidden transition-transform duration-200 ease-out motion-reduce:transition-none ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

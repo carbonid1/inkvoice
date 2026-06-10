@@ -1,4 +1,4 @@
-import { expect } from 'storybook/test'
+import { expect, waitFor } from 'storybook/test'
 import preview from '#.storybook/preview'
 import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import type { Book } from '@/lib/types/book'
@@ -55,7 +55,7 @@ const BOOKS: Book[] = [
 const meta = preview.meta({
   component: GenerationQueuePanel,
   beforeEach: () => {
-    useLibraryStore.setState({ books: BOOKS })
+    useLibraryStore.setState({ books: BOOKS, loaded: true, fetching: false, error: null })
     usePregenStore.setState({
       panelOpen: true,
       jobs: { [ODYSSEY_JOB.bookId]: ODYSSEY_JOB, [JEKYLL_JOB.bookId]: JEKYLL_JOB },
@@ -87,3 +87,37 @@ export const Empty = meta.story({
     usePregenStore.setState({ jobs: {}, samplingRates: {} })
   },
 })
+
+const stubBooksFetch = () => {
+  const original = globalThis.fetch
+  const stub: typeof fetch = (input, init) => {
+    const url = typeof input === 'string' ? input : input.toString()
+
+    if (url.includes('/api/books')) return Promise.resolve(Response.json(BOOKS))
+    return original(input, init)
+  }
+
+  globalThis.fetch = stub
+
+  return () => {
+    globalThis.fetch = original
+  }
+}
+
+/** Queue popover opened from a reader page, where the library list was never loaded. */
+export const OpenedOutsideLibrary = meta.story({
+  beforeEach: () => {
+    useLibraryStore.setState({ books: [], loaded: false })
+    return stubBooksFetch()
+  },
+})
+
+OpenedOutsideLibrary.test(
+  'loads book titles instead of showing raw book IDs',
+  async ({ canvas }) => {
+    await waitFor(() => {
+      canvas.getByRole('listitem', { name: /^The Odyssey:/ })
+      canvas.getByRole('listitem', { name: /^The Strange Case of Dr\. Jekyll and Mr\. Hyde:/ })
+    })
+  },
+)
