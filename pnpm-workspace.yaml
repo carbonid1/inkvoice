@@ -1,10 +1,15 @@
-onlyBuiltDependencies:
-  - '@carbonid1/design-system'
-  - '@prisma/engines'
-  - better-sqlite3
-  - electron
-  - lefthook
-  - prisma
+allowBuilds:
+  '@carbonid1/design-system': true
+  '@prisma/engines': true
+  better-sqlite3: true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  lefthook: true
+  msw: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
 
 # Pin transitive playwright to match @playwright/test. @vitest/browser-playwright
 # declares `playwright: "*"` as a peer; without this pin pnpm auto-installs the
