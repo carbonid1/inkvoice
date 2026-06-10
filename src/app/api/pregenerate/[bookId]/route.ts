@@ -38,7 +38,7 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 })
     }
 
-    const { totalParagraphs, totalWords } = bookStats
+    const { totalParagraphs, totalWords, unspeakableParagraphs } = bookStats
     const voice = voicePrefs.bookVoices[bookId] ?? voicePrefs.voice
 
     const cacheService = getCacheService()
@@ -47,8 +47,10 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
       cacheService.getStats(),
     ])
 
+    // Budget math counts only paragraphs that can produce audio; the job total
+    // passed to enqueue below stays the full index-space count the worker walks.
     const { estimatedSizeBytes } = computePregenEstimate({
-      totalParagraphs,
+      totalParagraphs: totalParagraphs - unspeakableParagraphs,
       totalWords,
       cachedParagraphs,
     })

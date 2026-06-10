@@ -1,4 +1,5 @@
 import { getBookMetadata, getCoverImage, parseEpub } from '@/lib/epub/epub'
+import { isSpeakableText } from '@/lib/helpers/isSpeakableText/isSpeakableText'
 import type { Book, BookMetadata, BookOverview, ParsedBook, ParsedChapter } from '@/lib/types/book'
 import { prisma } from '../db/db.service'
 import {
@@ -55,20 +56,29 @@ interface BookHeader {
 interface BookFullRecord extends BookHeader {
   totalParagraphs: number | null
   totalWords: number | null
+  unspeakableParagraphs: number | null
 }
 
-const computeBookStats = (book: ParsedBook): { totalParagraphs: number; totalWords: number } => {
+interface BookStats {
+  totalParagraphs: number
+  totalWords: number
+  unspeakableParagraphs: number
+}
+
+const computeBookStats = (book: ParsedBook): BookStats => {
   let totalParagraphs = 0
   let totalWords = 0
+  let unspeakableParagraphs = 0
 
   for (const chapter of book.chapters) {
     totalParagraphs += chapter.paragraphs.length
     for (const paragraph of chapter.paragraphs) {
       totalWords += countWords(paragraph)
+      if (!isSpeakableText(paragraph)) unspeakableParagraphs++
     }
   }
 
-  return { totalParagraphs, totalWords }
+  return { totalParagraphs, totalWords, unspeakableParagraphs }
 }
 
 const filenameFallback = (filename: string): BookHeader => ({
@@ -99,23 +109,32 @@ const parseBookForUpload = async (filename: string, bookId: string): Promise<Boo
     arrayBuffer = await readBookFile(filename)
   } catch (readError) {
     console.error(`Failed to read ${filename}:`, readError)
-    return { ...filenameFallback(filename), totalParagraphs: null, totalWords: null }
+    return {
+      ...filenameFallback(filename),
+      totalParagraphs: null,
+      totalWords: null,
+      unspeakableParagraphs: null,
+    }
   }
 
   try {
     const book = await parseEpub(arrayBuffer, bookId)
-    const { totalParagraphs, totalWords } = computeBookStats(book)
 
-    return { title: book.title, author: book.author, totalParagraphs, totalWords }
+    return { title: book.title, author: book.author, ...computeBookStats(book) }
   } catch (parseError) {
     console.error(`Full parse failed for ${filename}, falling back to header:`, parseError)
     try {
       const meta = await getBookMetadata(arrayBuffer)
 
-      return { ...meta, totalParagraphs: null, totalWords: null }
+      return { ...meta, totalParagraphs: null, totalWords: null, unspeakableParagraphs: null }
     } catch (metaError) {
       console.error(`Header fallback failed for ${filename}:`, metaError)
-      return { ...filenameFallback(filename), totalParagraphs: null, totalWords: null }
+      return {
+        ...filenameFallback(filename),
+        totalParagraphs: null,
+        totalWords: null,
+        unspeakableParagraphs: null,
+      }
     }
   }
 }
@@ -231,13 +250,19 @@ class BookServiceImpl implements BookService {
     }
   }
 
-  async getBookStats(
-    bookId: string,
-  ): Promise<{ totalParagraphs: number; totalWords: number } | null> {
+  async getBookStats(bookId: string): Promise<BookStats | null> {
     const dbBook = await prisma.book.findUnique({ where: { id: bookId } })
 
-    if (dbBook?.totalParagraphs != null && dbBook?.totalWords != null) {
-      return { totalParagraphs: dbBook.totalParagraphs, totalWords: dbBook.totalWords }
+    if (
+      dbBook?.totalParagraphs != null &&
+      dbBook?.totalWords != null &&
+      dbBook?.unspeakableParagraphs != null
+    ) {
+      return {
+        totalParagraphs: dbBook.totalParagraphs,
+        totalWords: dbBook.totalWords,
+        unspeakableParagraphs: dbBook.unspeakableParagraphs,
+      }
     }
 
     // Lazy fill: parse once and persist. Reuses the in-memory book cache via getBook.

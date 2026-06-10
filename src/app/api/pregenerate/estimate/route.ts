@@ -18,7 +18,7 @@ export const GET = async () => {
   const [books, voicePrefs, cacheStats, voiceCounts] = await Promise.all([
     prisma.book.findMany({
       where: { deletedAt: null },
-      select: { id: true, totalParagraphs: true, totalWords: true },
+      select: { id: true, totalParagraphs: true, totalWords: true, unspeakableParagraphs: true },
     }),
     voicePreferenceService.getAll(),
     cacheService.getStats(),
@@ -32,9 +32,12 @@ export const GET = async () => {
 
     const voice = voicePrefs.bookVoices[book.id] ?? voicePrefs.voice
     const cachedParagraphs = voiceCounts.get(`${book.id}|${voice}`) ?? 0
+    // Unspeakable separators never get cache entries; a null count means the
+    // stats row predates the column and refreshes on next per-book access.
+    const speakableParagraphs = book.totalParagraphs - (book.unspeakableParagraphs ?? 0)
 
     const { estimatedSizeBytes, estimatedGenerationMinutes } = computePregenEstimate({
-      totalParagraphs: book.totalParagraphs,
+      totalParagraphs: speakableParagraphs,
       totalWords: book.totalWords,
       cachedParagraphs,
     })
@@ -46,7 +49,7 @@ export const GET = async () => {
     })
 
     result[book.id] = {
-      totalParagraphs: book.totalParagraphs,
+      totalParagraphs: speakableParagraphs,
       cachedParagraphs,
       estimatedSizeBytes,
       estimatedGenerationMinutes,

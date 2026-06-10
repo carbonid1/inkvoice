@@ -16,7 +16,9 @@ export interface BookService {
    * cannot be located. A parse failure persists null stats and returns null
    * so callers can decide whether to surface the book without an estimate.
    */
-  getBookStats(bookId: string): Promise<{ totalParagraphs: number; totalWords: number } | null>
+  getBookStats(
+    bookId: string,
+  ): Promise<{ totalParagraphs: number; totalWords: number; unspeakableParagraphs: number } | null>
 
   /** Get a single parsed chapter */
   getChapter(bookId: string, chapterIndex: number): Promise<ParsedChapter | null>

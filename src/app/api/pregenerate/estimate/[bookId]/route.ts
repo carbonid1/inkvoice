@@ -22,7 +22,10 @@ export const GET = async (_request: NextRequest, { params }: RouteParams) => {
     return NextResponse.json({ error: 'Book not found' }, { status: 404 })
   }
 
-  const { totalParagraphs, totalWords } = bookStats
+  const { totalParagraphs, totalWords, unspeakableParagraphs } = bookStats
+  // Unspeakable separators never produce a cache entry, so completeness and
+  // size math must compare against the paragraphs that can actually have audio.
+  const speakableParagraphs = totalParagraphs - unspeakableParagraphs
 
   const voice = voicePrefs.bookVoices[bookId] ?? voicePrefs.voice
   const cacheService = getCacheService()
@@ -32,7 +35,7 @@ export const GET = async (_request: NextRequest, { params }: RouteParams) => {
   ])
 
   const { estimatedSizeBytes, estimatedGenerationMinutes } = computePregenEstimate({
-    totalParagraphs,
+    totalParagraphs: speakableParagraphs,
     totalWords,
     cachedParagraphs,
   })
@@ -44,7 +47,7 @@ export const GET = async (_request: NextRequest, { params }: RouteParams) => {
   })
 
   return NextResponse.json({
-    totalParagraphs,
+    totalParagraphs: speakableParagraphs,
     cachedParagraphs,
     estimatedSizeBytes,
     estimatedGenerationMinutes,
