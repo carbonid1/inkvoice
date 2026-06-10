@@ -27,6 +27,7 @@ const config = [
       'venv/**',
       'api/**',
       'data/**',
+      'dogfood-output/**',
       'generated/**',
       'storybook-static/**',
       'electron/**',
