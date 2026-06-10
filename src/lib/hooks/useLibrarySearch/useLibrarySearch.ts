@@ -12,11 +12,13 @@ const FUSE_OPTIONS: IFuseOptions<Book> = {
     { name: 'title', weight: 0.7 },
     { name: 'author', weight: 0.3 },
   ],
-  // 0.4 allows a single edit through on short queries ("may" → "Mary",
-  // "tolkein" → "tolkien"). 0.3 was too strict for 3-char patterns where one
-  // error already scores 0.33. minMatchCharLength: 2 prevents single-char
-  // queries from returning everything.
-  threshold: 0.4,
+  // Bitap scores ≈ edits / query length, so the threshold has a narrow safe
+  // window: ≥ 0.334 keeps one edit on 3-char queries ("may" → "Mary",
+  // "tolkein" → "tolkien" at 0.286); < 0.4 rejects two edits on 5-char
+  // queries ("hound" scores 0.4 against "house"/"count"/"wonderland").
+  // minMatchCharLength: 2 prevents single-char queries from returning
+  // everything.
+  threshold: 0.35,
   ignoreLocation: true,
   minMatchCharLength: 2,
 }
