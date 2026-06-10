@@ -72,5 +72,8 @@ playwright-report/
 # Integration test data
 tests/integration/.tmp/
 
+# Dogfood session reports (agent-browser)
+dogfood-output/
+
 # Claude Code session locks
 .claude/scheduled_tasks.lock
