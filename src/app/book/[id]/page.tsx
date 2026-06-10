@@ -16,11 +16,8 @@ import { useBookVoice } from '@/lib/hooks/useBookVoice/useBookVoice'
 import { useBookmarkToggle } from '@/lib/hooks/useBookmarkToggle/useBookmarkToggle'
 import { useDebouncedLoading } from '@/lib/hooks/useDebouncedLoading/useDebouncedLoading'
 import type { Bookmark } from '@/lib/services/bookmark/bookmark.types'
-import { PREGEN_JOB_STATUS } from '@/lib/services/pregenQueue/pregenQueue.types'
-import { startPregeneration } from '@/lib/services/pregeneration/helpers/startPregeneration/startPregeneration'
-import type { ParsedChapter } from '@/lib/types/book'
+import type { ChapterInfo, ParsedChapter } from '@/lib/types/book'
 import { useBookmarkStore } from '@/store/useBookmarkStore'
-import { usePregenStore } from '@/store/usePregenStore'
 import { useProgressStore } from '@/store/useProgressStore'
 import { BookmarkDrawer } from './components/BookmarkDrawer/BookmarkDrawer'
 import { ChapterDrawer } from './components/ChapterDrawer/ChapterDrawer'
@@ -42,12 +39,14 @@ import {
 } from './helpers/computePagePosition/computePagePosition'
 import { shouldShowChapterProgress } from './helpers/shouldShowChapterProgress/shouldShowChapterProgress'
 import { useAudioAvailability } from './hooks/useAudioAvailability/useAudioAvailability'
+import { useAudioGenerationStatus } from './hooks/useAudioGenerationStatus/useAudioGenerationStatus'
 import { useBookOverview } from './hooks/useBookOverview/useBookOverview'
 import { useBookSearch } from './hooks/useBookSearch/useBookSearch'
 import { useRecoveryBanner } from './hooks/useRecoveryBanner/useRecoveryBanner'
 import { useReturnPosition } from './hooks/useReturnPosition/useReturnPosition'
 
 const EMPTY_BOOKMARKS: Bookmark[] = []
+const EMPTY_CHAPTERS: ChapterInfo[] = []
 
 export default function BookReader() {
   const params = useParams<{ id: string }>()
@@ -130,13 +129,15 @@ export default function BookReader() {
     [handleProgressChange],
   )
 
-  const pregenJob = usePregenStore(s => s.jobs[bookId])
-  const currentParagraphMissingAudio = missingAudioParagraphs?.has(currentParagraph) ?? false
-  // A running job already shows progress in the panel — don't offer to start another.
-  const canSuggestGeneration = !pregenJob || pregenJob.status === PREGEN_JOB_STATUS.COMPLETED
-  const handleGenerateAudio = useCallback(() => {
-    startPregeneration(bookId).catch(console.error)
-  }, [bookId])
+  const handleAudioReady = useCallback(() => setReplayKey(key => key + 1), [])
+  const audioGenerationStatus = useAudioGenerationStatus({
+    bookId,
+    chapters: overview?.chapters ?? EMPTY_CHAPTERS,
+    currentChapter,
+    currentParagraph,
+    missingAudioParagraphs,
+    onAudioReady: handleAudioReady,
+  })
 
   const handleCopyText = useCallback(
     (_chapter: number, paragraph: number) => {
@@ -450,10 +451,8 @@ export default function BookReader() {
         chapters={overview.chapters}
         currentChapter={currentChapter}
         currentParagraph={currentParagraph}
-        disablePlayReason={currentParagraphMissingAudio ? 'No audio for this paragraph' : undefined}
-        onGenerateAudio={
-          currentParagraphMissingAudio && canSuggestGeneration ? handleGenerateAudio : undefined
-        }
+        disablePlayReason={audioGenerationStatus?.message}
+        audioGenerationStatus={audioGenerationStatus ?? undefined}
         onProgressChange={handleProgressChange}
         isCurrentBookmarked={isCurrentBookmarked}
         onBookmarkToggle={toggleBookmark}

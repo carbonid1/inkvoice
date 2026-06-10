@@ -1,23 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { PREGEN_JOB_STATUS, type PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
+import { buildPregenJob } from '@/lib/services/pregenQueue/pregenQueue.fixtures'
 import { usePregenStore } from '@/store/usePregenStore'
 import { startPregeneration } from './startPregeneration'
-
-const buildJob = (overrides: Partial<PregenJob> = {}): PregenJob => ({
-  id: 'job-1',
-  bookId: 'book-1',
-  voice: 'narrator',
-  status: PREGEN_JOB_STATUS.QUEUED,
-  totalParagraphs: 100,
-  completedParagraphs: 0,
-  generatedDurationMs: 0,
-  currentChapter: 0,
-  currentParagraph: 0,
-  errorMessage: null,
-  createdAt: 0,
-  updatedAt: 0,
-  ...overrides,
-})
 
 beforeEach(() => {
   usePregenStore.setState({
@@ -35,7 +19,7 @@ afterEach(() => {
 
 describe('startPregeneration', () => {
   it('writes the returned job into the pregen store on success', async () => {
-    const job = buildJob()
+    const job = buildPregenJob()
 
     vi.stubGlobal(
       'fetch',
@@ -51,7 +35,13 @@ describe('startPregeneration', () => {
   it('opens the progress panel on success', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(buildJob()) }),
+      vi
+        .fn()
+        .mockResolvedValue({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(buildPregenJob()),
+        }),
     )
 
     await startPregeneration('book-1')
@@ -88,6 +78,23 @@ describe('startPregeneration', () => {
 
     expect(result).toBeNull()
     expect(usePregenStore.getState().jobs['book-1']).toBeUndefined()
+  })
+
+  it('passes the start position to the API as query params', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(buildPregenJob()) })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await startPregeneration('book-1', { chapter: 5, paragraph: 12 })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/pregenerate/book-1?startChapter=5&startParagraph=12',
+      {
+        method: 'POST',
+      },
+    )
   })
 
   it('returns null when the API errors with a non-409 status', async () => {

@@ -4,12 +4,13 @@ import { Badge, type BadgeProps } from '@carbonid1/design-system'
 import { X } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { computeGenerationRate } from '@/lib/helpers/computeGenerationRate/computeGenerationRate'
 import { formatDuration } from '@/lib/helpers/formatDuration/formatDuration'
 import { useTTSLifecycleStore } from '@/lib/hooks/useTTSLifecycle/useTTSLifecycle'
-import type { PregenJobStatus } from '@/lib/services/pregenQueue/pregenQueue.types'
+import type { PregenJob, PregenJobStatus } from '@/lib/services/pregenQueue/pregenQueue.types'
 import type { LifecycleState } from '@/lib/services/pythonClient/pythonClient.types'
 import { useLibraryStore } from '@/store/useLibraryStore'
-import { usePregenStore } from '@/store/usePregenStore'
+import { type ProgressSample, usePregenStore } from '@/store/usePregenStore'
 
 interface StatusBadge {
   label: string
@@ -32,6 +33,20 @@ const FALLBACK_BADGE: StatusBadge = { label: 'Unknown', variant: 'default' }
 const getStatusBadge = (status: PregenJobStatus): StatusBadge =>
   STATUS_BADGES[status] ?? FALLBACK_BADGE
 
+// e.g. "37m" — time until the job finishes at the recently measured pace.
+const getRemainingLabel = (
+  job: PregenJob,
+  samples: ProgressSample[] | undefined,
+): string | null => {
+  if (job.status !== 'in_progress' || !samples) return null
+
+  const rate = computeGenerationRate(samples)
+  const remainingParagraphs = job.totalParagraphs - job.completedParagraphs
+
+  if (!rate || remainingParagraphs <= 0) return null
+  return formatDuration((remainingParagraphs / rate) * 1000) || null
+}
+
 const TTS_LIFECYCLE_BADGES: Record<LifecycleState, StatusBadge> = {
   stopped: { label: 'Idle', variant: 'default' },
   starting: { label: 'Starting', variant: 'attention' },
@@ -44,6 +59,7 @@ export const GenerationQueuePanel = () => {
   const togglePanel = usePregenStore(s => s.togglePanel)
   const jobs = usePregenStore(s => s.jobs)
   const samplingRates = usePregenStore(s => s.samplingRates)
+  const progressSamples = usePregenStore(s => s.progressSamples)
   const warmingUpBookId = usePregenStore(s => s.warmingUpBookId)
   const books = useLibraryStore(s => s.books)
   const loadBooks = useLibraryStore(s => s.loadBooks)
@@ -101,11 +117,12 @@ export const GenerationQueuePanel = () => {
               const status =
                 warmingUpBookId === job.bookId ? WARMING_UP_BADGE : getStatusBadge(job.status)
               const title = bookTitles[job.bookId] ?? job.bookId
+              const remainingLabel = getRemainingLabel(job, progressSamples[job.bookId])
 
               return (
                 <li
                   key={job.id}
-                  aria-label={`${title}: ${status.label}, ${job.completedParagraphs} of ${job.totalParagraphs} paragraphs`}
+                  aria-label={`${title}: ${status.label}, ${job.completedParagraphs} of ${job.totalParagraphs} paragraphs${remainingLabel ? `, about ${remainingLabel} left` : ''}`}
                   className="bg-surface-inset inset-shadow-surface rounded-md px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -122,6 +139,7 @@ export const GenerationQueuePanel = () => {
                       {job.status === 'in_progress' &&
                         samplingRates[job.bookId] != null &&
                         ` · ${samplingRates[job.bookId]?.toFixed(1)} it/s`}
+                      {remainingLabel && ` · ~${remainingLabel} left`}
                     </span>
                     {job.errorMessage && (
                       <span className="text-destructive truncate">{job.errorMessage}</span>

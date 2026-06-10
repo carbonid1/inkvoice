@@ -12,10 +12,17 @@ interface RouteParams {
   params: Promise<{ bookId: string }>
 }
 
+const parsePositionParam = (value: string | null): number => {
+  const parsed = parseInt(value ?? '0', 10)
+
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0
+}
+
 export const POST = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
-  const startChapter = parseInt(request.nextUrl.searchParams.get('startChapter') ?? '0', 10)
+  const startChapter = parsePositionParam(request.nextUrl.searchParams.get('startChapter'))
+  const startParagraph = parsePositionParam(request.nextUrl.searchParams.get('startParagraph'))
 
   try {
     // Early guard — cheap DB query
@@ -65,7 +72,13 @@ export const POST = async (request: NextRequest, { params }: RouteParams) => {
       return NextResponse.json({ error: 'Cache budget exceeded', budget }, { status: 409 })
     }
 
-    const job = await pregenQueueService.enqueue(bookId, voice, totalParagraphs, startChapter)
+    const job = await pregenQueueService.enqueue(
+      bookId,
+      voice,
+      totalParagraphs,
+      startChapter,
+      startParagraph,
+    )
 
     pregenWorker.start()
 
@@ -106,7 +119,7 @@ export const DELETE = async (_request: NextRequest, { params }: RouteParams) => 
 export const PATCH = async (request: NextRequest, { params }: RouteParams) => {
   const { bookId } = await params
 
-  let body: { action?: string }
+  let body: { action?: string; chapter?: number; paragraph?: number }
 
   try {
     body = await request.json()
@@ -116,9 +129,9 @@ export const PATCH = async (request: NextRequest, { params }: RouteParams) => {
 
   const action = body?.action
 
-  if (action !== 'pause' && action !== 'resume') {
+  if (action !== 'pause' && action !== 'resume' && action !== 'reposition') {
     return NextResponse.json(
-      { error: 'Invalid action. Expected "pause" or "resume".' },
+      { error: 'Invalid action. Expected "pause", "resume", or "reposition".' },
       { status: 400 },
     )
   }
@@ -128,6 +141,33 @@ export const PATCH = async (request: NextRequest, { params }: RouteParams) => {
 
     if (!job) {
       return NextResponse.json({ error: 'No active pre-generation for this book' }, { status: 404 })
+    }
+
+    if (action === 'reposition') {
+      const { chapter, paragraph } = body
+      const isValidIndex = (value: number | undefined): value is number =>
+        typeof value === 'number' && Number.isInteger(value) && value >= 0
+
+      if (!isValidIndex(chapter) || !isValidIndex(paragraph)) {
+        return NextResponse.json(
+          { error: 'Reposition requires non-negative integer "chapter" and "paragraph".' },
+          { status: 400 },
+        )
+      }
+
+      signalStop(job.id)
+      const repositioned = await pregenQueueService.reposition(job.id, chapter, paragraph)
+
+      if (!repositioned) {
+        return NextResponse.json(
+          { error: 'No active pre-generation for this book' },
+          { status: 404 },
+        )
+      }
+
+      pregenWorker.start()
+      pregenEvents.emit({ type: 'update', job: repositioned })
+      return NextResponse.json(repositioned)
     }
 
     if (action === 'pause') {

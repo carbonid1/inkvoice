@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, Tooltip } from '@carbonid1/design-system'
-import { AudioLines, Bookmark } from 'lucide-react'
+import { Bookmark } from 'lucide-react'
 import {
   type RefObject,
   useCallback,
@@ -21,6 +21,7 @@ import { useWordHighlight } from '@/lib/hooks/useWordHighlight/useWordHighlight'
 import { DEFAULT_VOICE } from '@/lib/services/voice/voice.consts'
 import type { ChapterInfo } from '@/lib/types/book'
 import type { WordTimestamp } from '@/lib/types/wordTimestamp'
+import { AudioGenerationStatus, type AudioGenerationStatusProps } from './AudioGenerationStatus'
 import { PlaybackControls } from './PlaybackControls'
 
 interface PlayerContainerProps {
@@ -36,8 +37,8 @@ interface PlayerContainerProps {
   activeParagraphRef?: RefObject<HTMLSpanElement | null>
   /** Forwarded to the play button: blocks starting playback and shows this reason in the tooltip. */
   disablePlayReason?: string
-  /** When provided, a quiet Generate audio action renders in the bar (the playback dead-end's way out). */
-  onGenerateAudio?: () => void
+  /** When provided, a status row explains the missing audio and offers the way out. */
+  audioGenerationStatus?: AudioGenerationStatusProps
 }
 
 export const PlayerContainer = ({
@@ -52,7 +53,7 @@ export const PlayerContainer = ({
   replayKey = 0,
   activeParagraphRef,
   disablePlayReason,
-  onGenerateAudio,
+  audioGenerationStatus,
 }: PlayerContainerProps) => {
   const { voices } = useVoices()
   const voiceNames = useMemo(() => voices.map(v => v.name), [voices])
@@ -303,6 +304,8 @@ export const PlayerContainer = ({
           <div className="text-destructive mb-2 text-center text-sm">{audioPlayer.error}</div>
         )}
 
+        {audioGenerationStatus && <AudioGenerationStatus {...audioGenerationStatus} />}
+
         <PlaybackControls
           isPlaying={isPlaying}
           isLoading={debouncedLoading}
@@ -311,15 +314,6 @@ export const PlayerContainer = ({
           onSkipBack={position.skipBack}
           onSkipForward={position.skipForward}
         />
-
-        {onGenerateAudio && (
-          <div className="absolute top-1/2 left-0 -translate-y-1/2">
-            <Button size="small" onClick={onGenerateAudio}>
-              <AudioLines />
-              Generate audio
-            </Button>
-          </div>
-        )}
 
         {onBookmarkToggle && (
           <div className="absolute top-1/2 right-0 -translate-y-1/2">

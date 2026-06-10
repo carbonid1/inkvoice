@@ -48,3 +48,56 @@ describe('pregenQueueService (integration) — P2025 race policy', () => {
     expect(result).toEqual({ deleted: true })
   })
 })
+
+describe('pregenQueueService (integration) — reposition', () => {
+  it('moves the cursor and requeues while preserving job identity and progress', async () => {
+    const job = await pregenQueueService.enqueue('book-reposition', 'narrator', 364)
+    const inProgress = await pregenQueueService.start(job.id)
+    const progressed = await pregenQueueService.updateProgress(job.id, 3, 20, 121, 2_220_000)
+
+    expect(inProgress).not.toBeNull()
+    expect(progressed).not.toBeNull()
+
+    const repositioned = await pregenQueueService.reposition(job.id, 7, 5)
+
+    expect(repositioned).toMatchObject({
+      bookId: 'book-reposition',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 364,
+      completedParagraphs: 121,
+      generatedDurationMs: 2_220_000,
+      currentChapter: 7,
+      currentParagraph: 5,
+      errorMessage: null,
+      createdAt: job.createdAt,
+    })
+  })
+
+  it('invalidates the old job id so a worker mid-paragraph cannot overwrite the new cursor', async () => {
+    const job = await pregenQueueService.enqueue('book-reposition-stale', 'narrator', 100)
+
+    const repositioned = await pregenQueueService.reposition(job.id, 4, 0)
+    const staleWrite = await pregenQueueService.updateProgress(job.id, 1, 9, 10)
+
+    expect(repositioned).not.toBeNull()
+    expect(staleWrite).toBeNull()
+    expect(await pregenQueueService.getByBookId('book-reposition-stale')).toMatchObject({
+      id: repositioned?.id,
+      currentChapter: 4,
+      currentParagraph: 0,
+    })
+  })
+
+  it('returns null when the job row does not exist', async () => {
+    const result = await pregenQueueService.reposition(MISSING_ID, 2, 0)
+
+    expect(result).toBeNull()
+  })
+
+  it('enqueue() starts the cursor at the requested chapter and paragraph', async () => {
+    const job = await pregenQueueService.enqueue('book-start-position', 'narrator', 200, 5, 12)
+
+    expect(job).toMatchObject({ currentChapter: 5, currentParagraph: 12 })
+  })
+})

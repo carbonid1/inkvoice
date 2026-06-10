@@ -18,6 +18,7 @@ const enqueue = async (
   voice: string,
   totalParagraphs: number,
   startChapter = 0,
+  startParagraph = 0,
 ): Promise<PregenJob> => {
   const now = Date.now()
   const row = await prisma.pregenJob.create({
@@ -26,6 +27,7 @@ const enqueue = async (
       voice,
       totalParagraphs,
       currentChapter: startChapter,
+      currentParagraph: startParagraph,
       createdAt: now,
       updatedAt: now,
     },
@@ -151,6 +153,32 @@ const complete = (id: string): Promise<PregenJob | null> =>
     return toPregenJob(row)
   })
 
+// Replaces the row instead of updating it: the fresh job id makes a worker
+// that is mid-paragraph on the old job see its row vanish at the next progress
+// write and exit, instead of overwriting the new cursor with stale progress.
+const reposition = (id: string, chapter: number, paragraph: number): Promise<PregenJob | null> =>
+  swallowRecordNotFound(async () => {
+    const row = await prisma.$transaction(async tx => {
+      const old = await tx.pregenJob.delete({ where: { id } })
+
+      return tx.pregenJob.create({
+        data: {
+          bookId: old.bookId,
+          voice: old.voice,
+          totalParagraphs: old.totalParagraphs,
+          completedParagraphs: old.completedParagraphs,
+          generatedDurationMs: old.generatedDurationMs,
+          currentChapter: chapter,
+          currentParagraph: paragraph,
+          createdAt: old.createdAt,
+          updatedAt: Date.now(),
+        },
+      })
+    })
+
+    return toPregenJob(row)
+  })
+
 const cancel = async (id: string): Promise<{ deleted: boolean }> => {
   const result = await swallowRecordNotFound(() => prisma.pregenJob.delete({ where: { id } }))
 
@@ -169,5 +197,6 @@ export const pregenQueueService = {
   pause,
   resume,
   complete,
+  reposition,
   cancel,
 }

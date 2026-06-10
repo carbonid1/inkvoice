@@ -159,6 +159,12 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
   let cumulativeDurationMs = job.generatedDurationMs
   let cachedSkipsSinceEmit = 0
 
+  // A job repositioned backward re-walks paragraphs its preserved counter
+  // already includes — clamp so progress can never read past the total.
+  const countParagraphCompleted = () => {
+    completedParagraphs = Math.min(completedParagraphs + 1, job.totalParagraphs)
+  }
+
   // Complete a paragraph without TTS (cache hit, or an unspeakable separator
   // that can never have audio); SSE emits stay batched. Returns false when the
   // job row vanished and the worker must bail.
@@ -168,7 +174,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
     durationMs: number,
     logContext: string,
   ): Promise<boolean> => {
-    completedParagraphs++
+    countParagraphCompleted()
     cumulativeDurationMs += durationMs
     cachedSkipsSinceEmit++
     const updated = await pregenQueueService.updateProgress(
@@ -301,7 +307,7 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
           cacheService.setTimestamps(text, job.voice, timestamps).catch(() => {})
         }
 
-        completedParagraphs++
+        countParagraphCompleted()
         cumulativeDurationMs += durationMs
         const updated = await pregenQueueService.updateProgress(
           job.id,

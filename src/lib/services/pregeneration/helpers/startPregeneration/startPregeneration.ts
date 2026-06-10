@@ -3,8 +3,19 @@ import { formatBytes } from '@/lib/helpers/formatBytes/formatBytes'
 import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
 import { usePregenStore } from '@/store/usePregenStore'
 
-export const startPregeneration = async (bookId: string): Promise<PregenJob | null> => {
-  const response = await fetch(`/api/pregenerate/${bookId}`, { method: 'POST' })
+interface StartPosition {
+  chapter: number
+  paragraph: number
+}
+
+export const startPregeneration = async (
+  bookId: string,
+  startPosition?: StartPosition,
+): Promise<PregenJob | null> => {
+  const query = startPosition
+    ? `?startChapter=${startPosition.chapter}&startParagraph=${startPosition.paragraph}`
+    : ''
+  const response = await fetch(`/api/pregenerate/${bookId}${query}`, { method: 'POST' })
 
   if (response.ok) {
     const newJob: PregenJob = await response.json()

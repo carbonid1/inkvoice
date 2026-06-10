@@ -1,28 +1,12 @@
 import { expect, waitFor } from 'storybook/test'
 import preview from '#.storybook/preview'
-import type { PregenJob } from '@/lib/services/pregenQueue/pregenQueue.types'
+import { buildPregenJob } from '@/lib/services/pregenQueue/pregenQueue.fixtures'
 import type { Book } from '@/lib/types/book'
 import { useLibraryStore } from '@/store/useLibraryStore'
 import { usePregenStore } from '@/store/usePregenStore'
 import { GenerationQueuePanel } from './GenerationQueuePanel'
 
-const buildJob = (overrides: Partial<PregenJob>): PregenJob => ({
-  id: 'job',
-  bookId: 'book',
-  voice: 'narrator',
-  status: 'queued',
-  totalParagraphs: 0,
-  completedParagraphs: 0,
-  generatedDurationMs: 0,
-  currentChapter: 0,
-  currentParagraph: 0,
-  errorMessage: null,
-  createdAt: 0,
-  updatedAt: 0,
-  ...overrides,
-})
-
-const ODYSSEY_JOB = buildJob({
+const ODYSSEY_JOB = buildPregenJob({
   id: 'job-odyssey',
   bookId: 'the-odyssey',
   status: 'paused',
@@ -31,7 +15,7 @@ const ODYSSEY_JOB = buildJob({
   currentParagraph: 12,
 })
 
-const JEKYLL_JOB = buildJob({
+const JEKYLL_JOB = buildPregenJob({
   id: 'job-jekyll',
   bookId: 'the-strange-case-of-dr-jekyll-and-mr-hyde',
   status: 'in_progress',
@@ -60,6 +44,13 @@ const meta = preview.meta({
       panelOpen: true,
       jobs: { [ODYSSEY_JOB.bookId]: ODYSSEY_JOB, [JEKYLL_JOB.bookId]: JEKYLL_JOB },
       samplingRates: { [JEKYLL_JOB.bookId]: 5.2 },
+      // 30 paragraphs over 60 seconds = 0.5/s → 234 paragraphs left ≈ 7m.
+      progressSamples: {
+        [JEKYLL_JOB.bookId]: [
+          { at: 0, completedParagraphs: 100 },
+          { at: 60_000, completedParagraphs: 130 },
+        ],
+      },
       warmingUpBookId: null,
     })
   },
@@ -72,8 +63,12 @@ WithJobs.test('exposes each generation job as a named list item', ({ canvas }) =
   expect(canvas.getAllByRole('listitem')).toHaveLength(2)
   canvas.getByRole('listitem', { name: 'The Odyssey: Paused, 12 of 1259 paragraphs' })
   canvas.getByRole('listitem', {
-    name: 'The Strange Case of Dr. Jekyll and Mr. Hyde: Generating, 130 of 364 paragraphs',
+    name: 'The Strange Case of Dr. Jekyll and Mr. Hyde: Generating, 130 of 364 paragraphs, about 7m left',
   })
+})
+
+WithJobs.test('estimates time left for the actively generating job', ({ canvas }) => {
+  expect(canvas.getByText(/~7m left/)).toBeVisible()
 })
 
 WithJobs.test('names the panel region and its close button for assistive tech', ({ canvas }) => {
