@@ -32,9 +32,6 @@ export interface CacheService {
   /** Store word timestamps sidecar */
   setTimestamps(text: string, voice: string, timestamps: WordTimestamp[]): Promise<void>
 
-  /** Delete a single cached entry */
-  delete(text: string, voice: string): Promise<boolean>
-
   /** Clear all cached data */
   clear(): Promise<void>
 

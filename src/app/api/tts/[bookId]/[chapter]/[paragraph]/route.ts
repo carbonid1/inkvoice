@@ -44,17 +44,6 @@ const parseRequest = async (
   return { voice, fellBack, text }
 }
 
-export const DELETE = async (request: NextRequest, { params }: RouteParams) => {
-  const result = await parseRequest(request, params)
-
-  if (result instanceof NextResponse) return result
-
-  const cacheService = getCacheService()
-  const deleted = await cacheService.delete(result.text, result.voice)
-
-  return NextResponse.json({ deleted })
-}
-
 export const GET = async (request: NextRequest, { params }: RouteParams) => {
   const result = await parseRequest(request, params)
 

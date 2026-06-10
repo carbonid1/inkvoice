@@ -17,7 +17,6 @@ interface ReaderProps {
   currentParagraph: number
   onParagraphClick?: (chapter: number, paragraph: number) => void
   onCopyText?: (chapter: number, paragraph: number) => void
-  onRegenerate?: (chapter: number, paragraph: number) => void | Promise<void>
   bookmarkedParagraphs?: Set<number>
   missingAudioParagraphs?: Set<number>
   activeParagraphRef?: RefObject<HTMLSpanElement | null>
@@ -44,7 +43,6 @@ export const Reader = ({
   currentParagraph,
   onParagraphClick,
   onCopyText,
-  onRegenerate,
   bookmarkedParagraphs,
   missingAudioParagraphs,
   activeParagraphRef: externalParagraphRef,
@@ -122,7 +120,6 @@ export const Reader = ({
           currentParagraph={currentParagraph}
           onParagraphClick={onParagraphClick}
           onCopyText={onCopyText}
-          onRegenerate={onRegenerate}
           currentChapter={currentChapter}
           paragraphRef={currentParagraphRef}
           isInTitleGroup={titleGroupMember.has(idx)}
@@ -172,7 +169,6 @@ export const Reader = ({
               currentParagraph={currentParagraph}
               onParagraphClick={onParagraphClick}
               onCopyText={onCopyText}
-              onRegenerate={onRegenerate}
               currentChapter={currentChapter}
               paragraphRef={currentParagraphRef}
               bookmarkedParagraphs={bookmarkedParagraphs}

@@ -275,7 +275,8 @@ export const PlayerContainer = ({
     }
   })
 
-  // Force replay on regenerate (replayKey changes)
+  // Force replay when replayKey bumps — audio for the current paragraph just
+  // became available and playback should start from it.
   useEffect(() => {
     if (replayKey === prevReplayKeyRef.current) return
     prevReplayKeyRef.current = replayKey

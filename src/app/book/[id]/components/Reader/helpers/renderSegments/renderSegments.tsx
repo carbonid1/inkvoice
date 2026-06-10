@@ -11,7 +11,6 @@ export interface RenderSegmentsParams {
   currentParagraph: number
   onParagraphClick: ((chapter: number, paragraph: number) => void) | undefined
   onCopyText?: (chapter: number, paragraph: number) => void
-  onRegenerate?: (chapter: number, paragraph: number) => void | Promise<void>
   currentChapter: number
   paragraphRef: RefObject<HTMLSpanElement | null>
   bookmarkedParagraphs?: Set<number>
@@ -25,7 +24,6 @@ export const renderSegments = ({
   currentParagraph,
   onParagraphClick,
   onCopyText,
-  onRegenerate,
   currentChapter,
   paragraphRef,
   bookmarkedParagraphs,
@@ -55,17 +53,15 @@ export const renderSegments = ({
       />
     )
 
-    // Separators ('———', '???') can never have audio — offering Regenerate
-    // there would silently advance playback instead of regenerating.
+    // Separators ('———', '???') are decorative — no menu, nothing worth copying.
     const hasSpeakableText = isSpeakableText(segment.html.replace(/<[^>]+>/g, ''))
 
     const wrapped =
-      onCopyText && onRegenerate && hasSpeakableText ? (
+      onCopyText && hasSpeakableText ? (
         <ParagraphContextMenu
           chapter={currentChapter}
           paragraph={segment.paragraphIndex}
           onCopyText={onCopyText}
-          onRegenerate={onRegenerate}
         >
           {paragraphSpan}
         </ParagraphContextMenu>

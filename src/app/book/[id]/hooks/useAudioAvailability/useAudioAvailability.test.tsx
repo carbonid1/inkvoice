@@ -89,20 +89,4 @@ describe('useAudioAvailability', () => {
       expect(result.current.missingAudioParagraphs).toEqual(new Set([1]))
     })
   })
-
-  it('keeps the refetch callback referentially stable across rerenders', async () => {
-    respondWith([])
-
-    const { result, rerender } = renderHook(() =>
-      useAudioAvailability({ bookId: 'book-1', chapter: 0, voice: 'clara' }),
-    )
-    const first = result.current.refetch
-
-    rerender()
-    expect(result.current.refetch).toBe(first)
-
-    await waitFor(() => {
-      expect(result.current.missingAudioParagraphs).toEqual(new Set())
-    })
-  })
 })

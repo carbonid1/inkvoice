@@ -116,7 +116,7 @@ export default function BookReader() {
     [bookId, setProgress],
   )
 
-  const { missingAudioParagraphs, refetch: refetchAudioAvailability } = useAudioAvailability({
+  const { missingAudioParagraphs } = useAudioAvailability({
     bookId,
     chapter: currentChapter,
     voice: effectiveVoice,
@@ -146,28 +146,6 @@ export default function BookReader() {
       if (text) navigator.clipboard.writeText(text)
     },
     [chapterData],
-  )
-
-  const handleRegenerate = useCallback(
-    (chapter: number, paragraph: number) => {
-      const params = new URLSearchParams({ voice: effectiveVoice })
-
-      fetch(`/api/tts/${bookId}/${chapter}/${paragraph}?${params}`, { method: 'DELETE' })
-        .then(() => refetchAudioAvailability())
-        .catch(console.error)
-      if (chapter !== currentChapter || paragraph !== currentParagraph) {
-        handleProgressChange(chapter, paragraph)
-      }
-      setReplayKey(k => k + 1)
-    },
-    [
-      bookId,
-      effectiveVoice,
-      currentChapter,
-      currentParagraph,
-      handleProgressChange,
-      refetchAudioAvailability,
-    ],
   )
 
   // Chapter end interstitial
@@ -404,7 +382,6 @@ export default function BookReader() {
               currentParagraph={currentParagraph}
               onParagraphClick={handleParagraphClick}
               onCopyText={handleCopyText}
-              onRegenerate={handleRegenerate}
               bookmarkedParagraphs={bookmarkedParagraphs}
               missingAudioParagraphs={
                 chapterLoading ? undefined : (missingAudioParagraphs ?? undefined)

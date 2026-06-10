@@ -198,18 +198,6 @@ class TTSCacheService implements CacheService {
     }
   }
 
-  async delete(text: string, voice: string): Promise<boolean> {
-    await this.ensureInitialized()
-
-    const hash = getCacheHash(text, voice)
-    const result = await prisma.cacheEntry.deleteMany({ where: { hash } })
-
-    if (result.count === 0) return false
-
-    await this.deleteFiles(hash)
-    return true
-  }
-
   private async deleteFiles(hash: string): Promise<void> {
     const audioPath = path.join(this.cacheDir, `${hash}.opus`)
     const jsonPath = path.join(this.cacheDir, `${hash}.json`)

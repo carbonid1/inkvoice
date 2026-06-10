@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePregenStore } from '@/store/usePregenStore'
 
 interface UseAudioAvailabilityParams {
@@ -12,7 +12,6 @@ interface UseAudioAvailabilityParams {
 interface UseAudioAvailabilityResult {
   /** Paragraph indices with no cached audio for the current voice; null while unknown. */
   missingAudioParagraphs: Set<number> | null
-  refetch: () => void
 }
 
 /**
@@ -29,7 +28,6 @@ export const useAudioAvailability = ({
     key: string
     missing: Set<number>
   } | null>(null)
-  const [refetchKey, setRefetchKey] = useState(0)
   const job = usePregenStore(s => s.jobs[bookId])
   const jobProgress = job ? `${job.status}:${job.completedParagraphs}` : null
 
@@ -58,14 +56,12 @@ export const useAudioAvailability = ({
 
     fetchAvailability()
     return () => controller.abort()
-  }, [bookId, chapter, voice, jobProgress, refetchKey])
+  }, [bookId, chapter, voice, jobProgress])
 
   // A result fetched for a different (chapter, voice) key is stale — report
   // "unknown" rather than dimming the wrong paragraphs while the fetch lands.
   const missingAudioParagraphs =
     availability?.key === `${bookId}|${chapter}|${voice}` ? availability.missing : null
 
-  const refetch = useCallback(() => setRefetchKey(key => key + 1), [])
-
-  return useMemo(() => ({ missingAudioParagraphs, refetch }), [missingAudioParagraphs, refetch])
+  return useMemo(() => ({ missingAudioParagraphs }), [missingAudioParagraphs])
 }

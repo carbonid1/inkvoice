@@ -18,7 +18,6 @@ interface ContentBlockProps {
   currentParagraph: number
   onParagraphClick?: (chapter: number, paragraph: number) => void
   onCopyText?: (chapter: number, paragraph: number) => void
-  onRegenerate?: (chapter: number, paragraph: number) => void | Promise<void>
   currentChapter: number
   paragraphRef: RefObject<HTMLSpanElement | null>
   isInTitleGroup?: boolean
@@ -32,7 +31,6 @@ export const ContentBlock = ({
   currentParagraph,
   onParagraphClick,
   onCopyText,
-  onRegenerate,
   currentChapter,
   paragraphRef,
   isInTitleGroup,
@@ -46,7 +44,6 @@ export const ContentBlock = ({
       currentParagraph,
       onParagraphClick,
       onCopyText,
-      onRegenerate,
       currentChapter,
       paragraphRef,
       bookmarkedParagraphs,
@@ -130,7 +127,6 @@ export const ContentBlock = ({
                   currentParagraph={currentParagraph}
                   onParagraphClick={onParagraphClick}
                   onCopyText={onCopyText}
-                  onRegenerate={onRegenerate}
                   currentChapter={currentChapter}
                   paragraphRef={paragraphRef}
                   bookmarkedParagraphs={bookmarkedParagraphs}
@@ -229,15 +225,12 @@ export const ContentBlock = ({
                   </tr>
                 )
 
-                return onCopyText &&
-                  onRegenerate &&
-                  isSpeakableText(row.segments[0]?.html ?? '') ? (
+                return onCopyText && isSpeakableText(row.segments[0]?.html ?? '') ? (
                   <ParagraphContextMenu
                     key={rowIndex}
                     chapter={currentChapter}
                     paragraph={paragraphIndex}
                     onCopyText={onCopyText}
-                    onRegenerate={onRegenerate}
                   >
                     {tableRow}
                   </ParagraphContextMenu>
