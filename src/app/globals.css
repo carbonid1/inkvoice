@@ -38,3 +38,18 @@ body {
   background: oklch(0.49 0.24 264);
   color: white;
 }
+
+/* Correctness by default: per-class motion-reduce variants kept getting missed
+   (each new transition needs a remembered companion). `none` rather than
+   near-zero durations: a 0.01ms transition still waits for a frame, so styles
+   would stay un-applied in frameless contexts (occluded windows, automation);
+   nothing in the app listens for transitionend/animationend. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
