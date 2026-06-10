@@ -1,6 +1,7 @@
 'use client'
 
 import type { RefObject } from 'react'
+import { isSpeakableText } from '@/lib/helpers/isSpeakableText/isSpeakableText'
 import type { ContentBlock as ContentBlockType, TextSegment } from '@/lib/types/book'
 import { ParagraphContextMenu } from '../../ParagraphContextMenu/ParagraphContextMenu'
 import { ACTIVE_PARAGRAPH_HIGHLIGHT, MISSING_AUDIO_DIM } from '../Reader.consts'
@@ -228,7 +229,9 @@ export const ContentBlock = ({
                   </tr>
                 )
 
-                return onCopyText && onRegenerate ? (
+                return onCopyText &&
+                  onRegenerate &&
+                  isSpeakableText(row.segments[0]?.html ?? '') ? (
                   <ParagraphContextMenu
                     key={rowIndex}
                     chapter={currentChapter}

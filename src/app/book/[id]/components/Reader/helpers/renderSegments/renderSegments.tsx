@@ -1,6 +1,7 @@
 'use client'
 
 import type { RefObject } from 'react'
+import { isSpeakableText } from '@/lib/helpers/isSpeakableText/isSpeakableText'
 import type { TextSegment } from '@/lib/types/book'
 import { ParagraphContextMenu } from '../../../ParagraphContextMenu/ParagraphContextMenu'
 import { ACTIVE_PARAGRAPH_HIGHLIGHT, MISSING_AUDIO_DIM } from '../../Reader.consts'
@@ -54,8 +55,12 @@ export const renderSegments = ({
       />
     )
 
+    // Separators ('———', '???') can never have audio — offering Regenerate
+    // there would silently advance playback instead of regenerating.
+    const hasSpeakableText = isSpeakableText(segment.html.replace(/<[^>]+>/g, ''))
+
     const wrapped =
-      onCopyText && onRegenerate ? (
+      onCopyText && onRegenerate && hasSpeakableText ? (
         <ParagraphContextMenu
           chapter={currentChapter}
           paragraph={segment.paragraphIndex}
