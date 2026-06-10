@@ -211,6 +211,50 @@ describe('pregenWorker', () => {
     expect(mockPregenQueue.complete).toHaveBeenCalledWith('job-1')
   })
 
+  it('skips unspeakable paragraphs without calling TTS', async () => {
+    const job = {
+      id: 'job-1',
+      bookId: 'book-1',
+      voice: 'narrator',
+      status: 'queued',
+      totalParagraphs: 2,
+      completedParagraphs: 0,
+      generatedDurationMs: 0,
+      currentChapter: 0,
+      currentParagraph: 0,
+    }
+
+    mockPregenQueue.getNext.mockResolvedValueOnce(job).mockResolvedValueOnce(null)
+
+    mockBookService.getBookOverview.mockResolvedValue({
+      id: 'book-1',
+      title: 'Test Book',
+      author: 'Author',
+      chapters: [{ title: 'Ch 1', paragraphCount: 2, wordCount: 100 }],
+    })
+
+    mockBookService.getParagraph.mockResolvedValueOnce('———').mockResolvedValueOnce('Real prose.')
+
+    mockCacheService.has.mockResolvedValue(false)
+
+    mockTtsService.generate.mockResolvedValue({
+      audio: Buffer.alloc(100),
+      generationTimeMs: 5000,
+      timestamps: null,
+      durationMs: 3000,
+    })
+
+    pregenWorker.start()
+    await new Promise(r => setTimeout(r, 50))
+    pregenWorker.stop()
+
+    // Only the prose paragraph reaches TTS; the separator still counts as progress
+    expect(mockTtsService.generate).toHaveBeenCalledTimes(1)
+    expect(mockTtsService.generate).toHaveBeenCalledWith('Real prose.', 'narrator')
+    expect(mockPregenQueue.updateProgress).toHaveBeenCalledWith('job-1', 0, 0, 1, 0)
+    expect(mockPregenQueue.complete).toHaveBeenCalledWith('job-1')
+  })
+
   it('retries with backoff then pauses after exhausting retries', async () => {
     vi.useFakeTimers()
 

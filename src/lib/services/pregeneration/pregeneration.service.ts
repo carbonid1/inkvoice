@@ -1,4 +1,5 @@
 import { env } from '@/lib/config/env'
+import { isSpeakableText } from '@/lib/helpers/isSpeakableText/isSpeakableText'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { diskSpaceService } from '@/lib/services/platform/diskSpace'
@@ -158,6 +159,37 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
   let cumulativeDurationMs = job.generatedDurationMs
   let cachedSkipsSinceEmit = 0
 
+  // Complete a paragraph without TTS (cache hit, or an unspeakable separator
+  // that can never have audio); SSE emits stay batched. Returns false when the
+  // job row vanished and the worker must bail.
+  const recordSkippedParagraph = async (
+    ch: number,
+    para: number,
+    durationMs: number,
+    logContext: string,
+  ): Promise<boolean> => {
+    completedParagraphs++
+    cumulativeDurationMs += durationMs
+    cachedSkipsSinceEmit++
+    const updated = await pregenQueueService.updateProgress(
+      job.id,
+      ch,
+      para,
+      completedParagraphs,
+      cumulativeDurationMs,
+    )
+
+    if (!updated) {
+      logVanished(job.id, logContext)
+      return false
+    }
+    if (cachedSkipsSinceEmit >= CACHED_SKIP_EMIT_INTERVAL) {
+      emitJob(updated)
+      cachedSkipsSinceEmit = 0
+    }
+    return true
+  }
+
   for (let ch = job.currentChapter; ch < overview.chapters.length; ch++) {
     const chapter = overview.chapters[ch]
 
@@ -203,29 +235,22 @@ const processJob = async (job: PregenJob, myLoopId: number): Promise<void> => {
 
       if (!text) continue
 
-      // Skip already-cached paragraphs (batch emit to avoid flooding)
+      // Unspeakable paragraphs (table rules, "???" headlines) would synthesize
+      // to silence — count them completed without TTS so the job can't pause
+      // retrying audio that will never exist.
+      if (!isSpeakableText(text)) {
+        if (!(await recordSkippedParagraph(ch, para, 0, 'unspeakable-skip updateProgress'))) return
+        continue
+      }
+
+      // Skip already-cached paragraphs
       const isCached = await cacheService.has(text, job.voice)
 
       if (isCached) {
-        completedParagraphs++
-        cumulativeDurationMs += await cacheService.getDurationMs(text, job.voice)
-        cachedSkipsSinceEmit++
-        const updated = await pregenQueueService.updateProgress(
-          job.id,
-          ch,
-          para,
-          completedParagraphs,
-          cumulativeDurationMs,
-        )
+        const durationMs = await cacheService.getDurationMs(text, job.voice)
 
-        if (!updated) {
-          logVanished(job.id, 'cached-skip updateProgress')
+        if (!(await recordSkippedParagraph(ch, para, durationMs, 'cached-skip updateProgress')))
           return
-        }
-        if (cachedSkipsSinceEmit >= CACHED_SKIP_EMIT_INTERVAL) {
-          emitJob(updated)
-          cachedSkipsSinceEmit = 0
-        }
         continue
       }
 

@@ -76,35 +76,38 @@ export const PlayerContainer = ({
   const [wordTimestamps, setWordTimestamps] = useState<WordTimestamp[] | null>(null)
 
   const audioPlayer = useAudioPlayer({
-    onEnded: () => {
-      const next = position.getNextPosition(
-        position.currentChapterRef.current,
-        position.currentParagraphRef.current,
-      )
-
-      if (!next) {
-        // End of book
-        playingPositionRef.current = null
-        setWordTimestamps(null)
-        audioPlayer.setPlaying(false)
-        return
-      }
-
-      // Check for chapter boundary
-      if (next.ch !== position.currentChapterRef.current) {
-        pendingChapterAdvanceRef.current = true
-        setWordTimestamps(null)
-        audioPlayer.setPlaying(false)
-        onChapterEndRef.current?.()
-        return
-      }
-
-      position.onProgressChangeRef.current(next.ch, next.para)
-    },
+    onEnded: () => advanceToNext(),
   })
 
   const { setLoading, setError, play, resume, shouldPlay, pause, stop, setPlaying, isPlaying } =
     audioPlayer
+
+  // Stable across renders (refs and no-dep callbacks), so advanceToNext keeps
+  // one identity for the lifetime of the player.
+  const { getNextPosition, currentChapterRef, currentParagraphRef, onProgressChangeRef } = position
+
+  const advanceToNext = useCallback(() => {
+    const next = getNextPosition(currentChapterRef.current, currentParagraphRef.current)
+
+    if (!next) {
+      // End of book
+      playingPositionRef.current = null
+      setWordTimestamps(null)
+      setPlaying(false)
+      return
+    }
+
+    // Check for chapter boundary
+    if (next.ch !== currentChapterRef.current) {
+      pendingChapterAdvanceRef.current = true
+      setWordTimestamps(null)
+      setPlaying(false)
+      onChapterEndRef.current?.()
+      return
+    }
+
+    onProgressChangeRef.current(next.ch, next.para)
+  }, [getNextPosition, currentChapterRef, currentParagraphRef, onProgressChangeRef, setPlaying])
 
   const abortRef = useRef<AbortController | null>(null)
   const blobUrlRef = useRef<string | null>(null)
@@ -122,6 +125,9 @@ export const PlayerContainer = ({
       const url = `/api/tts/${bookId}/${ch}/${para}?voice=${encodeURIComponent(voice ?? DEFAULT_VOICE)}`
       const response = await fetch(url, { cache: 'no-store', signal })
 
+      // 204: the paragraph is unspeakable (a decorative separator) — there is
+      // nothing to play, ever. Distinct from null (audio missing/not generated).
+      if (response.status === 204) return 'unspeakable'
       if (!response.ok) return null
       const timestamps = parseTimestampsHeader(response)
       const blob = await response.blob()
@@ -183,6 +189,13 @@ export const PlayerContainer = ({
         return
       }
 
+      if (result === 'unspeakable') {
+        // Nothing to play, ever — skip past the paragraph.
+        setLoading(false)
+        advanceToNext()
+        return
+      }
+
       playingPositionRef.current = { ch: targetChapter, para: targetParagraph }
       setWordTimestamps(result.timestamps)
       await play(result.url)
@@ -207,6 +220,7 @@ export const PlayerContainer = ({
     play,
     stop,
     setPlaying,
+    advanceToNext,
     position.currentChapterRef,
     position.currentParagraphRef,
   ])

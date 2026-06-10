@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { isSpeakableText } from '@/lib/helpers/isSpeakableText/isSpeakableText'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { resolveValidVoice } from '@/lib/services/voice/helpers/resolveValidVoice/resolveValidVoice'
@@ -32,7 +33,11 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
     }
 
     const cached = await getCacheService().hasMany(parsedChapter.paragraphs, voice)
-    const missingParagraphs = cached.flatMap((isCached, index) => (isCached ? [] : [index]))
+    // Unspeakable paragraphs never get audio and never need it — reporting
+    // them as missing would disable play with nothing to generate.
+    const missingParagraphs = cached.flatMap((isCached, index) =>
+      isCached || !isSpeakableText(parsedChapter.paragraphs[index] ?? '') ? [] : [index],
+    )
 
     return NextResponse.json({ missingParagraphs }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {

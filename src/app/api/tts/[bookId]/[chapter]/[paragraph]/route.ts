@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { isSpeakableText } from '@/lib/helpers/isSpeakableText/isSpeakableText'
 import { getBookService } from '@/lib/services/book/book.service'
 import { getCacheService } from '@/lib/services/cache/cache.service'
 import { resolveValidVoice } from '@/lib/services/voice/helpers/resolveValidVoice/resolveValidVoice'
@@ -60,6 +61,13 @@ export const GET = async (request: NextRequest, { params }: RouteParams) => {
   if (result instanceof NextResponse) return result
 
   const { voice, fellBack, text } = result
+
+  // No speech can exist for this paragraph — 204 tells the player to advance
+  // past it instead of treating it as missing audio.
+  if (!isSpeakableText(text)) {
+    return new NextResponse(null, { status: 204 })
+  }
+
   const cacheService = getCacheService()
 
   const cached = await cacheService.get(text, voice)
