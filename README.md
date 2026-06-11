@@ -2,6 +2,8 @@
 
 Local EPUB reader that turns your books into audiobooks. Narration is generated on-device with neural TTS — no cloud, no accounts, no data leaving your Mac.
 
+![InkVoice library](docs/screenshots/library.png)
+
 ## Download
 
 Grab the `.dmg` from the [latest release](https://github.com/carbonid1/inkvoice/releases/latest). Requires an Apple Silicon Mac.
@@ -22,6 +24,14 @@ First launch downloads the TTS model (~1.6 GB) into `~/.cache/huggingface/`. You
 - **11 voices included** — and you can add your own from a ~10-second reference recording
 - **Pregeneration** — synthesize a whole book's audio ahead of time, within a storage budget you control
 - **Reading progress and bookmarks** — pick up where you left off, in text or audio
+
+|                        Reader                         |                    Generation queue                     |
+| :---------------------------------------------------: | :-----------------------------------------------------: |
+| ![Reader with narration](docs/screenshots/reader.png) | ![Pregeneration queue](docs/screenshots/generation.png) |
+
+|                        Dark mode                         |                       Voices & storage                       |
+| :------------------------------------------------------: | :----------------------------------------------------------: |
+| ![Reader in dark mode](docs/screenshots/reader-dark.png) | ![Voice and storage settings](docs/screenshots/settings.png) |
 
 ## Development
 
