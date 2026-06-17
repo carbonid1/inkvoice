@@ -3,6 +3,10 @@
     "inkvoice-storybook": {
       "type": "http",
       "url": "http://localhost:7007/mcp"
+    },
+    "linear-personal": {
+      "type": "http",
+      "url": "https://mcp.linear.app/mcp"
     }
   }
 }
