@@ -8,12 +8,18 @@ Local EPUB reader that turns your books into audiobooks. Narration is generated 
 
 Grab the `.dmg` from the [latest release](https://github.com/carbonid1/inkvoice/releases/latest). Requires an Apple Silicon Mac.
 
-The app is unsigned, so macOS blocks the first launch:
+InkVoice is unsigned and un-notarized — I don't have an Apple Developer account and don't plan to get one, so this is a **wontfix**. Because of it, macOS quarantines the download and refuses to launch, usually with **"InkVoice is damaged and can't be opened."** The app isn't actually damaged; macOS just won't run an unsigned downloaded app without a nudge, and for this particular error neither right-click → **Open** nor **Open Anyway** in System Settings clears it.
 
-1. Open the app and dismiss the warning.
-2. Go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**.
+To get past it:
 
-(On macOS 15+ the old right-click → Open trick no longer works — the settings route is the only way.)
+1. Drag **InkVoice** into your **Applications** folder.
+2. Open **Terminal** and run:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/InkVoice.app
+   ```
+3. Launch InkVoice normally.
+
+That strips the quarantine flag macOS added on download, after which the app opens like any other. You only need to do it once per install (repeat it after each update). If you dragged InkVoice somewhere other than `/Applications` — e.g. your user `~/Applications` folder — point the command at that path instead.
 
 First launch downloads the TTS model (~1.6 GB) into `~/.cache/huggingface/`. Your books, generated audio, and settings live in `~/Library/Application Support/InkVoice/`.
 

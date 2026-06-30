@@ -18,17 +18,17 @@ description: InkVoice Electron desktop app context. Use when working on anything
 
 ## Key Decisions
 
-| Decision            | Choice                                    | Why                                                                                     |
-| ------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------- |
-| Python bundling     | python-build-standalone (full runtime)    | PyInstaller + PyTorch + MPS is fragile. Full runtime is bigger but guaranteed to work.  |
-| Node.js for Next.js | Bundled standalone binary                 | Avoids Electron's ABI for native modules (better-sqlite3). Clean process separation.    |
-| Migration runner    | Python (stdlib sqlite3)                   | pnpm symlinks break portable `node_modules` for native addons. Python just works.       |
-| Code signing        | None (unsigned)                           | Friends use right-click → Open.                                                         |
-| Architecture        | arm64 only                                | All target users have Apple Silicon Macs.                                               |
-| Model weights       | Download on first launch                  | ~1.6GB OmniVoice model at `~/.cache/huggingface/` — shared with dev, not re-downloaded. |
-| Data directory      | `~/Library/Application Support/InkVoice/` | Persists across uninstalls. Dev still uses `./data/`.                                   |
-| Distribution        | Share .dmg directly                       | No GitHub Releases, no auto-update.                                                     |
-| Voice updates       | First-launch copy only                    | Voices copied from bundle once. Future versions don't sync new voices.                  |
+| Decision            | Choice                                    | Why                                                                                                                                                                                                      |
+| ------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Python bundling     | python-build-standalone (full runtime)    | PyInstaller + PyTorch + MPS is fragile. Full runtime is bigger but guaranteed to work.                                                                                                                   |
+| Node.js for Next.js | Bundled standalone binary                 | Avoids Electron's ABI for native modules (better-sqlite3). Clean process separation.                                                                                                                     |
+| Migration runner    | Python (stdlib sqlite3)                   | pnpm symlinks break portable `node_modules` for native addons. Python just works.                                                                                                                        |
+| Code signing        | None (unsigned)                           | Downloaded app is quarantined → "is damaged" error. Users clear it with `xattr -dr com.apple.quarantine` (right-click → Open and Open Anyway do NOT work for this verdict). See README Download section. |
+| Architecture        | arm64 only                                | All target users have Apple Silicon Macs.                                                                                                                                                                |
+| Model weights       | Download on first launch                  | ~1.6GB OmniVoice model at `~/.cache/huggingface/` — shared with dev, not re-downloaded.                                                                                                                  |
+| Data directory      | `~/Library/Application Support/InkVoice/` | Persists across uninstalls. Dev still uses `./data/`.                                                                                                                                                    |
+| Distribution        | Share .dmg directly                       | No GitHub Releases, no auto-update.                                                                                                                                                                      |
+| Voice updates       | First-launch copy only                    | Voices copied from bundle once. Future versions don't sync new voices.                                                                                                                                   |
 
 ## Build Pipeline
 
