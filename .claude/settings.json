@@ -1,7 +1,4 @@
 {
-  "env": {
-    "CLAUDE_CODE_TASK_LIST_ID": "default"
-  },
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
